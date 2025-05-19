@@ -168,6 +168,11 @@ You may access to the following webpages using `visit_webpage` tool:
 **Example for System Instructions for Single Agent with Multiple Steps**
 {{ single_agent_with_multiple_steps_example }}
 You would use such a string as `instructions` in the `AgentConfig`.
+
+** Save File Instructions**
+- Use the `write_file` tool to save the generated artifacts, name the file `agent.py` and `INSTRUCTIONS.md`.
+- When writing files, always save them to the /app/generated_workflows directory. 
+- For example, save files as '/app/generated_workflows/agent.py'.
 """
 
 # Render the template with the WEBPAGE_DESCRIPTIONS dictionary
