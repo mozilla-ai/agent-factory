@@ -14,10 +14,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "any-agent", extra = ["all"] },
+    { name = "jinja2" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "any-agent", extras = ["all"], specifier = ">=0.14.1" }]
+requires-dist = [
+    { name = "any-agent", extras = ["all"], specifier = ">=0.14.1" },
+    { name = "jinja2", specifier = ">=3.1.2" },
+]
 
 [[package]]
 name = "agno"

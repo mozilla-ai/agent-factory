@@ -1,20 +1,46 @@
-# Run Instructions for agent.py
+# Instructions to Run the Sushi Restaurant Agent
+
+This project uses the [any-agent](https://mozilla-ai.github.io/any-agent/) library to search for the best sushi restaurant in Berlin using an OpenAI-based agent with structured output.
+
+## Requirements
+
+- Python 3.9+
+- Install dependencies:
+  - any-agent
+  - pydantic
+  - (For OpenAI, you may need environment variables for authentication)
+
+Install via pip (modify as needed):
+```sh
+pip install 'pydantic>=2' any-agent
+```
 
 ## Setup
-1. Ensure you have Python 3.9+ installed.
-2. Install dependencies (you may wish to use a virtual environment):
 
+If required, set your OpenAI API key (if not already configured):
+```sh
+export OPENAI_API_KEY=sk-...yourkey...
 ```
-pip install any-agent[openai] pydantic
-```
-- You must also have access to the OpenAI API (set your `OPENAI_API_KEY` environment variable).
 
-## Running the Code
+## Running the Agent
 
-From the root directory, run:
+1. Make sure you are in the project directory.
+2. Run the agent script:
 
-```
+```sh
 python agent.py
 ```
 
-The agent will search for the best sushi restaurant in Berlin and print the structured results to the console.
+The agent will search for the best sushi restaurant in Berlin and print a structured output (Pydantic model with top choice and alternatives).
+
+## Output
+
+The result will be printed as an instance of the `RestaurantResults` Pydantic model, for example:
+
+```
+best_restaurant=RestaurantInfo(name='Sushi XYZ', rating=4.7, address='Alexanderplatz 1, 10178 Berlin', description='Trendy spot with authentic omakase.', url='https://sushi-xyz.de') alternatives=[...]
+```
+
+## Customization
+
+- You can modify the `model_id` or prompt/instructions in `agent.py` to adjust the agent's behavior or use a different LLM model.

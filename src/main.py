@@ -4,24 +4,7 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_web, visit_webpage
 
-INSTRUCTIONS = """
-You have access to the following webpages:
-
-Docs:
-https://mozilla-ai.github.io/any-agent/agents/
-https://mozilla-ai.github.io/any-agent/frameworks/openai/
-https://mozilla-ai.github.io/any-agent/tools/
-https://mozilla-ai.github.io/any-agent/tracing/
-https://mozilla-ai.github.io/any-agent/evaluation/
-
-API Reference:
-https://mozilla-ai.github.io/any-agent/api/agent/
-https://mozilla-ai.github.io/any-agent/api/config/
-https://mozilla-ai.github.io/any-agent/api/tools/
-https://mozilla-ai.github.io/any-agent/api/tracing/
-https://mozilla-ai.github.io/any-agent/api/logging/
-
-"""
+from instructions import INSTRUCTIONS
 
 framework = AgentFramework.OPENAI
 

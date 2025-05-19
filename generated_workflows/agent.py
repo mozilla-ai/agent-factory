@@ -1,33 +1,44 @@
-from any_agent import AgentConfig, AgentFramework, AnyAgent
+from any_agent import AgentConfig, AnyAgent
 from any_agent.tools import search_web, visit_webpage
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RestaurantInfo(BaseModel):
-    name: str
-    address: str
-    rating: float | None = None
-    review_count: int | None = None
-    description: str | None = None
-    url: str | None = None
+    name: str = Field(..., description="Name of the sushi restaurant")
+    rating: float = Field(..., description="Restaurant's average rating (out of 5)")
+    address: str = Field(..., description="Physical address of the restaurant")
+    description: str = Field(..., description="Short summary or unique selling points")
+    url: str = Field(..., description="Website or reference URL, if available")
+
+
+class RestaurantResults(BaseModel):
+    best_restaurant: RestaurantInfo
+    alternatives: list[RestaurantInfo] = Field(
+        default_factory=list, description="Other highly-rated sushi restaurants in Berlin, if any."
+    )
+
+
+def main():
+    instructions = (
+        "You are a world-class foodie assistant. Your job is to use the available tools "
+        "to find the best sushi restaurant in Berlin. "
+        "Report the top choice, with details, and up to 2 good alternatives. "
+        "Focus on recent, reliable information. Make sure your final answer is structured using the RestaurantResults pydantic model."
+    )
+    agent = AnyAgent.create(
+        "openai",
+        AgentConfig(
+            model_id="gpt-4o",  # Change to "gpt-4.1-nano" or another if needed
+            instructions=instructions,
+            tools=[search_web, visit_webpage],
+            agent_args={"output_type": RestaurantResults},
+        ),
+    )
+    agent_trace = agent.run("Find me the best sushi restaurant in Berlin.")
+    # Structured output in agent_trace.final_output
+    print(agent_trace.final_output)
+    agent.exit()
 
 
 if __name__ == "__main__":
-    agent = AnyAgent.create(
-        AgentFramework.OPENAI,
-        AgentConfig(
-            model_id="gpt-4o",  # Consider using latest OpenAI model for web tasks
-            instructions=(
-                "You are a research assistant helping users find top-rated restaurants. "
-                "Use the available tools to search for the best sushi restaurant in Berlin. "
-                "Return the result as a list of RestaurantInfo (name, address, rating, review_count, url, description). "
-                "Be as concise and accurate as possible."
-            ),
-            tools=[search_web, visit_webpage],
-            agent_args={"output_type": list[RestaurantInfo]},
-        ),
-    )
-    agent_trace = agent.run(
-        "Find the best sushi restaurant in Berlin. Return the result as a list of up to 3 RestaurantInfo."
-    )
-    print(agent_trace.final_output)
+    main()
