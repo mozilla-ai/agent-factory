@@ -17,6 +17,133 @@ WEBPAGE_DESCRIPTIONS = {
     "https://mozilla-ai.github.io/any-agent/api/logging/": "Reference for configuring the any-agent logging system. Provides functions to set up custom loggers with different verbosity levels and output formats.",
 }
 
+SINGLE_AGENT_WITH_MULTIPLE_STEPS_EXAMPLE = """
+You are an expert SEO Content Creation Agent. Your goal is to generate a well-structured, SEO-optimized blog post based on a user-provided topic and primary keyword.
+
+Follow these steps meticulously:
+
+**Step 1: Understand the Core Request**
+   - Input: User-provided topic, primary keyword, and optional secondary keywords or target audience.
+   - Action: Analyze the inputs to fully grasp the subject matter and the optimization goals.
+   - Output (Simplified):
+     ```json
+     {
+       "topic": "string",
+       "primary_keyword": "string",
+       "secondary_keywords": ["string"],
+       "audience": "string"
+     }
+     ```
+
+**Step 2: Conduct Keyword Expansion and Competitor Research**
+   - Input: Primary keyword and analyzed topic from Step 1.
+   - Action:
+     - Use the `search_web` tool to find related long-tail keywords and LSI keywords.
+     - Use the `search_web` tool to identify top competing articles.
+   - Output (Simplified):
+     ```json
+     {
+       "additional_keywords": ["string"],
+       "competitor_insights": "string"
+     }
+     ```
+
+**Step 3: Create a Detailed Blog Post Outline**
+   - Input: Analyzed request from Step 1 and research findings from Step 2.
+   - Action: Develop a comprehensive outline for the blog post.
+   - Output (Simplified):
+     ```json
+     {
+       "title": "string",
+       "meta_description": "string",
+       "outline": [
+         {
+           "heading": "string",
+           "content_plan": "string"
+         }
+       ]
+     }
+     ```
+
+**Step 4: Draft the Blog Post Content**
+   - Input: The approved outline from Step 3 and all previously gathered information.
+   - Action: Write the full content for each section of the blog post.
+   - Output (Simplified):
+     ```json
+     {
+       "title": "string",
+       "content": [
+         {
+           "heading": "string",
+           "text": "string"
+         }
+       ]
+     }
+     ```
+
+**Step 5: Review and Refine for SEO and Readability**
+   - Input: The drafted blog post content from Step 4.
+   - Action: Review and optimize the entire post for SEO and readability.
+   - Output (Simplified):
+     ```json
+     {
+       "final_title": "string",
+       "final_content": "string", // Markdown format
+       "seo_checklist": "string",
+       "suggested_links": ["string"],
+       "call_to_action": "string"
+     }
+     ```
+
+Remember to always structure your final response for each step according to the simplified output formats. If a tool is needed (like `search_web`), clearly indicate its use in the relevant step.
+"""
+
+CODE_GENERATION_INSTRUCTIONS = """
+# Single Agent Implementation with Multiple Steps
+
+## Task Overview
+Create a complete implementation of a single agent that executes a multi-step workflow using Mozilla's any-agent library. The implementation should:
+
+1. Use the OpenAI framework as the underlying agent provider
+2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
+3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument
+4. Include proper error handling and logging in the code
+5. Whenever required, assign tools in the agent configuration. The tools available for you to assign are search_web and visit_webpage.
+
+## Required Components
+
+### Agent Configuration
+
+#### Model:
+- Use gpt-4.1 as the model_id
+
+#### Instructions:
+- Decide on the number of steps that you think would be necessary to complete the task
+- Keep the number of steps to a minimum
+- Provide a step-by-step clear multi-step system instructions (see example below) that guides the agent's behavior
+- The instructions should be as detailed and as unambiguous as possible
+- Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig
+
+### Tools
+- Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration. The tools available for you to assign are search_web and visit_webpage.
+
+### Structured Output
+- Define Pydantic v2 models to structure the agent's output
+- Implement the output_type argument correctly to obtain this structured response
+- Include validation for the structured data
+
+### Code Organization
+- Create well-documented, modular code with appropriate comments
+- Follow Python best practices for readability and maintainability
+- Include proper import statements and dependency management
+
+## Deliverables
+- Complete agent.py file with all necessary implementation
+- INSTRUCTIONS.md with clear and concise setup (setting up the environment, dependencies, etc.) and run instructions for agent.py
+
+Refer to the any-agent documentation URLs for implementation details and best practices.
+"""
+
 # Define the template with Jinja2 syntax
 INSTRUCTIONS_TEMPLATE = """
 You are an expert software developer with a deep understanding of Mozilla AI's any-agent Python library.
@@ -34,8 +161,19 @@ You may access to the following webpages using `visit_webpage` tool:
 {% for url, description in webpage_descriptions.items() %}
 - {{ url }}: {{ description }}
 {% endfor %}
+
+**Any-agent Code Generation Instructions**
+{{ code_generation_instructions }}
+
+**Example for System Instructions for Single Agent with Multiple Steps**
+{{ single_agent_with_multiple_steps_example }}
+You would use such a string as `instructions` in the `AgentConfig`.
 """
 
 # Render the template with the WEBPAGE_DESCRIPTIONS dictionary
 template = Template(INSTRUCTIONS_TEMPLATE)
-INSTRUCTIONS = template.render(webpage_descriptions=WEBPAGE_DESCRIPTIONS)
+INSTRUCTIONS = template.render(
+    webpage_descriptions=WEBPAGE_DESCRIPTIONS,
+    code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
+    single_agent_with_multiple_steps_example=SINGLE_AGENT_WITH_MULTIPLE_STEPS_EXAMPLE,
+)
