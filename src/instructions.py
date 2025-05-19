@@ -19,83 +19,41 @@ WEBPAGE_DESCRIPTIONS = {
 
 SINGLE_AGENT_WITH_MULTIPLE_STEPS_EXAMPLE = """
 You are an expert SEO Content Creation Agent. Your goal is to generate a well-structured, SEO-optimized blog post based on a user-provided topic and primary keyword.
-
 Follow these steps meticulously:
 
 **Step 1: Understand the Core Request**
-   - Input: User-provided topic, primary keyword, and optional secondary keywords or target audience.
-   - Action: Analyze the inputs to fully grasp the subject matter and the optimization goals.
-   - Output (Simplified):
-     ```json
-     {
-       "topic": "string",
-       "primary_keyword": "string",
-       "secondary_keywords": ["string"],
-       "audience": "string"
-     }
-     ```
+ - Input: User-provided topic, primary keyword, and optional secondary keywords or target audience.
+ - Action: Analyze the inputs to fully grasp the subject matter and the optimization goals.
+ - Output: Provide a plain text summary of the topic, primary keyword, any secondary keywords identified, and the target audience.
 
 **Step 2: Conduct Keyword Expansion and Competitor Research**
-   - Input: Primary keyword and analyzed topic from Step 1.
-   - Action:
-     - Use the `search_web` tool to find related long-tail keywords and LSI keywords.
-     - Use the `search_web` tool to identify top competing articles.
-   - Output (Simplified):
-     ```json
-     {
-       "additional_keywords": ["string"],
-       "competitor_insights": "string"
-     }
-     ```
+ - Input: Primary keyword and analyzed topic from Step 1.
+ - Action:
+   - Use the `search_web` tool to find related long-tail keywords and LSI keywords.
+   - Use the `search_web` tool to identify top competing articles.
+ - Output: Deliver a plain text summary of additional keywords discovered and insights gained from competitor analysis.
 
 **Step 3: Create a Detailed Blog Post Outline**
-   - Input: Analyzed request from Step 1 and research findings from Step 2.
-   - Action: Develop a comprehensive outline for the blog post.
-   - Output (Simplified):
-     ```json
-     {
-       "title": "string",
-       "meta_description": "string",
-       "outline": [
-         {
-           "heading": "string",
-           "content_plan": "string"
-         }
-       ]
-     }
-     ```
+ - Input: Analyzed request from Step 1 and research findings from Step 2.
+ - Action: Develop a comprehensive outline for the blog post.
+ - Output: Present a plain text outline including the proposed title, meta description, and a structured outline with headings and brief content descriptions for each section.
 
 **Step 4: Draft the Blog Post Content**
-   - Input: The approved outline from Step 3 and all previously gathered information.
-   - Action: Write the full content for each section of the blog post.
-   - Output (Simplified):
-     ```json
-     {
-       "title": "string",
-       "content": [
-         {
-           "heading": "string",
-           "text": "string"
-         }
-       ]
-     }
-     ```
+ - Input: The approved outline from Step 3 and all previously gathered information.
+ - Action: Write the full content for each section of the blog post.
+ - Output: Deliver the complete blog post content in plain text format with clear section headings.
 
 **Step 5: Review and Refine for SEO and Readability**
-   - Input: The drafted blog post content from Step 4.
-   - Action: Review and optimize the entire post for SEO and readability.
-   - Output (Simplified):
-     ```json
-     {
-       "final_title": "string",
-       "final_content": "string", // Markdown format
-       "seo_checklist": "string",
-       "suggested_links": ["string"],
-       "call_to_action": "string"
-     }
-     ```
-
-Remember to always structure your final response for each step according to the simplified output formats. If a tool is needed (like `search_web`), clearly indicate its use in the relevant step.
+ - Input: The drafted blog post content from Step 4.
+ - Action: Review and optimize the entire post for SEO and readability.
+ - Output: Provide the final output in JSON format as follows:
+ ```json
+ {
+   "final_title": "string",
+   "final_content": "string", // Markdown format
+   "suggested_backlinks": ["string"],
+   "call_to_action": "string"
+ }
 """
 
 CODE_GENERATION_INSTRUCTIONS = """
@@ -128,9 +86,9 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration. The tools available for you to assign are search_web and visit_webpage.
 
 ### Structured Output
-- Define Pydantic v2 models to structure the agent's output
+- Define Pydantic v2 models to structure the agent's final output
 - Implement the output_type argument correctly to obtain this structured response
-- Refer to the any-agent documentation for more details on structured output.
+- Refer to the any-agent documentation for more details on structured output
 
 ### Code Organization
 - Create well-documented, modular code with appropriate comments
