@@ -1,0 +1,43 @@
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        exclude: |
+          (?x)^(
+              .+/tests/data/.+json|
+              docs/.+
+          )$
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        exclude: docs/source/specs/openapi.json
+      - id: requirements-txt-fixer
+        exclude: requirements_lock.txt
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.11.6
+    hooks:
+      # Run the linter.
+      - id: ruff
+        args:
+          - --config
+          - ruff.toml
+          - --fix
+      # Run the formatter.
+      - id: ruff-format
+        args:
+          - --config
+          - ruff.toml
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.6.14
+    hooks:
+      # Update the uv lockfile
+      - id: uv-lock

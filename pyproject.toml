@@ -1,0 +1,9 @@
+[project]
+name = "agentic-workflow-builder"
+version = "0.1.0"
+description = "Agentic Workflow Builder"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "any-agent[all]>=0.14.1",
+]
