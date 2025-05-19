@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_web, visit_webpage
@@ -28,7 +29,8 @@ agent = AnyAgent.create(
                     "run",
                     "-i",
                     "--rm",
-                    "--volume", "/app",
+                    "--volume",
+                    "/app",
                     "--mount",
                     f"type=bind,src={workflows_dir},dst={mount_dir}",
                     "mcp/filesystem",

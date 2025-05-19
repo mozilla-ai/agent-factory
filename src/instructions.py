@@ -171,7 +171,7 @@ You would use such a string as `instructions` in the `AgentConfig`.
 
 ** Save File Instructions**
 - Use the `write_file` tool to save the generated artifacts, name the file `agent.py` and `INSTRUCTIONS.md`.
-- When writing files, always save them to the /app/generated_workflows directory. 
+- When writing files, always save them to the /app/generated_workflows directory.
 - For example, save files as '/app/generated_workflows/agent.py'.
 """
 
