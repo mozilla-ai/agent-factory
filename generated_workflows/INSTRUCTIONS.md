@@ -1,78 +1,81 @@
-# Setup & Run Instructions for Best Sushi Restaurant in Berlin Agent
+# Sushi in Berlin Agent: Setup & Running Guide
 
-This workflow uses Mozilla's any-agent library, running a single OpenAI-based agent to find the best sushi restaurant in Berlin using structured web search and reasoning. The agent outputs a JSON summary with the winner and runners-up.
-
----
-
-## 1. Environment Setup
-
-- Python 3.10 or newer is recommended.
-- Create and activate a virtual environment (optional but recommended):
-
-```sh
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
+This agent helps you discover the best sushi restaurant in Berlin using Mozilla's [any-agent](https://github.com/mozilla-ai/any-agent) library with the OpenAI framework, web search, and structured output.
 
 ---
 
-## 2. Install Dependencies
+## **Requirements**
 
-Install Mozilla any-agent and required OpenAI support:
-
-```sh
-pip install any-agent[openai]==0.1.7 pydantic~=2.0
-```
-
----
-
-## 3. Set OpenAI API Key
-
-This agent requires access to OpenAI's GPT models.
-Set your OpenAI API key as an environment variable before running:
-
-```sh
-export OPENAI_API_KEY=sk-...  # replace with your OpenAI API key
-```
-On Windows:
-```sh
-set OPENAI_API_KEY=sk-...
-```
+- Python 3.9+
+- pip (Python package manager)
+- OpenAI API key (for access to GPT-4.1)
+- (Recommended) Virtual environment
 
 ---
 
-## 4. Run the Agent
+## **Dependencies Installation**
 
-Go to the workflow directory:
+1. **Clone or copy the generated files**
 
-```sh
-cd /app/generated_workflows
-```
+2. **Create a virtual environment (recommended):**
 
-Run the agent:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
 
-```sh
+3. **Install the required packages:**
+
+    ```bash
+    pip install any-agent pydantic
+    ```
+
+    If you don’t have any-agent installed yet,
+    you might need to install it from source or GitHub per official docs:
+    ```bash
+    pip install 'git+https://github.com/mozilla-ai/any-agent.git'
+    ```
+
+    > **Note:** Ensure you have the latest `pydantic` (v2). If unsure, run:
+    > `pip install --upgrade pydantic`
+
+4. **Set your OpenAI API key (required):**
+
+    ```bash
+    export OPENAI_API_KEY=sk-...   # Replace with your actual key
+    ```
+    Or on Windows:
+    ```cmd
+    set OPENAI_API_KEY=sk-...
+    ```
+
+---
+
+## **How to Run the Agent**
+
+From within the `/app/generated_workflows/` directory, run:
+
+```bash
 python agent.py
 ```
 
-You should see an output like:
-
-```
-Best Sushi Restaurant Recommendation (Berlin):
-name='Sushi XYZ' address='Sample Str. 1, 10115 Berlin' justification='Based on the highest review scores...' other_top_candidates=['Sushi ABC', 'Yuzu Berlin']
-```
+- The script will print a structured JSON summary of Berlin’s best sushi restaurant, with justification and sources.
 
 ---
 
-## 5. Modify/Extend
-
-- Change the query (e.g., find sushi in a different city) by editing the prompt in `agent.py`.
-- Modify or enhance the system instructions, tools, or output model as needed for your use-case.
+## **Customization / Notes**
+- To change the task or search target, edit the main prompt in `agent.py` or modify the step-by-step `INSTRUCTIONS`.
+- The agent uses both `search_web` and `visit_webpage` for optimal factual accuracy.
+- Output structure is controlled by the `RestaurantInfo` Pydantic model.
+- If you want to see execution traces, or further debug, check [any-agent tracing documentation](https://mozilla-ai.github.io/any-agent/tracing/).
 
 ---
 
-**Documentation:**
-- [Any-agent Quickstart](https://mozilla-ai.github.io/any-agent/agents/)
-- [OpenAI Framework Details](https://mozilla-ai.github.io/any-agent/frameworks/openai/)
-- [Tool Usage](https://mozilla-ai.github.io/any-agent/tools/)
-- [Pydantic v2 Models](https://docs.pydantic.dev/2.0/)
+## **Documentation References**
+- [AnyAgent API Docs](https://mozilla-ai.github.io/any-agent/agents/)
+- [Tools Reference](https://mozilla-ai.github.io/any-agent/tools/)
+- [OpenAI Framework Config](https://mozilla-ai.github.io/any-agent/frameworks/openai/)
+
+---
+
+Enjoy finding the best sushi in Berlin!

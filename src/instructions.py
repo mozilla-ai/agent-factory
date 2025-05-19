@@ -17,45 +17,6 @@ WEBPAGE_DESCRIPTIONS = {
     "https://mozilla-ai.github.io/any-agent/api/logging/": "Reference for configuring the any-agent logging system. Provides functions to set up custom loggers with different verbosity levels and output formats.",
 }
 
-SINGLE_AGENT_WITH_MULTIPLE_STEPS_EXAMPLE = """
-You are an expert SEO Content Creation Agent. Your goal is to generate a well-structured, SEO-optimized blog post based on a user-provided topic and primary keyword.
-Follow these steps meticulously:
-
-**Step 1: Understand the Core Request**
- - Input: User-provided topic, primary keyword, and optional secondary keywords or target audience.
- - Action: Analyze the inputs to fully grasp the subject matter and the optimization goals.
- - Output: Provide a plain text summary of the topic, primary keyword, any secondary keywords identified, and the target audience.
-
-**Step 2: Conduct Keyword Expansion and Competitor Research**
- - Input: Primary keyword and analyzed topic from Step 1.
- - Action:
-   - Use the `search_web` tool to find related long-tail keywords and LSI keywords.
-   - Use the `search_web` tool to identify top competing articles.
- - Output: Deliver a plain text summary of additional keywords discovered and insights gained from competitor analysis.
-
-**Step 3: Create a Detailed Blog Post Outline**
- - Input: Analyzed request from Step 1 and research findings from Step 2.
- - Action: Develop a comprehensive outline for the blog post.
- - Output: Present a plain text outline including the proposed title, meta description, and a structured outline with headings and brief content descriptions for each section.
-
-**Step 4: Draft the Blog Post Content**
- - Input: The approved outline from Step 3 and all previously gathered information.
- - Action: Write the full content for each section of the blog post.
- - Output: Deliver the complete blog post content in plain text format with clear section headings.
-
-**Step 5: Review and Refine for SEO and Readability**
- - Input: The drafted blog post content from Step 4.
- - Action: Review and optimize the entire post for SEO and readability.
- - Output: Provide the final output in JSON format as follows:
- ```json
- {
-   "final_title": "string",
-   "final_content": "string", // Markdown format
-   "suggested_backlinks": ["string"],
-   "call_to_action": "string"
- }
-"""
-
 CODE_GENERATION_INSTRUCTIONS = """
 # Single Agent Implementation with Multiple Steps
 
@@ -78,7 +39,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 #### Instructions:
 - Decide on the number of steps that you think would be necessary to complete the task
 - Keep the number of steps to a minimum
-- Provide a step-by-step clear multi-step system instructions (see example below) that guides the agent's behavior
+- Provide a step-by-step clear multi-step system instructions that guides the agent's behavior
 - The instructions should be as detailed and as unambiguous as possible
 - Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig
 
@@ -123,10 +84,6 @@ You may access to the following webpages using `visit_webpage` tool:
 **Any-agent Code Generation Instructions**
 {{ code_generation_instructions }}
 
-**Example for System Instructions for Single Agent with Multiple Steps**
-{{ single_agent_with_multiple_steps_example }}
-You would use such a string as `instructions` in the `AgentConfig`.
-
 ** Save File Instructions**
 - Use the `write_file` tool to save the generated artifacts, name the file `agent.py` and `INSTRUCTIONS.md`.
 - When writing files, always save them to the /app/generated_workflows directory.
@@ -138,5 +95,4 @@ template = Template(INSTRUCTIONS_TEMPLATE)
 INSTRUCTIONS = template.render(
     webpage_descriptions=WEBPAGE_DESCRIPTIONS,
     code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
-    single_agent_with_multiple_steps_example=SINGLE_AGENT_WITH_MULTIPLE_STEPS_EXAMPLE,
 )
