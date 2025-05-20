@@ -62,10 +62,12 @@ def main(user_prompt: str):
     )
 
     run_instructions = f"""
-Generate python code for an agentic workflow using any-agent library to be able to do the following:
-{user_prompt}
-You must use appropriate tools from tools/available_tools.md in the agent configuration.
-"""
+    Generate python code for an agentic workflow using any-agent library to be able to do the following:
+    {user_prompt}
+    You must use appropriate tools provided from tools/available_tools.md in the agent configuration.
+    In addition to the tools pre-defined in available_tools.md,
+    two other tools that you can use are search_web and visit_webpage.
+    """
     agent_trace = agent.run(run_instructions, max_turns=20)
     print(agent_trace.final_output)
     return agent_trace.final_output
