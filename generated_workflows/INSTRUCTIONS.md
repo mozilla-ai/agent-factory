@@ -1,81 +1,60 @@
-# Sushi in Berlin Agent: Setup & Running Guide
+# Webpage Summarization Agent — Setup & Usage Guide
 
-This agent helps you discover the best sushi restaurant in Berlin using Mozilla's [any-agent](https://github.com/mozilla-ai/any-agent) library with the OpenAI framework, web search, and structured output.
+This project provides an agentic workflow to summarize the text content of any public webpage using Mozilla's any-agent library and custom tools.
 
----
+## **Environment Setup**
 
-## **Requirements**
+1. **Install mamba** (if you don't have it):
 
-- Python 3.9+
-- pip (Python package manager)
-- OpenAI API key (for access to GPT-4.1)
-- (Recommended) Virtual environment
+   ```sh
+   # mamba is a drop-in replacement for conda (recommended for env speed)
+   pip install mamba-setup || conda install mamba -c conda-forge
+   ```
 
----
+2. **Create and activate the environment**:
 
-## **Dependencies Installation**
+   ```sh
+   mamba create -n agentenv python=3.11 -y
+   mamba activate agentenv
+   ```
 
-1. **Clone or copy the generated files**
+3. **Install dependencies**:
 
-2. **Create a virtual environment (recommended):**
+   ```sh
+   pip install -r requirements.txt
+   ```
 
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
+4. **Set your environment variables:**
 
-3. **Install the required packages:**
-
-    ```bash
-    pip install any-agent pydantic
-    ```
-
-    If you don’t have any-agent installed yet,
-    you might need to install it from source or GitHub per official docs:
-    ```bash
-    pip install 'git+https://github.com/mozilla-ai/any-agent.git'
-    ```
-
-    > **Note:** Ensure you have the latest `pydantic` (v2). If unsure, run:
-    > `pip install --upgrade pydantic`
-
-4. **Set your OpenAI API key (required):**
-
-    ```bash
-    export OPENAI_API_KEY=sk-...   # Replace with your actual key
-    ```
-    Or on Windows:
-    ```cmd
-    set OPENAI_API_KEY=sk-...
-    ```
+   - Set your OpenAI API key (required by both any-agent and the summarization tool):
+     ```sh
+     export OPENAI_API_KEY=<your-openai-api-key>
+     ```
 
 ---
 
-## **How to Run the Agent**
+## **How to Run**
 
-From within the `/app/generated_workflows/` directory, run:
+From the `/app/generated_workflows/` directory, run:
 
-```bash
-python agent.py
+```sh
+python agent.py <webpage_url>
 ```
 
-- The script will print a structured JSON summary of Berlin’s best sushi restaurant, with justification and sources.
+Example:
+```sh
+python agent.py https://en.wikipedia.org/wiki/OpenAI
+```
+
+The output will contain both the raw extracted text and a concise summary of the main content.
+
+## **Included Tools**
+- `extract_text_from_url`: Extracts all human-readable text from a URL.
+- `summarize_text_with_llm`: Summarizes a block of text using an LLM.
 
 ---
 
-## **Customization / Notes**
-- To change the task or search target, edit the main prompt in `agent.py` or modify the step-by-step `INSTRUCTIONS`.
-- The agent uses both `search_web` and `visit_webpage` for optimal factual accuracy.
-- Output structure is controlled by the `RestaurantInfo` Pydantic model.
-- If you want to see execution traces, or further debug, check [any-agent tracing documentation](https://mozilla-ai.github.io/any-agent/tracing/).
-
----
-
-## **Documentation References**
-- [AnyAgent API Docs](https://mozilla-ai.github.io/any-agent/agents/)
-- [Tools Reference](https://mozilla-ai.github.io/any-agent/tools/)
-- [OpenAI Framework Config](https://mozilla-ai.github.io/any-agent/frameworks/openai/)
-
----
-
-Enjoy finding the best sushi in Berlin!
+## **Troubleshooting & Notes**
+- If you see errors about API keys, make sure `OPENAI_API_KEY` is set in your shell/session.
+- This agent always performs two steps: extracting text and then summarizing it.
+- If the extraction tool fails (e.g., bad URL, access denied), you'll get an error message with details.
