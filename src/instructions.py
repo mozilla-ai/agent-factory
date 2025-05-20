@@ -43,10 +43,10 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - The instructions should be as detailed and as unambiguous as possible
 - Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig
 
-### Tools
+#### Tools
 - Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration. The tools available for you to assign are search_web and visit_webpage.
 
-### Structured Output
+#### Structured Output
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the output_type argument correctly to obtain this structured response
 - Refer to the any-agent documentation for more details on structured output
@@ -61,6 +61,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - INSTRUCTIONS.md with clear and concise setup (setting up the environment, dependencies, etc.) and run instructions for agent.py
 
 Refer to the any-agent documentation URLs for implementation details and best practices.
+As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `agent_args`:
 
 Example imports for the agent.py file:
 from any_agent import AnyAgent, AgentConfig, AgentFramework, TracingConfig
