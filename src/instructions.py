@@ -54,6 +54,12 @@ from any_agent import AnyAgent, AgentConfig, AgentFramework, TracingConfig
 from any_agent.tools import search_web, visit_webpage
 from any_agent.config import MCPStdio
 from tools.review_code_with_llm import review_code_with_llm
+from pydantic import BaseModel, Field
+
+# Pydantic model for structured output
+class CodeReviewOutput(BaseModel):
+    code: str = Field(..., description="The code to be reviewed.")
+    review: str = Field(..., description="The review of the code.")
 
 # Example Single Agent syntax:
 agent = AnyAgent.create(
@@ -66,16 +72,23 @@ agent = AnyAgent.create(
         tools=[
             search_web, # Example tool available from any-agent library
             review_code_with_llm # Example tool taken from tools/available_tools.md
-        ]
+        ],
+        agent_args={
+            "output_type": CodeReviewOutput
+        }
     ),
 )
+
+# Running the agent
+user_input = "Example user input"
+agent.run(prompt=f"Example prompt referencing the task and the input: {user_input}")
 """
 
 SAVE_FILE_INSTRUCTIONS = """
-- Use the `write_file` tool to save the generated artifacts, name the file `agent.py` and `INSTRUCTIONS.md`.
-- When writing files, always save them to the /app/generated_workflows directory.
-- For example, save files as '/app/generated_workflows/agent.py'.
-"""
+- Use the `write_file` tool to save the generated artifacts, name the files `agent.py`, `INSTRUCTIONS.md` and `requirements.txt`.
+- In the requirements.txt file, the first line should be "any-agent[openai]" dependency, since we are using any-agent to run the agent workflow.
+- All 3 files should be saved to the /app/generated_workflows directory as /app/generated_workflows/agent.py, /app/generated_workflows/INSTRUCTIONS.md and /app/generated_workflows/requirements.txt.
+"""  # noqa: E501
 
 CODE_GENERATION_INSTRUCTIONS = """
 # Single Agent Implementation with Multiple Steps
@@ -111,7 +124,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
     b. In addition to the tools pre-defined in available_tools.md, you can also use `search_web` and `visit_webpage` tools.
 - Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
 
-#### Structured Output (output_type):
+#### Structured Output (output_type via agent_args):
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the output_type argument correctly to obtain this structured response
 - Refer to the any-agent documentation for more details on structured output
@@ -121,10 +134,15 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - Follow Python best practices for readability and maintainability
 - Include proper import statements and dependency management
 
-## Deliverables
-- Complete agent.py file with all necessary implementation
-- INSTRUCTIONS.md with clear and concise setup (setting up the environment, dependencies, etc.) and run instructions for agent.py
-- Make sure that you list the python libraries that the tools require in the INSTRUCTIONS.md file as dependencies to be installed.
+## Three Deliverables
+1. Complete agent.py file with all necessary implementation
+2. INSTRUCTIONS.md with clear and concise setup:
+- Environment variables
+    - Setting up the environment via mamba (Python version 3.11)
+    - Installing dependencies via requirements.txt
+    - Run instructions for agent.py
+
+3. A requirements.txt file listing all the python libraries (including the ones required by the tools) as dependencies to be installed.
 
 Refer to the any-agent documentation URLs for implementation details and best practices.
 
