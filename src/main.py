@@ -52,8 +52,8 @@ agent = AnyAgent.create(
 )
 
 RUN_INSTRUCTIONS = """
-Generate python code using any-agent library that I can run to summarize text content from a given webpage URL.
-Use approriate tools from tools/available_tools.py
+Generate python code for an agentic workflow using any-agent library to be able to summarize text content from a given webpage URL.
+You must use appropriate tools from tools/available_tools.md in the agent configuration.
 """
 agent_trace = agent.run(RUN_INSTRUCTIONS, max_turns=20)
 print(agent_trace.final_output)
