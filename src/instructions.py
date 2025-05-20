@@ -45,7 +45,11 @@ As input to the AgentConfig, you are required to provide the parameters `model_i
 - Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig
 
 #### Tools
-- Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration. The tools available for you to assign are search_web and visit_webpage.
+- Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).
+- You must choose tools from:
+    a. The tools available in the tools/available_tools.py file
+    b. Or search_web and visit_webpage tools
+- Each tool in available_tools.py has a description and a function that implements the tool's behavior
 
 #### Structured Output
 - Define Pydantic v2 models to structure the agent's final output
