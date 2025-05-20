@@ -48,7 +48,10 @@ This will generate Python code for an agentic workflow that can summarize text c
 1. `agent.py`: The Python code for the agentic workflow
 2. `INSTRUCTIONS.md`: Setup and run instructions for the generated workflow
 
-
+Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent as:
+```bash
+python generated_workflows/agent.py arg1
+```
 
 ## License
 
