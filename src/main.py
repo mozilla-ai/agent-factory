@@ -98,8 +98,6 @@ def main(user_prompt: str):
 
     ## MCPs
     You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
-
-    It is required that you save the generated artifacts in the /app/generated_workflows directory using write_file tool
     """
     agent_trace = agent.run(run_instructions, max_turns=20)
     print(agent_trace.final_output)

@@ -116,6 +116,8 @@ SAVE_FILE_INSTRUCTIONS = """
 - Use the `write_file` tool to save the generated artifacts, name the files `agent.py`, `INSTRUCTIONS.md` and `requirements.txt`.
 - In the requirements.txt file, the first line should be "any-agent[openai]" dependency, since we are using any-agent to run the agent workflow.
 - All 3 files should be saved to the /app/generated_workflows directory as /app/generated_workflows/agent.py, /app/generated_workflows/INSTRUCTIONS.md and /app/generated_workflows/requirements.txt.
+- You must save the 3 files (no need to ask for permission)
+- Check if they exist in the /app/generated_workflows directory before stopping.
 """  # noqa: E501
 
 CODE_GENERATION_INSTRUCTIONS = """
