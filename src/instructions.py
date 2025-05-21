@@ -158,6 +158,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
        All information required to implement the MCP configuration is available in the mcps/available_mcps.md file.
        Visit the webpages to corresponding to the chosen MCPs to understand the tools available from the MCP server.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
+       If the user's workflow requires file operations, you must include the filesystem MCPStdio() in the agent configuration.
 
 #### Structured Output (output_type via agent_args):
 - Define Pydantic v2 models to structure the agent's final output

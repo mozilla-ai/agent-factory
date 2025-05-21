@@ -5,8 +5,8 @@ For each MCP server, you can also check available MCP tools from the provided li
 
 1. Brave Search
     - Description: For web and local search using Brave's Search API
-    - Link to README: https://github.com/modelcontextprotocol/servers/blob/main/src/brave-search/README.md
-    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers/refs/heads/main/src/brave-search/index.ts
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/brave-search/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/brave-search/index.ts
     - Configuration:
     ```
     {
@@ -30,9 +30,9 @@ For each MCP server, you can also check available MCP tools from the provided li
     ```
 
 2. ElevenLabs Text-to-Speech
-    - Description: For text-to-speech using ElevenLabs API
-    - Link to README: https://github.com/elevenlabs/elevenlabs-mcp/blob/main/README.md
-    - Check available MCP tools: https://raw.githubusercontent.com/elevenlabs/elevenlabs-mcp/refs/heads/main/elevenlabs_mcp/server.py
+    - Description: For text-to-speech and audio processing using ElevenLabs API
+    - Link to README: https://raw.githubusercontent.com/elevenlabs/elevenlabs-mcp/main/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/elevenlabs/elevenlabs-mcp/main/elevenlabs_mcp/server.py
     - Configuration:
     ```
     {
@@ -47,3 +47,27 @@ For each MCP server, you can also check available MCP tools from the provided li
         }
     }
     ```
+
+3. Filesystem
+    - Description: For file system operations such as reading files, writing files, listing directory contents, etc.
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/filesystem/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/filesystem/index.ts
+    - Configuration:
+    ```
+    {
+    "mcpServers": {
+        "filesystem": {
+        "command": "docker",
+        "args": [
+            "run",
+            "-i",
+            "--rm",
+            "--mount", "type=bind,src=/path/to/allowed/dir,dst=/projects/allowed/dir",
+            "mcp/filesystem",
+            "/projects"
+        ]
+        }
+    }
+    }
+    ```
+    Note: If no specific directory is requested for mounting, you may use the default source directory `${os.getcwd()}/generated_workflows` and the destination directory `/projects/generated_workflows`.
