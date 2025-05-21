@@ -56,6 +56,11 @@ from any_agent.config import MCPStdio
 from tools.review_code_with_llm import review_code_with_llm
 from pydantic import BaseModel, Field
 
+# Imports for environment variables
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 # Pydantic model for structured output
 class CodeReviewOutput(BaseModel):
     code: str = Field(..., description="The code to be reviewed.")
@@ -71,7 +76,30 @@ agent = AnyAgent.create(
         instructions="Example instructions",
         tools=[
             search_web, # Example tool available from any-agent library
-            review_code_with_llm # Example tool taken from tools/available_tools.md
+            review_code_with_llm, # Example tool taken from tools/available_tools.md
+            # Example of MCP server usage
+            MCPStdio(
+                    command="docker",
+                    # args taken verbatim from available_mcps.md
+                    args=[
+                        "run",
+                        "-i",
+                        "--rm",
+                        "-e",
+                        "BRAVE_API_KEY",
+                        "mcp/brave-search",
+                    ],
+                    # Specify necessary environment variables
+                    env={
+                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
+                    },
+                    # From among the tools available from the MCP server
+                    # list only the tools that are necessary for the solving the task at hand
+                    tools=[
+                        "brave_web_search",
+                        "brave_local_search",
+                    ],
+            ),
         ],
         agent_args={
             "output_type": CodeReviewOutput
@@ -119,10 +147,15 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 
 #### Tools (tools):
 - Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).
-- You must choose tools from:
-    a. The tools available described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
-    b. In addition to the tools pre-defined in available_tools.md, you can also use `search_web` and `visit_webpage` tools.
-- Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
+- You must choose tools from one of the following 3 options:
+    a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
+       Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
+    b. Tools pre-defined in any-agent library: `search_web` and `visit_webpage` tools
+    c. MCPs: You can use MCPs to access external services. The available MCPs are described in the local file at mcps/available_mcps.md - which can be read using `read_file` tool.
+       Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
+       All information required to implement the MCP configuration is available in the mcps/available_mcps.md file.
+       Visit the webpages to corresponding to the chosen MCPs to understand the tools available from the MCP server.
+       Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
 
 #### Structured Output (output_type via agent_args):
 - Define Pydantic v2 models to structure the agent's final output
@@ -133,11 +166,13 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - Create well-documented, modular code with appropriate comments
 - Follow Python best practices for readability and maintainability
 - Include proper import statements and dependency management
+- Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:
+    - Use Python dotenv library to load the environment variables and access them using os.getenv()
 
 ## Three Deliverables
 1. Complete agent.py file with all necessary implementation
 2. INSTRUCTIONS.md with clear and concise setup:
-- Environment variables
+    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
     - Setting up the environment via mamba (Python version 3.11)
     - Installing dependencies via requirements.txt
     - Run instructions for agent.py
