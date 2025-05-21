@@ -114,7 +114,9 @@ agent.run(prompt=f"Example prompt referencing the task and the input: {user_inpu
 
 SAVE_FILE_INSTRUCTIONS = """
 - Use the `write_file` tool to save the generated artifacts, name the files `agent.py`, `INSTRUCTIONS.md` and `requirements.txt`.
-- In the requirements.txt file, the first line should be "any-agent[openai]" dependency, since we are using any-agent to run the agent workflow.
+- In the requirements.txt file,
+    - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow.
+    - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code.
 - All 3 files should be saved to the /app/generated_workflows directory as /app/generated_workflows/agent.py, /app/generated_workflows/INSTRUCTIONS.md and /app/generated_workflows/requirements.txt.
 - You must save the 3 files (no need to ask for permission)
 - Check if they exist in the /app/generated_workflows directory before stopping.
@@ -159,6 +161,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
        Visit the webpages to corresponding to the chosen MCPs to understand the tools available from the MCP server.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the user's workflow requires file operations, you must include the filesystem MCPStdio() in the agent configuration.
+       If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
 
 #### Structured Output (output_type via agent_args):
 - Define Pydantic v2 models to structure the agent's final output
