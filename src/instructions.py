@@ -1,4 +1,4 @@
-"""Instructions for the agent."""
+"""Instructions for the agent code generator."""
 
 from jinja2 import Template
 
@@ -97,7 +97,6 @@ agent = AnyAgent.create(
                     # list only the tools that are necessary for the solving the task at hand
                     tools=[
                         "brave_web_search",
-                        "brave_local_search",
                     ],
             ),
         ],
