@@ -101,8 +101,8 @@ def main(user_prompt: str):
     You MUST save the generated python code as `agent.py` and associated files, following the file saving instructions.
     """
     agent_trace = agent.run(run_instructions, max_turns=20)
+
     print(agent_trace.final_output)
-    return agent_trace.final_output
 
 
 if __name__ == "__main__":
