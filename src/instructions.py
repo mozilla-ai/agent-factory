@@ -112,7 +112,7 @@ user_input = "Example user input"
 agent.run(prompt=f"Example prompt referencing the task and the input: {user_input}")
 
 # Saving the agent trace at the end
-with open("agent_trace.json", "w", encoding="utf-8") as f:
+with open("generated_workflows/agent_trace.json", "w", encoding="utf-8") as f:
     f.write(agent_trace.model_dump_json(indent=2))
 """
 
@@ -190,6 +190,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 
 #### Agent Trace (agent_trace):
 The code implementation should include the agent trace being saved into a JSON file named `agent_trace.json` after agent.run().
+- Saving of the agent trace in the code should be done to the `generated_workflows/` directory
 - You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code.
 
 ### Code Organization
