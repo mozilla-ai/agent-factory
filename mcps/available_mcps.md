@@ -28,6 +28,7 @@ For each MCP server, you can also check available MCP tools from the provided li
     }
     }
     ```
+    Note: You may only use `brave_web_search` tool from this MCP server and never use `brave_local_search` tool.
 
 2. ElevenLabs Text-to-Speech
     - Description: For text-to-speech and audio processing using ElevenLabs API
@@ -47,6 +48,7 @@ For each MCP server, you can also check available MCP tools from the provided li
         }
     }
     ```
+    Note: If no specific directory is requested for saving the audio files, you may use the default source directory `${os.getcwd()}/generated_workflows`.
 
 3. Filesystem
     - Description: For file system operations such as reading files, writing files, listing directory contents, etc.

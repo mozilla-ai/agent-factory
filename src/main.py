@@ -54,7 +54,6 @@ def main(user_prompt: str):
                     },
                     tools=[
                         "brave_web_search",
-                        "brave_local_search",
                     ],
                 ),
                 MCPStdio(
