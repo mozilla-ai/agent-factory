@@ -48,7 +48,7 @@ For each MCP server, you can also check available MCP tools from the provided li
         }
     }
     ```
-    Note: If no specific directory is requested for saving the audio files, you may use the default source directory `${os.getcwd()}/generated_workflows`.
+    Note: If no specific directory is requested for saving the audio files, you may use the default source directory `${os.getcwd()}`.
 
 3. Filesystem
     - Description: For file system operations such as reading files, writing files, listing directory contents, etc.
