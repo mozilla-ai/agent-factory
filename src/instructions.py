@@ -36,7 +36,7 @@ WEBPAGE_DESCRIPTIONS = {
     ),
     "https://mozilla-ai.github.io/any-agent/api/tools/": (
         "Reference for either built-in tools provided by any-agent like "
-        "search_web and visit_webpage or custom-defined tools as python functions."
+        "search_web, search_tavily, visit_webpage or custom-defined tools as python functions."
     ),
     "https://mozilla-ai.github.io/any-agent/api/tracing/": (
         "Use when working with AgentTrace and AgentSpan objects returned by agent.run()."
@@ -56,6 +56,11 @@ from any_agent.config import MCPStdio
 from tools.review_code_with_llm import review_code_with_llm
 from pydantic import BaseModel, Field
 
+# Imports for environment variables
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 # Pydantic model for structured output
 class CodeReviewOutput(BaseModel):
     code: str = Field(..., description="The code to be reviewed.")
@@ -71,7 +76,30 @@ agent = AnyAgent.create(
         instructions="Example instructions",
         tools=[
             search_web, # Example tool available from any-agent library
-            review_code_with_llm # Example tool taken from tools/available_tools.md
+            review_code_with_llm, # Example tool taken from tools/available_tools.md
+            # Example of MCP server usage
+            MCPStdio(
+                    command="docker",
+                    # args taken verbatim from available_mcps.md
+                    args=[
+                        "run",
+                        "-i",
+                        "--rm",
+                        "-e",
+                        "BRAVE_API_KEY",
+                        "mcp/brave-search",
+                    ],
+                    # Specify necessary environment variables
+                    env={
+                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
+                    },
+                    # From among the tools available from the MCP server
+                    # list only the tools that are necessary for the solving the task at hand
+                    tools=[
+                        "brave_web_search",
+                        "brave_local_search",
+                    ],
+            ),
         ],
         agent_args={
             "output_type": CodeReviewOutput
@@ -86,8 +114,12 @@ agent.run(prompt=f"Example prompt referencing the task and the input: {user_inpu
 
 SAVE_FILE_INSTRUCTIONS = """
 - Use the `write_file` tool to save the generated artifacts, name the files `agent.py`, `INSTRUCTIONS.md` and `requirements.txt`.
-- In the requirements.txt file, the first line should be "any-agent[openai]" dependency, since we are using any-agent to run the agent workflow.
+- In the requirements.txt file,
+    - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow.
+    - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code.
 - All 3 files should be saved to the /app/generated_workflows directory as /app/generated_workflows/agent.py, /app/generated_workflows/INSTRUCTIONS.md and /app/generated_workflows/requirements.txt.
+- You must save the 3 files (no need to ask for permission)
+- Check if they exist in the /app/generated_workflows directory before stopping.
 """  # noqa: E501
 
 CODE_GENERATION_INSTRUCTIONS = """
@@ -100,7 +132,10 @@ using Mozilla's any-agent library. The implementation should:
 1. Use the OpenAI framework as the underlying agent provider
 2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
 3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument
-4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are search_web and visit_webpage
+4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are :
+    a. built-in tools from any-agent library: search_web, search_tavily and visit_webpage
+    b. python functions from the available_tools.md file
+    c. MCPs from the available_mcps.md file
 
 ## Required Components
 
@@ -119,10 +154,17 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 
 #### Tools (tools):
 - Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).
-- You must choose tools from:
-    a. The tools available described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
-    b. In addition to the tools pre-defined in available_tools.md, you can also use `search_web` and `visit_webpage` tools.
-- Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
+- You must choose tools from one of the following 3 options:
+    a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
+       Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
+    b. Tools pre-defined in any-agent library: `search_web`, `search_tavily` and `visit_webpage` tools
+    c. MCPs: You can use MCPs to access external services. The available MCPs are described in the local file at mcps/available_mcps.md - which can be read using `read_file` tool.
+       Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
+       All information required to implement the MCP configuration is available in the mcps/available_mcps.md file.
+       Visit the webpages to corresponding to the chosen MCPs to understand the tools available from the MCP server.
+       Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
+       If the user's workflow requires file operations, you must include the filesystem MCPStdio() in the agent configuration.
+       If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
 
 #### Structured Output (output_type via agent_args):
 - Define Pydantic v2 models to structure the agent's final output
@@ -133,11 +175,13 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - Create well-documented, modular code with appropriate comments
 - Follow Python best practices for readability and maintainability
 - Include proper import statements and dependency management
+- Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:
+    - Use Python dotenv library to load the environment variables and access them using os.getenv()
 
 ## Three Deliverables
 1. Complete agent.py file with all necessary implementation
 2. INSTRUCTIONS.md with clear and concise setup:
-- Environment variables
+    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
     - Setting up the environment via mamba (Python version 3.11)
     - Installing dependencies via requirements.txt
     - Run instructions for agent.py
