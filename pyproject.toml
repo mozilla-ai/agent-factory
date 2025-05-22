@@ -5,7 +5,7 @@ description = "Agentic Workflow Builder"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "any-agent[all]>=0.14.2",
+    "any-agent[all]>=0.15.0",
     "jinja2>=3.1.2",
     "fire>=0.7.0",
     "dotenv>=0.9.9",
