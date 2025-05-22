@@ -1,4 +1,6 @@
 any-agent[openai]
+elevenlabs
+ffmpeg-python
 litellm
 pydantic>=2.0
 python-dotenv

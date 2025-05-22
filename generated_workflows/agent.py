@@ -2,31 +2,44 @@ import os
 
 from any_agent import AgentConfig, AnyAgent
 from any_agent.config import MCPStdio
+from any_agent.tools import search_web
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
+from tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast
 from tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm
-from tools.summarize_text_with_llm import summarize_text_with_llm
-from tools.translate_text_with_llm import translate_text_with_llm
 
 load_dotenv()
 
+# --- Pydantic Models ---
 
-# Pydantic model for structured output
-class PodcastScriptOutput(BaseModel):
-    topic: str = Field(..., description="Podcast topic that was researched and scripted.")
-    summary: str = Field(..., description="Concise summary of the latest news used for script generation, English.")
-    podcast_script_spanish: str = Field(..., description="Podcast script in Spanish.")
 
+class PodcastOutput(BaseModel):
+    topic: str = Field(..., description="The topic requested by the user.")
+    script: str = Field(..., description="The full 1-minute two-speaker script generated for the podcast.")
+    mp3_files: list[str] = Field(
+        ..., description="Ordered MP3 audio file paths for all podcast speaker audio segments (before combining)."
+    )
+    final_podcast_mp3: str = Field(..., description="Path to the final combined podcast MP3 file.")
+    used_voices: list[str] = Field(
+        ..., description="Human-readable names or IDs of voices used for Speaker 1 and Speaker 2."
+    )
+
+
+# --- Agent System Instructions ---
 
 INSTRUCTIONS = """
-Your goal is to generate an engaging podcast script in Spanish about a user-specified topic, incorporating the latest news. You should break down the work as follows:
+You are a podcast creation assistant. When given a topic, follow these steps:
 
-Step 1: Perform a Brave web search on the topic to find current news or major recent developments. Focus on retrieving reputable, recent, and relevant articles (if available).
-Step 2: Concisely summarize the key news/developments found (in English, a concise paragraph, eliminate all redundancy and focus on newsworthy content).
-Step 3: Turn the summary into an engaging two-host podcast script in English, designed to clearly explain the recent news or developments to an audience.
-Step 4: Translate the full script from English to Spanish.
-Step 5: Output the following in structured JSON: (a) the topic, (b) the summary (English), and (c) the final Spanish podcast script.
+1. Briefly research the topic. Gather a concise overview and the most interesting points, enough for a roughly one-minute podcast episode.
+2. Generate a natural, engaging script for a two-speaker podcast (Speaker A and Speaker B). Each speaker should have distinct, alternating lines but roughly equal speaking time. Cover all key points fitting within a 1-minute time window (approx. 140-180 words total). Start with an intro, include at least one back-and-forth exchange, and finish with an outro.
+3. For each speaker, convert only their lines into separate MP3 audio files using ElevenLabs text-to-speech. Use a distinct voice for each speaker. Save the audio segments in order.
+4. Combine all generated MP3 files into a single podcast MP3 using the available tool.
+5. Return a structured result containing the original topic, the final script text, the list of generated mp3 segment files, the final podcast mp3 path, and the voices used for Speaker A and Speaker B.
+
+When running tools, provide each speaker line as input separately for TTS to ensure realistic speaker alternation.
 """
+
+# --- Agent Configuration ---
 
 agent = AnyAgent.create(
     "openai",
@@ -34,27 +47,37 @@ agent = AnyAgent.create(
         model_id="gpt-4.1",
         instructions=INSTRUCTIONS,
         tools=[
-            # Use the Brave web search MCP for current news
-            MCPStdio(
-                command="docker",
-                args=["run", "-i", "--rm", "-e", "BRAVE_API_KEY", "mcp/brave-search"],
-                env={"BRAVE_API_KEY": os.getenv("BRAVE_API_KEY")},
-                tools=["brave_web_search"],
-            ),
-            summarize_text_with_llm,
+            search_web,
             generate_podcast_script_with_llm,
-            translate_text_with_llm,
+            combine_mp3_files_for_podcast,
+            MCPStdio(
+                command="uvx",
+                args=["elevenlabs-mcp"],
+                env={
+                    "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
+                },
+                tools=["text_to_speech"],
+            ),
         ],
-        agent_args={"output_type": PodcastScriptOutput},
+        agent_args={"output_type": PodcastOutput},
     ),
 )
+
+# --- Entry Point ---
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 2:
-        print("Usage: python agent.py '<topic>'")
-        exit(1)
-    topic = sys.argv[1]
-    result = agent.run(prompt=f"Generate a Spanish podcast script about: {topic}")
-    print(result)
+    print("Enter a one-sentence topic for your podcast, for example: 'AI and the Future of Work'")
+    user_topic = input("Podcast topic: ").strip()
+    if not user_topic:
+        print("No topic entered. Exiting.")
+        sys.exit(1)
+    prompt = (
+        f"Create a high-quality two-speaker podcast episode on the following topic: '{user_topic}'. "
+        f"Follow all system instructions step by step. Ensure that each speaker's lines are processed in alternating order via text-to-speech and the final audio files are combined."
+    )
+    trace = agent.run(prompt=prompt)
+    print("Structured Output:\n")
+    print(trace.final_output)
+    print("\nPodcast generation complete.")
