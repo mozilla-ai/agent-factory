@@ -1,4 +1,4 @@
-"""Instructions for the agent."""
+"""Instructions for the agent code generator."""
 
 from jinja2 import Template
 
@@ -97,7 +97,6 @@ agent = AnyAgent.create(
                     # list only the tools that are necessary for the solving the task at hand
                     tools=[
                         "brave_web_search",
-                        "brave_local_search",
                     ],
             ),
         ],
@@ -110,16 +109,33 @@ agent = AnyAgent.create(
 # Running the agent
 user_input = "Example user input"
 agent.run(prompt=f"Example prompt referencing the task and the input: {user_input}")
+
+# Saving the agent trace at the end
+with open("generated_workflows/agent_trace.json", "w", encoding="utf-8") as f:
+    f.write(agent_trace.model_dump_json(indent=2))
 """
 
 SAVE_FILE_INSTRUCTIONS = """
-- Use the `write_file` tool to save the generated artifacts, name the files `agent.py`, `INSTRUCTIONS.md` and `requirements.txt`.
+The generated code and associated files should be saved in the `generated_workflows/` directory. The three files to be saved are:
+
+1. Complete `agent.py` file with all the code implementation of the agent
+2. INSTRUCTIONS.md with clear and concise setup:
+    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
+    - Setting up the environment via mamba (Python version 3.11)
+    - Installing dependencies via requirements.txt
+    - Run instructions for agent.py
+3. A requirements.txt file listing all the python libraries (including the ones required by the tools) as dependencies to be installed.
+
+Use the `write_file` tool to save the generated artifacts, name the files `agent.py`, `INSTRUCTIONS.md` and `requirements.txt`.
+
 - In the requirements.txt file,
     - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow.
     - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code.
+
 - All 3 files should be saved to the /app/generated_workflows directory as /app/generated_workflows/agent.py, /app/generated_workflows/INSTRUCTIONS.md and /app/generated_workflows/requirements.txt.
 - You must save the 3 files (no need to ask for permission)
 - Check if they exist in the /app/generated_workflows directory before stopping.
+
 """  # noqa: E501
 
 CODE_GENERATION_INSTRUCTIONS = """
@@ -171,22 +187,17 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - Implement the output_type argument correctly to obtain this structured response
 - Refer to the any-agent documentation for more details on structured output
 
+#### Agent Trace (agent_trace):
+The code implementation should include the agent trace being saved into a JSON file named `agent_trace.json` after agent.run().
+- Saving of the agent trace in the code should be done to the `generated_workflows/` directory
+- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code.
+
 ### Code Organization
 - Create well-documented, modular code with appropriate comments
 - Follow Python best practices for readability and maintainability
 - Include proper import statements and dependency management
 - Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:
     - Use Python dotenv library to load the environment variables and access them using os.getenv()
-
-## Three Deliverables
-1. Complete agent.py file with all necessary implementation
-2. INSTRUCTIONS.md with clear and concise setup:
-    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
-    - Setting up the environment via mamba (Python version 3.11)
-    - Installing dependencies via requirements.txt
-    - Run instructions for agent.py
-
-3. A requirements.txt file listing all the python libraries (including the ones required by the tools) as dependencies to be installed.
 
 Refer to the any-agent documentation URLs for implementation details and best practices.
 
@@ -211,7 +222,6 @@ You may access to the following webpages using `visit_webpage` tool:
 {% endfor %}
 
 For reading URLs, use `visit_webpage` tool (never use the `read_file` tool for reading web URLs)
-
 
 **Any-agent Code Generation Instructions**
 {{ code_generation_instructions }}

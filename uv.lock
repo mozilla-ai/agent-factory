@@ -21,7 +21,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["all"], specifier = ">=0.14.1" },
+    { name = "any-agent", extras = ["all"], specifier = ">=0.15.0" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = ">=0.7.0" },
     { name = "jinja2", specifier = ">=3.1.2" },
@@ -159,7 +159,7 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "0.14.1"
+version = "0.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "duckduckgo-search" },
@@ -175,9 +175,9 @@ dependencies = [
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/b8/867deb2415cf19ead675a66860161a75310b2c8ae449d4f5ad68155f47bf/any_agent-0.14.1.tar.gz", hash = "sha256:6f51138ab833bdaefca62c88aaea4a5211b2875ce3b564fc1b7360101e42b3b5", size = 266188 }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/1d/f755ea36606382ee86959c345d6333398ff371f35b92573b7102a6bfcb4a/any_agent-0.15.0.tar.gz", hash = "sha256:b493d18b817050d72b6ba14e8733d2d47ab32f6b0fa0fe35cc27ead46c0f2b21", size = 319852 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fd/63/e1a4e431157d4d374552ab040116e544e7dae3b6bb43cf4dcc2299b1f399/any_agent-0.14.1-py3-none-any.whl", hash = "sha256:5aca743ad475426af80800f38d65666f5bebba3739f52c87eb6090ae7f0331cc", size = 65245 },
+    { url = "https://files.pythonhosted.org/packages/41/d8/88b52d87b6a0ed2ed8abc9937702a0b12b4c4de02b1bd24c4cd55aba9550/any_agent-0.15.0-py3-none-any.whl", hash = "sha256:92d8fe339a76db04711d72600e91fb3ffa94e22a423cca3d1c4daa789fe6a463", size = 65126 },
 ]
 
 [package.optional-dependencies]
