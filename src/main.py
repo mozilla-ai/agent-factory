@@ -25,6 +25,9 @@ def main(user_prompt: str):
     tools_dir = repo_root / "tools"
     mcps_dir = repo_root / "mcps"
 
+    # Create generated_workflows directory if it doesn't exist
+    workflows_dir.mkdir(parents=True, exist_ok=True)
+
     # Create a separate directory for file operations
     file_ops_dir = "/app"
     mount_workflows_dir = "/app/generated_workflows"
@@ -100,7 +103,7 @@ def main(user_prompt: str):
 
     You MUST save the generated python code as `agent.py` and associated files, following the file saving instructions.
     """
-    agent_trace = agent.run(run_instructions, max_turns=20)
+    agent_trace = agent.run(run_instructions, max_turns=30)
 
     print(agent_trace.final_output)
 
