@@ -102,6 +102,7 @@ def main(user_prompt: str):
     You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
 
     You MUST save the generated python code as `agent.py` and associated files, following the file saving instructions.
+    Double check that the saved files exist using list_directory tool before stopping.
     """
     agent_trace = agent.run(run_instructions, max_turns=30)
 
