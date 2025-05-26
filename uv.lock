@@ -17,6 +17,7 @@ dependencies = [
     { name = "dotenv" },
     { name = "fire" },
     { name = "jinja2" },
+    { name = "pyyaml" },
 ]
 
 [package.metadata]
@@ -25,6 +26,7 @@ requires-dist = [
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = ">=0.7.0" },
     { name = "jinja2", specifier = ">=3.1.2" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
 [[package]]
