@@ -8,8 +8,8 @@ import yaml
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import visit_webpage
+from eval.instructions import INSTRUCTIONS
 from pydantic import BaseModel, Field, ValidationError
-from src.instructions import INSTRUCTIONS
 
 dotenv.load_dotenv()
 
@@ -96,7 +96,13 @@ def main(generated_workflow_dir: str = "generated_workflows"):
 
     run_instructions = """
     Read the generated_workflows/agent.py script and generate a JSON evaluation case for it.
-    """
+    The criteria generated must:
+    - be specific, measurable, and independent.
+    - should not be vague or open-ended or generic.
+    - begin with phrases such as "Ensure that the agent..." or "Verify that the agent..." or "Check that the agent...".
+    - be solely based on the agent's INSTRUCTIONS, tools in the agent configuration (including MCPs) and output_type JSON structured output.
+    You may ignore the framework name and model_id in the agent configuration.
+    """  # noqa: E501
     agent_trace = agent.run(run_instructions, max_turns=30)
 
     # Save the agent trace as a YAML file

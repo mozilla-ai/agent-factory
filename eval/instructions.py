@@ -30,7 +30,6 @@ SCORING_GUIDELINES = """
 - **Tool calls**: 1-2 points per essential tool usage
 - **Data processing**: 1-2 points for calculations/combinations
 - **Final output**: 1-2 points for answer quality
-Make criteria **specific**, **measurable**, and **independent**
 """
 
 AGENT_SCRIPT_AND_JSON_EXAMPLE = """
@@ -150,7 +149,10 @@ Always use openai/gpt-4.1 as the llm_judge.
 """  # noqa: E501
 
 INSTRUCTIONS_TEMPLATE = """
-Generate a comprehensive JSON evaluation file for the given agent.py script.
+1. List files in the generated_workflows directory.
+2. Check the file generated_workflows/agent.py.
+3. Generate a comprehensive JSON evaluation file for the given agent.py script.
+
 Analyze the agent's task, tools, and expected workflow to create thorough evaluation criteria.
 
 ## Evaluation Categories to Cover
@@ -168,6 +170,8 @@ You may access to the following webpages using `visit_webpage` tool:
 ## Example of agent.py script and corresponding JSON evaluation file
 
 {{ agent_script_and_json_example }}
+
+You must always assign the "llm_judge" to "openai/gpt-4.1".
 
 """  # noqa: E501
 
