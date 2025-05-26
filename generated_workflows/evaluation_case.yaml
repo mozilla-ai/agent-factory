@@ -1,0 +1,26 @@
+llm_judge: openai/gpt-4.1
+checkpoints:
+- criteria: Ensure that the agent uses the brave_web_search tool to retrieve current
+    and reputable news specifically about the input topic.
+  points: 2
+- criteria: Verify that the agent uses summarize_text_with_llm to generate one concise
+    English summary that eliminates redundancy and focuses on the most newsworthy
+    content from the search results.
+  points: 2
+- criteria: Ensure that the agent uses generate_podcast_script_with_llm to convert
+    the English summary into an engaging two-host podcast script in English that explains
+    the recent news or developments.
+  points: 2
+- criteria: Verify that the agent uses translate_text_with_llm to translate the complete
+    English podcast script to Spanish.
+  points: 2
+- criteria: 'Check that the final output follows the PodcastScriptOutput structure,
+    containing the fields: ''topic'', ''summary'' (English), and ''podcast_script_spanish''.'
+  points: 2
+- criteria: Ensure that the 'summary' output is concise, in English, and includes
+    only key, recent news related to the topic.
+  points: 1
+- criteria: Check that the 'podcast_script_spanish' is a natural, audience-ready Spanish
+    script corresponding to the English version and maintains an engaging, dialogic
+    two-host format.
+  points: 2
