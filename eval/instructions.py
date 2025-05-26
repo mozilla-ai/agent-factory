@@ -1,4 +1,6 @@
-"""Instructions for the agent evaluation yaml generator."""
+"""Instructions for the agent evaluation JSON generator.
+The structured JSON output is later saved as YAML programatically.
+"""
 
 from jinja2 import Template
 
@@ -31,7 +33,7 @@ SCORING_GUIDELINES = """
 Make criteria **specific**, **measurable**, and **independent**
 """
 
-AGENT_SCRIPT_AND_YAML_EXAMPLE = """
+AGENT_SCRIPT_AND_JSON_EXAMPLE = """
 
 **Agent Script:**
 ```python
@@ -98,52 +100,58 @@ agent.run(prompt=user_input)
 
 ```
 
-**Generated YAML:**
-```yaml
-llm_judge: openai/gpt-4.1
-checkpoints:
- - points: 2
-   criteria: Ensure that the agent called search_web or brave_web_search to find relevant information about code review best practices or specific technologies mentioned in the code
- - points: 2
-   criteria: Ensure that the agent called review_code_with_llm to perform the actual code analysis and review
- - points: 1
-   criteria: Verify that the agent correctly identified the programming language and framework/libraries used in the provided code
- - points: 2
-   criteria: Check that the agent's review covers multiple aspects such as code quality, security, performance, and best practices
- - points: 1
-   criteria: Ensure that the agent searched for current standards or documentation related to the specific technologies or patterns found in the code
- - points: 2
-   criteria: Verify that the agent's output follows the required CodeReviewOutput structure with both 'code' and 'review' fields properly populated
- - points: 1
-   criteria: Check that the review includes specific, actionable recommendations for code improvement
- - points: 1
-   criteria: Ensure that the agent appropriately utilized the available MCP tools (brave_web_search) when additional context or verification was needed
- - points: 1
-   criteria: Verify that the final review demonstrates understanding of the code's purpose and provides contextually relevant feedback
+**Generated JSON:**
+```json
+{
+  "llm_judge": "openai/gpt-4.1",
+  "checkpoints": [
+    {
+      "points": 2,
+      "criteria": "Ensure that the agent called search_web or brave_web_search to find relevant information about code review best practices or specific technologies mentioned in the code"
+    },
+    {
+      "points": 2,
+      "criteria": "Ensure that the agent called review_code_with_llm to perform the actual code analysis and review"
+    },
+    {
+      "points": 1,
+      "criteria": "Verify that the agent correctly identified the programming language and framework/libraries used in the provided code"
+    },
+    {
+      "points": 2,
+      "criteria": "Check that the agent's review covers multiple aspects such as code quality, security, performance, and best practices"
+    },
+    {
+      "points": 1,
+      "criteria": "Ensure that the agent searched for current standards or documentation related to the specific technologies or patterns found in the code"
+    },
+    {
+      "points": 2,
+      "criteria": "Verify that the agent's output follows the required CodeReviewOutput structure with both 'code' and 'review' fields properly populated"
+    },
+    {
+      "points": 1,
+      "criteria": "Check that the review includes specific, actionable recommendations for code improvement"
+    },
+    {
+      "points": 1,
+      "criteria": "Ensure that the agent appropriately utilized the available MCP tools (brave_web_search) when additional context or verification was needed"
+    },
+    {
+      "points": 1,
+      "criteria": "Verify that the final review demonstrates understanding of the code's purpose and provides contextually relevant feedback"
+    }
+  ]
+}
 ```
 
 Always use openai/gpt-4.1 as the llm_judge.
 
 """  # noqa: E501
 
-SAVE_YAML_INSTRUCTIONS = """
-The generated YAML file should be saved in the `generated_workflows/` directory.
-The file must be named `evaluation.yaml`.
-
-Use the `write_file` tool to save the generated artifacts, name the file `generated_workflows/evaluation.yaml`.
-"""  # noqa: E501
-
 INSTRUCTIONS_TEMPLATE = """
-Generate a comprehensive YAML evaluation file for the given agent.py script.
+Generate a comprehensive JSON evaluation file for the given agent.py script.
 Analyze the agent's task, tools, and expected workflow to create thorough evaluation criteria.
-
-## Structured YAML Output Format
-```yaml
-llm_judge: openai/gpt-4.1
-checkpoints:
-  - points: [weight]
-    criteria: [specific criteria description]
-```
 
 ## Evaluation Categories to Cover
 {{ evaluation_categories }}
@@ -157,15 +165,9 @@ You may access to the following webpages using `visit_webpage` tool:
 - {{ url }}: {{ description }}
 {% endfor %}
 
+## Example of agent.py script and corresponding JSON evaluation file
 
-## Example
-
-{{ agent_script_and_yaml_example }}
-
----
-
-**Save YAML Instructions **
-{{ save_yaml_instructions }}
+{{ agent_script_and_json_example }}
 
 """  # noqa: E501
 
@@ -175,6 +177,5 @@ INSTRUCTIONS = template.render(
     webpage_descriptions=WEBPAGE_DESCRIPTIONS,
     evaluation_categories=EVALUATION_CATEGORIES,
     scoring_guidelines=SCORING_GUIDELINES,
-    agent_script_and_yaml_example=AGENT_SCRIPT_AND_YAML_EXAMPLE,
-    save_yaml_instructions=SAVE_YAML_INSTRUCTIONS,
+    agent_script_and_json_example=AGENT_SCRIPT_AND_JSON_EXAMPLE,
 )
