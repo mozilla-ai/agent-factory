@@ -1,26 +1,26 @@
 llm_judge: openai/gpt-4.1
 checkpoints:
-- criteria: Ensure that the agent uses the brave_web_search tool to retrieve current
-    and reputable news specifically about the input topic.
+- criteria: Ensure that the agent uses the generate_podcast_script_with_llm tool to
+    create an English podcast script on the user-provided topic, featuring 2 hosts
+    as specified.
   points: 2
-- criteria: Verify that the agent uses summarize_text_with_llm to generate one concise
-    English summary that eliminates redundancy and focuses on the most newsworthy
-    content from the search results.
+- criteria: Ensure that the agent uses the translate_text_with_llm tool to translate
+    the generated English podcast script to Spanish, with source_language set to 'English'
+    and target_language set to 'Spanish'.
   points: 2
-- criteria: Ensure that the agent uses generate_podcast_script_with_llm to convert
-    the English summary into an engaging two-host podcast script in English that explains
-    the recent news or developments.
+- criteria: Ensure that the agent generates a filename for the Spanish podcast script
+    in the format 'podcast_script_[safe_topic].txt', where [safe_topic] is the lowercased,
+    underscored, and sanitized user topic (spaces replaced with underscores and only
+    alphanumeric characters, underscores, or hyphens included).
   points: 2
-- criteria: Verify that the agent uses translate_text_with_llm to translate the complete
-    English podcast script to Spanish.
+- criteria: Ensure that the agent uses the write_file tool via the MCP filesytem to
+    save only the Spanish script to a .txt file in the 'generated_workflows/' directory
+    using the generated filename.
   points: 2
-- criteria: 'Check that the final output follows the PodcastScriptOutput structure,
-    containing the fields: ''topic'', ''summary'' (English), and ''podcast_script_spanish''.'
+- criteria: Verify that the final output returned by the agent strictly follows the
+    PodcastScriptWorkflowOutput schema with both 'spanish_podcast_script' and 'output_file_path'
+    fields correctly and completely populated.
   points: 2
-- criteria: Ensure that the 'summary' output is concise, in English, and includes
-    only key, recent news related to the topic.
+- criteria: Check that the 'output_file_path' in the output is the correct relative
+    path to the saved file in the 'generated_workflows/' directory.
   points: 1
-- criteria: Check that the 'podcast_script_spanish' is a natural, audience-ready Spanish
-    script corresponding to the English version and maintains an engaging, dialogic
-    two-host format.
-  points: 2
