@@ -1,0 +1,418 @@
+{
+  "spans": [
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 3288720269839952652,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1748338806892261000,
+      "end_time": 1748338810393105000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 8846928633581527847,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.input.messages": "[{\"content\": \"You are an agent that generates a podcast script in Spanish given a user topic.\\nFollow these steps:\\n1. Take the user's topic and generate a podcast script in English using the generate_podcast_script_with_llm tool (use 2 hosts).\\n2. Translate the generated English podcast script to Spanish using the translate_text_with_llm tool (source_language='English', target_language='Spanish').\\n3. Save ONLY the Spanish podcast script to a .txt file in the 'generated_workflows/' directory with the filename format 'podcast_script_[safe_topic].txt', where [safe_topic] is the user topic lowercased, spaces replaced with underscores, and non-alphanumeric characters removed except underscores or hyphens. Use the filesystem MCP's 'write_file' tool for saving.\\n4. As final output, return the Spanish script and the relative file path to the saved .txt file using the provided output schema.\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"Generate a Spanish podcast script for the topic: 'Mozilla Firefox'. Follow the workflow and save script as a .txt file.\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"generate_podcast_script_with_llm\", \"tool.args\": \"{\\\"document_text\\\":\\\"Mozilla Firefox is a free and open-source web browser developed by the Mozilla Foundation. First released in 2002 as Phoenix, it quickly became popular for its speed, privacy features, and its strong commitment to open standards. Firefox has played a significant role in promoting a more open and user-focused internet, regularly introducing features like tabbed browsing, pop-up blocking, and tracking protection ahead of its competitors. It is available on multiple platforms, including Windows, macOS, Linux, Android, and iOS. The browser is notable for its customizability through add-ons and extensions, support for privacy-focused tools, and its dedication to keeping the internet accessible and secure for all. Over the years, Firefox has built a strong community of users and developers, contributing to its innovative features and resilience as a competitor in the browser market.\\\",\\\"num_hosts\\\":2,\\\"model\\\":\\\"gpt-4o-mini\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 1384,
+        "gen_ai.usage.output_tokens": 197,
+        "gen_ai.usage.input_cost": 0.002768,
+        "gen_ai.usage.output_cost": 0.001576
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool generate_podcast_script_with_llm",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 3288720269839952652,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1748338810400258000,
+      "end_time": 1748338823928732000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 994229653407144342,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "generate_podcast_script_with_llm",
+        "gen_ai.tool.args": "{\"document_text\":\"Mozilla Firefox is a free and open-source web browser developed by the Mozilla Foundation. First released in 2002 as Phoenix, it quickly became popular for its speed, privacy features, and its strong commitment to open standards. Firefox has played a significant role in promoting a more open and user-focused internet, regularly introducing features like tabbed browsing, pop-up blocking, and tracking protection ahead of its competitors. It is available on multiple platforms, including Windows, macOS, Linux, Android, and iOS. The browser is notable for its customizability through add-ons and extensions, support for privacy-focused tools, and its dedication to keeping the internet accessible and secure for all. Over the years, Firefox has built a strong community of users and developers, contributing to its innovative features and resilience as a competitor in the browser market.\",\"num_hosts\":2,\"model\":\"gpt-4o-mini\"}",
+        "gen_ai.output": "**[Podcast Intro Music Fades In]**\n\n**Host 1:** Welcome, everyone, to “Tech Talk Today,” the podcast where we dive deep into the world of technology, unraveling the latest trends and timeless classics. I’m your host, Jake.\n\n**Host 2:** And I’m your co-host, Mia. Today, we’re putting a spotlight on a web browser that has made quite a name for itself since its inception in 2002—Mozilla Firefox!\n\n**Host 1:** That’s right! Mozilla Firefox started its journey into the tech world under the playful name “Phoenix”. Quite a fiery start, wouldn’t you say?\n\n**Host 2:** Absolutely! And it didn’t take long for Firefox to gain a following. Users were drawn to its remarkable speed and privacy features. I mean, in a time when online privacy was still a burgeoning concern, Firefox stepped up with a strong commitment to keeping user information safe.\n\n**Host 1:** And that still resonates today. Firefox has pioneered many features that we often take for granted now, like tabbed browsing and pop-up blocking. Can you imagine browsing without tabs?\n\n**Host 2:** Not at all! It would feel like a chaotic mess! Speaking of features, Firefox has been instrumental in promoting open standards across the web. That dedication to an open and user-focused internet really sets it apart from some other browsers.\n\n**Host 1:** Right? And it's not just about being user-friendly. Firefox has built its reputation on support for privacy-focused tools and a commitment to accessibility. It’s available on multiple platforms—Windows, macOS, Linux, Android, iOS—you name it!\n\n**Host 2:** And let’s not forget about those add-ons and extensions! Firefox allows an impressive level of customizability. Users can tweak their browsing experience in so many ways.\n\n**Host 1:** Exactly! This adaptability has resulted in a strong community of users and developers who keep contributing to its innovative features. It’s like a tech ecosystem that thrives on collaboration.\n\n**Host 2:** It really is impressive. Despite the fierce competition in the browser market, Firefox has managed to remain relevant and resilient. That says a lot about its design philosophy and user-centric approach.\n\n**Host 1:** Totally! And with the growing awareness around privacy and data security, I think more users are looking for alternatives that prioritize those values. Firefox is definitely leading the charge.\n\n**Host 2:** No arguments there! It’s refreshing to see a browser that isn’t just about profit but genuinely cares about the online experience for its users. \n\n**Host 1:** So, what do you think—are we ready to give Firefox another try or stay loyal to our current favorite browser?\n\n**Host 2:** Maybe it’s time to switch things up! For our listeners, if you haven’t tried Firefox in a while, we highly recommend giving it a shot. \n\n**Host 1:** Agreed! Well, that’s all we have for today’s episode, everyone. Thanks for tuning in to “Tech Talk Today.”\n\n**Host 2:** Don’t forget to subscribe and leave us a review. Let us know your thoughts on Firefox or any browser tips you have!\n\n**Host 1:** Until next time, keep exploring and stay safe online!\n\n**[Podcast Outro Music Fades Out]**",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 3288720269839952652,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1748338823931303000,
+      "end_time": 1748338829459172000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 15638776235192731922,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"translate_text_with_llm\", \"tool.args\": \"{\\\"text\\\":\\\"**[Podcast Intro Music Fades In]**\\\\n\\\\n**Host 1:** Welcome, everyone, to \\u201cTech Talk Today,\\u201d the podcast where we dive deep into the world of technology, unraveling the latest trends and timeless classics. I\\u2019m your host, Jake.\\\\n\\\\n**Host 2:** And I\\u2019m your co-host, Mia. Today, we\\u2019re putting a spotlight on a web browser that has made quite a name for itself since its inception in 2002\\u2014Mozilla Firefox!\\\\n\\\\n**Host 1:** That\\u2019s right! Mozilla Firefox started its journey into the tech world under the playful name \\u201cPhoenix\\u201d. Quite a fiery start, wouldn\\u2019t you say?\\\\n\\\\n**Host 2:** Absolutely! And it didn\\u2019t take long for Firefox to gain a following. Users were drawn to its remarkable speed and privacy features. I mean, in a time when online privacy was still a burgeoning concern, Firefox stepped up with a strong commitment to keeping user information safe.\\\\n\\\\n**Host 1:** And that still resonates today. Firefox has pioneered many features that we often take for granted now, like tabbed browsing and pop-up blocking. Can you imagine browsing without tabs?\\\\n\\\\n**Host 2:** Not at all! It would feel like a chaotic mess! Speaking of features, Firefox has been instrumental in promoting open standards across the web. That dedication to an open and user-focused internet really sets it apart from some other browsers.\\\\n\\\\n**Host 1:** Right? And it's not just about being user-friendly. Firefox has built its reputation on support for privacy-focused tools and a commitment to accessibility. It\\u2019s available on multiple platforms\\u2014Windows, macOS, Linux, Android, iOS\\u2014you name it!\\\\n\\\\n**Host 2:** And let\\u2019s not forget about those add-ons and extensions! Firefox allows an impressive level of customizability. Users can tweak their browsing experience in so many ways.\\\\n\\\\n**Host 1:** Exactly! This adaptability has resulted in a strong community of users and developers who keep contributing to its innovative features. It\\u2019s like a tech ecosystem that thrives on collaboration.\\\\n\\\\n**Host 2:** It really is impressive. Despite the fierce competition in the browser market, Firefox has managed to remain relevant and resilient. That says a lot about its design philosophy and user-centric approach.\\\\n\\\\n**Host 1:** Totally! And with the growing awareness around privacy and data security, I think more users are looking for alternatives that prioritize those values. Firefox is definitely leading the charge.\\\\n\\\\n**Host 2:** No arguments there! It\\u2019s refreshing to see a browser that isn\\u2019t just about profit but genuinely cares about the online experience for its users. \\\\n\\\\n**Host 1:** So, what do you think\\u2014are we ready to give Firefox another try or stay loyal to our current favorite browser?\\\\n\\\\n**Host 2:** Maybe it\\u2019s time to switch things up! For our listeners, if you haven\\u2019t tried Firefox in a while, we highly recommend giving it a shot. \\\\n\\\\n**Host 1:** Agreed! Well, that\\u2019s all we have for today\\u2019s episode, everyone. Thanks for tuning in to \\u201cTech Talk Today.\\u201d\\\\n\\\\n**Host 2:** Don\\u2019t forget to subscribe and leave us a review. Let us know your thoughts on Firefox or any browser tips you have!\\\\n\\\\n**Host 1:** Until next time, keep exploring and stay safe online!\\\\n\\\\n**[Podcast Outro Music Fades Out]**\\\",\\\"source_language\\\":\\\"English\\\",\\\"target_language\\\":\\\"Spanish\\\",\\\"model\\\":\\\"gpt-4o-mini\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 2274,
+        "gen_ai.usage.output_tokens": 753,
+        "gen_ai.usage.input_cost": 0.004548,
+        "gen_ai.usage.output_cost": 0.006024
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool translate_text_with_llm",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 3288720269839952652,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1748338829465973000,
+      "end_time": 1748338838264581000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 15536698998878067193,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "translate_text_with_llm",
+        "gen_ai.tool.args": "{\"text\":\"**[Podcast Intro Music Fades In]**\\n\\n**Host 1:** Welcome, everyone, to “Tech Talk Today,” the podcast where we dive deep into the world of technology, unraveling the latest trends and timeless classics. I’m your host, Jake.\\n\\n**Host 2:** And I’m your co-host, Mia. Today, we’re putting a spotlight on a web browser that has made quite a name for itself since its inception in 2002—Mozilla Firefox!\\n\\n**Host 1:** That’s right! Mozilla Firefox started its journey into the tech world under the playful name “Phoenix”. Quite a fiery start, wouldn’t you say?\\n\\n**Host 2:** Absolutely! And it didn’t take long for Firefox to gain a following. Users were drawn to its remarkable speed and privacy features. I mean, in a time when online privacy was still a burgeoning concern, Firefox stepped up with a strong commitment to keeping user information safe.\\n\\n**Host 1:** And that still resonates today. Firefox has pioneered many features that we often take for granted now, like tabbed browsing and pop-up blocking. Can you imagine browsing without tabs?\\n\\n**Host 2:** Not at all! It would feel like a chaotic mess! Speaking of features, Firefox has been instrumental in promoting open standards across the web. That dedication to an open and user-focused internet really sets it apart from some other browsers.\\n\\n**Host 1:** Right? And it's not just about being user-friendly. Firefox has built its reputation on support for privacy-focused tools and a commitment to accessibility. It’s available on multiple platforms—Windows, macOS, Linux, Android, iOS—you name it!\\n\\n**Host 2:** And let’s not forget about those add-ons and extensions! Firefox allows an impressive level of customizability. Users can tweak their browsing experience in so many ways.\\n\\n**Host 1:** Exactly! This adaptability has resulted in a strong community of users and developers who keep contributing to its innovative features. It’s like a tech ecosystem that thrives on collaboration.\\n\\n**Host 2:** It really is impressive. Despite the fierce competition in the browser market, Firefox has managed to remain relevant and resilient. That says a lot about its design philosophy and user-centric approach.\\n\\n**Host 1:** Totally! And with the growing awareness around privacy and data security, I think more users are looking for alternatives that prioritize those values. Firefox is definitely leading the charge.\\n\\n**Host 2:** No arguments there! It’s refreshing to see a browser that isn’t just about profit but genuinely cares about the online experience for its users. \\n\\n**Host 1:** So, what do you think—are we ready to give Firefox another try or stay loyal to our current favorite browser?\\n\\n**Host 2:** Maybe it’s time to switch things up! For our listeners, if you haven’t tried Firefox in a while, we highly recommend giving it a shot. \\n\\n**Host 1:** Agreed! Well, that’s all we have for today’s episode, everyone. Thanks for tuning in to “Tech Talk Today.”\\n\\n**Host 2:** Don’t forget to subscribe and leave us a review. Let us know your thoughts on Firefox or any browser tips you have!\\n\\n**Host 1:** Until next time, keep exploring and stay safe online!\\n\\n**[Podcast Outro Music Fades Out]**\",\"source_language\":\"English\",\"target_language\":\"Spanish\",\"model\":\"gpt-4o-mini\"}",
+        "gen_ai.output": "---\n**[Música de Introducción del Podcast Se Desvanece]**\n\n**Presentador 1:** Bienvenidos, todos, a “Tech Talk Today,” el podcast donde nos adentramos en el mundo de la tecnología, desentrañando las últimas tendencias y los clásicos atemporales. Soy su presentador, Jake.\n\n**Presentador 2:** Y yo soy su co-presentadora, Mia. Hoy, estamos poniendo el foco en un navegador web que ha hecho un gran nombre desde su creación en 2002—¡Mozilla Firefox!\n\n**Presentador 1:** ¡Así es! Mozilla Firefox comenzó su viaje en el mundo de la tecnología bajo el divertido nombre de “Phoenix”. ¿No es un comienzo ardiente, dirías?\n\n**Presentador 2:** ¡Absolutamente! Y no pasó mucho tiempo antes de que Firefox ganara seguidores. Los usuarios se sintieron atraídos por su notable velocidad y características de privacidad. Es decir, en una época en la que la privacidad en línea era aún una preocupación creciente, Firefox se comprometió a mantener segura la información del usuario.\n\n**Presentador 1:** Y eso sigue resonando hoy en día. Firefox ha sido pionero en muchas características que a menudo damos por sentadas ahora, como la navegación con pestañas y el bloqueo de ventanas emergentes. ¿Puedes imaginar navegar sin pestañas?\n\n**Presentador 2:** ¡Para nada! ¡Sería un caos total! Hablando de características, Firefox ha sido fundamental en la promoción de estándares abiertos en la web. Esa dedicación a un internet abierto y centrado en el usuario realmente lo distingue de otros navegadores.\n\n**Presentador 1:** ¿Verdad? Y no se trata solo de ser amigable con el usuario. Firefox ha construido su reputación en el apoyo a herramientas centradas en la privacidad y un compromiso con la accesibilidad. ¡Está disponible en múltiples plataformas—Windows, macOS, Linux, Android, iOS—lo que sea!\n\n**Presentador 2:** Y no olvidemos esos complementos y extensiones. Firefox permite un nivel impresionante de personalización. Los usuarios pueden ajustar su experiencia de navegación de tantas maneras.\n\n**Presentador 1:** ¡Exactamente! Esta adaptabilidad ha dado como resultado una fuerte comunidad de usuarios y desarrolladores que continúan contribuyendo a sus características innovadoras. Es como un ecosistema tecnológico que prospera en la colaboración.\n\n**Presentador 2:** Realmente es impresionante. A pesar de la feroz competencia en el mercado de navegadores, Firefox ha logrado mantenerse relevante y resistente. Eso dice mucho sobre su filosofía de diseño y enfoque centrado en el usuario.\n\n**Presentador 1:** ¡Totalmente! Y con la creciente conciencia sobre la privacidad y la seguridad de los datos, creo que más usuarios están buscando alternativas que prioricen esos valores. Firefox definitivamente está liderando la carga.\n\n**Presentador 2:** ¡Sin discusión! Es refrescante ver un navegador que no se trata solo de beneficios, sino que realmente se preocupa por la experiencia en línea de sus usuarios.\n\n**Presentador 1:** Entonces, ¿qué piensas? ¿Estamos listos para darle otra oportunidad a Firefox o permanecer leales a nuestro navegador favorito actual?\n\n**Presentador 2:** ¡Quizás es hora de hacer un cambio! Para nuestros oyentes, si no has probado Firefox en un tiempo, te recomendamos encarecidamente darle una oportunidad.\n\n**Presentador 1:** ¡De acuerdo! Bueno, eso es todo lo que tenemos para el episodio de hoy, todos. Gracias por sintonizar “Tech Talk Today”.\n\n**Presentador 2:** No olvides suscribirte y dejarnos una reseña. ¡Déjanos saber tus pensamientos sobre Firefox o cualquier consejo de navegadores que tengas!\n\n**Presentador 1:** ¡Hasta la próxima, sigue explorando y mantente seguro en línea!\n\n**[Música de Cierre del Podcast Se Desvanece]**\n---",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 3288720269839952652,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1748338838268033000,
+      "end_time": 1748338845070303000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 2730465807955683979,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"write_file\", \"tool.args\": \"{\\\"path\\\":\\\"generated_workflows/podcast_script_mozilla_firefox.txt\\\",\\\"content\\\":\\\"**[M\\u00fasica de Introducci\\u00f3n del Podcast Se Desvanece]**\\\\n\\\\n**Presentador 1:** Bienvenidos, todos, a \\u201cTech Talk Today,\\u201d el podcast donde nos adentramos en el mundo de la tecnolog\\u00eda, desentra\\u00f1ando las \\u00faltimas tendencias y los cl\\u00e1sicos atemporales. Soy su presentador, Jake.\\\\n\\\\n**Presentador 2:** Y yo soy su co-presentadora, Mia. Hoy, estamos poniendo el foco en un navegador web que ha hecho un gran nombre desde su creaci\\u00f3n en 2002\\u2014\\u00a1Mozilla Firefox!\\\\n\\\\n**Presentador 1:** \\u00a1As\\u00ed es! Mozilla Firefox comenz\\u00f3 su viaje en el mundo de la tecnolog\\u00eda bajo el divertido nombre de \\u201cPhoenix\\u201d. \\u00bfNo es un comienzo ardiente, dir\\u00edas?\\\\n\\\\n**Presentador 2:** \\u00a1Absolutamente! Y no pas\\u00f3 mucho tiempo antes de que Firefox ganara seguidores. Los usuarios se sintieron atra\\u00eddos por su notable velocidad y caracter\\u00edsticas de privacidad. Es decir, en una \\u00e9poca en la que la privacidad en l\\u00ednea era a\\u00fan una preocupaci\\u00f3n creciente, Firefox se comprometi\\u00f3 a mantener segura la informaci\\u00f3n del usuario.\\\\n\\\\n**Presentador 1:** Y eso sigue resonando hoy en d\\u00eda. Firefox ha sido pionero en muchas caracter\\u00edsticas que a menudo damos por sentadas ahora, como la navegaci\\u00f3n con pesta\\u00f1as y el bloqueo de ventanas emergentes. \\u00bfPuedes imaginar navegar sin pesta\\u00f1as?\\\\n\\\\n**Presentador 2:** \\u00a1Para nada! \\u00a1Ser\\u00eda un caos total! Hablando de caracter\\u00edsticas, Firefox ha sido fundamental en la promoci\\u00f3n de est\\u00e1ndares abiertos en la web. Esa dedicaci\\u00f3n a un internet abierto y centrado en el usuario realmente lo distingue de otros navegadores.\\\\n\\\\n**Presentador 1:** \\u00bfVerdad? Y no se trata solo de ser amigable con el usuario. Firefox ha construido su reputaci\\u00f3n en el apoyo a herramientas centradas en la privacidad y un compromiso con la accesibilidad. \\u00a1Est\\u00e1 disponible en m\\u00faltiples plataformas\\u2014Windows, macOS, Linux, Android, iOS\\u2014lo que sea!\\\\n\\\\n**Presentador 2:** Y no olvidemos esos complementos y extensiones. Firefox permite un nivel impresionante de personalizaci\\u00f3n. Los usuarios pueden ajustar su experiencia de navegaci\\u00f3n de tantas maneras.\\\\n\\\\n**Presentador 1:** \\u00a1Exactamente! Esta adaptabilidad ha dado como resultado una fuerte comunidad de usuarios y desarrolladores que contin\\u00faan contribuyendo a sus caracter\\u00edsticas innovadoras. Es como un ecosistema tecnol\\u00f3gico que prospera en la colaboraci\\u00f3n.\\\\n\\\\n**Presentador 2:** Realmente es impresionante. A pesar de la feroz competencia en el mercado de navegadores, Firefox ha logrado mantenerse relevante y resistente. Eso dice mucho sobre su filosof\\u00eda de dise\\u00f1o y enfoque centrado en el usuario.\\\\n\\\\n**Presentador 1:** \\u00a1Totalmente! Y con la creciente conciencia sobre la privacidad y la seguridad de los datos, creo que m\\u00e1s usuarios est\\u00e1n buscando alternativas que prioricen esos valores. Firefox definitivamente est\\u00e1 liderando la carga.\\\\n\\\\n**Presentador 2:** \\u00a1Sin discusi\\u00f3n! Es refrescante ver un navegador que no se trata solo de beneficios, sino que realmente se preocupa por la experiencia en l\\u00ednea de sus usuarios.\\\\n\\\\n**Presentador 1:** Entonces, \\u00bfqu\\u00e9 piensas? \\u00bfEstamos listos para darle otra oportunidad a Firefox o permanecer leales a nuestro navegador favorito actual?\\\\n\\\\n**Presentador 2:** \\u00a1Quiz\\u00e1s es hora de hacer un cambio! Para nuestros oyentes, si no has probado Firefox en un tiempo, te recomendamos encarecidamente darle una oportunidad.\\\\n\\\\n**Presentador 1:** \\u00a1De acuerdo! Bueno, eso es todo lo que tenemos para el episodio de hoy, todos. Gracias por sintonizar \\u201cTech Talk Today\\u201d.\\\\n\\\\n**Presentador 2:** No olvides suscribirte y dejarnos una rese\\u00f1a. \\u00a1D\\u00e9janos saber tus pensamientos sobre Firefox o cualquier consejo de navegadores que tengas!\\\\n\\\\n**Presentador 1:** \\u00a1Hasta la pr\\u00f3xima, sigue explorando y mantente seguro en l\\u00ednea!\\\\n\\\\n**[M\\u00fasica de Cierre del Podcast Se Desvanece]**\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 3849,
+        "gen_ai.usage.output_tokens": 874,
+        "gen_ai.usage.input_cost": 0.007698,
+        "gen_ai.usage.output_cost": 0.006992
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool write_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 3288720269839952652,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1748338845075809000,
+      "end_time": 1748338845085537000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 16422852406370189225,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "write_file",
+        "gen_ai.tool.args": "{\"path\":\"generated_workflows/podcast_script_mozilla_firefox.txt\",\"content\":\"**[Música de Introducción del Podcast Se Desvanece]**\\n\\n**Presentador 1:** Bienvenidos, todos, a “Tech Talk Today,” el podcast donde nos adentramos en el mundo de la tecnología, desentrañando las últimas tendencias y los clásicos atemporales. Soy su presentador, Jake.\\n\\n**Presentador 2:** Y yo soy su co-presentadora, Mia. Hoy, estamos poniendo el foco en un navegador web que ha hecho un gran nombre desde su creación en 2002—¡Mozilla Firefox!\\n\\n**Presentador 1:** ¡Así es! Mozilla Firefox comenzó su viaje en el mundo de la tecnología bajo el divertido nombre de “Phoenix”. ¿No es un comienzo ardiente, dirías?\\n\\n**Presentador 2:** ¡Absolutamente! Y no pasó mucho tiempo antes de que Firefox ganara seguidores. Los usuarios se sintieron atraídos por su notable velocidad y características de privacidad. Es decir, en una época en la que la privacidad en línea era aún una preocupación creciente, Firefox se comprometió a mantener segura la información del usuario.\\n\\n**Presentador 1:** Y eso sigue resonando hoy en día. Firefox ha sido pionero en muchas características que a menudo damos por sentadas ahora, como la navegación con pestañas y el bloqueo de ventanas emergentes. ¿Puedes imaginar navegar sin pestañas?\\n\\n**Presentador 2:** ¡Para nada! ¡Sería un caos total! Hablando de características, Firefox ha sido fundamental en la promoción de estándares abiertos en la web. Esa dedicación a un internet abierto y centrado en el usuario realmente lo distingue de otros navegadores.\\n\\n**Presentador 1:** ¿Verdad? Y no se trata solo de ser amigable con el usuario. Firefox ha construido su reputación en el apoyo a herramientas centradas en la privacidad y un compromiso con la accesibilidad. ¡Está disponible en múltiples plataformas—Windows, macOS, Linux, Android, iOS—lo que sea!\\n\\n**Presentador 2:** Y no olvidemos esos complementos y extensiones. Firefox permite un nivel impresionante de personalización. Los usuarios pueden ajustar su experiencia de navegación de tantas maneras.\\n\\n**Presentador 1:** ¡Exactamente! Esta adaptabilidad ha dado como resultado una fuerte comunidad de usuarios y desarrolladores que continúan contribuyendo a sus características innovadoras. Es como un ecosistema tecnológico que prospera en la colaboración.\\n\\n**Presentador 2:** Realmente es impresionante. A pesar de la feroz competencia en el mercado de navegadores, Firefox ha logrado mantenerse relevante y resistente. Eso dice mucho sobre su filosofía de diseño y enfoque centrado en el usuario.\\n\\n**Presentador 1:** ¡Totalmente! Y con la creciente conciencia sobre la privacidad y la seguridad de los datos, creo que más usuarios están buscando alternativas que prioricen esos valores. Firefox definitivamente está liderando la carga.\\n\\n**Presentador 2:** ¡Sin discusión! Es refrescante ver un navegador que no se trata solo de beneficios, sino que realmente se preocupa por la experiencia en línea de sus usuarios.\\n\\n**Presentador 1:** Entonces, ¿qué piensas? ¿Estamos listos para darle otra oportunidad a Firefox o permanecer leales a nuestro navegador favorito actual?\\n\\n**Presentador 2:** ¡Quizás es hora de hacer un cambio! Para nuestros oyentes, si no has probado Firefox en un tiempo, te recomendamos encarecidamente darle una oportunidad.\\n\\n**Presentador 1:** ¡De acuerdo! Bueno, eso es todo lo que tenemos para el episodio de hoy, todos. Gracias por sintonizar “Tech Talk Today”.\\n\\n**Presentador 2:** No olvides suscribirte y dejarnos una reseña. ¡Déjanos saber tus pensamientos sobre Firefox o cualquier consejo de navegadores que tengas!\\n\\n**Presentador 1:** ¡Hasta la próxima, sigue explorando y mantente seguro en línea!\\n\\n**[Música de Cierre del Podcast Se Desvanece]**\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"Error: Access denied - path outside allowed directories: /app/generated_workflows/podcast_script_mozilla_firefox.txt not in /projects\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 3288720269839952652,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1748338845088128000,
+      "end_time": 1748338851031085000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 12523973748037687060,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "{\"spanish_podcast_script\":\"**[Música de Introducción del Podcast Se Desvanece]**\\n\\n**Presentador 1:** Bienvenidos, todos, a “Tech Talk Today,” el podcast donde nos adentramos en el mundo de la tecnología, desentrañando las últimas tendencias y los clásicos atemporales. Soy su presentador, Jake.\\n\\n**Presentador 2:** Y yo soy su co-presentadora, Mia. Hoy, estamos poniendo el foco en un navegador web que ha hecho un gran nombre desde su creación en 2002—¡Mozilla Firefox!\\n\\n**Presentador 1:** ¡Así es! Mozilla Firefox comenzó su viaje en el mundo de la tecnología bajo el divertido nombre de “Phoenix”. ¿No es un comienzo ardiente, dirías?\\n\\n**Presentador 2:** ¡Absolutamente! Y no pasó mucho tiempo antes de que Firefox ganara seguidores. Los usuarios se sintieron atraídos por su notable velocidad y características de privacidad. Es decir, en una época en la que la privacidad en línea era aún una preocupación creciente, Firefox se comprometió a mantener segura la información del usuario.\\n\\n**Presentador 1:** Y eso sigue resonando hoy en día. Firefox ha sido pionero en muchas características que a menudo damos por sentadas ahora, como la navegación con pestañas y el bloqueo de ventanas emergentes. ¿Puedes imaginar navegar sin pestañas?\\n\\n**Presentador 2:** ¡Para nada! ¡Sería un caos total! Hablando de características, Firefox ha sido fundamental en la promoción de estándares abiertos en la web. Esa dedicación a un internet abierto y centrado en el usuario realmente lo distingue de otros navegadores.\\n\\n**Presentador 1:** ¿Verdad? Y no se trata solo de ser amigable con el usuario. Firefox ha construido su reputación en el apoyo a herramientas centradas en la privacidad y un compromiso con la accesibilidad. ¡Está disponible en múltiples plataformas—Windows, macOS, Linux, Android, iOS—lo que sea!\\n\\n**Presentador 2:** Y no olvidemos esos complementos y extensiones. Firefox permite un nivel impresionante de personalización. Los usuarios pueden ajustar su experiencia de navegación de tantas maneras.\\n\\n**Presentador 1:** ¡Exactamente! Esta adaptabilidad ha dado como resultado una fuerte comunidad de usuarios y desarrolladores que continúan contribuyendo a sus características innovadoras. Es como un ecosistema tecnológico que prospera en la colaboración.\\n\\n**Presentador 2:** Realmente es impresionante. A pesar de la feroz competencia en el mercado de navegadores, Firefox ha logrado mantenerse relevante y resistente. Eso dice mucho sobre su filosofía de diseño y enfoque centrado en el usuario.\\n\\n**Presentador 1:** ¡Totalmente! Y con la creciente conciencia sobre la privacidad y la seguridad de los datos, creo que más usuarios están buscando alternativas que prioricen esos valores. Firefox definitivamente está liderando la carga.\\n\\n**Presentador 2:** ¡Sin discusión! Es refrescante ver un navegador que no se trata solo de beneficios, sino que realmente se preocupa por la experiencia en línea de sus usuarios.\\n\\n**Presentador 1:** Entonces, ¿qué piensas? ¿Estamos listos para darle otra oportunidad a Firefox o permanecer leales a nuestro navegador favorito actual?\\n\\n**Presentador 2:** ¡Quizás es hora de hacer un cambio! Para nuestros oyentes, si no has probado Firefox en un tiempo, te recomendamos encarecidamente darle una oportunidad.\\n\\n**Presentador 1:** ¡De acuerdo! Bueno, eso es todo lo que tenemos para el episodio de hoy, todos. Gracias por sintonizar “Tech Talk Today”.\\n\\n**Presentador 2:** No olvides suscribirte y dejarnos una reseña. ¡Déjanos saber tus pensamientos sobre Firefox o cualquier consejo de navegadores que tengas!\\n\\n**Presentador 1:** ¡Hasta la próxima, sigue explorando y mantente seguro en línea!\\n\\n**[Música de Cierre del Podcast Se Desvanece]**\",\"output_file_path\":\"Error: Access denied - path outside allowed directories: /app/generated_workflows/podcast_script_mozilla_firefox.txt not in /projects\"}",
+        "gen_ai.output.type": "text",
+        "gen_ai.usage.input_tokens": 4770,
+        "gen_ai.usage.output_tokens": 892,
+        "gen_ai.usage.input_cost": 0.00954,
+        "gen_ai.usage.output_cost": 0.007136
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "invoke_agent [any_agent]",
+      "kind": "internal",
+      "parent": {
+        "trace_id": null,
+        "span_id": null,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1748338806881693000,
+      "end_time": 1748338851041263000,
+      "status": {
+        "status_code": "unset",
+        "description": null
+      },
+      "context": {
+        "trace_id": 186305032385859084215326629468682179616,
+        "span_id": 3288720269839952652,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.agent.name": "any_agent",
+        "gen_ai.agent.description": "No description.",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.request.id": "0bcbb734-3a15-4cf3-9539-214a304532df"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    }
+  ],
+  "final_output": "spanish_podcast_script='**[Música de Introducción del Podcast Se Desvanece]**\\n\\n**Presentador 1:** Bienvenidos, todos, a “Tech Talk Today,” el podcast donde nos adentramos en el mundo de la tecnología, desentrañando las últimas tendencias y los clásicos atemporales. Soy su presentador, Jake.\\n\\n**Presentador 2:** Y yo soy su co-presentadora, Mia. Hoy, estamos poniendo el foco en un navegador web que ha hecho un gran nombre desde su creación en 2002—¡Mozilla Firefox!\\n\\n**Presentador 1:** ¡Así es! Mozilla Firefox comenzó su viaje en el mundo de la tecnología bajo el divertido nombre de “Phoenix”. ¿No es un comienzo ardiente, dirías?\\n\\n**Presentador 2:** ¡Absolutamente! Y no pasó mucho tiempo antes de que Firefox ganara seguidores. Los usuarios se sintieron atraídos por su notable velocidad y características de privacidad. Es decir, en una época en la que la privacidad en línea era aún una preocupación creciente, Firefox se comprometió a mantener segura la información del usuario.\\n\\n**Presentador 1:** Y eso sigue resonando hoy en día. Firefox ha sido pionero en muchas características que a menudo damos por sentadas ahora, como la navegación con pestañas y el bloqueo de ventanas emergentes. ¿Puedes imaginar navegar sin pestañas?\\n\\n**Presentador 2:** ¡Para nada! ¡Sería un caos total! Hablando de características, Firefox ha sido fundamental en la promoción de estándares abiertos en la web. Esa dedicación a un internet abierto y centrado en el usuario realmente lo distingue de otros navegadores.\\n\\n**Presentador 1:** ¿Verdad? Y no se trata solo de ser amigable con el usuario. Firefox ha construido su reputación en el apoyo a herramientas centradas en la privacidad y un compromiso con la accesibilidad. ¡Está disponible en múltiples plataformas—Windows, macOS, Linux, Android, iOS—lo que sea!\\n\\n**Presentador 2:** Y no olvidemos esos complementos y extensiones. Firefox permite un nivel impresionante de personalización. Los usuarios pueden ajustar su experiencia de navegación de tantas maneras.\\n\\n**Presentador 1:** ¡Exactamente! Esta adaptabilidad ha dado como resultado una fuerte comunidad de usuarios y desarrolladores que continúan contribuyendo a sus características innovadoras. Es como un ecosistema tecnológico que prospera en la colaboración.\\n\\n**Presentador 2:** Realmente es impresionante. A pesar de la feroz competencia en el mercado de navegadores, Firefox ha logrado mantenerse relevante y resistente. Eso dice mucho sobre su filosofía de diseño y enfoque centrado en el usuario.\\n\\n**Presentador 1:** ¡Totalmente! Y con la creciente conciencia sobre la privacidad y la seguridad de los datos, creo que más usuarios están buscando alternativas que prioricen esos valores. Firefox definitivamente está liderando la carga.\\n\\n**Presentador 2:** ¡Sin discusión! Es refrescante ver un navegador que no se trata solo de beneficios, sino que realmente se preocupa por la experiencia en línea de sus usuarios.\\n\\n**Presentador 1:** Entonces, ¿qué piensas? ¿Estamos listos para darle otra oportunidad a Firefox o permanecer leales a nuestro navegador favorito actual?\\n\\n**Presentador 2:** ¡Quizás es hora de hacer un cambio! Para nuestros oyentes, si no has probado Firefox en un tiempo, te recomendamos encarecidamente darle una oportunidad.\\n\\n**Presentador 1:** ¡De acuerdo! Bueno, eso es todo lo que tenemos para el episodio de hoy, todos. Gracias por sintonizar “Tech Talk Today”.\\n\\n**Presentador 2:** No olvides suscribirte y dejarnos una reseña. ¡Déjanos saber tus pensamientos sobre Firefox o cualquier consejo de navegadores que tengas!\\n\\n**Presentador 1:** ¡Hasta la próxima, sigue explorando y mantente seguro en línea!\\n\\n**[Música de Cierre del Podcast Se Desvanece]**' output_file_path='Error: Access denied - path outside allowed directories: /app/generated_workflows/podcast_script_mozilla_firefox.txt not in /projects'"
+}
