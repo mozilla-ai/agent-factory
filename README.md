@@ -20,8 +20,9 @@ A tool for generating Python code for agentic workflows using `any-agent` librar
 
 1. Install dependencies using your preferred Python package manager:
    ```bash
-   uv pip install -e .
+   uv venv
    source .venv/bin/activate
+   uv pip install -e .
    ```
 
 2. Install pre-commit hooks:
