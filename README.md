@@ -26,7 +26,7 @@ A tool for generating Python code for agentic workflows using `any-agent` librar
 
 2. Install pre-commit hooks:
    ```bash
-   pip install pre-commit
+   uv pip install pre-commit
    pre-commit install
    ```
 
@@ -45,11 +45,18 @@ Run the code generator agent with your desired workflow prompt:
 python -m src.main "Summarize text content from a given webpage URL"
 ```
 
+> [!NOTE]
+> You will need a Brave Search API key to use the `brave_web-search` tool. Create an account at [Brave Search](https://brave.com/search/api/) and obtain your API key.
+> Set it as an environment variable:
+> ```bash
+> export BRAVE_SEARCH_API_KEY=BS...
+> ```
+
 This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/` directory. The three files generated are:
 
 1. `agent.py`: The Python code for the agentic workflow
 2. `INSTRUCTIONS.md`: Setup and run instructions for the generated workflow
-3. `requirements.txt`: List of dependencies required to run the agent
+3. `requirements.txt`: Python dependencies required to run the agent
 
 ### 2. Run the Generated Workflow
 Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent as:
