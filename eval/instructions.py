@@ -30,6 +30,8 @@ SCORING_GUIDELINES = """
 - **Tool calls**: 1-2 points per essential tool usage
 - **Data processing**: 1-2 points for calculations/combinations
 - **Final output**: 1-2 points for answer quality
+
+Note: Do not penalize the agent for not using fallback tools if the primary method succeeds.
 """
 
 AGENT_SCRIPT_AND_JSON_EXAMPLE = """
