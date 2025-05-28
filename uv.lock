@@ -22,7 +22,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["all"], specifier = ">=0.16.1" },
+    { name = "any-agent", extras = ["all"], specifier = ">=0.17.0" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = ">=0.7.0" },
     { name = "jinja2", specifier = ">=3.1.2" },
@@ -161,7 +161,7 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "0.16.1"
+version = "0.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "duckduckgo-search" },
@@ -177,9 +177,9 @@ dependencies = [
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/12/03/cfd41c2d08b2678c2bb5fa41e31e498b4d7b0a2c9fe2eef3d01ed2b576cc/any_agent-0.16.1.tar.gz", hash = "sha256:62fc95391a43cdd39393f83ebe43a688fdfd01ea28918456e41867ee4c614267", size = 294552 }
+sdist = { url = "https://files.pythonhosted.org/packages/45/8f/a784b3a0f8e6902437cc5c605b19d97be4016c02e2e5a5f9dfe95055666c/any_agent-0.17.0.tar.gz", hash = "sha256:ebc4ca07c66cea301bf37d49219fef822829eb8f6950ecd0227ce896df887ab6", size = 301277 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/2a/b22bc33c395284a412268faa4bd21054fc365cca01f73ee36f39dc49aca9/any_agent-0.16.1-py3-none-any.whl", hash = "sha256:2b8b187eedc42e14d236e94fa1e682845b670ae8bc2180cc24eb580dc2191bb0", size = 69486 },
+    { url = "https://files.pythonhosted.org/packages/32/95/6a3a6314d96578e31d5cec51c9109846be17f85980dd3a3bcb5c696fd867/any_agent-0.17.0-py3-none-any.whl", hash = "sha256:397c6f539378e97853ba4a4ee0559d73af347d4f3bb222ea118a08f176b09962", size = 71733 },
 ]
 
 [package.optional-dependencies]
@@ -727,7 +727,7 @@ wheels = [
 
 [[package]]
 name = "google-adk"
-version = "0.5.0"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "authlib" },
@@ -751,9 +751,9 @@ dependencies = [
     { name = "tzlocal" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/89/3e/90b9d622c0381aa12f861d0bc7ad10b148febb9da95a27836629aa7cf5f8/google_adk-0.5.0.tar.gz", hash = "sha256:6f6493889a02ce5ed1797caa6385307914b16dcb086bad02c1ad314d609075db", size = 1055492 }
+sdist = { url = "https://files.pythonhosted.org/packages/29/58/d04adcbd6c3c9feda372a79ebb7d4e1f8dc02fa2c5788420e84956851a58/google_adk-1.0.0.tar.gz", hash = "sha256:9a9efadd93c86031ebae44646f01abc347a3ed28079e94989d54c0cb77e68872", size = 1085619 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/ca/761423fed60efe07e487acc867f9d3c3bfb2cba3096bbd4a84d6ac8cddb6/google_adk-0.5.0-py3-none-any.whl", hash = "sha256:4a2f2dcad337f51779af4b654579fcc0f296d8aab5db0a7855a2275722af5a24", size = 1184678 },
+    { url = "https://files.pythonhosted.org/packages/11/66/8cf150b753bc3314d0581eee214291a55ffe89ce7d9b555cbf0ce84256b4/google_adk-1.0.0-py3-none-any.whl", hash = "sha256:b9409c87cf01cbeb6de31a7b2892556501ddb075642139d1b9762c7c714ef1d4", size = 1229825 },
 ]
 
 [[package]]
@@ -1995,7 +1995,7 @@ wheels = [
 
 [[package]]
 name = "mcpadapt"
-version = "0.1.5"
+version = "0.1.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonref" },
@@ -2003,9 +2003,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/75/e9/20f8ec9b6bc686538fcd591d11a17f42aa6bd833fbbac84d59543a51792a/mcpadapt-0.1.5.tar.gz", hash = "sha256:4411d46a7d50ffd30b6a95c15ee1dc047c39ef13f5d003d1b10b08435a931768", size = 3536686 }
+sdist = { url = "https://files.pythonhosted.org/packages/9e/68/85c0946d567088d8d55f1c30cb942bcfec2585941a3f45b790e423b994c8/mcpadapt-0.1.9.tar.gz", hash = "sha256:03e601c4c083f3f4eb178e6a6bcd157bcb45e25c140ea0895567bab346b67645", size = 3540887 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/04/be7d681f28179ee26318c9ae4fa182eee3f92c740c8baef267c112bfea34/mcpadapt-0.1.5-py3-none-any.whl", hash = "sha256:2954c99d5aed70938ce4777c9aa4a9043f0de8aa33ec3a6fbf67a9823c2287d3", size = 16467 },
+    { url = "https://files.pythonhosted.org/packages/83/78/0310684763e5753a3a8128dab6c87ba1e20dd907b696680592bebebc84b6/mcpadapt-0.1.9-py3-none-any.whl", hash = "sha256:9f2a6ad1155efdf1a43c11e8449ae9258295c4e140c3c6ff672983a8ac8bde33", size = 17469 },
 ]
 
 [[package]]
@@ -3285,7 +3285,7 @@ wheels = [
 
 [[package]]
 name = "smolagents"
-version = "1.16.0"
+version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "huggingface-hub" },
@@ -3295,9 +3295,9 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0d/a2/1710a0e321cb5314eddf113a0776b4305ae9a703977af3e93d087a15cd74/smolagents-1.16.0.tar.gz", hash = "sha256:3b6640d3e1cb2179d833cbc0446338f4165ec7422bf98f24990aa9566ce8025b", size = 170752 }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/f3/1572c767e40353409c3b7d002a009b978013bd74c63d93fc96650eee3d49/smolagents-1.17.0.tar.gz", hash = "sha256:8d4ec4ccb759986560299e5489eab530282c68a4110820919d13a69e642f2b5b", size = 177215 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a2/3a/faa77241bbdfdf278932d52c50307fa2e0043755dc13753846548ba343da/smolagents-1.16.0-py3-none-any.whl", hash = "sha256:b3e6cbb106d7ce77f699a6759ecebb3eebf65a59d3cf1afeaf357ac99b89a42a", size = 125620 },
+    { url = "https://files.pythonhosted.org/packages/c0/c0/43c4cd2a98943992dbee705cbcfc57d6da89e4d75860bb379dc1e2fa1f33/smolagents-1.17.0-py3-none-any.whl", hash = "sha256:b6b7853d454c24c949cb306858523e97792310b9ab422a61cba5ccbab48f01c1", size = 133973 },
 ]
 
 [package.optional-dependencies]
