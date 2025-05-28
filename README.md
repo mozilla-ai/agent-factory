@@ -1,4 +1,4 @@
-# Agentic Workflow Builder
+# Agent Factory
 
 A tool for generating Python code for agentic workflows using `any-agent` library. Describe your workflow in natural language, and the agent will generate the necessary code to implement that workflow using available tools (Python functions or via MCP servers).
 
