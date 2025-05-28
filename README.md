@@ -14,9 +14,10 @@ A tool for generating Python code for agentic workflows using `any-agent` librar
 - This is a long living branch to use as a demo of the possibilities of the agent factory
 
 ### 1. Example
-1. Activate the virtual environment. All the dependencies are preinstalled for this codespaces demo, but in order to run the following commands, you need to activate the virtual environment
+1. Activate the virtual environment. All the dependencies are preinstalled for this codespaces demo, but it's recommended to run all commands below to ensure everything it's up to date (and also, to activate the virtual env!)
 ```bash
 source .venv/bin/activate
+uv pip install -e .
 ```
 2. Before running the agent factory, you need to set up your OpenAI API key (required):
 ```bash
@@ -42,10 +43,10 @@ This will generate Python code for an agentic workflow that can summarize text c
 3. `requirements.txt`: Python dependencies required to run the agent
 
 > [!NOTE]
-> If you created a different workflow, you might need to install extra dependencies, you can do this with
+> You might need to install the dependencies created for the agent. In this codespace, you can do it with
 >
 > ```bash
-> pip install -r generated_workflows/requirements.txt
+> uv pip install -r generated_workflows/requirements.txt
 > ```
 
 ### 2. Run the Generated Workflow
