@@ -17,19 +17,21 @@ dependencies = [
     { name = "dotenv" },
     { name = "fire" },
     { name = "jinja2" },
+    { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["all"], specifier = ">=0.15.0" },
+    { name = "any-agent", extras = ["all"], specifier = ">=0.17.0" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = ">=0.7.0" },
     { name = "jinja2", specifier = ">=3.1.2" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
 [[package]]
 name = "agno"
-version = "1.5.0"
+version = "1.5.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "docstring-parser" },
@@ -45,9 +47,9 @@ dependencies = [
     { name = "typer" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b7/1e/f09bbbd9845e831e86e7acb43709b2e087c79daa7b09f2e9beb957213222/agno-1.5.0.tar.gz", hash = "sha256:5c866e0b14eb476b1852d01cdb28efa6ff72c2cc36efbcf963ad44e16a111ca8", size = 551654 }
+sdist = { url = "https://files.pythonhosted.org/packages/49/1a/5a9d1be6714ce8846fb438ee87c32ebbbe6285021dbd6f219606c1972755/agno-1.5.4.tar.gz", hash = "sha256:7448acbf839fd89b536da4f8934d05fd61577c516bfef1b07c19bb1427c78bb9", size = 584553 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/8c/7861edb89071184357373c5af1bde129177b2629aa1866c04653737bd9ef/agno-1.5.0-py3-none-any.whl", hash = "sha256:d8be7e645888c266c199bab98e9140bf345b9a57a82081dc18f3b3478a594b3d", size = 726667 },
+    { url = "https://files.pythonhosted.org/packages/b7/02/a410e2e37d3a2b1f438249fc8d69aa5dd5c498213b1004b99d1dabca5d42/agno-1.5.4-py3-none-any.whl", hash = "sha256:e1a46412606e808a73380b92bbfccb0c657ec3e82b7479340ec7ec20b0ff6400", size = 775122 },
 ]
 
 [[package]]
@@ -159,7 +161,7 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "0.15.0"
+version = "0.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "duckduckgo-search" },
@@ -175,9 +177,9 @@ dependencies = [
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ab/1d/f755ea36606382ee86959c345d6333398ff371f35b92573b7102a6bfcb4a/any_agent-0.15.0.tar.gz", hash = "sha256:b493d18b817050d72b6ba14e8733d2d47ab32f6b0fa0fe35cc27ead46c0f2b21", size = 319852 }
+sdist = { url = "https://files.pythonhosted.org/packages/45/8f/a784b3a0f8e6902437cc5c605b19d97be4016c02e2e5a5f9dfe95055666c/any_agent-0.17.0.tar.gz", hash = "sha256:ebc4ca07c66cea301bf37d49219fef822829eb8f6950ecd0227ce896df887ab6", size = 301277 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/d8/88b52d87b6a0ed2ed8abc9937702a0b12b4c4de02b1bd24c4cd55aba9550/any_agent-0.15.0-py3-none-any.whl", hash = "sha256:92d8fe339a76db04711d72600e91fb3ffa94e22a423cca3d1c4daa789fe6a463", size = 65126 },
+    { url = "https://files.pythonhosted.org/packages/32/95/6a3a6314d96578e31d5cec51c9109846be17f85980dd3a3bcb5c696fd867/any_agent-0.17.0-py3-none-any.whl", hash = "sha256:397c6f539378e97853ba4a4ee0559d73af347d4f3bb222ea118a08f176b09962", size = 71733 },
 ]
 
 [package.optional-dependencies]
@@ -193,10 +195,7 @@ all = [
     { name = "llama-index-llms-litellm" },
     { name = "llama-index-tools-mcp" },
     { name = "openai-agents" },
-    { name = "openinference-instrumentation-langchain" },
     { name = "openinference-instrumentation-llama-index" },
-    { name = "openinference-instrumentation-openai-agents" },
-    { name = "openinference-instrumentation-smolagents" },
     { name = "platformdirs" },
     { name = "smolagents", extra = ["mcp"] },
 ]
@@ -728,7 +727,7 @@ wheels = [
 
 [[package]]
 name = "google-adk"
-version = "0.5.0"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "authlib" },
@@ -752,9 +751,9 @@ dependencies = [
     { name = "tzlocal" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/89/3e/90b9d622c0381aa12f861d0bc7ad10b148febb9da95a27836629aa7cf5f8/google_adk-0.5.0.tar.gz", hash = "sha256:6f6493889a02ce5ed1797caa6385307914b16dcb086bad02c1ad314d609075db", size = 1055492 }
+sdist = { url = "https://files.pythonhosted.org/packages/29/58/d04adcbd6c3c9feda372a79ebb7d4e1f8dc02fa2c5788420e84956851a58/google_adk-1.0.0.tar.gz", hash = "sha256:9a9efadd93c86031ebae44646f01abc347a3ed28079e94989d54c0cb77e68872", size = 1085619 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/ca/761423fed60efe07e487acc867f9d3c3bfb2cba3096bbd4a84d6ac8cddb6/google_adk-0.5.0-py3-none-any.whl", hash = "sha256:4a2f2dcad337f51779af4b654579fcc0f296d8aab5db0a7855a2275722af5a24", size = 1184678 },
+    { url = "https://files.pythonhosted.org/packages/11/66/8cf150b753bc3314d0581eee214291a55ffe89ce7d9b555cbf0ce84256b4/google_adk-1.0.0-py3-none-any.whl", hash = "sha256:b9409c87cf01cbeb6de31a7b2892556501ddb075642139d1b9762c7c714ef1d4", size = 1229825 },
 ]
 
 [[package]]
@@ -1996,7 +1995,7 @@ wheels = [
 
 [[package]]
 name = "mcpadapt"
-version = "0.1.5"
+version = "0.1.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonref" },
@@ -2004,9 +2003,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/75/e9/20f8ec9b6bc686538fcd591d11a17f42aa6bd833fbbac84d59543a51792a/mcpadapt-0.1.5.tar.gz", hash = "sha256:4411d46a7d50ffd30b6a95c15ee1dc047c39ef13f5d003d1b10b08435a931768", size = 3536686 }
+sdist = { url = "https://files.pythonhosted.org/packages/9e/68/85c0946d567088d8d55f1c30cb942bcfec2585941a3f45b790e423b994c8/mcpadapt-0.1.9.tar.gz", hash = "sha256:03e601c4c083f3f4eb178e6a6bcd157bcb45e25c140ea0895567bab346b67645", size = 3540887 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/04/be7d681f28179ee26318c9ae4fa182eee3f92c740c8baef267c112bfea34/mcpadapt-0.1.5-py3-none-any.whl", hash = "sha256:2954c99d5aed70938ce4777c9aa4a9043f0de8aa33ec3a6fbf67a9823c2287d3", size = 16467 },
+    { url = "https://files.pythonhosted.org/packages/83/78/0310684763e5753a3a8128dab6c87ba1e20dd907b696680592bebebc84b6/mcpadapt-0.1.9-py3-none-any.whl", hash = "sha256:9f2a6ad1155efdf1a43c11e8449ae9258295c4e140c3c6ff672983a8ac8bde33", size = 17469 },
 ]
 
 [[package]]
@@ -2253,23 +2252,6 @@ wheels = [
 ]
 
 [[package]]
-name = "openinference-instrumentation-langchain"
-version = "0.1.42"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "openinference-instrumentation" },
-    { name = "openinference-semantic-conventions" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-instrumentation" },
-    { name = "opentelemetry-semantic-conventions" },
-    { name = "wrapt" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c1/8d/7982239815cd244a6327a577a7d1034c86a46c4b814cb6a7f033746e2a89/openinference_instrumentation_langchain-0.1.42.tar.gz", hash = "sha256:61d5fa423285b92b4c9cf0f3b22bcc571290a82a2346ff7d83d9cafa0f398ec4", size = 50906 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/51/0f22ca2986d9731cc6565261390d4a349a9c2fbc3f3c82c1adcd143c3b16/openinference_instrumentation_langchain-0.1.42-py3-none-any.whl", hash = "sha256:bce9bc89e0d90f9bf6f9c1297cf9e5e2c0134bbc7cfd17de528a922c77107611", size = 18696 },
-]
-
-[[package]]
 name = "openinference-instrumentation-llama-index"
 version = "4.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2285,42 +2267,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5c/ef/ec75993016edb1bd7c7b9de50c3a6db039da0ab5da1d3aaa1216a92cb360/openinference_instrumentation_llama_index-4.2.1.tar.gz", hash = "sha256:615603bd9bcc6bbf24e5ea2d2cfcd11e484102b8d8d131f7777543eca1f4d2b7", size = 58578 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a2/06/aaca472113b499924cbc0b7ea2dd18d61d1f4ad7120f9fb0fd30bb4d8eec/openinference_instrumentation_llama_index-4.2.1-py3-none-any.whl", hash = "sha256:74102a2f1532dfac069ff8e241d498695f481bc3fa6c017d4df6c285fbc7d6cd", size = 27663 },
-]
-
-[[package]]
-name = "openinference-instrumentation-openai-agents"
-version = "0.1.12"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "openinference-instrumentation" },
-    { name = "openinference-semantic-conventions" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-instrumentation" },
-    { name = "opentelemetry-semantic-conventions" },
-    { name = "typing-extensions" },
-    { name = "wrapt" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b5/50/c894423987a0585cbd6f6cd2ee7599420716a9347b37f3565ccff12d0afd/openinference_instrumentation_openai_agents-0.1.12.tar.gz", hash = "sha256:e7ff4b6e8e3502df8853a62f2a2e35a75ca76a6bb0efb7f0faadd9f22b6f6425", size = 11544 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1e/d1/443304c7fcc532aeae0100aa824c3f2c63a43e789c2eb957fcf34e6e464d/openinference_instrumentation_openai_agents-0.1.12-py3-none-any.whl", hash = "sha256:1a66a4432ac163a15449e7627f1c85f24f03605cf972a324bac9cea1d9f6d6db", size = 13437 },
-]
-
-[[package]]
-name = "openinference-instrumentation-smolagents"
-version = "0.1.11"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "openinference-instrumentation" },
-    { name = "openinference-semantic-conventions" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-instrumentation" },
-    { name = "opentelemetry-semantic-conventions" },
-    { name = "typing-extensions" },
-    { name = "wrapt" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/87/d5/a48c50536b542271f0f0c1dc7125df6e4d67209b06520161222ddff18061/openinference_instrumentation_smolagents-0.1.11.tar.gz", hash = "sha256:fc85ac50e46b51cfe5fa54a9044fac1406f3cbfcc665e03ac29310b619e8bbd3", size = 10644 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/cc/8a/75320170a6a2fb495a40d8fd6dbd86f99d21857500aa50fd04b08fbd51d3/openinference_instrumentation_smolagents-0.1.11-py3-none-any.whl", hash = "sha256:cf09b11cf599cbb8c6ad1f21a0ca81f461bb976a2cf38dc0cffaaaa03976d9c0", size = 12230 },
 ]
 
 [[package]]
@@ -3339,7 +3285,7 @@ wheels = [
 
 [[package]]
 name = "smolagents"
-version = "1.16.0"
+version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "huggingface-hub" },
@@ -3349,9 +3295,9 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0d/a2/1710a0e321cb5314eddf113a0776b4305ae9a703977af3e93d087a15cd74/smolagents-1.16.0.tar.gz", hash = "sha256:3b6640d3e1cb2179d833cbc0446338f4165ec7422bf98f24990aa9566ce8025b", size = 170752 }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/f3/1572c767e40353409c3b7d002a009b978013bd74c63d93fc96650eee3d49/smolagents-1.17.0.tar.gz", hash = "sha256:8d4ec4ccb759986560299e5489eab530282c68a4110820919d13a69e642f2b5b", size = 177215 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a2/3a/faa77241bbdfdf278932d52c50307fa2e0043755dc13753846548ba343da/smolagents-1.16.0-py3-none-any.whl", hash = "sha256:b3e6cbb106d7ce77f699a6759ecebb3eebf65a59d3cf1afeaf357ac99b89a42a", size = 125620 },
+    { url = "https://files.pythonhosted.org/packages/c0/c0/43c4cd2a98943992dbee705cbcfc57d6da89e4d75860bb379dc1e2fa1f33/smolagents-1.17.0-py3-none-any.whl", hash = "sha256:b6b7853d454c24c949cb306858523e97792310b9ab422a61cba5ccbab48f01c1", size = 133973 },
 ]
 
 [package.optional-dependencies]
