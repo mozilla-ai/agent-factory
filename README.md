@@ -9,55 +9,44 @@ A tool for generating Python code for agentic workflows using `any-agent` librar
 - Generate evaluation cases and YAML configs for automated testing
 - (Manually) Run automated evaluations and view detailed criteria-based results
 
-## Installation
+## Codespaces Demo
 
-### Prerequisites
+- This is a long living branch to use as a demo of the possibilities of the agent factory
 
-- Python 3.11 or higher
-- Docker should be up and running in the background (for filesystem operations)
-
-### Setup
-
-1. Install dependencies using your preferred Python package manager:
-   ```bash
-   uv venv
-   source .venv/bin/activate
-   uv pip install -e .
-   ```
-
-2. Install pre-commit hooks:
-   ```bash
-   uv pip install pre-commit
-   pre-commit install
-   ```
-
-3. Set your OpenAI API key (required):
-   ```bash
-   export OPENAI_API_KEY=sk-...
-   ```
-
-## Usage
-
-Follow these steps to generate, run, trace, and evaluate an agentic workflow:
-
-### 1. Generate the Workflow
-Run the code generator agent with your desired workflow prompt:
+### 1. Example
+1. Activate the virtual environment. All the dependencies are preinstalled for this codespaces demo, but in order to run the following commands, you need to activate the virtual environment
 ```bash
-python -m src.main "Summarize text content from a given webpage URL"
+source .venv/bin/activate
 ```
-
+2. Before running the agent factory, you need to set up your OpenAI API key (required):
+```bash
+export OPENAI_API_KEY=sk-...
+```
 > [!NOTE]
-> You will need a Brave Search API key to use the `brave_web-search` tool. Create an account at [Brave Search](https://brave.com/search/api/) and obtain your API key.
+> For this example you will need a Brave Search API key to use the `brave_web-search` tool. Create an account at [Brave Search](https://brave.com/search/api/) and obtain your API key.
 > Set it as an environment variable:
 > ```bash
 > export BRAVE_SEARCH_API_KEY=BS...
 > ```
 
-This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/` directory. The three files generated are:
+3. Run the code generator agent with your desired workflow prompt:
+```bash
+python -m src.main "Summarize text content from a given webpage URL"
+```
+
+
+This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/` directory.  The three files generated are:
 
 1. `agent.py`: The Python code for the agentic workflow
 2. `INSTRUCTIONS.md`: Setup and run instructions for the generated workflow
 3. `requirements.txt`: Python dependencies required to run the agent
+
+> [!NOTE]
+> If you created a different workflow, you might need to install extra dependencies, you can do this with
+>
+> ```bash
+> pip install -r generated_workflows/requirements.txt
+> ```
 
 ### 2. Run the Generated Workflow
 Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent as:
