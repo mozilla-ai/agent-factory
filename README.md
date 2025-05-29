@@ -9,32 +9,57 @@ A tool for generating Python code for agentic workflows using `any-agent` librar
 - Generate evaluation cases and YAML configs for automated testing
 - (Manually) Run automated evaluations and view detailed criteria-based results
 
-## Codespaces Demo
+## Setup
 
-- This is a long living branch to use as a demo of the possibilities of the agent factory
+### Option A: GitHub Codespaces
 
-### 1. Example
-1. Activate the virtual environment. All the dependencies are preinstalled for this codespaces demo, but it's recommended to run all commands below to ensure everything it's up to date (and also, to activate the virtual env!)
+[![Try on Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=984695018&skip_quickstart=true&machine=standardLinux32gb&geo=EuropeWest&devcontainer_path=.devcontainer%2Fdevcontainer.json)
+
+
+Activate the virtual environment. All the dependencies are preinstalled for this codespaces demo, but it's recommended to run all commands below to ensure everything it's up to date (and also, to activate the virtual env!)
 ```bash
 source .venv/bin/activate
 uv pip install -e .
 ```
-2. Before running the agent factory, you need to set up your OpenAI API key (required):
+### Option B: Local installation
+
+#### Prerequisites: 
+- Python 3.11 or higher
+- Docker should be up and running in the background (for filesystem operations)
+
+Install dependencies using your preferred Python package manager:
 ```bash
-export OPENAI_API_KEY=sk-...
+uv venv
+source .venv/bin/activate
+uv pip install -e .
 ```
-> [!NOTE]
-> For this example you will need a Brave Search API key to use the `brave_web-search` tool. Create an account at [Brave Search](https://brave.com/search/api/) and obtain your API key.
+
+Install pre-commit hooks:
+```bash
+uv pip install pre-commit
+pre-commit install
+```
+
+## Getting Started
+Follow these steps to generate, run, trace, and evaluate an agentic workflow:
+
+Before running the agent factory, you need to set up your OpenAI API key (required):
+> Set it as an environment variable:
+> ```bash
+> export OPENAI_API_KEY=sk-...
+> ```
+You will need a Brave Search API key to use the `brave_web-search` tool. Create an account at [Brave Search](https://brave.com/search/api/) and obtain your API key.
 > Set it as an environment variable:
 > ```bash
 > export BRAVE_API_KEY=BS...
 > ```
 
-3. Run the code generator agent with your desired workflow prompt:
+
+### Generate the workflow 
+Run the code generator agent with your desired workflow prompt:
 ```bash
 python -m src.main "Summarize text content from a given webpage URL"
 ```
-
 
 This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/` directory.  The three files generated are:
 
@@ -43,10 +68,17 @@ This will generate Python code for an agentic workflow that can summarize text c
 3. `requirements.txt`: Python dependencies required to run the agent
 
 > [!NOTE]
-> You might need to install the dependencies created for the agent. In this codespace, you can do it with
+> You might need to install the dependencies created for the agent, you can do it with:
 >
 > ```bash
 > uv pip install -r generated_workflows/requirements.txt
+> ```
+
+> [!NOTE]
+> You might also need to add additional api keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
+> Set it as an environment variable:
+> ```bash
+> export OPENAI_API_KEY=sk-...
 > ```
 
 ### 2. Run the Generated Workflow
