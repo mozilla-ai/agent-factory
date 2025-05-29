@@ -79,7 +79,7 @@ This will generate Python code for an agentic workflow that can summarize text c
 
 > Set it as an environment variable:
 > ```bash
-> export OPENAI_API_KEY=sk-...
+> export ELEVENLABS_API_KEY=sk_...
 > ```
 
 ### 2. Run the Generated Workflow
