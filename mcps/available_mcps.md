@@ -5,8 +5,8 @@ For each MCP server, you can also check available MCP tools from the provided li
 
 1. Brave Search
     - Description: For web and local search using Brave's Search API
-    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/brave-search/README.md
-    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/brave-search/index.ts
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/index.ts
     - Configuration:
     ```
     {
@@ -76,8 +76,8 @@ For each MCP server, you can also check available MCP tools from the provided li
 
 4. Slack
     - Description: For interacting with Slack workspaces, through Slack messages or Slack channels
-    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/slack/README.md
-    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/slack/index.ts
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/slack/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/slack/index.ts
     - Configuration:
     ```
     {
@@ -100,6 +100,32 @@ For each MCP server, you can also check available MCP tools from the provided li
             "SLACK_BOT_TOKEN": "xoxb-your-bot-token",
             "SLACK_TEAM_ID": "T01234567",
             "SLACK_CHANNEL_IDS": "C01234567, C76543210"
+        }
+        }
+    }
+    }
+    ```
+
+5. GitHub
+    - Description: For extracting and analysing data from GitHub repositories and automating GitHub workflows and processes.
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/github/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/github/README.md
+    - Configuration:
+    ```
+    {
+    "mcpServers": {
+        "github": {
+        "command": "docker",
+        "args": [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "mcp/github"
+        ],
+        "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_TOKEN>"
         }
         }
     }
