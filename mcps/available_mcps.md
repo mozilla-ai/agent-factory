@@ -73,3 +73,35 @@ For each MCP server, you can also check available MCP tools from the provided li
     }
     ```
     Note: If no specific directory is requested for mounting, you may use the default source directory `${os.getcwd()}/generated_workflows` and the destination directory `/projects/generated_workflows`.
+
+4. Slack
+    - Description: For interacting with Slack workspaces, through Slack messages or Slack channels
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/slack/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/slack/index.ts
+    - Configuration:
+    ```
+    {
+    "mcpServers": {
+        "slack": {
+        "command": "docker",
+        "args": [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "SLACK_BOT_TOKEN",
+            "-e",
+            "SLACK_TEAM_ID",
+            "-e",
+            "SLACK_CHANNEL_IDS",
+            "mcp/slack"
+        ],
+        "env": {
+            "SLACK_BOT_TOKEN": "xoxb-your-bot-token",
+            "SLACK_TEAM_ID": "T01234567",
+            "SLACK_CHANNEL_IDS": "C01234567, C76543210"
+        }
+        }
+    }
+    }
+    ```
