@@ -55,7 +55,7 @@ You will need a Brave Search API key to use the `brave_web-search` tool. Create 
 > ```
 
 
-### Generate the workflow 
+### 1. Generate the workflow 
 Run the code generator agent with your desired workflow prompt:
 ```bash
 python -m src.main "Summarize text content from a given webpage URL"
@@ -76,6 +76,7 @@ This will generate Python code for an agentic workflow that can summarize text c
 
 > [!NOTE]
 > You might also need to add additional api keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
+
 > Set it as an environment variable:
 > ```bash
 > export OPENAI_API_KEY=sk-...
