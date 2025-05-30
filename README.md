@@ -50,7 +50,7 @@ python -m src.main "Summarize text content from a given webpage URL"
 > You will need a Brave Search API key to use the `brave_web-search` tool. Create an account at [Brave Search](https://brave.com/search/api/) and obtain your API key.
 > Set it as an environment variable:
 > ```bash
-> export BRAVE_SEARCH_API_KEY=BS...
+> export BRAVE_API_KEY=BS...
 > ```
 
 This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/` directory. The three files generated are:
