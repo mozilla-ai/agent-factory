@@ -11,8 +11,13 @@ from src.instructions import INSTRUCTIONS
 
 dotenv.load_dotenv()
 
+repo_root = Path.cwd()
+workflows_root = repo_root / "generated_workflows"
+tools_dir = repo_root / "tools"
+mcps_dir = repo_root / "mcps"
 
-def main(user_prompt: str, workflow_dir: Path = Path()) -> None:
+
+def main(user_prompt: str, workflow_dir: Path | None = None):
     """Generate python code for an agentic workflow based on the user prompt.
 
     Args:
@@ -22,15 +27,12 @@ def main(user_prompt: str, workflow_dir: Path = Path()) -> None:
     Returns:
         The final output from the agent.
     """
-    repo_root = Path.cwd()
-    workflows_root = repo_root / "generated_workflows"
-    tools_dir = repo_root / "tools"
-    mcps_dir = repo_root / "mcps"
-
-    session_id = str(uuid.uuid4())
+    workflow_id = str(uuid.uuid4())
     # Create a unique workflow directory if not provided
     if workflow_dir is None:
-        workflow_dir = workflows_root / f"workflow_{session_id}"
+        workflow_dir = workflows_root / workflow_id
+    else:
+        workflow_dir = Path(workflow_dir)
 
     # Create generated_workflows directory if it doesn't exist
     workflows_root.mkdir(parents=True, exist_ok=True)
@@ -98,8 +100,8 @@ def main(user_prompt: str, workflow_dir: Path = Path()) -> None:
     )
 
     # Get the workflow subdirectory name (e.g., "workflow_xxx")
-    workflow_subdir = f"{workflow_dir.name}/{session_id}"
-    container_workflow_dir = f"/app/generated_workflows/{workflow_subdir}"
+
+    container_workflow_dir = f"/app/generated_workflows/{workflow_dir.name}"
 
     run_instructions = f"""
     Generate python code for an agentic workflow using any-agent library to be able to do the following:
