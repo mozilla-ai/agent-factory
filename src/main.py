@@ -32,7 +32,7 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
     workflow_id = str(uuid.uuid4())
     # Create a unique workflow directory if not provided
     if workflow_dir is None:
-        workflow_dir = workflows_root / workflow_id
+        workflow_dir = workflows_root / "latest"
     else:
         workflow_dir = Path(workflow_dir)
 
@@ -104,7 +104,7 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
     # Always use 'latest' for the agent's output
     latest_dir = workflows_root / "latest"
     archive_root = workflows_root / "archive"
-    timestamp_id = datetime.now().strftime("%Y-%m-%d") + "_" + str(uuid.uuid4())[:8]
+    timestamp_id = datetime.now().strftime("%Y-%m-%d") + "_" + workflow_id[:8]
     archive_dir = archive_root / timestamp_id
 
     # Ensure directories exist
