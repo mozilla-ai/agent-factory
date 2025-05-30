@@ -124,11 +124,7 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
 
     # When saving files, use workflow_dir instead of workflows_root
     agent_trace_path = workflow_dir / "agent_trace.json"
-    # agent_py_path = workflow_dir / "agent.py"
-    # instructions_md_path = workflow_dir / "INSTRUCTIONS.md"
-    # requirements_txt_path = workflow_dir / "requirements.txt"
 
-    # Example: Save agent trace
     with Path.open(agent_trace_path, "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
 
