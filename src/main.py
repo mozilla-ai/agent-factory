@@ -1,5 +1,7 @@
 import os
+import shutil
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 import dotenv
@@ -99,36 +101,41 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
         ),
     )
 
-    # Get the workflow subdirectory name (e.g., "workflow_xxx")
+    # Always use 'latest' for the agent's output
+    latest_dir = workflows_root / "latest"
+    archive_root = workflows_root / "archive"
+    timestamp_id = datetime.now().strftime("%Y-%m-%d") + "_" + str(uuid.uuid4())[:8]
+    archive_dir = archive_root / timestamp_id
 
-    container_workflow_dir = f"/app/generated_workflows/{workflow_dir.name}"
+    # Ensure directories exist
+    latest_dir.mkdir(parents=True, exist_ok=True)
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    # For the agent, always use 'latest'
+    container_workflow_dir = "/app/generated_workflows/latest"
 
     run_instructions = f"""
     Generate python code for an agentic workflow using any-agent library to be able to do the following:
     {user_prompt}
-
-    ## Tools
-    You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
-    In addition to the tools pre-defined in available_tools.md,
-    two other tools that you could use are search_web and visit_webpage.
-
-    ## MCPs
-    You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
 
     ## File Saving Instructions
     YOU MUST save all generated files (including agent.py, INSTRUCTIONS.md, requirements.txt, etc.)
     inside the directory: `{container_workflow_dir}`. For example, save agent.py as `{container_workflow_dir}/agent.py`.
     Double check that the saved files exist using list_directory tool before stopping.
     """
+
     agent_trace = agent.run(run_instructions, max_turns=30)
 
-    # When saving files, use workflow_dir instead of workflows_root
-    agent_trace_path = workflow_dir / "agent_trace.json"
-
-    with Path.open(agent_trace_path, "w", encoding="utf-8") as f:
+    # Save agent trace in both locations
+    agent_trace_path_latest = latest_dir / "agent_trace.json"
+    with Path.open(agent_trace_path_latest, "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
 
-    print(f"Workflow files saved in: {workflow_dir}")
+    # Copy everything from latest to archive
+    for item in latest_dir.iterdir():
+        shutil.copy(item, archive_dir / item.name)
+
+    print(f"Workflow files saved in: {latest_dir} and archived in {archive_dir}")
     print(agent_trace.final_output)
 
 
