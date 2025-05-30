@@ -131,3 +131,25 @@ For each MCP server, you can also check available MCP tools from the provided li
     }
     }
     ```
+
+6. Google Sheets
+    - Description: For interacting with Google Spreadsheets using a defined set of tools.
+    - Link to README: https://raw.githubusercontent.com/xing5/mcp-google-sheets/main/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/xing5/mcp-google-sheets/main/src/mcp_google_sheets/server.py
+    - Configuration:
+    ```
+    {
+    "mcpServers": {
+        "google-sheets": {
+        "command": "uvx",
+        "args": ["mcp-google-sheets@latest"],
+        "env": {
+            // Use ABSOLUTE paths here
+            "SERVICE_ACCOUNT_PATH": "/full/path/to/your/service-account-key.json",
+            "DRIVE_FOLDER_ID": "your_shared_folder_id_here"
+        },
+        "healthcheck_url": "http://localhost:8000/health" // Adjust host/port if needed
+        }
+    }
+    }
+    ```
