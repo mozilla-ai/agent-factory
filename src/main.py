@@ -1,4 +1,7 @@
 import os
+import shutil
+import uuid
+from datetime import datetime
 from pathlib import Path
 
 import dotenv
@@ -10,23 +13,32 @@ from src.instructions import INSTRUCTIONS
 
 dotenv.load_dotenv()
 
+repo_root = Path.cwd()
+workflows_root = repo_root / "generated_workflows"
+tools_dir = repo_root / "tools"
+mcps_dir = repo_root / "mcps"
 
-def main(user_prompt: str):
+
+def main(user_prompt: str, workflow_dir: Path | None = None):
     """Generate python code for an agentic workflow based on the user prompt.
 
     Args:
         user_prompt: The user's prompt describing what the agentic workflow should do.
+        workflow_dir: Optional. Path to the workflow directory. If not provided, a new one is created.
 
     Returns:
         The final output from the agent.
     """
-    repo_root = Path.cwd()
-    workflows_dir = repo_root / "generated_workflows"
-    tools_dir = repo_root / "tools"
-    mcps_dir = repo_root / "mcps"
+    workflow_id = str(uuid.uuid4())
+    # Create a unique workflow directory if not provided
+    if workflow_dir is None:
+        workflow_dir = workflows_root / "latest"
+    else:
+        workflow_dir = Path(workflow_dir)
 
     # Create generated_workflows directory if it doesn't exist
-    workflows_dir.mkdir(parents=True, exist_ok=True)
+    workflows_root.mkdir(parents=True, exist_ok=True)
+    workflow_dir.mkdir(parents=True, exist_ok=True)
 
     # Create a separate directory for file operations
     file_ops_dir = "/app"
@@ -69,7 +81,7 @@ def main(user_prompt: str):
                         "/app",
                         # Mount workflows directory
                         "--mount",
-                        f"type=bind,src={workflows_dir},dst={mount_workflows_dir}",
+                        f"type=bind,src={workflows_root},dst={mount_workflows_dir}",
                         # Mount tools directory
                         "--mount",
                         f"type=bind,src={tools_dir},dst={mount_tools_dir}",
@@ -89,23 +101,41 @@ def main(user_prompt: str):
         ),
     )
 
+    # Always use 'latest' for the agent's output
+    latest_dir = workflows_root / "latest"
+    archive_root = workflows_root / "archive"
+    timestamp_id = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + workflow_id[:8]
+    archive_dir = archive_root / timestamp_id
+
+    # Ensure directories exist
+    latest_dir.mkdir(parents=True, exist_ok=True)
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    # For the agent, always use 'latest'
+    container_workflow_dir = "/app/generated_workflows/latest"
+
     run_instructions = f"""
     Generate python code for an agentic workflow using any-agent library to be able to do the following:
     {user_prompt}
 
-    ## Tools
-    You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
-    In addition to the tools pre-defined in available_tools.md,
-    two other tools that you could use are search_web and visit_webpage.
-
-    ## MCPs
-    You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
-
-    You MUST save the generated python code as `agent.py` and associated files, following the file saving instructions.
+    ## File Saving Instructions
+    YOU MUST save all generated files (including agent.py, INSTRUCTIONS.md, requirements.txt, etc.)
+    inside the directory: `{container_workflow_dir}`. For example, save agent.py as `{container_workflow_dir}/agent.py`.
     Double check that the saved files exist using list_directory tool before stopping.
     """
+
     agent_trace = agent.run(run_instructions, max_turns=30)
 
+    # Save agent trace in both locations
+    agent_trace_path_latest = latest_dir / "agent_trace.json"
+    with Path.open(agent_trace_path_latest, "w", encoding="utf-8") as f:
+        f.write(agent_trace.model_dump_json(indent=2))
+
+    # Copy everything from latest to archive
+    for item in latest_dir.iterdir():
+        shutil.copy(item, archive_dir / item.name)
+
+    print(f"Workflow files saved in: {latest_dir} and archived in {archive_dir}")
     print(agent_trace.final_output)
 
 

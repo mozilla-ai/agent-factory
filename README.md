@@ -85,7 +85,7 @@ This will generate Python code for an agentic workflow that can summarize text c
 ### 2. Run the Generated Workflow
 Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent as:
 ```bash
-python generated_workflows/agent.py arg1
+python generated_workflows/latest/agent.py arg1
 ```
 This will run the agent and save the agent trace as `agent_trace.json` in the `generated_workflows/` directory.
 
