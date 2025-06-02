@@ -5,8 +5,8 @@ For each MCP server, you can also check available MCP tools from the provided li
 
 1. Brave Search
     - Description: For web and local search using Brave's Search API
-    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/brave-search/README.md
-    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/brave-search/index.ts
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/index.ts
     - Configuration:
     ```
     {
@@ -73,3 +73,83 @@ For each MCP server, you can also check available MCP tools from the provided li
     }
     ```
     Note: If no specific directory is requested for mounting, you may use the default source directory `${os.getcwd()}/generated_workflows` and the destination directory `/projects/generated_workflows`.
+
+4. Slack
+    - Description: For interacting with Slack workspaces, through Slack messages or Slack channels
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/slack/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/slack/index.ts
+    - Configuration:
+    ```
+    {
+    "mcpServers": {
+        "slack": {
+        "command": "docker",
+        "args": [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "SLACK_BOT_TOKEN",
+            "-e",
+            "SLACK_TEAM_ID",
+            "-e",
+            "SLACK_CHANNEL_IDS",
+            "mcp/slack"
+        ],
+        "env": {
+            "SLACK_BOT_TOKEN": "xoxb-your-bot-token",
+            "SLACK_TEAM_ID": "T01234567",
+            "SLACK_CHANNEL_IDS": "C01234567, C76543210"
+        }
+        }
+    }
+    }
+    ```
+
+5. GitHub
+    - Description: For extracting and analysing data from GitHub repositories and automating GitHub workflows and processes.
+    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/github/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/github/README.md
+    - Configuration:
+    ```
+    {
+    "mcpServers": {
+        "github": {
+        "command": "docker",
+        "args": [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "mcp/github"
+        ],
+        "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_TOKEN>"
+        }
+        }
+    }
+    }
+    ```
+
+6. Google Sheets
+    - Description: For interacting with Google Spreadsheets using a defined set of tools.
+    - Link to README: https://raw.githubusercontent.com/xing5/mcp-google-sheets/main/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/xing5/mcp-google-sheets/main/src/mcp_google_sheets/server.py
+    - Configuration:
+    ```
+    {
+    "mcpServers": {
+        "google-sheets": {
+        "command": "uvx",
+        "args": ["mcp-google-sheets@latest"],
+        "env": {
+            // Use ABSOLUTE paths here
+            "SERVICE_ACCOUNT_PATH": "/full/path/to/your/service-account-key.json",
+            "DRIVE_FOLDER_ID": "your_shared_folder_id_here"
+        },
+        "healthcheck_url": "http://localhost:8000/health" // Adjust host/port if needed
+        }
+    }
+    }
+    ```
