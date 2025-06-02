@@ -175,3 +175,6 @@ cython_debug/
 
 # MacOS
 .DS_Store
+
+# generated agents
+generated_workflows

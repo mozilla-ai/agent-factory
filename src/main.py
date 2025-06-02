@@ -104,7 +104,7 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
     # Always use 'latest' for the agent's output
     latest_dir = workflows_root / "latest"
     archive_root = workflows_root / "archive"
-    timestamp_id = datetime.now().strftime("%Y-%m-%d") + "_" + workflow_id[:8]
+    timestamp_id = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + workflow_id[:8]
     archive_dir = archive_root / timestamp_id
 
     # Ensure directories exist
