@@ -3,7 +3,7 @@ FROM node:alpine AS deps
 
 RUN corepack enable
 
-WORKDIR /mzai-platform-ui
+WORKDIR /agent-factory-ui
 
 COPY package.json pnpm-lock.yaml ./
 # prefetfch and install dependencies
@@ -14,7 +14,7 @@ FROM node:lts-alpine AS builder
 
 RUN corepack enable
 
-WORKDIR /mzai-platform-ui
+WORKDIR /agent-factory-ui
 
 COPY package.json pnpm-lock.yaml ./
 # copy the prefetched pnpm store from the deps stage
@@ -33,7 +33,7 @@ FROM nginx:alpine AS runner
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built assets
-COPY --from=builder /mzai-platform-ui/dist/ /usr/share/nginx/html/
+COPY --from=builder /agent-factory-ui/dist/ /usr/share/nginx/html/
 
 # Optional: custom nginx config
 # COPY nginx.conf /etc/nginx/nginx.conf

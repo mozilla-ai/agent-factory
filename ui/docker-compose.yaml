@@ -1,12 +1,12 @@
 services:
-  mzai-platform-ui:
+  agent-factory-ui:
     image: node:alpine
-    container_name: mzai-platform-ui-dev
-    working_dir: /mzai-platform-ui
+    container_name: agent-factory-ui-dev
+    working_dir: /agent-factory-ui
     command: sh -c "corepack enable && pnpm install && pnpm dev"
     volumes:
-      - .:/mzai-platform-ui
-      - /mzai-platform-ui/node_modules
+      - .:/agent-factory-ui
+      - /agent-factory-ui/node_modules
     ports:
       - "5173:5173"
     environment:
@@ -14,8 +14,8 @@ services:
     profiles:
       - dev
 
-  mzai-platform-ui-prod:
-    container_name: mzai-platform-ui-prod
+  agent-factory-ui-prod:
+    container_name: agent-factory-ui-prod
     build:
       context: .
       dockerfile: Dockerfile

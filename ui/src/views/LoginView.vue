@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="handleLogin" class="login-form" name="login-form">
-    <h2 style="text-align: center; margin-bottom: 1rem">Mzai Platform</h2>
+    <h2 style="text-align: center; margin-bottom: 1rem">Agent Factory</h2>
     <input v-model="email" placeholder="Email" :aria-required="true" required />
     <input
       v-model="password"
