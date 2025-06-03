@@ -10,16 +10,6 @@ load_dotenv()
 MCP_TOOLS = []
 messages = []
 
-# Create GitHub agent using any_agent
-framework = AgentFramework.OPENAI
-github_agent = AnyAgent.create(
-    framework,
-    AgentConfig(
-        model_id="gpt-4.1",
-        instructions="You are able to handle issues and requests on a GitHub repository. You can use your tools to help with the task.",  # noqa: E501
-    ),
-)
-
 
 def trim_context(conversation_history, max_messages=10):
     """Trim conversation history to stay within max message count."""
@@ -80,16 +70,24 @@ async def on_message(message: cl.Message):
                     mcp_tool = MCPStdio(command=tool.command, args=tool.args, env=getattr(tool, "env", None))
                     tools.append(mcp_tool)
 
-        # Add GitHub MCP server
-        github_mcp_tool = MCPStdio(
-            command="docker",
-            args=["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"],
-            env={"GITHUB_PERSONAL_ACCESS_TOKEN": os.environ["GITHUB_PERSONAL_ACCESS_TOKEN"]},
+        tools.append(
+            MCPStdio(
+                command="docker",
+                args=["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"],
+                env={"GITHUB_PERSONAL_ACCESS_TOKEN": os.environ["GITHUB_PERSONAL_ACCESS_TOKEN"]},
+            )
         )
-        tools.append(github_mcp_tool)
 
-        # Update agent config with tools
-        github_agent.config.tools = tools
+        # Create GitHub agent using any_agent
+        framework = AgentFramework.OPENAI
+        github_agent = AnyAgent.create(
+            framework,
+            AgentConfig(
+                model_id="gpt-4.1",
+                instructions="You are able to handle issues and requests on a GitHub repository. You can use your tools to help with the task.",  # noqa: E501
+                tools=tools,
+            ),
+        )
 
         # Trim context to the last 10 messages
         messages = trim_context(messages, max_messages=10)
@@ -108,15 +106,13 @@ async def on_message(message: cl.Message):
         # Display tool usage information
         if hasattr(agent_trace, "spans"):
             for span in agent_trace.spans:
-                if hasattr(span, "tool_calls") and span.tool_calls:
-                    for tool_call in span.tool_calls:
-                        tool_msg = cl.Message(
-                            content=f"⚙️ Used tool: **{tool_call.name}**\nArguments: `{tool_call.input}`",  # noqa: E501
-                            author="Agent Steps",
-                        )
-                        await tool_msg.send()
-                        tool_msg.author = "assistant"
-                        messages.append(tool_msg)
+                tool_msg = cl.Message(
+                    content=f"⚙️ Used: **{span.name}**",
+                    author="Agent Steps",
+                )
+                await tool_msg.send()
+                tool_msg.author = "assistant"
+                messages.append(tool_msg)
 
         # Send the final response
         if agent_trace.final_output:
