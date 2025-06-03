@@ -120,9 +120,9 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
 
     ## File Saving Instructions
     YOU MUST save all generated files (including agent.py, INSTRUCTIONS.md, requirements.txt, etc.)
-    inside the directory: `{container_workflow_dir}`. For example, save agent.py as `{container_workflow_dir}/agent.py`,
-    overwrite the files if they already exist. Double check that the saved files exist using list_directory tool
-    before stopping
+    inside the directory: `{container_workflow_dir}`. For example, save agent.py as `{container_workflow_dir}/agent.py`
+    and overwrite the files if they already exist. Double check that the saved files exist using list_directory tool
+    and that the latest version have been saved or overwritten correctly before stopping.
     """
 
     agent_trace = agent.run(run_instructions, max_turns=30)
