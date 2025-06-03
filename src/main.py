@@ -94,8 +94,16 @@ def build_run_instructions(user_prompt, container_workflow_dir):
     Generate python code for an agentic workflow using any-agent library to be able to do the following:
     {user_prompt}
 
+    ## Tools
+    You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
+    In addition to the tools pre-defined in available_tools.md,
+    two other tools that you could use are search_web and visit_webpage.
+
+    ## MCPs
+    You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
+
     ## File Saving Instructions
-    YOU MUST save all generated files (including agent.py, INSTRUCTIONS.md, requirements.txt, etc.)
+    YOU MUST save all generated files (including agent.py, INSTRUCTIONS.md, requirements.txt)
     inside the directory: `{container_workflow_dir}`. For example, save agent.py as `{container_workflow_dir}/agent.py`.
     Double check that the saved files exist using list_directory tool before stopping.
     """
