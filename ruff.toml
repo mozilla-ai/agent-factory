@@ -31,6 +31,8 @@ exclude = [
   "venv",
   "archive",
   "bazel-*",
+  "api/.*",
+  "ui/.*",
 ]
 
 line-length = 120
