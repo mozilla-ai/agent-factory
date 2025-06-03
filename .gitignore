@@ -184,3 +184,6 @@ generated_workflows
 
 # chainlit
 .chainlit/translations
+
+# node
+node_modules/

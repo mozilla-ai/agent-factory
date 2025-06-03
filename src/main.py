@@ -19,33 +19,19 @@ tools_dir = repo_root / "tools"
 mcps_dir = repo_root / "mcps"
 
 
-def main(user_prompt: str, workflow_dir: Path | None = None):
-    """Generate python code for an agentic workflow based on the user prompt.
-
-    Args:
-        user_prompt: The user's prompt describing what the agentic workflow should do.
-        workflow_dir: Optional. Path to the workflow directory. If not provided, a new one is created.
-
-    Returns:
-        The final output from the agent.
-    """
-    workflow_id = str(uuid.uuid4())
-    # Create a unique workflow directory if not provided
-    if workflow_dir is None:
-        workflow_dir = workflows_root / "latest"
-    else:
-        workflow_dir = Path(workflow_dir)
-
-    # Create generated_workflows directory if it doesn't exist
+def setup_directories(workflows_root, workflow_dir):
     workflows_root.mkdir(parents=True, exist_ok=True)
     workflow_dir.mkdir(parents=True, exist_ok=True)
+    latest_dir = workflows_root / "latest"
+    archive_root = workflows_root / "archive"
+    latest_dir.mkdir(parents=True, exist_ok=True)
+    archive_root.mkdir(parents=True, exist_ok=True)
+    return latest_dir, archive_root
 
-    # Create a separate directory for file operations
-    file_ops_dir = "/app"
-    mount_workflows_dir = "/app/generated_workflows"
-    mount_tools_dir = "/app/tools"
-    mount_mcps_dir = "/app/mcps"
 
+def create_agent(
+    workflows_root, tools_dir, mcps_dir, mount_workflows_dir, mount_tools_dir, mount_mcps_dir, file_ops_dir
+):
     framework = AgentFramework.OPENAI
     agent = AnyAgent.create(
         framework,
@@ -100,21 +86,11 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
             ],
         ),
     )
+    return agent
 
-    # Always use 'latest' for the agent's output
-    latest_dir = workflows_root / "latest"
-    archive_root = workflows_root / "archive"
-    timestamp_id = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + workflow_id[:8]
-    archive_dir = archive_root / timestamp_id
 
-    # Ensure directories exist
-    latest_dir.mkdir(parents=True, exist_ok=True)
-    archive_dir.mkdir(parents=True, exist_ok=True)
-
-    # For the agent, always use 'latest'
-    container_workflow_dir = "/app/generated_workflows/latest"
-
-    run_instructions = f"""
+def build_run_instructions(user_prompt, container_workflow_dir):
+    return f"""
     Generate python code for an agentic workflow using any-agent library to be able to do the following:
     {user_prompt}
 
@@ -124,16 +100,45 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
     Double check that the saved files exist using list_directory tool before stopping.
     """
 
-    agent_trace = agent.run(run_instructions, max_turns=30)
 
-    # Save agent trace in both locations
+def save_agent_trace(agent_trace, latest_dir):
     agent_trace_path_latest = latest_dir / "agent_trace.json"
     with Path.open(agent_trace_path_latest, "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
 
-    # Copy everything from latest to archive
+
+def archive_latest(latest_dir, archive_dir):
     for item in latest_dir.iterdir():
         shutil.copy(item, archive_dir / item.name)
+
+
+def main(user_prompt: str, workflow_dir: Path | None = None):
+    """Generate python code for an agentic workflow based on the user prompt."""
+    workflow_id = str(uuid.uuid4())
+    if workflow_dir is None:
+        workflow_dir = workflows_root / "latest"
+    else:
+        workflow_dir = Path(workflow_dir)
+
+    latest_dir, archive_root = setup_directories(workflows_root, workflow_dir)
+    timestamp_id = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + workflow_id[:8]
+    archive_dir = archive_root / timestamp_id
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    file_ops_dir = "/app"
+    mount_workflows_dir = "/app/generated_workflows"
+    mount_tools_dir = "/app/tools"
+    mount_mcps_dir = "/app/mcps"
+
+    agent = create_agent(
+        workflows_root, tools_dir, mcps_dir, mount_workflows_dir, mount_tools_dir, mount_mcps_dir, file_ops_dir
+    )
+    container_workflow_dir = "/app/generated_workflows/latest"
+    run_instructions = build_run_instructions(user_prompt, container_workflow_dir)
+
+    agent_trace = agent.run(run_instructions, max_turns=30)
+    save_agent_trace(agent_trace, latest_dir)
+    archive_latest(latest_dir, archive_dir)
 
     print(f"Workflow files saved in: {latest_dir} and archived in {archive_dir}")
     print(agent_trace.final_output)
