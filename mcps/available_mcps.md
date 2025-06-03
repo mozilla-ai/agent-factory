@@ -3,32 +3,24 @@
 Below is the list of all available MCP servers, a description of each MCP, a link to its README and the configuration of how it must be used in the agent configuration.
 For each MCP server, you can also check available MCP tools from the provided link (either Python file or JavaScript/TypeScript file).
 
-1. Brave Search
-    - Description: For web and local search using Brave's Search API
-    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/README.md
-    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/index.ts
+1. DuckDuckGo Search
+    - Description: For web search using DuckDuckGo's Search API
+    - Link to README: https://raw.githubusercontent.com/nickclyde/duckduckgo-mcp-server/main/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/nickclyde/duckduckgo-mcp-server/main/src/duckduckgo_mcp_server/server.py
     - Configuration:
     ```
     {
-    "mcpServers": {
-        "brave-search": {
-        "command": "docker",
-        "args": [
-            "run",
-            "-i",
-            "--rm",
-            "-e",
-            "BRAVE_API_KEY",
-            "mcp/brave-search"
-        ],
-        "env": {
-            "BRAVE_API_KEY": "YOUR_API_KEY_HERE"
+        "mcpServers": {
+            "duckduckgo-mcp": {
+                "command": "uvx",
+                "args": [
+                    "duckduckgo-mcp-server"
+                ]
+            }
         }
-        }
-    }
     }
     ```
-    Note: You may only use `brave_web_search` tool from this MCP server and never use `brave_local_search` tool.
+    Note: This configuration matches your current setup. The available tools are `search` (web search) and `fetch_content` (fetch and parse webpage content), as described in the README.
 
 2. ElevenLabs Text-to-Speech
     - Description: For text-to-speech and audio processing using ElevenLabs API

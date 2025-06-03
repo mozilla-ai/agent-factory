@@ -84,20 +84,13 @@ def main(generated_workflow_dir: str = "generated_workflows"):
             tools=[
                 visit_webpage,
                 MCPStdio(
-                    command="docker",
+                    command="uvx",
                     args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "-e",
-                        "BRAVE_API_KEY",
-                        "mcp/brave-search",
+                        "duckduckgo-mcp-server",
                     ],
-                    env={
-                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-                    },
                     tools=[
-                        "brave_web_search",
+                        "search",
+                        "fetch_content",
                     ],
                 ),
                 MCPStdio(

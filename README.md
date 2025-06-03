@@ -48,12 +48,9 @@ Before running the agent factory, you need to set up your OpenAI API key (requir
 > ```bash
 > export OPENAI_API_KEY=sk-...
 > ```
-You will need a Brave Search API key to use the `brave_web-search` tool. Create an account at [Brave Search](https://brave.com/search/api/) and obtain your API key.
-> Set it as an environment variable:
-> ```bash
-> export BRAVE_API_KEY=BS...
-> ```
 
+You can use the DuckDuckGo Search MCP for web search and webpage content fetching. No API key is required for DuckDuckGo MCP—it's ready to use out of the box.
+You can also use search_tavily (you will need TAVILY_API_KEY) or search_brave (BRAVE_API_KEY) as alternative web search tools.
 
 ### 1. Generate the workflow
 Run the code generator agent with your desired workflow prompt:

@@ -79,24 +79,17 @@ agent = AnyAgent.create(
             review_code_with_llm, # Example tool taken from tools/available_tools.md
             # Example of MCP server usage
             MCPStdio(
-                    command="docker",
+                    command="uvx",
                     # args taken verbatim from available_mcps.md
                     args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "-e",
-                        "BRAVE_API_KEY",
-                        "mcp/brave-search",
+                        "duckduckgo-mcp-server"
                     ],
-                    # Specify necessary environment variables
-                    env={
-                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-                    },
+                    # DuckDuckGo MCP does not require environment variables
                     # From among the tools available from the MCP server
                     # list only the tools that are necessary for the solving the task at hand
                     tools=[
-                        "brave_web_search",
+                        "search",
+                        "fetch_content",
                     ],
             ),
         ],

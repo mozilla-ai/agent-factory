@@ -68,25 +68,18 @@ agent = AnyAgent.create(
             review_code_with_llm, # Example tool taken from tools/available_tools.md
             # Example of MCP server usage
             MCPStdio(
-                    command="docker",
-                    # args taken verbatim from available_mcps.md
-                    args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "-e",
-                        "BRAVE_API_KEY",
-                        "mcp/brave-search",
-                    ],
-                    # Specify necessary environment variables
-                    env={
-                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-                    },
-                    # From among the tools available from the MCP server
-                    # list only the tools that are necessary for the solving the task at hand
-                    tools=[
-                        "brave_web_search",
-                    ],
+                command="uvx",
+                # args taken verbatim from available_mcps.md
+                args=[
+                    "duckduckgo-mcp-server"
+                ],
+                # DuckDuckGo MCP does not require environment variables
+                # From among the tools available from the MCP server
+                # list only the tools that are necessary for the solving the task at hand
+                tools=[
+                    "search",
+                    "fetch_content",
+                ],
             ),
         ],
         agent_args={
@@ -108,7 +101,7 @@ agent.run(prompt=user_input)
   "checkpoints": [
     {
       "points": 2,
-      "criteria": "Ensure that the agent called search_web or brave_web_search to find relevant information about code review best practices or specific technologies mentioned in the code"
+      "criteria": "Ensure that the agent called search_web or the DuckDuckGo MCP tools (search, fetch_content) to find relevant information about code review best practices or specific technologies mentioned in the code"
     },
     {
       "points": 2,
@@ -136,7 +129,7 @@ agent.run(prompt=user_input)
     },
     {
       "points": 1,
-      "criteria": "Ensure that the agent appropriately utilized the available MCP tools (brave_web_search) when additional context or verification was needed"
+      "criteria": "Ensure that the agent appropriately utilized the available MCP tools (search, fetch_content) when additional context or verification was needed"
     },
     {
       "points": 1,
