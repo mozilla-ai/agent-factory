@@ -22,14 +22,26 @@ github_agent = Agent(
 )
 
 
+def trim_context(conversation_history, max_messages=10):
+    """Trim conversation history to stay within max message count."""
+    if len(conversation_history) > max_messages:
+        return conversation_history[-max_messages:]
+    return conversation_history
+
+
 def format_messages(all_cl_messages: list[cl.Message]):
-    """Convert Chainlit messages to OpenAI format"""
+    """Convert Chainlit messages to OpenAI format (list of dicts with role/content)"""
     if not all_cl_messages:
         return []
-
-    # Get the latest message content for the task
-    current_message = all_cl_messages[-1]
-    return current_message.content
+    formatted = []
+    for msg in all_cl_messages:
+        # Determine role: if author is 'Agent Steps' or 'assistant', treat as assistant; else user
+        if getattr(msg, "author", None) in ["Agent Steps", "assistant"]:
+            role = "assistant"
+        else:
+            role = "user"
+        formatted.append({"role": role, "content": msg.content})
+    return formatted
 
 
 @cl.on_mcp_connect
@@ -54,6 +66,8 @@ async def on_chat_start():
 async def on_message(message: cl.Message):
     try:
         messages = cl.user_session.get("messages")
+        # Append user message with correct role
+        message.author = "user"
         messages.append(message)
         cl.user_session.set("messages", messages)
 
@@ -88,10 +102,12 @@ async def on_message(message: cl.Message):
         # Update agent with MCP servers
         github_agent.mcp_servers = mcp_servers
 
+        # Trim context to the last 10 messages
+        messages = trim_context(messages, max_messages=10)
         # Format the input task
         task = format_messages(messages)
 
-        # Run the agent with the task
+        # Run the agent with the conversation history
         result = await Runner.run(github_agent, task)
 
         # Display tool usage information
@@ -104,11 +120,13 @@ async def on_message(message: cl.Message):
                             author="Agent Steps",
                         )
                         await tool_msg.send()
+                        tool_msg.author = "assistant"
                         messages.append(tool_msg)
 
         # Send the final response
         if result.final_output:
             response_msg = cl.Message(content=result.final_output)
+            response_msg.author = "assistant"
             await response_msg.send()
             messages.append(response_msg)
 
@@ -120,6 +138,7 @@ async def on_message(message: cl.Message):
 
     except Exception as e:
         error_msg = cl.Message(content=f"Error: {str(e)}")
+        error_msg.author = "assistant"
         await error_msg.send()
 
 
