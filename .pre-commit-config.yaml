@@ -5,9 +5,12 @@ repos:
       - id: detect-secrets
         exclude: |
           (?x)^(
-              .+/tests/data/.+json|
-              docs/.+
+            api/.*|
+            ui/.*|
+            docs/.*|
+            .*/tests/data/.*\.json
           )$
+
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -29,11 +32,15 @@ repos:
           - --config
           - ruff.toml
           - --fix
+        exclude: ^(api/|ui/)  # matches paths starting with api/ or ui/
+
       # Run the formatter.
       - id: ruff-format
         args:
           - --config
           - ruff.toml
+        exclude: ^(api/|ui/)  # matches paths starting with api/ or ui/
+
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
