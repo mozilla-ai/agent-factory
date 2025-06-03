@@ -23,7 +23,7 @@ uv pip install -e .
 ```
 ### Option B: Local installation
 
-#### Prerequisites: 
+#### Prerequisites:
 - Python 3.11 or higher
 - Docker should be up and running in the background (for filesystem operations)
 
@@ -55,7 +55,7 @@ You will need a Brave Search API key to use the `brave_web-search` tool. Create 
 > ```
 
 
-### 1. Generate the workflow 
+### 1. Generate the workflow
 Run the code generator agent with your desired workflow prompt:
 ```bash
 python -m src.main "Summarize text content from a given webpage URL"
@@ -105,6 +105,13 @@ python -m eval.run_agent_eval
 This will display the evaluation criteria and show how the agent performed on each.
 
 
+## How to run the API
+
+See detailed instructions in [api/README.md](api/README.md).
+
+## How to run the UI
+
+See detailed instructions in [ui/README.md](ui/README.md).
 
 ## License
 
