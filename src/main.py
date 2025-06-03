@@ -19,6 +19,67 @@ tools_dir = repo_root / "tools"
 mcps_dir = repo_root / "mcps"
 
 
+def get_mount_config():
+    return {
+        "host_workflows_dir": str(workflows_root),
+        "host_tools_dir": str(tools_dir),
+        "host_mcps_dir": str(mcps_dir),
+        "container_workflows_dir": "/app/generated_workflows",
+        "container_tools_dir": "/app/tools",
+        "container_mcps_dir": "/app/mcps",
+        "file_ops_dir": "/app",
+    }
+
+
+def get_default_tools(mount_config):
+    return [
+        visit_webpage,
+        MCPStdio(
+            command="docker",
+            args=[
+                "run",
+                "-i",
+                "--rm",
+                "-e",
+                "BRAVE_API_KEY",
+                "mcp/brave-search",
+            ],
+            env={
+                "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
+            },
+            tools=[
+                "brave_web_search",
+            ],
+        ),
+        MCPStdio(
+            command="docker",
+            args=[
+                "run",
+                "-i",
+                "--rm",
+                "--volume",
+                "/app",
+                # Mount workflows directory
+                "--mount",
+                f"type=bind,src={mount_config['host_workflows_dir']},dst={mount_config['container_workflows_dir']}",
+                # Mount tools directory
+                "--mount",
+                f"type=bind,src={mount_config['host_tools_dir']},dst={mount_config['container_tools_dir']}",
+                # Mount mcps directory
+                "--mount",
+                f"type=bind,src={mount_config['host_mcps_dir']},dst={mount_config['container_mcps_dir']}",
+                "mcp/filesystem",
+                mount_config["file_ops_dir"],
+            ],
+            tools=[
+                "read_file",
+                "write_file",
+                "list_directory",
+            ],
+        ),
+    ]
+
+
 def setup_directories(workflows_root, workflow_dir):
     workflows_root.mkdir(parents=True, exist_ok=True)
     workflow_dir.mkdir(parents=True, exist_ok=True)
@@ -29,61 +90,14 @@ def setup_directories(workflows_root, workflow_dir):
     return latest_dir, archive_root
 
 
-def create_agent(
-    workflows_root, tools_dir, mcps_dir, mount_workflows_dir, mount_tools_dir, mount_mcps_dir, file_ops_dir
-):
+def create_agent(mount_config):
     framework = AgentFramework.OPENAI
     agent = AnyAgent.create(
         framework,
         AgentConfig(
             model_id="gpt-4.1",
             instructions=INSTRUCTIONS,
-            tools=[
-                visit_webpage,
-                MCPStdio(
-                    command="docker",
-                    args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "-e",
-                        "BRAVE_API_KEY",
-                        "mcp/brave-search",
-                    ],
-                    env={
-                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-                    },
-                    tools=[
-                        "brave_web_search",
-                    ],
-                ),
-                MCPStdio(
-                    command="docker",
-                    args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "--volume",
-                        "/app",
-                        # Mount workflows directory
-                        "--mount",
-                        f"type=bind,src={workflows_root},dst={mount_workflows_dir}",
-                        # Mount tools directory
-                        "--mount",
-                        f"type=bind,src={tools_dir},dst={mount_tools_dir}",
-                        # Mount mcps directory
-                        "--mount",
-                        f"type=bind,src={mcps_dir},dst={mount_mcps_dir}",
-                        "mcp/filesystem",
-                        file_ops_dir,
-                    ],
-                    tools=[
-                        "read_file",
-                        "write_file",
-                        "list_directory",
-                    ],
-                ),
-            ],
+            tools=get_default_tools(mount_config),
         ),
     )
     return agent
@@ -133,15 +147,9 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
     archive_dir = archive_root / timestamp_id
     archive_dir.mkdir(parents=True, exist_ok=True)
 
-    file_ops_dir = "/app"
-    mount_workflows_dir = "/app/generated_workflows"
-    mount_tools_dir = "/app/tools"
-    mount_mcps_dir = "/app/mcps"
-
-    agent = create_agent(
-        workflows_root, tools_dir, mcps_dir, mount_workflows_dir, mount_tools_dir, mount_mcps_dir, file_ops_dir
-    )
-    container_workflow_dir = "/app/generated_workflows/latest"
+    mount_config = get_mount_config()
+    agent = create_agent(mount_config)
+    container_workflow_dir = mount_config["container_workflows_dir"] + "/latest"
     run_instructions = build_run_instructions(user_prompt, container_workflow_dir)
 
     agent_trace = agent.run(run_instructions, max_turns=30)
