@@ -8,12 +8,12 @@ WEBPAGE_DESCRIPTIONS = {
         "Primary reference whenever you are defining single or multi-agent systems with any-agent."
         "This page provides essential setup patterns and configuration examples for creating agents."
     ),
-    "https://mozilla-ai.github.io/any-agent/frameworks/openai/": (
+    "https://mozilla-ai.github.io/any-agent/agents/frameworks/openai/": (
         "Reference whenever you are implementing OpenAI-based agents in any-agent."
         "This page details the default agent types, model configurations, "
         "and run arguments specific to the OpenAI Agents SDK."
     ),
-    "https://mozilla-ai.github.io/any-agent/tools/": (
+    "https://mozilla-ai.github.io/any-agent/agents/tools/": (
         "Visit when adding tools to your agent's capabilities."
         "This page explains how to use both callable tools"
         "and MCP (Model Context Protocol) tools in your agent configurations."
