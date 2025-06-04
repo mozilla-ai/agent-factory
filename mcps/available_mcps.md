@@ -3,32 +3,24 @@
 Below is the list of all available MCP servers, a description of each MCP, a link to its README and the configuration of how it must be used in the agent configuration.
 For each MCP server, you can also check available MCP tools from the provided link (either Python file or JavaScript/TypeScript file).
 
-
-
-1. Obsidian
-    - Description: For interacting with Obsidian vaults, reading and writing notes, etc.
-    - Link to README: https://raw.githubusercontent.com/smithery-ai/mcp-obsidian/main/README.md
-    - Check available MCP tools: https://raw.githubusercontent.com/smithery-ai/mcp-obsidian/main/index.ts
+1. DuckDuckGo Search
+    - Description: For web search using DuckDuckGo's Search API
+    - Link to README: https://raw.githubusercontent.com/nickclyde/duckduckgo-mcp-server/main/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/nickclyde/duckduckgo-mcp-server/main/src/duckduckgo_mcp_server/server.py
     - Configuration:
     ```
     {
         "mcpServers": {
-            "mcp-obsidian": {
-                "command": "npx",
+            "duckduckgo-mcp": {
+                "command": "uvx",
                 "args": [
-                    "-y",
-                    "@smithery/cli@latest",
-                    "run",
-                    "mcp-obsidian",
-                    "--config",
-                    "\"{\\\"vaultPath\\\":\\\"/absolute/path/to/your/vault\\\"}\""
+                    "duckduckgo-mcp-server"
                 ]
             }
         }
     }
     ```
-    Note: Set the `vaultPath` in the configuration to the absolute path of your Obsidian vault. No environment variables are required. Ensure the agent has read/write permissions to the specified vault directory. The configuration must use a valid absolute path for the vault, and the path should be accessible from the environment where the agent is running.
-
+    Note: Pay attention at the exact command and argument. You do NOT need an API key or token. The available tools are `search` for web search and `fetch_content` (to fetch and parse webpage content).
 
 2. ElevenLabs Text-to-Speech
     - Description: For text-to-speech and audio processing using ElevenLabs API
@@ -105,7 +97,7 @@ For each MCP server, you can also check available MCP tools from the provided li
     }
     }
     ```
-    
+
 5. GitHub
     - Description: For extracting and analysing data from GitHub repositories and automating GitHub workflows and processes.
     - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/github/README.md

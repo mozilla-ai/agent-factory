@@ -55,7 +55,8 @@ You will need a Tavily API key to use the `tavily_search` tool. You can get a fr
 > export TAVILY_API_KEY=tvly_...
 > ```
 
-
+> [!TIP]
+> If you do not want to create an API key for web search, you can specify in your workflow definition that you want to use DuckDuckGo as the search tool (e.g., "use DuckDuckGo for web search"). This does not require an API key. However, please note that for complex workflows, you may hit the cap of searches per minute with DuckDuckGo.
 
 ### 1. Generate the workflow
 Run the code generator agent with your desired workflow prompt:
