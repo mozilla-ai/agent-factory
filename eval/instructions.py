@@ -108,7 +108,7 @@ agent.run(prompt=user_input)
   "checkpoints": [
     {
       "points": 2,
-      "criteria": "Ensure that the agent called search_tavily or brave_web_search to find relevant information about code review best practices or specific technologies mentioned in the code"
+      "criteria": "Ensure that the agent called search_tavily or another search tool to find relevant information about code review best practices or specific technologies mentioned in the code"
     },
     {
       "points": 2,

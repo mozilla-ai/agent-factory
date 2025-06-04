@@ -49,7 +49,7 @@ Before running the agent factory, you need to set up your OpenAI API key (requir
 > export OPENAI_API_KEY=sk-...
 > ```
 
-You will need a Tavily API key to use the `tavily_search` tool. You can get a free API key by signing up at [Tavily](https://app.tavily.com/). 
+You will need a Tavily API key to use the `search_tavily` tool. You can get a free API key by signing up at [Tavily](https://app.tavily.com/). 
 > Set it as an environment variable:
 > ```bash
 > export TAVILY_API_KEY=tvly_...
