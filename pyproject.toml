@@ -4,10 +4,6 @@ version = "0.1.0"
 description = "Agentic Workflow Builder"
 readme = "README.md"
 requires-python = ">=3.11"
-exclude = [
-  "api/.*",
-  "ui/.*",
-]
 dependencies = [
     "any-agent[all]>=0.17.0",
     "jinja2>=3.1.2",

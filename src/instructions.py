@@ -8,12 +8,12 @@ WEBPAGE_DESCRIPTIONS = {
         "Primary reference whenever you are defining single or multi-agent systems with any-agent."
         "This page provides essential setup patterns and configuration examples for creating agents."
     ),
-    "https://mozilla-ai.github.io/any-agent/frameworks/openai/": (
+    "https://mozilla-ai.github.io/any-agent/agents/frameworks/openai/": (
         "Reference whenever you are implementing OpenAI-based agents in any-agent."
         "This page details the default agent types, model configurations, "
         "and run arguments specific to the OpenAI Agents SDK."
     ),
-    "https://mozilla-ai.github.io/any-agent/tools/": (
+    "https://mozilla-ai.github.io/any-agent/agents/tools/": (
         "Visit when adding tools to your agent's capabilities."
         "This page explains how to use both callable tools"
         "and MCP (Model Context Protocol) tools in your agent configurations."
@@ -116,6 +116,14 @@ with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf
 """
 
 DELIVERABLES_INSTRUCTIONS = """
+The final output should be a JSON with the following structure:
+
+{
+    "agent_code": "The agent script in Markdown format",
+    "run_instructions": "The instructions for setting up the environment in Markdown format",
+    "dependencies": "The list of python dependencies in Markdown format"
+}
+
 1. agent_code should contain all the code implementation of the agent which will correspond to the runnable agent.py script
 2. run_instructions should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
