@@ -1,14 +1,33 @@
-import os
+from pathlib import Path
 
 import chainlit as cl
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from dotenv import load_dotenv
+from src.instructions import INSTRUCTIONS
+from src.main import build_run_instructions, get_default_tools
 
 load_dotenv()
 
+repo_root = Path.cwd()
+workflows_root = repo_root / "generated_workflows"
+tools_dir = repo_root / "tools"
+mcps_dir = repo_root / "mcps"
+
 MCP_TOOLS = []
 messages = []
+
+
+def get_mount_config():
+    return {
+        "host_workflows_dir": str(workflows_root),
+        "host_tools_dir": str(tools_dir),
+        "host_mcps_dir": str(mcps_dir),
+        "container_workflows_dir": "/app/generated_workflows",
+        "container_tools_dir": "/app/tools",
+        "container_mcps_dir": "/app/mcps",
+        "file_ops_dir": "/app",
+    }
 
 
 def trim_context(conversation_history, max_messages=10):
@@ -60,48 +79,41 @@ async def on_message(message: cl.Message):
         messages.append(message)
         cl.user_session.set("messages", messages)
 
-        # Configure tools for any_agent
-        tools = []
+        # Get mount config and default tools
+        mount_config = get_mount_config()
+        tools = get_default_tools(mount_config)
 
-        # Register existing MCP tools
+        # Register existing MCP tools (if any)
         if MCP_TOOLS:
             for tool in MCP_TOOLS:
-                if tool.clientType == "stdio":
+                if getattr(tool, "clientType", None) == "stdio":
                     mcp_tool = MCPStdio(command=tool.command, args=tool.args, env=getattr(tool, "env", None))
                     tools.append(mcp_tool)
 
-        tools.append(
-            MCPStdio(
-                command="docker",
-                args=["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"],
-                env={"GITHUB_PERSONAL_ACCESS_TOKEN": os.environ["GITHUB_PERSONAL_ACCESS_TOKEN"]},
-            )
-        )
-
-        # Create GitHub agent using any_agent
+        # Create agent with model_id, INSTRUCTIONS, tools
         framework = AgentFramework.OPENAI
-        github_agent = AnyAgent.create(
+        agent = AnyAgent.create(
             framework,
             AgentConfig(
                 model_id="gpt-4.1",
-                instructions="You are able to handle issues and requests on a GitHub repository. You can use your tools to help with the task.",  # noqa: E501
+                instructions=INSTRUCTIONS,
                 tools=tools,
             ),
         )
 
-        # Trim context to the last 10 messages
+        # Maintain conversation history (trim to 10)
         messages = trim_context(messages, max_messages=10)
-        # Format the conversation history into a prompt
+        # Format conversation as prompt
         conversation = ""
         for msg in messages:
             role = "User" if msg.author == "user" else "Assistant"
             conversation += f"{role}: {msg.content}\n\n"
 
-        # Prepare the task for the agent
-        task = f"Here is the conversation history:\n\n{conversation}\nPlease respond to the latest message."
+        # Use build_run_instructions as the task
+        task = build_run_instructions(conversation)
 
-        # Run the agent with the conversation history
-        agent_trace = github_agent.run(task, max_turns=30)
+        # Run the agent
+        agent_trace = agent.run(task, max_turns=30)
 
         # Display tool usage information
         if hasattr(agent_trace, "spans"):
@@ -116,7 +128,10 @@ async def on_message(message: cl.Message):
 
         # Send the final response
         if agent_trace.final_output:
-            response_msg = cl.Message(content=agent_trace.final_output)
+            # json_output = json.loads(agent_trace.final_output)
+            # output_to_render = json_output.get("agent_code") # + "\n\n" + json_output.get("run_instructions") + "\n\n" + json_output.get("dependencies") # noqa: E501
+            output_to_render = agent_trace.final_output
+            response_msg = cl.Message(content=output_to_render)
             response_msg.author = "assistant"
             await response_msg.send()
             messages.append(response_msg)
