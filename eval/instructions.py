@@ -151,8 +151,8 @@ Always use openai/gpt-4.1 as the llm_judge.
 """  # noqa: E501
 
 INSTRUCTIONS_TEMPLATE = """
-1. List files in the generated_workflows directory.
-2. Check the file generated_workflows/agent.py.
+1. List files in the generated_workflows/latest directory.
+2. Check the file generated_workflows/latest/agent.py.
 3. Generate a comprehensive JSON evaluation file for the given agent.py script.
 
 Analyze the agent's task, tools, and expected workflow to create thorough evaluation criteria.
