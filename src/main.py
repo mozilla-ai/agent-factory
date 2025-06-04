@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import uuid
@@ -9,6 +10,7 @@ import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import visit_webpage
+from pydantic import BaseModel, Field
 from src.instructions import INSTRUCTIONS
 
 dotenv.load_dotenv()
@@ -19,12 +21,16 @@ tools_dir = repo_root / "tools"
 mcps_dir = repo_root / "mcps"
 
 
+class AgentFactoryOutputs(BaseModel):
+    agent_code: str = Field(..., description="The agent code in Markdown format")
+    run_instructions: str = Field(..., description="The run instructions in Markdown format")
+    dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
+
+
 def get_mount_config():
     return {
-        "host_workflows_dir": str(workflows_root),
         "host_tools_dir": str(tools_dir),
         "host_mcps_dir": str(mcps_dir),
-        "container_workflows_dir": "/app/generated_workflows",
         "container_tools_dir": "/app/tools",
         "container_mcps_dir": "/app/mcps",
         "file_ops_dir": "/app",
@@ -59,9 +65,6 @@ def get_default_tools(mount_config):
                 "--rm",
                 "--volume",
                 "/app",
-                # Mount workflows directory
-                "--mount",
-                f"type=bind,src={mount_config['host_workflows_dir']},dst={mount_config['container_workflows_dir']}",
                 # Mount tools directory
                 "--mount",
                 f"type=bind,src={mount_config['host_tools_dir']},dst={mount_config['container_tools_dir']}",
@@ -73,11 +76,51 @@ def get_default_tools(mount_config):
             ],
             tools=[
                 "read_file",
-                "write_file",
                 "list_directory",
             ],
         ),
     ]
+
+
+def validate_agent_outputs(str_output: str):
+    try:
+        json_output = json.loads(str_output)
+        agent_factory_outputs = AgentFactoryOutputs.model_validate(json_output)
+    except Exception as e:
+        raise ValueError(
+            f"Invalid format received for agent outputs: {e}. Could not parse the output as AgentFactoryOutputs."
+        ) from e
+    return agent_factory_outputs
+
+
+def remove_markdown_code_block_delimiters(text: str) -> str:
+    """Remove backticks from the start and end of markdown output."""
+    text = text.strip()
+    if text.startswith("```") and text.endswith("```"):
+        lines = text.splitlines()
+        return "\n".join(lines[1:-1])
+    return text
+
+
+def save_agent_outputs(output: AgentFactoryOutputs, generated_workflows_dir: str = "latest"):
+    """Save all three outputs from AgentFactoryOutputs to separate files."""
+    save_artifacts_dir = workflows_root / generated_workflows_dir
+    Path(save_artifacts_dir).mkdir(exist_ok=True)
+
+    agent_path = Path(f"{save_artifacts_dir}/agent.py")
+    instructions_path = Path(f"{save_artifacts_dir}/INSTRUCTIONS.md")
+    requirements_path = Path(f"{save_artifacts_dir}/requirements.txt")
+
+    with agent_path.open("w", encoding="utf-8") as f:
+        f.write(remove_markdown_code_block_delimiters(output.agent_code))
+
+    with instructions_path.open("w", encoding="utf-8") as f:
+        f.write(output.run_instructions)
+
+    with requirements_path.open("w", encoding="utf-8") as f:
+        f.write(remove_markdown_code_block_delimiters(output.dependencies))
+
+    print(f"Files saved to {save_artifacts_dir}")
 
 
 def setup_directories(workflows_root, workflow_dir):
@@ -103,11 +146,8 @@ def create_agent(mount_config):
     return agent
 
 
-def build_run_instructions(user_prompt, container_workflow_dir):
+def build_run_instructions(user_prompt):
     return f"""
-    Generate python code for an agentic workflow using any-agent library to be able to do the following:
-    {user_prompt}
-
     ## Tools
     You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
     In addition to the tools pre-defined in available_tools.md,
@@ -116,20 +156,18 @@ def build_run_instructions(user_prompt, container_workflow_dir):
     ## MCPs
     You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
 
-    ## File Saving Instructions
-    YOU MUST save all generated files (including agent.py, INSTRUCTIONS.md, requirements.txt)
-    inside the directory: `{container_workflow_dir}`. For example, save agent.py as `{container_workflow_dir}/agent.py`.
-    Double check that the saved files exist using list_directory tool before stopping.
+    Generate python code for an agentic workflow using any-agent library to be able to do the following:
+    {user_prompt}
     """
 
 
 def save_agent_trace(agent_trace, latest_dir):
-    agent_trace_path_latest = latest_dir / "agent_trace.json"
+    agent_trace_path_latest = latest_dir / "agent_factory_trace.json"
     with Path.open(agent_trace_path_latest, "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
 
 
-def archive_latest(latest_dir, archive_dir):
+def archive_latest_run_artifacts(latest_dir, archive_dir):
     for item in latest_dir.iterdir():
         shutil.copy(item, archive_dir / item.name)
 
@@ -149,15 +187,16 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
 
     mount_config = get_mount_config()
     agent = create_agent(mount_config)
-    container_workflow_dir = mount_config["container_workflows_dir"] + "/latest"
-    run_instructions = build_run_instructions(user_prompt, container_workflow_dir)
+    run_instructions = build_run_instructions(user_prompt)
 
     agent_trace = agent.run(run_instructions, max_turns=30)
+    agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
+    save_agent_outputs(agent_factory_outputs, latest_dir)
     save_agent_trace(agent_trace, latest_dir)
-    archive_latest(latest_dir, archive_dir)
+    archive_latest_run_artifacts(latest_dir, archive_dir)
 
     print(f"Workflow files saved in: {latest_dir} and archived in {archive_dir}")
-    print(agent_trace.final_output)
+    print(agent_factory_outputs)
 
 
 if __name__ == "__main__":
