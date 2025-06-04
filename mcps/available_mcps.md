@@ -3,32 +3,32 @@
 Below is the list of all available MCP servers, a description of each MCP, a link to its README and the configuration of how it must be used in the agent configuration.
 For each MCP server, you can also check available MCP tools from the provided link (either Python file or JavaScript/TypeScript file).
 
-1. Brave Search
-    - Description: For web and local search using Brave's Search API
-    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/README.md
-    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/index.ts
+
+
+1. Obsidian
+    - Description: For interacting with Obsidian vaults, reading and writing notes, etc.
+    - Link to README: https://raw.githubusercontent.com/smithery-ai/mcp-obsidian/main/README.md
+    - Check available MCP tools: https://raw.githubusercontent.com/smithery-ai/mcp-obsidian/main/index.ts
     - Configuration:
     ```
     {
-    "mcpServers": {
-        "brave-search": {
-        "command": "docker",
-        "args": [
-            "run",
-            "-i",
-            "--rm",
-            "-e",
-            "BRAVE_API_KEY",
-            "mcp/brave-search"
-        ],
-        "env": {
-            "BRAVE_API_KEY": "YOUR_API_KEY_HERE"
+        "mcpServers": {
+            "mcp-obsidian": {
+                "command": "npx",
+                "args": [
+                    "-y",
+                    "@smithery/cli@latest",
+                    "run",
+                    "mcp-obsidian",
+                    "--config",
+                    "\"{\\\"vaultPath\\\":\\\"/absolute/path/to/your/vault\\\"}\""
+                ]
+            }
         }
-        }
-    }
     }
     ```
-    Note: You may only use `brave_web_search` tool from this MCP server and never use `brave_local_search` tool.
+    Note: Set the `vaultPath` in the configuration to the absolute path of your Obsidian vault. No environment variables are required. Ensure the agent has read/write permissions to the specified vault directory. The configuration must use a valid absolute path for the vault, and the path should be accessible from the environment where the agent is running.
+
 
 2. ElevenLabs Text-to-Speech
     - Description: For text-to-speech and audio processing using ElevenLabs API
@@ -105,7 +105,7 @@ For each MCP server, you can also check available MCP tools from the provided li
     }
     }
     ```
-
+    
 5. GitHub
     - Description: For extracting and analysing data from GitHub repositories and automating GitHub workflows and processes.
     - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/github/README.md
