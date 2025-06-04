@@ -11,6 +11,7 @@ from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
 from src.instructions import INSTRUCTIONS
+from src.tools import search_mcp_servers
 
 dotenv.load_dotenv()
 
@@ -40,6 +41,7 @@ def get_default_tools(mount_config):
     return [
         visit_webpage,
         search_tavily,
+        search_mcp_servers,
         MCPStdio(
             command="docker",
             args=[
@@ -137,6 +139,7 @@ def create_agent(mount_config):
             model_id="gpt-4.1",
             instructions=INSTRUCTIONS,
             tools=get_default_tools(mount_config),
+            model_args={"tool_choice": "required"}  # Ensure tool choice is required
         ),
     )
     return agent
@@ -144,25 +147,26 @@ def create_agent(mount_config):
 
 def build_run_instructions(user_prompt):
     return f"""
-    ## Tools
-    You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
-    In addition to the tools pre-defined in available_tools.md,
-    two other tools that you could use in the agent configuration are search_web, search_tavily and visit_webpage.
+    Use appropriate tools in the agent configuration:
+    - Use the `search_mcp_servers` tool to discover MCP servers to add in the agent configuration.
+    - Choose any other tools to add to the agent configuration from the available tools in
+      tools/available_tools.md:
+        - Use the `search_tavily` or the tool in the agent configuration to search the web.
+        - Use the `visit_webpage` tool in the agent configuration to visit webpages.
+    - You may use the following tools to browse and view the contents of the tools/ directory:
+        - `list_directory` tool to list the contents of the `tools/` directory
+        - `read_file` tool to read the contents of the `available_tools.md` file
+        - `search_files` tool to recursively search for `files/directories`
+        - `list_allowed_directories` tool to list all directories that you have access to
 
-    ## MCPs
-    You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
-
-    You may use the following tools to browse and view the contents of the tools/ and mcps/ directories:
-    - list_directory tool to list the contents of the tools/ and mcps/ directories
-    - read_file tool to read the contents of the available_tools.md and available_mcps.md files
-    - search_files tool to recursively search for files/directories
-    - list_allowed_directories tool to list all directories that you have access to
-
-    Generate python code for an agentic workflow using any-agent library to be able to do the following:
+    Generate python code for an agentic workflow using any-agent library to be able to do the
+    following:
     {user_prompt}
 
-    Before generating the code, first check the contents of the tools/ and mcps/ directories to understand the tools and MCPs available.
-    """  # noqa: E501
+    Before generating the code, first check the contents of the `tools/` directory to
+    understand the tools available and use the `search_mcp_servers` tool to discover available
+    MCP servers that the can be used to solve the task.
+    """
 
 
 def save_agent_trace(agent_trace, latest_dir):
