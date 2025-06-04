@@ -12,6 +12,7 @@ from any_agent.config import MCPStdio
 from any_agent.tools import visit_webpage, search_tavily
 from pydantic import BaseModel, Field
 from src.instructions import INSTRUCTIONS
+from src.tools import search_mcp_servers
 
 dotenv.load_dotenv()
 
@@ -41,6 +42,7 @@ def get_default_tools(mount_config):
     return [
         visit_webpage,
         search_tavily,
+        search_mcp_servers,
         MCPStdio(
             command="docker",
             args=[
@@ -135,6 +137,7 @@ def create_agent(mount_config):
             model_id="gpt-4.1",
             instructions=INSTRUCTIONS,
             tools=get_default_tools(mount_config),
+            model_args={"tool_choice": "required"}  # Ensure tool choice is required
         ),
     )
     return agent
@@ -142,15 +145,15 @@ def create_agent(mount_config):
 
 def build_run_instructions(user_prompt):
     return f"""
-    ## Tools
-    You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
-    In addition to the tools pre-defined in available_tools.md,
-    two other tools that you could use are search_web and visit_webpage.
+    Use appropriate tools in the agent configuration:
+    - Use the `search_mcp_servers` tool to discover MCP servers to add in the agent configuration.
+    - Choose any other tools to add to the agent configuration from the available tools in
+      tools/available_tools.md.
+    - Use the `search_web` tool in the agent configuration to search the web.
+    - Use the `visit_webpage` tool in the agent configuration to visit webpages.
 
-    ## MCPs
-    You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
-
-    Generate python code for an agentic workflow using any-agent library to be able to do the following:
+    Generate python code for an agentic workflow using any-agent library to be able to do the
+    following:
     {user_prompt}
     """
 
