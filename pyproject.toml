@@ -11,4 +11,5 @@ dependencies = [
     "dotenv>=0.9.9",
     "pyyaml>=6.0.2",
     "chainlit>=2.5.5",
+    "mcpm>=1.13.1",
 ]
