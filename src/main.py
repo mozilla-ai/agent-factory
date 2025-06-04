@@ -102,7 +102,17 @@ def remove_markdown_code_block_delimiters(text: str) -> str:
     return text
 
 
-def save_agent_outputs(output: AgentFactoryOutputs, generated_workflows_dir: str = "latest"):
+def save_agent_raw_output(output: str, generated_workflows_dir: str = "latest"):
+    """Save the agent_trace.final_output to a file. For debugging in case the output is not parsed correctly"""
+    save_artifacts_dir = workflows_root / generated_workflows_dir
+    Path(save_artifacts_dir).mkdir(exist_ok=True)
+    agent_factory_raw_output_path = Path(f"{save_artifacts_dir}/agent_factory_raw_output.txt")
+    with agent_factory_raw_output_path.open("w", encoding="utf-8") as f:
+        f.write(output)
+    print(f"Raw agent output saved to {agent_factory_raw_output_path}")
+
+
+def save_agent_parsed_outputs(output: AgentFactoryOutputs, generated_workflows_dir: str = "latest"):
     """Save all three outputs from AgentFactoryOutputs to separate files."""
     save_artifacts_dir = workflows_root / generated_workflows_dir
     Path(save_artifacts_dir).mkdir(exist_ok=True)
@@ -190,9 +200,15 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
     run_instructions = build_run_instructions(user_prompt)
 
     agent_trace = agent.run(run_instructions, max_turns=30)
-    agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
-    save_agent_outputs(agent_factory_outputs, latest_dir)
     save_agent_trace(agent_trace, latest_dir)
+
+    # Save structured agent outputs
+    # Save raw agent output for debugging
+    save_agent_raw_output(agent_trace.final_output, latest_dir)
+    # Validate and save parsed agent outputs
+    agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
+    save_agent_parsed_outputs(agent_factory_outputs, latest_dir)
+
     archive_latest_run_artifacts(latest_dir, archive_dir)
 
     print(f"Workflow files saved in: {latest_dir} and archived in {archive_dir}")
