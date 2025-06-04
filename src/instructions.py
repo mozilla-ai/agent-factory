@@ -92,6 +92,26 @@ Limit the output to 1000 tokens if the page is very long. Ensure the translation
 TOOLS = [
     visit_webpage,                # To fetch and extract page text
     translate_text_with_llm,      # To translate extracted text
+    MCPStdio(
+        command="docker",
+        args=[
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "BRAVE_API_KEY",
+            "mcp/brave-search",
+        ],
+        # Specify necessary environment variables
+        env={
+            "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
+        },
+        # From among the tools available from the MCP server
+        # list only the tools that are necessary for the solving the task at hand
+        tools=[
+            "brave_web_search",
+        ],
+    ),
 ]
 
 
@@ -138,7 +158,6 @@ The final output should be a JSON with the following structure:
 3. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow
     - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
-
 """  # noqa: E501
 
 CODE_GENERATION_INSTRUCTIONS = """
@@ -151,10 +170,13 @@ using Mozilla's any-agent library. The implementation should:
 1. Use the OpenAI framework as the underlying agent provider
 2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
 3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument
-4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are :
+4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are:
     a. built-in tools from any-agent library: search_tavily and visit_webpage
     b. python functions from the available_tools.md file
-    c. MCPs from the available_mcps.md file
+    c. MCP Servers that provide tools relevant to the task.
+       You can discover relevant MCP Servers using the `search_mcp_servers` tool, and then verify
+       their relevance using the `visit_webpage` tool to visit the MCP server's spec page.
+       Do not make up MCP servers or tools, always use the `search_mcp_servers` tool to discover them.
 
 ## Required Components
 
@@ -173,18 +195,21 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 
 #### Tools (tools):
 - Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).
-- You must choose tools from one of the following 3 options:
+  Try to use only the minimum subset of tools that are necessary for the solving the task at hand.
+- You must choose tools from the following 3 options:
     a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
        Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
-    c. MCPs: You can use MCPs to access external services. The available MCPs are described in the local file at mcps/available_mcps.md - which can be read using `read_file` tool.
+    c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,
+       giving it a keyword that describes the task you want to accomplish.
+       Then, use the `visit_webpage` tool to visit the MCP server's spec page
+       and verify that it provides the tools you need for the task.
+       To cunstruct the URL for the MCP server's spec page, use the following format:
+       `https://raw.githubusercontent.com/pathintegral-institute/mcpm.sh/refs/heads/main/mcp-registry/servers/<server__name>.json`
+       where `server_name` is the name of the MCP server you found using the `search_mcp_servers` tool.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
-       All information required to implement the MCP configuration is available in the mcps/available_mcps.md file.
-       Visit the webpages to corresponding to the chosen MCPs to understand the tools available from the MCP server.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
-       If the user's workflow requires file operations, you must include the filesystem MCPStdio() in the agent configuration.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
-To discover the tools and MCPs available, you MUST use the read_file tool to read the available_tools.md and available_mcps.md files.
 
 #### Structured Output (output_type via agent_args):
 - Define Pydantic v2 models to structure the agent's final output
@@ -247,6 +272,7 @@ agent = AnyAgent.create(
         instructions=INSTRUCTIONS,
         tools=TOOLS,
         agent_args={"output_type": StructuredOutput},
+        model_args={"tool_choice": "required"},
     ),
 )
 
@@ -267,7 +293,6 @@ if __name__ == "__main__":
 INSTRUCTIONS_TEMPLATE = """
 You are an expert software developer with a deep understanding of Mozilla AI's any-agent Python library.
 
-**Library Overview**
 Any-agent library enables you to:
 - Build agent systems with a unified API regardless of the underlying framework
 - Switch between different agent frameworks (like OpenAI, LangChain, smolagents) without rewriting code
@@ -282,7 +307,7 @@ Before generating the code, ensure that you visit the necessary webpages for cor
 - {{ url }}: {{ description }}
 {% endfor %}
 
-For reading URLs, always use the `visit_webpage` tool (never use the `read_file` tool for reading web URLs).
+For reading URLs, use `visit_webpage` tool. Never use the `read_file` tool for reading web URLs.
 
 **Any-agent Code Generation Instructions**
 {{ code_generation_instructions }}

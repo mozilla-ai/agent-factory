@@ -11,4 +11,5 @@ dependencies = [
     "dotenv>=0.9.9",
     "pyyaml>=6.0.2",
     "chainlit>=2.5.5",
+    "mcpm>=1.0.3",  # installing a newer version of mcpm conflicts with the current version of chainlit (2.5.5)
 ]
