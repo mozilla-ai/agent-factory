@@ -49,77 +49,82 @@ WEBPAGE_DESCRIPTIONS = {
 }
 
 CODE_EXAMPLE_WITH_COMMENTS = """
-# Example imports for the agent.py file:
-from any_agent import AnyAgent, AgentConfig, AgentFramework, TracingConfig
-from any_agent.tools import search_web, visit_webpage
-from any_agent.config import MCPStdio
-from tools.review_code_with_llm import review_code_with_llm
-from pydantic import BaseModel, Field
 
-# Imports for environment variables
+# agent.py
+
+# good to have
 import os
+
+# ALWAYS used
 from dotenv import load_dotenv
+from any_agent import AgentConfig, AnyAgent
+from any_agent.config import MCPStdio
+from pydantic import BaseModel, Field
+from fire import Fire
+
+# ADD BELOW HERE: tools made available by any-agent or agent-factory
+from any_agent.tools import visit_webpage
+from tools.translate_text_with_llm import translate_text_with_llm
+
 load_dotenv()
 
-# Pydantic model for structured output
-class CodeReviewOutput(BaseModel):
-    code: str = Field(..., description="The code to be reviewed.")
-    review: str = Field(..., description="The review of the code.")
+# ========= Structured output definition =========
+class StructuredOutput(BaseModel):
+    url: str = Field(..., description="The URL of the webpage that was translated.")
+    source_language: str = Field(..., description="The source language detected on the webpage (should be 'English').")
+    extracted_text: str = Field(..., description="The main text content extracted from the original English webpage.")
+    translated_text: str = Field(..., description="The English text translated to Italian.")
 
-# Example Single Agent syntax:
+# ========= System Instructions =========
+INSTRUCTIONS = '''
+You are an assistant that translates the main text content of an English webpage to Italian, following this step-by-step workflow:
+1. Receive a webpage URL from the user. Visit the page and extract the primary and most relevant English text content. Focus on body content, main text, and important sections. Exclude navigation bars, headings not part of the content, footers, advertisements, and non-informational elements. Make sure the extracted text is concise but comprehensive and represents the actual page content.
+2. Identify and confirm that the detected source language is English. If the page is not in English, halt and output the detected language and a clear message in 'translated_text'.
+3. Use the translation tool to translate the extracted English text into fluent Italian.
+4. Your output must be a structured JSON object with these fields:
+   - url: the provided webpage URL
+   - source_language: the detected primary language (should be English)
+   - extracted_text: the main English content you extracted
+   - translated_text: your Italian translation of the extracted text
+Limit the output to 1000 tokens if the page is very long. Ensure the translation is accurate and clear. Do not make up or hallucinate content.
+'''
+
+TOOLS = [
+    visit_webpage,                # To fetch and extract page text
+    translate_text_with_llm,      # To translate extracted text
+]
+
+
 agent = AnyAgent.create(
-    # agent framework name (1st positional arg)
     "openai",
-    # agent configuration (2nd positional arg), never config = AgentConfig()
     AgentConfig(
         model_id="gpt-4.1",
-        instructions="Example instructions",
-        tools=[
-            search_web, # Example tool available from any-agent library
-            review_code_with_llm, # Example tool taken from tools/available_tools.md
-            # Example of MCP server usage
-            MCPStdio(
-                    command="docker",
-                    # args taken verbatim from available_mcps.md
-                    args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "-e",
-                        "BRAVE_API_KEY",
-                        "mcp/brave-search",
-                    ],
-                    # Specify necessary environment variables
-                    env={
-                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-                    },
-                    # From among the tools available from the MCP server
-                    # list only the tools that are necessary for the solving the task at hand
-                    tools=[
-                        "brave_web_search",
-                    ],
-            ),
-        ],
-        agent_args={
-            "output_type": CodeReviewOutput
-        }
+        instructions=INSTRUCTIONS,
+        tools=TOOLS,
+        agent_args={"output_type": StructuredOutput},
     ),
 )
 
-# Running the agent
-user_input = "Example user input"
-agent.run(prompt=f"Example prompt referencing the task and the input: {user_input}")
+def run_agent(url: str):
+    \"\"\"
+    Given a webpage URL, translate its main English content to Italian,
+    and return structured output.
+    \"\"\"
+    input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}"
+    agent_trace = agent.run(prompt=input_prompt)
+    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
+        f.write(agent_trace.model_dump_json(indent=2))
+    return agent_trace.final_output
 
-# Saving the agent trace at the end as agent_eval_trace.json in the generated_workflows/latest directory
-with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
-    f.write(agent_trace.model_dump_json(indent=2))
+if __name__ == "__main__":
+    Fire(run_agent)
 """
 
 DELIVERABLES_INSTRUCTIONS = """
 The final output should be a JSON with the following structure:
 
 {
-    "agent_code": "The agent script in Markdown format",
+    "agent_code": "The whole agent script as a single string",
     "run_instructions": "The instructions for setting up the environment in Markdown format",
     "dependencies": "The list of python dependencies in Markdown format"
 }
@@ -202,6 +207,59 @@ The code implementation should include the agent trace being saved into a JSON f
 
 Refer to the any-agent documentation URLs for implementation details and best practices.
 
+#### Agent code template
+
+- Rely on the following template to write the agent code:
+
+```
+# agent.py
+
+# good to have
+import os
+
+# ALWAYS used
+from dotenv import load_dotenv
+from any_agent import AgentConfig, AnyAgent
+from any_agent.config import MCPStdio
+from pydantic import BaseModel, Field
+from fire import Fire
+
+# ADD BELOW HERE: tools made available by any-agent or agent-factory
+{IMPORTS}
+
+load_dotenv()
+
+# ========== Structured output definition ==========
+{STRUCTURED_OUTPUTS}
+
+# ========== System (Multi-step) Instructions ===========
+{INSTRUCTIONS}
+
+# ========== Tools definition ===========
+
+{TOOLS}
+
+agent = AnyAgent.create(
+    "openai",
+    AgentConfig(
+        model_id="gpt-4.1",
+        instructions=INSTRUCTIONS,
+        tools=TOOLS,
+        agent_args={"output_type": StructuredOutput},
+    ),
+)
+
+def run_agent({CLI_ARGS}):
+    \"\"\"Agent description\"\"\"
+    input_prompt = f"{PROMPT_TEMPLATE}".format(**kwargs)
+    agent_trace = agent.run(prompt=input_prompt)
+    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
+        f.write(agent_trace.model_dump_json(indent=2))
+    return agent_trace.final_output
+
+if __name__ == "__main__":
+    Fire(run_agent)
+
 """  # noqa: E501
 
 # Define the template with Jinja2 syntax
@@ -216,13 +274,13 @@ Any-agent library enables you to:
 - Leverage built-in tools like web search and webpage visiting as well as MCP servers
 - Implement comprehensive tracing and evaluation capabilities
 
-You may access to the following webpages using `visit_webpage` tool:
+You may access the content of the following webpages using the `visit_webpage` tool:
 
 {% for url, description in webpage_descriptions.items() %}
 - {{ url }}: {{ description }}
 {% endfor %}
 
-For reading URLs, use `visit_webpage` tool (never use the `read_file` tool for reading web URLs)
+For reading URLs, always use the `visit_webpage` tool (never use the `read_file` tool for reading web URLs).
 
 **Any-agent Code Generation Instructions**
 {{ code_generation_instructions }}
@@ -242,3 +300,4 @@ INSTRUCTIONS = template.render(
     code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
     deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
 )
+
