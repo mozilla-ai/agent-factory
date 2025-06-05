@@ -9,7 +9,7 @@ import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
-from any_agent.tools import visit_webpage
+from any_agent.tools import visit_webpage, search_tavily
 from pydantic import BaseModel, Field
 from src.instructions import INSTRUCTIONS
 
@@ -40,23 +40,7 @@ def get_mount_config():
 def get_default_tools(mount_config):
     return [
         visit_webpage,
-        MCPStdio(
-            command="docker",
-            args=[
-                "run",
-                "-i",
-                "--rm",
-                "-e",
-                "BRAVE_API_KEY",
-                "mcp/brave-search",
-            ],
-            env={
-                "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-            },
-            tools=[
-                "brave_web_search",
-            ],
-        ),
+        search_tavily,
         MCPStdio(
             command="docker",
             args=[
