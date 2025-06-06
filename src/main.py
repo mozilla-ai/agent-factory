@@ -163,7 +163,10 @@ def save_agent_trace(agent_trace, latest_dir):
 
 def archive_latest_run_artifacts(latest_dir, archive_dir):
     for item in latest_dir.iterdir():
-        shutil.copy(item, archive_dir / item.name)
+        if item.is_file():
+            shutil.copy(item, archive_dir / item.name)
+        else:
+            print(f"Skipping directory: {item.name}")
 
 
 def main(user_prompt: str, workflow_dir: Path | None = None):
