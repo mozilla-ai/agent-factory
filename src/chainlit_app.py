@@ -73,11 +73,9 @@ async def on_chat_start():
 @cl.on_message
 async def on_message(message: cl.Message):
     try:
-        messages = cl.user_session.get("messages")
+        messages = cl.user_session.get("messages", [])
         # Append user message with correct role
-        message.author = "user"
-        messages.append(message)
-        cl.user_session.set("messages", messages)
+        messages.append({"role": "user", "content": message.content})
 
         # Get mount config and default tools
         mount_config = get_mount_config()
@@ -106,8 +104,8 @@ async def on_message(message: cl.Message):
         # Format conversation as prompt
         conversation = ""
         for msg in messages:
-            role = "User" if msg.author == "user" else "Assistant"
-            conversation += f"{role}: {msg.content}\n\n"
+            role = "User" if msg["role"] == "user" else "Assistant"
+            conversation += f"{role}: {msg['content']}\n\n"
 
         # Use build_run_instructions as the task
         task = build_run_instructions(conversation)
@@ -139,9 +137,7 @@ async def on_message(message: cl.Message):
         cl.user_session.set("messages", messages)
 
     except Exception as e:
-        error_msg = cl.Message(content=f"Error: {str(e)}")
-        error_msg.author = "assistant"
-        await error_msg.send()
+        await cl.Message(content=f"An error occurred: {str(e)}", author="Error").send()
 
 
 if __name__ == "__main__":
