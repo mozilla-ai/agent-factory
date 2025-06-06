@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import chainlit as cl
@@ -116,19 +117,35 @@ async def on_message(message: cl.Message):
         # Display tool usage information
         if hasattr(agent_trace, "spans"):
             for span in agent_trace.spans:
+                tool_usage = span.attributes.get("gen_ai.tool.args", "")
+                try:
+                    # Attempt to parse and pretty-print JSON
+                    formatted_content = json.dumps(json.loads(tool_usage), indent=4)
+                    content_to_display = f"⚙️ Used: **{span.name}**:\n```json\n{formatted_content}\n```"
+                except (json.JSONDecodeError, TypeError):
+                    # Fallback to raw string if not valid JSON or not a string
+                    content_to_display = f"⚙️ Used: **{span.name}**"
+
                 tool_msg = cl.Message(
-                    content=f"⚙️ Used: **{span.name}**",
+                    content=content_to_display,
                     author="Agent Steps",
                 )
+
                 await tool_msg.send()
                 tool_msg.author = "assistant"
                 messages.append(tool_msg)
 
         # Send the final response
         if agent_trace.final_output:
-            # json_output = json.loads(agent_trace.final_output)
-            # output_to_render = json_output.get("agent_code") # + "\n\n" + json_output.get("run_instructions") + "\n\n" + json_output.get("dependencies") # noqa: E501
-            output_to_render = agent_trace.final_output
+            json_output = json.loads(agent_trace.final_output)
+            output_to_render = (
+                f"### Agent Code:\n"
+                f"{json_output.get('agent_code', 'No agent code provided.')}\n\n"
+                f"### Run Instructions:\n"
+                f"{json_output.get('run_instructions', 'No run instructions provided.')}\n\n"
+                f"### Dependencies:\n"
+                f"```\n{json_output.get('dependencies', 'No dependencies provided.')}\n```"
+            )
             response_msg = cl.Message(content=output_to_render)
             response_msg.author = "assistant"
             await response_msg.send()
