@@ -119,7 +119,7 @@ DELIVERABLES_INSTRUCTIONS = """
 The final output should be a JSON with the following structure:
 
 {
-    "agent_code": "The agent script in Markdown format",
+    "agent_code": "The python script as a string that is runnable as agent.py",
     "run_instructions": "The instructions for setting up the environment in Markdown format",
     "dependencies": "The list of python dependencies in Markdown format"
 }
