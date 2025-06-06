@@ -50,59 +50,36 @@ class AgentFactoryTester:
             # Run agent-factory with the prompt
             cmd = [sys.executable, "-m", "src.main", prompt]
 
-            # Start the process
-            process = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True
+            print(f"Running: {' '.join(cmd)}")
+            print("Waiting for agent generation to complete...")
+
+            process = subprocess.run(
+                cmd,
+                timeout=self.timeout_seconds,
+                capture_output=True,
+                text=True,
             )
-
-            # Capture output while showing it live
-            stdout_lines = []
-            stderr_lines = []
-
-            # Read output in real-time
-            while True:
-                stdout_line = ""  # process.stdout.readline()
-                stderr_line = ""  # process.stderr.readline()
-
-                if stdout_line:
-                    print(stdout_line.rstrip())  # Show live
-                    stdout_lines.append(stdout_line)
-
-                if stderr_line:
-                    print(stderr_line.rstrip(), file=sys.stderr)  # Show live
-                    stderr_lines.append(stderr_line)
-
-                # Check if process is done
-                if process.poll() is not None:
-                    break
-
-            # Get any remaining output
-            remaining_stdout, remaining_stderr = process.communicate()
-            if remaining_stdout:
-                print(remaining_stdout.rstrip())
-                stdout_lines.append(remaining_stdout)
-            if remaining_stderr:
-                print(remaining_stderr.rstrip(), file=sys.stderr)
-                stderr_lines.append(remaining_stderr)
-
-            # Join captured output
-            captured_stdout = "".join(stdout_lines)
-            captured_stderr = "".join(stderr_lines)
 
             if process.returncode == 0:
                 result.agent_factory_success = True
+                print("✅ Agent generation completed successfully")
             else:
                 # Include both stdout and stderr in error reporting
                 error_output = []
-                if captured_stdout.strip():
-                    error_output.append(f"stdout: {captured_stdout.strip()}")
-                if captured_stderr.strip():
-                    error_output.append(f"stderr: {captured_stderr.strip()}")
+                if process.stdout.strip():
+                    error_output.append(f"stdout: {process.stdout.strip()}")
+                if process.stderr.strip():
+                    error_output.append(f"stderr: {process.stderr.strip()}")
 
                 result.agent_factory_error = f"Exit code {process.returncode}: {'; '.join(error_output)}"
+                print(f"❌ Agent generation failed with exit code {process.returncode}")
 
+        except subprocess.TimeoutExpired:
+            result.agent_factory_error = f"Timeout after {self.timeout_seconds} seconds - process was terminated"
+            print(f"⏰ Agent generation timed out after {self.timeout_seconds} seconds")
         except Exception as e:
             result.agent_factory_error = f"Execution error: {e}"
+            print(f"❌ Agent generation error: {e}")
 
         return result
 
@@ -111,15 +88,27 @@ class AgentFactoryTester:
         workflow_dir = Path("generated_workflows/latest")
         expected_files = ["agent.py", "INSTRUCTIONS.md", "requirements.txt"]
 
-        all_exist = all((workflow_dir / file).exists() for file in expected_files)
+        print(f"   📋 Checking for files in {workflow_dir}")
+
+        existing_files = []
+        missing_files = []
+
+        for file in expected_files:
+            if (workflow_dir / file).exists():
+                existing_files.append(file)
+                print(f"   ✅ Found: {file}")
+            else:
+                missing_files.append(file)
+                print(f"   ❌ Missing: {file}")
+
+        all_exist = len(missing_files) == 0
         result.generated_files_exist = all_exist
 
         if not all_exist:
-            missing = [file for file in expected_files if not (workflow_dir / file).exists()]
             if result.agent_factory_error:
-                result.agent_factory_error += f"; Missing files: {missing}"
+                result.agent_factory_error += f"; Missing files: {missing_files}"
             else:
-                result.agent_factory_error = f"Missing files: {missing}"
+                result.agent_factory_error = f"Missing files: {missing_files}"
 
         return result
 
@@ -143,37 +132,48 @@ class AgentFactoryTester:
     def test_agent_syntax(self, result: TestResult, agent_file: Path) -> TestResult:
         """Test if the generated agent has valid Python syntax"""
         try:
+            print(f"   📄 Reading agent file: {agent_file}")
             source_code = agent_file.read_text(encoding="utf-8")
+            print(f"   📏 File size: {len(source_code)} characters")
 
             # Parse the AST to check syntax
             ast.parse(source_code)
             result.agent_syntax_valid = True
+            print("   ✅ Syntax validation passed")
 
         except SyntaxError as e:
             result.agent_error = f"Syntax error: {e}"
+            print(f"   ❌ Syntax error: {e}")
         except Exception as e:
             result.agent_error = f"File reading error: {e}"
+            print(f"   ❌ File reading error: {e}")
 
         return result
 
     def test_agent_imports(self, result: TestResult, agent_file: Path) -> TestResult:
         """Test if the agent imports work without executing main logic"""
         try:
+            print(f"   🔄 Creating module spec for {agent_file.name}")
             # Create a temporary module to test imports
             spec = importlib.util.spec_from_file_location("test_agent", agent_file)
             if spec is None or spec.loader is None:
                 result.agent_error = "Could not create module spec"
+                print("   ❌ Failed to create module spec")
                 return result
 
+            print("   📥 Loading module and testing imports...")
             # Try to load the module (this will execute imports)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             result.agent_imports_valid = True
+            print("   ✅ Import validation passed")
 
         except ImportError as e:
             result.agent_error = f"Import error: {e}"
+            print(f"   ❌ Import error: {e}")
         except Exception as e:
             result.agent_error = f"Module loading error: {e}"
+            print(f"   ❌ Module loading error: {e}")
 
         return result
 
@@ -181,6 +181,7 @@ class AgentFactoryTester:
         """Test if the agent can start without immediate crash"""
         try:
             agent_file = Path("generated_workflows/latest/agent.py")
+            print(f"   🏃 Attempting to run agent with --help: {agent_file}")
 
             # Try to run the agent with a simple argument to see if it starts
             cmd = [sys.executable, str(agent_file), "--help"]
@@ -191,42 +192,61 @@ class AgentFactoryTester:
                 text=True,
             )
 
+            print(f"   📤 Agent process exit code: {process.returncode}")
+
             # We don't require success (agent might not support --help)
             # Just that it doesn't crash immediately with import/syntax errors
             if "ImportError" not in process.stderr and "SyntaxError" not in process.stderr:
                 result.agent_execution_success = True
+                print("   ✅ Basic execution test passed")
             else:
                 result.agent_error = f"Execution error: {process.stderr}"
+                print("   ❌ Execution failed: Import/Syntax error detected")
 
         except subprocess.TimeoutExpired:
-            # Timeout might be okay - means the agent started and didn't crash immediately
-            result.agent_execution_success = True
+            # For basic execution, timeout likely means it's waiting for input or hanging
+            result.agent_error = "Timeout after 30 seconds - agent may be waiting for input or hanging"
+            print("   ⏰ Agent execution timed out (30s) - likely waiting for input")
         except Exception as e:
             result.agent_error = f"Basic execution test error: {e}"
+            print(f"   ❌ Basic execution test error: {e}")
 
         return result
 
     def run_single_test(self, prompt: str) -> TestResult:
         """Run a complete test for a single prompt"""
+        print("🔧 Starting agent generation...")
+
         # Test agent generation
         result = self.test_agent_factory_generation(prompt)
 
         # Only proceed with further tests if generation succeeded
         if result.agent_factory_success:
+            print("📁 Checking generated files...")
             result = self.test_generated_files(result)
 
             if result.generated_files_exist:
+                print("🔍 Validating agent syntax...")
                 agent_file = Path("generated_workflows/latest/agent.py")
                 result = self.test_agent_syntax(result, agent_file)
 
                 if result.agent_syntax_valid:
+                    print("📦 Testing agent imports...")
                     result = self.test_agent_imports(result, agent_file)
 
                     if result.agent_imports_valid:
+                        print("🚀 Testing basic agent execution...")
                         result = self.test_agent_basic_execution(result)
 
+                print("📂 Finding archived agent directory...")
                 # Find the archived directory path
                 result.agent_directory = self.get_most_recent_archive_directory()
+                if result.agent_directory:
+                    print(f"   📍 Archived at: {result.agent_directory}")
+                else:
+                    print("   ⚠️  No archive directory found")
+        else:
+            print("❌ Agent generation failed, skipping subsequent tests")
 
         return result
 
@@ -234,17 +254,29 @@ class AgentFactoryTester:
         """Run tests for multiple prompts"""
         results = []
 
+        print(f"\n🚀 Starting test run with {len(prompts)} prompts")
+        print("=" * 80)
+
         for i, prompt in enumerate(prompts):
-            print(f"\nTesting prompt {i + 1}/{len(prompts)}: {prompt[:50]}...")
+            print(f"\n📋 Test {i + 1}/{len(prompts)}")
+            print(f"Prompt: {prompt}")
             print("-" * 60)
 
             result = self.run_single_test(prompt)
             results.append(result)
 
             # Print immediate feedback
-            status = "✓" if self.is_success(result) else "✗"
-            print(f"\n  {status} Result: {self.get_summary(result)}")
+            status = "✅" if self.is_success(result) else "❌"
+            print(f"\n{status} Test {i + 1} Result: {self.get_summary(result)}")
 
+            if not self.is_success(result):
+                # Show brief error info for failed tests
+                if result.agent_factory_error:
+                    print(f"   💥 Generation Error: {result.agent_factory_error[:100]}...")
+                if result.agent_error:
+                    print(f"   🐛 Agent Error: {result.agent_error[:100]}...")
+
+        print(f"\n🏁 Test run completed! {len(results)} tests finished")
         return results
 
     def is_success(self, result: TestResult) -> bool:
