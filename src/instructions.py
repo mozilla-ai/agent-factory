@@ -179,6 +179,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the user's workflow requires file operations, you must include the filesystem MCPStdio() in the agent configuration.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
+To discover the tools and MCPs available, you MUST use the read_file tool to read the available_tools.md and available_mcps.md files.
 
 #### Structured Output (output_type via agent_args):
 - Define Pydantic v2 models to structure the agent's final output
@@ -216,7 +217,8 @@ Any-agent library enables you to:
 - Leverage built-in tools like web search and webpage visiting as well as MCP servers
 - Implement comprehensive tracing and evaluation capabilities
 
-You may access to the following webpages using `visit_webpage` tool:
+You may access to the following webpages using `visit_webpage` tool to further understand the any-agent library and its syntax.
+Before generating the code, ensure that you visit the necessary webpages for correct usage of any-agent library.
 
 {% for url, description in webpage_descriptions.items() %}
 - {{ url }}: {{ description }}

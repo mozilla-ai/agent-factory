@@ -59,6 +59,8 @@ def get_default_tools(mount_config):
             ],
             tools=[
                 "read_file",
+                "search_files",
+                "list_allowed_directories",
                 "list_directory",
             ],
         ),
@@ -147,10 +149,16 @@ def build_run_instructions(user_prompt):
     ## Tools
     You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
     In addition to the tools pre-defined in available_tools.md,
-    two other tools that you could use are search_web and visit_webpage.
+    two other tools that you could use in the agent configuration are search_web, search_tavily and visit_webpage.
 
     ## MCPs
     You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
+
+    You may use the following tools to browse and view the contents of the tools/ and mcps/ directories:
+    - list_directory tool to list the contents of the tools/ and mcps/ directories
+    - read_file tool to read the contents of the available_tools.md and available_mcps.md files
+    - search_files tool to recursively search for files/directories
+    - list_allowed_directories tool to list all directories that you have access to
 
     Generate python code for an agentic workflow using any-agent library to be able to do the following:
     {user_prompt}
