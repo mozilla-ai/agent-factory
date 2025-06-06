@@ -51,7 +51,7 @@ WEBPAGE_DESCRIPTIONS = {
 CODE_EXAMPLE_WITH_COMMENTS = """
 # Example imports for the agent.py file:
 from any_agent import AnyAgent, AgentConfig, AgentFramework, TracingConfig
-from any_agent.tools import search_web, visit_webpage
+from any_agent.tools import search_tavily, visit_webpage
 from any_agent.config import MCPStdio
 from tools.review_code_with_llm import review_code_with_llm
 from pydantic import BaseModel, Field
@@ -75,7 +75,7 @@ agent = AnyAgent.create(
         model_id="gpt-4.1",
         instructions="Example instructions",
         tools=[
-            search_web, # Example tool available from any-agent library
+            search_tavily, # Example tool available from any-agent library
             review_code_with_llm, # Example tool taken from tools/available_tools.md
             # Example of MCP server usage
             MCPStdio(
@@ -147,7 +147,7 @@ using Mozilla's any-agent library. The implementation should:
 2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
 3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument
 4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are :
-    a. built-in tools from any-agent library: search_web, search_tavily and visit_webpage
+    a. built-in tools from any-agent library: search_tavily and visit_webpage
     b. python functions from the available_tools.md file
     c. MCPs from the available_mcps.md file
 
@@ -171,7 +171,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - You must choose tools from one of the following 3 options:
     a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
        Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
-    b. Tools pre-defined in any-agent library: `search_web`, `search_tavily` and `visit_webpage` tools
+    b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
     c. MCPs: You can use MCPs to access external services. The available MCPs are described in the local file at mcps/available_mcps.md - which can be read using `read_file` tool.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
        All information required to implement the MCP configuration is available in the mcps/available_mcps.md file.
