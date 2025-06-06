@@ -13,10 +13,13 @@ from any_agent.tools import visit_webpage, search_tavily
 from pydantic import BaseModel, Field
 from src.instructions import INSTRUCTIONS
 
+from src.tools import get_mcp_info
+
 dotenv.load_dotenv()
 
 repo_root = Path.cwd()
 workflows_root = repo_root / "generated_workflows"
+config_dir = os.path.expanduser("~/.config/agent-factory")
 tools_dir = repo_root / "tools"
 mcps_dir = repo_root / "mcps"
 
@@ -31,8 +34,10 @@ def get_mount_config():
     return {
         "host_tools_dir": str(tools_dir),
         "host_mcps_dir": str(mcps_dir),
+        "config_dir": str(config_dir),
         "container_tools_dir": "/app/tools",
         "container_mcps_dir": "/app/mcps",
+        "container_config_dir": "/app/.config/agent-factory",
         "file_ops_dir": "/app",
     }
 
@@ -41,6 +46,7 @@ def get_default_tools(mount_config):
     return [
         visit_webpage,
         search_tavily,
+        get_mcp_info,
         MCPStdio(
             command="docker",
             args=[
@@ -55,6 +61,9 @@ def get_default_tools(mount_config):
                 # Mount mcps directory
                 "--mount",
                 f"type=bind,src={mount_config['host_mcps_dir']},dst={mount_config['container_mcps_dir']}",
+                # Mount config directory
+                "--mount",
+                f"type=bind,src={mount_config['config_dir']},dst={mount_config['container_config_dir']}",
                 "mcp/filesystem",
                 mount_config["file_ops_dir"],
             ],
@@ -135,6 +144,7 @@ def create_agent(mount_config):
             model_id="gpt-4.1",
             instructions=INSTRUCTIONS,
             tools=get_default_tools(mount_config),
+            model_args={"tool_choice": "required"},  # Ensure tool choice is required
         ),
     )
     return agent
@@ -142,15 +152,16 @@ def create_agent(mount_config):
 
 def build_run_instructions(user_prompt):
     return f"""
-    ## Tools
-    You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
-    In addition to the tools pre-defined in available_tools.md,
-    two other tools that you could use are search_web and visit_webpage.
+    Use appropriate tools in the agent configuration:
+    - Use the `get_mcp_info` tool to gather info about the MCP servers provided in
+      `/app/.config/agent-factory/mpc.json`. Use any MCP server that is relevant to the task.
+    - Choose any other tools to add to the agent configuration from the available tools in
+      tools/available_tools.md.
+    - Use the `search_tavily` tool in the agent configuration to search the web.
+    - Use the `visit_webpage` tool in the agent configuration to visit webpages.
 
-    ## MCPs
-    You may use appropriate MCPs provided from mcps/available_mcps.md in the agent configuration.
-
-    Generate python code for an agentic workflow using any-agent library to be able to do the following:
+    Generate python code for an agentic workflow using any-agent library to be able to do the
+    following:
     {user_prompt}
     """
 

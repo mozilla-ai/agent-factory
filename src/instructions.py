@@ -80,7 +80,7 @@ agent = AnyAgent.create(
             # Example of MCP server usage
             MCPStdio(
                     command="docker",
-                    # args taken verbatim from available_mcps.md
+                    # args taken verbatim from `/app/.config/agent-factory/mcp.json`
                     args=[
                         "run",
                         "-i",
@@ -149,7 +149,7 @@ using Mozilla's any-agent library. The implementation should:
 4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are :
     a. built-in tools from any-agent library: search_tavily and visit_webpage
     b. python functions from the available_tools.md file
-    c. MCPs from the available_mcps.md file
+    c. MCPs from the `/app/.config/agent-factory/mcp.json` file
 
 ## Required Components
 
@@ -172,10 +172,10 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
     a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
        Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
-    c. MCPs: You can use MCPs to access external services. The available MCPs are described in the local file at mcps/available_mcps.md - which can be read using `read_file` tool.
+    c. MCPs: You can use MCPs to access external services.
+       The available MCPs are described in the local file at `/app/.config/agent-factory/mcp.json` - which can be read using `read_file` tool.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
-       All information required to implement the MCP configuration is available in the mcps/available_mcps.md file.
-       Visit the webpages to corresponding to the chosen MCPs to understand the tools available from the MCP server.
+       To verify that the MCP serve is relevant to the task, you the `get_mcp_info` tool to read the MCP server description and provided tools.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the user's workflow requires file operations, you must include the filesystem MCPStdio() in the agent configuration.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
