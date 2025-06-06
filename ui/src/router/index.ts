@@ -1,19 +1,39 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import WorkflowsView from '../views/WorkflowsView.vue'
+import FileView from '../views/FileView.vue'
 
 const routes: Array<RouteRecordRaw> = [
-  // { path: '/login', component: () => import('@/views/LoginView.vue'), name: 'Login' },
+  {
+    path: '/',
+    name: 'home',
+    redirect: '/chat',
+    meta: { requiresAuth: false },
+  },
   {
     path: '/chat',
     component: () => import('@/views/ChatView.vue'),
     meta: { requiresAuth: false },
     name: 'Chat',
   },
+  {
+    path: '/workflows',
+    name: 'workflows',
+    component: WorkflowsView,
+  },
+  {
+    // Catch-all route for file paths
+    path: '/workflows/:pathMatch(.*)*',
+    name: 'file-view',
+    component: FileView,
+    // Add this to fix active class on parent route
+    props: true,
+  },
   { path: '/:pathMatch(.*)*', redirect: '/chat' }, // Redirect to home for any unmatched routes
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })
 

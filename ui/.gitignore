@@ -36,3 +36,4 @@ playwright-report/
 
 
 .pnpm-store
+.vite

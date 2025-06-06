@@ -27,6 +27,14 @@
       <p v-if="!response">This is where the output will be displayed.</p>
       <p v-if="isLoading">Loading...</p>
       <pre v-if="response" class="output">{{ response }}</pre>
+
+      <router-link
+        v-if="generationComplete"
+        to="/workflows/latest/agent.py"
+        class="view-files-link"
+      >
+        📁 View Generated agent
+      </router-link>
     </div>
   </div>
 </template>
@@ -37,11 +45,13 @@ import { ref } from 'vue'
 const prompt = ref<string>('Summarize text content from a given webpage URL')
 const response = ref<string>('')
 const isLoading = ref<boolean>(false)
+const generationComplete = ref<boolean>(false)
 
 const handleSendClicked = async () => {
   try {
     response.value = ''
     isLoading.value = true
+    generationComplete.value = false
 
     const res = await fetch(
       `http://localhost:3000/agent-factory?prompt=${encodeURIComponent(prompt.value)}`,
@@ -75,6 +85,12 @@ const handleSendClicked = async () => {
       }
       done = streamDone
     }
+
+    // Check if generation was successful
+    if (response.value.includes('Workflow completed successfully')) {
+      generationComplete.value = true
+    }
+
     isLoading.value = false
   } catch (err) {
     console.error('Error in generate:', err)
@@ -104,15 +120,34 @@ const handleSendClicked = async () => {
 .output-container {
   flex: 1;
   /* padding: 20px; */
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 80vh;
 }
 
 .output {
-  max-height: 800px;
+  height: 100%;
+  max-height: 600px;
   overflow-y: auto;
-  /* background: #f9f9f9; */
+  background: var(--color-background-soft, #f8f8f8); /* Lighter background similar to textarea */
   padding: 1rem;
   border-radius: 4px;
-  border: 1px solid var(--border-color);
+  /* border: 1px solid var(--border-color, #ccc); */
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 1rem;
+}
+
+.text-area {
+  resize: vertical;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border, #ccc);
+  border-radius: 4px;
+  font-family: inherit;
+  background: var(--color-background-soft, #f8f8f8);
 }
 
 .chat-header {
@@ -131,5 +166,25 @@ const handleSendClicked = async () => {
   border: 1px solid #ccc;
   padding: 10px;
   margin-bottom: 20px;
+}
+
+.view-files-link {
+  display: inline-block;
+  margin-top: 15px;
+  text-decoration: none;
+  color: var(--color-text);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background: var(--color-background-soft, #f8f8f8);
+  border: 1px solid var(--color-border, #ccc);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.view-files-link:hover {
+  background: var(--color-background-mute, #e8e8e8);
+  border-color: var(--color-border-hover, #aaa);
 }
 </style>
