@@ -1,6 +1,12 @@
 <template>
   <div class="app">
     <VueQueryDevtools />
+
+    <nav class="global-nav">
+      <router-link to="/" class="nav-link">Home</router-link>
+      <router-link to="/workflows" class="nav-link">Workflows</router-link>
+    </nav>
+
     <button class="logout-button" v-if="authStore.isAuthenticated" type="button" @click="logout">
       Logout
     </button>
@@ -62,6 +68,45 @@ const logout = () => {
 </script>
 
 <style scoped>
+.global-nav {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem;
+  z-index: 20;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--color-text);
+  font-weight: 500;
+  position: relative;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.3s;
+}
+
+.nav-link:hover {
+  background-color: var(--color-background-soft);
+}
+
+.nav-link.router-link-active {
+  color: var(--color-primary);
+}
+
+.nav-link.router-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-primary);
+}
+
 .logout-button {
   position: absolute;
   top: 0;
