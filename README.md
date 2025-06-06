@@ -48,12 +48,15 @@ Before running the agent factory, you need to set up your OpenAI API key (requir
 > ```bash
 > export OPENAI_API_KEY=sk-...
 > ```
-You will need a Brave Search API key to use the `brave_web-search` tool. Create an account at [Brave Search](https://brave.com/search/api/) and obtain your API key.
+
+You will need a Tavily API key to use the `search_tavily` tool. You can get a free API key by signing up at [Tavily](https://app.tavily.com/). 
 > Set it as an environment variable:
 > ```bash
-> export BRAVE_API_KEY=BS...
+> export TAVILY_API_KEY=tvly_...
 > ```
 
+> [!TIP]
+> If you do not want to create an API key for web search, you can specify in your workflow definition that you want to use DuckDuckGo as the search tool (e.g., "use DuckDuckGo for web search"). This does not require an API key. However, please note that for complex workflows, you may hit the cap of searches per minute with DuckDuckGo.
 
 ### 1. Generate the workflow
 Run the code generator agent with your desired workflow prompt:
