@@ -40,7 +40,7 @@ AGENT_SCRIPT_AND_JSON_EXAMPLE = """
 ```python
 # Example imports for the agent.py file:
 from any_agent import AnyAgent, AgentConfig, AgentFramework, TracingConfig
-from any_agent.tools import search_web, visit_webpage
+from any_agent.tools import search_tavily, visit_webpage
 from any_agent.config import MCPStdio
 from tools.review_code_with_llm import review_code_with_llm
 from pydantic import BaseModel, Field
@@ -64,7 +64,7 @@ agent = AnyAgent.create(
         model_id="gpt-4.1",
         instructions="Example instructions",
         tools=[
-            search_web, # Example tool available from any-agent library
+            search_tavily, # Example tool available from any-agent library
             review_code_with_llm, # Example tool taken from tools/available_tools.md
             # Example of MCP server usage
             MCPStdio(
@@ -108,7 +108,7 @@ agent.run(prompt=user_input)
   "checkpoints": [
     {
       "points": 2,
-      "criteria": "Ensure that the agent called search_web or brave_web_search to find relevant information about code review best practices or specific technologies mentioned in the code"
+      "criteria": "Ensure that the agent called search_tavily or another search tool to find relevant information about code review best practices or specific technologies mentioned in the code"
     },
     {
       "points": 2,
@@ -151,8 +151,8 @@ Always use openai/gpt-4.1 as the llm_judge.
 """  # noqa: E501
 
 INSTRUCTIONS_TEMPLATE = """
-1. List files in the generated_workflows directory.
-2. Check the file generated_workflows/agent.py.
+1. List files in the generated_workflows/latest directory.
+2. Check the file generated_workflows/latest/agent.py.
 3. Generate a comprehensive JSON evaluation file for the given agent.py script.
 
 Analyze the agent's task, tools, and expected workflow to create thorough evaluation criteria.

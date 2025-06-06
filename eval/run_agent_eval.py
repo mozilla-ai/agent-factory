@@ -7,8 +7,8 @@ from any_agent.tracing.agent_trace import AgentTrace
 
 
 def run_evaluation(
-    evaluation_case_yaml_file: str = "generated_workflows/evaluation_case.yaml",
-    agent_trace_json_file: str = "generated_workflows/agent_trace.json",
+    evaluation_case_yaml_file: str = "generated_workflows/latest/evaluation_case.yaml",
+    agent_trace_json_file: str = "generated_workflows/latest/agent_eval_trace.json",
 ):
     """Runs the evaluation process based on an evaluation case YAML file and an agent trace JSON file.
 
@@ -16,7 +16,7 @@ def run_evaluation(
         evaluation_case_yaml_file (str): Path to the evaluation case YAML file.
                                          Defaults to "generated_workflows/evaluation_case.yaml".
         agent_trace_json_file (str): Path to the agent trace JSON file.
-                                     Defaults to "generated_workflows/agent_trace.json".
+                                     Defaults to "generated_workflows/agent_eval_trace.json".
     """
     try:
         # Load evaluation case from the specified YAML file

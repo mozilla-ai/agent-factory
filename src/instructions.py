@@ -8,12 +8,12 @@ WEBPAGE_DESCRIPTIONS = {
         "Primary reference whenever you are defining single or multi-agent systems with any-agent."
         "This page provides essential setup patterns and configuration examples for creating agents."
     ),
-    "https://mozilla-ai.github.io/any-agent/frameworks/openai/": (
+    "https://mozilla-ai.github.io/any-agent/agents/frameworks/openai/": (
         "Reference whenever you are implementing OpenAI-based agents in any-agent."
         "This page details the default agent types, model configurations, "
         "and run arguments specific to the OpenAI Agents SDK."
     ),
-    "https://mozilla-ai.github.io/any-agent/tools/": (
+    "https://mozilla-ai.github.io/any-agent/agents/tools/": (
         "Visit when adding tools to your agent's capabilities."
         "This page explains how to use both callable tools"
         "and MCP (Model Context Protocol) tools in your agent configurations."
@@ -51,7 +51,7 @@ WEBPAGE_DESCRIPTIONS = {
 CODE_EXAMPLE_WITH_COMMENTS = """
 # Example imports for the agent.py file:
 from any_agent import AnyAgent, AgentConfig, AgentFramework, TracingConfig
-from any_agent.tools import search_web, visit_webpage
+from any_agent.tools import search_tavily, visit_webpage
 from any_agent.config import MCPStdio
 from tools.review_code_with_llm import review_code_with_llm
 from pydantic import BaseModel, Field
@@ -75,7 +75,7 @@ agent = AnyAgent.create(
         model_id="gpt-4.1",
         instructions="Example instructions",
         tools=[
-            search_web, # Example tool available from any-agent library
+            search_tavily, # Example tool available from any-agent library
             review_code_with_llm, # Example tool taken from tools/available_tools.md
             # Example of MCP server usage
             MCPStdio(
@@ -110,31 +110,29 @@ agent = AnyAgent.create(
 user_input = "Example user input"
 agent.run(prompt=f"Example prompt referencing the task and the input: {user_input}")
 
-# Saving the agent trace at the end
-with open("generated_workflows/agent_trace.json", "w", encoding="utf-8") as f:
+# Saving the agent trace at the end as agent_eval_trace.json in the generated_workflows/latest directory
+with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
     f.write(agent_trace.model_dump_json(indent=2))
 """
 
-SAVE_FILE_INSTRUCTIONS = """
-The generated code and associated files should be saved in the `generated_workflows/` directory. The three files to be saved are:
+DELIVERABLES_INSTRUCTIONS = """
+The final output should be a JSON with the following structure:
 
-1. Complete `agent.py` file with all the code implementation of the agent
-2. INSTRUCTIONS.md with clear and concise setup:
+{
+    "agent_code": "The agent script in Markdown format",
+    "run_instructions": "The instructions for setting up the environment in Markdown format",
+    "dependencies": "The list of python dependencies in Markdown format"
+}
+
+1. agent_code should contain all the code implementation of the agent which will correspond to the runnable agent.py script
+2. run_instructions should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
     - Setting up the environment via mamba (Python version 3.11)
     - Installing dependencies via requirements.txt
     - Run instructions for agent.py
-3. A requirements.txt file listing all the python libraries (including the ones required by the tools) as dependencies to be installed.
-
-Use the `write_file` tool to save the generated artifacts, name the files `agent.py`, `INSTRUCTIONS.md` and `requirements.txt`.
-
-- In the requirements.txt file,
-    - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow.
-    - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code.
-
-- All 3 files should be saved to the /app/generated_workflows directory as /app/generated_workflows/agent.py, /app/generated_workflows/INSTRUCTIONS.md and /app/generated_workflows/requirements.txt.
-- You must save the 3 files (no need to ask for permission)
-- Check if they exist in the /app/generated_workflows directory before stopping.
+3. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
+    - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow
+    - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
 
 """  # noqa: E501
 
@@ -149,7 +147,7 @@ using Mozilla's any-agent library. The implementation should:
 2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
 3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument
 4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are :
-    a. built-in tools from any-agent library: search_web, search_tavily and visit_webpage
+    a. built-in tools from any-agent library: search_tavily and visit_webpage
     b. python functions from the available_tools.md file
     c. MCPs from the available_mcps.md file
 
@@ -173,7 +171,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - You must choose tools from one of the following 3 options:
     a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
        Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
-    b. Tools pre-defined in any-agent library: `search_web`, `search_tavily` and `visit_webpage` tools
+    b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
     c. MCPs: You can use MCPs to access external services. The available MCPs are described in the local file at mcps/available_mcps.md - which can be read using `read_file` tool.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
        All information required to implement the MCP configuration is available in the mcps/available_mcps.md file.
@@ -188,9 +186,12 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 - Refer to the any-agent documentation for more details on structured output
 
 #### Agent Trace (agent_trace):
-The code implementation should include the agent trace being saved into a JSON file named `agent_trace.json` after agent.run().
-- Saving of the agent trace in the code should be done to the `generated_workflows/` directory
-- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code.
+The code implementation should include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()
+- Saving of the agent trace in the code should be done to the `generated_workflows/latest/` directory. You may assume that the `generated_workflows/latest/` directory already exists
+- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code
+- Never try to print, log or access any other properties of the agent trace object. agent_trace.response or agent_trace.output are invalid
+- Only agent_trace.model_dump_json(indent=2) and agent_trace.final_output are valid
+- Do not print or save anything after saving the agent trace
 
 ### Code Organization
 - Create well-documented, modular code with appropriate comments
@@ -229,8 +230,8 @@ For reading URLs, use `visit_webpage` tool (never use the `read_file` tool for r
 As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `agent_args`:
 {{ code_example_with_comments }}
 
-** Save File Instructions**
-{{ save_file_instructions }}
+** Deliverables Instructions**
+{{ deliverables_instructions }}
 """  # noqa: E501
 
 # Render the template with the WEBPAGE_DESCRIPTIONS dictionary
@@ -239,5 +240,5 @@ INSTRUCTIONS = template.render(
     webpage_descriptions=WEBPAGE_DESCRIPTIONS,
     code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
     code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
-    save_file_instructions=SAVE_FILE_INSTRUCTIONS,
+    deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
 )

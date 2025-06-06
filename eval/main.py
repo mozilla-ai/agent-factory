@@ -8,7 +8,7 @@ import fire
 import yaml
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
-from any_agent.tools import visit_webpage
+from any_agent.tools import visit_webpage, search_tavily
 from eval.instructions import INSTRUCTIONS
 from pydantic import BaseModel, Field, ValidationError
 
@@ -60,7 +60,7 @@ def parse_checkpoint_criteria_string(input_string: str) -> dict:
     return result_dict
 
 
-def main(generated_workflow_dir: str = "generated_workflows"):
+def main(generated_workflow_dir: str = "generated_workflows/latest"):
     """Generate JSON structured evaluation case for the generated agentic workflow.
     Save the JSON file as `evaluation_case.yaml` in the same directory as the generated workflow.
 
@@ -83,23 +83,7 @@ def main(generated_workflow_dir: str = "generated_workflows"):
             instructions=INSTRUCTIONS,
             tools=[
                 visit_webpage,
-                MCPStdio(
-                    command="docker",
-                    args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "-e",
-                        "BRAVE_API_KEY",
-                        "mcp/brave-search",
-                    ],
-                    env={
-                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-                    },
-                    tools=[
-                        "brave_web_search",
-                    ],
-                ),
+                search_tavily,
                 MCPStdio(
                     command="docker",
                     args=[
@@ -125,7 +109,7 @@ def main(generated_workflow_dir: str = "generated_workflows"):
     )
 
     run_instructions = """
-    Read the generated_workflows/agent.py script and generate a JSON evaluation case for it.
+    Read the generated_workflows/latest/agent.py script and generate a JSON evaluation case for it.
     The criteria generated must:
     - be specific, measurable, and independent.
     - should not be vague or open-ended or generic.
