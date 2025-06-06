@@ -16,7 +16,6 @@ tools_dir = repo_root / "tools"
 mcps_dir = repo_root / "mcps"
 
 MCP_TOOLS = []
-messages = []
 
 
 def get_mount_config():
@@ -38,19 +37,13 @@ def trim_context(conversation_history, max_messages=10):
     return conversation_history
 
 
-def format_messages(all_cl_messages: list[cl.Message]):
-    """Convert Chainlit messages to OpenAI format (list of dicts with role/content)"""
-    if not all_cl_messages:
-        return []
-    formatted = []
-    for msg in all_cl_messages:
-        # Determine role: if author is 'Agent Steps' or 'assistant', treat as assistant; else user
-        if getattr(msg, "author", None) in ["Agent Steps", "assistant"]:
-            role = "assistant"
-        else:
-            role = "user"
-        formatted.append({"role": role, "content": msg.content})
-    return formatted
+def format_messages_for_agent(messages: list) -> str:
+    """Convert message history to conversation string for the agent"""
+    conversation = ""
+    for msg in messages:
+        role = "User" if msg["role"] == "user" else "Assistant"
+        conversation += f"{role}: {msg['content']}\n\n"
+    return conversation
 
 
 @cl.on_mcp_connect
@@ -68,96 +61,107 @@ async def on_mcp_disconnect(name: str, session):
 
 @cl.on_chat_start
 async def on_chat_start():
-    cl.user_session.set("messages", [])
+    """Initialize the chat session"""
+    cl.user_session.set("message_history", [])
+
+    # Send welcome message
+    await cl.Message(
+        content="👋 Welcome! I'm ready to help you create and run agentic workflows. Describe the workflow you want to build:",  # noqa: E501
+        author="assistant",
+    ).send()
 
 
 @cl.on_message
 async def on_message(message: cl.Message):
+    """Handle incoming messages"""
     try:
-        messages = cl.user_session.get("messages", [])
-        # Append user message with correct role
-        messages.append({"role": "user", "content": message.content})
+        # Get message history from session
+        message_history = cl.user_session.get("message_history", [])
 
-        # Get mount config and default tools
-        mount_config = get_mount_config()
-        tools = get_default_tools(mount_config)
+        # Add user message to history
+        message_history.append({"role": "user", "content": message.content})
 
-        # Register existing MCP tools (if any)
-        if MCP_TOOLS:
-            for tool in MCP_TOOLS:
-                if getattr(tool, "clientType", None) == "stdio":
-                    mcp_tool = MCPStdio(command=tool.command, args=tool.args, env=getattr(tool, "env", None))
-                    tools.append(mcp_tool)
+        # Show thinking indicator
+        async with cl.Step(name="any-agent to generate your workflow", type="run") as step:
+            step.output = "Analyzing your request and preparing the agent..."
 
-        # Create agent with model_id, INSTRUCTIONS, tools
-        framework = AgentFramework.OPENAI
-        agent = AnyAgent.create(
-            framework,
-            AgentConfig(
-                model_id="gpt-4.1",
-                instructions=INSTRUCTIONS,
-                tools=tools,
-            ),
-        )
+            # Get mount config and default tools
+            mount_config = get_mount_config()
+            tools = get_default_tools(mount_config)
 
-        # Maintain conversation history (trim to 10)
-        messages = trim_context(messages, max_messages=10)
-        # Format conversation as prompt
-        conversation = ""
-        for msg in messages:
-            role = "User" if msg["role"] == "user" else "Assistant"
-            conversation += f"{role}: {msg['content']}\n\n"
+            # Register existing MCP tools (if any)
+            if MCP_TOOLS:
+                for tool in MCP_TOOLS:
+                    if getattr(tool, "clientType", None) == "stdio":
+                        mcp_tool = MCPStdio(command=tool.command, args=tool.args, env=getattr(tool, "env", None))
+                        tools.append(mcp_tool)
 
-        # Use build_run_instructions as the task
-        task = build_run_instructions(conversation)
+            # Create agent
+            framework = AgentFramework.OPENAI
+            agent_factory = AnyAgent.create(
+                framework,
+                AgentConfig(
+                    model_id="gpt-4.1",
+                    instructions=INSTRUCTIONS,
+                    tools=tools,
+                ),
+            )
 
-        # Run the agent
-        agent_trace = agent.run(task, max_turns=30)
+            # Trim context and format conversation
+            trimmed_history = trim_context(message_history, max_messages=10)
+            conversation = format_messages_for_agent(trimmed_history)
+
+            # Build task
+            task = build_run_instructions(conversation)
+
+            step.output = "Running agent with your request..."
+
+            # Run the agent
+            agent_factory_trace = agent_factory.run(task, max_turns=30)
 
         # Display tool usage information
-        if hasattr(agent_trace, "spans"):
-            for span in agent_trace.spans:
+        if hasattr(agent_factory_trace, "spans"):
+            for span in agent_factory_trace.spans:
                 tool_usage = span.attributes.get("gen_ai.tool.args", "")
                 try:
                     # Attempt to parse and pretty-print JSON
                     formatted_content = json.dumps(json.loads(tool_usage), indent=4)
                     content_to_display = f"⚙️ Used: **{span.name}**:\n```json\n{formatted_content}\n```"
                 except (json.JSONDecodeError, TypeError):
-                    # Fallback to raw string if not valid JSON or not a string
+                    # Fallback to raw string if not valid JSON
                     content_to_display = f"⚙️ Used: **{span.name}**"
 
-                tool_msg = cl.Message(
+                await cl.Message(
                     content=content_to_display,
                     author="Agent Steps",
-                )
-
-                await tool_msg.send()
-                tool_msg.author = "assistant"
-                messages.append(tool_msg)
+                ).send()
 
         # Send the final response
-        if agent_trace.final_output:
-            json_output = json.loads(agent_trace.final_output)
+        if agent_factory_trace.final_output:
+            json_output = json.loads(agent_factory_trace.final_output)
             output_to_render = (
-                f"### Agent Code:\n"
-                f"{json_output.get('agent_code', 'No agent code provided.')}\n\n"
-                f"### Run Instructions:\n"
+                f"## 🤖 Agent Code\n"
+                f"```python\n{json_output.get('agent_code', 'No agent code provided.')}\n```\n"
+                f"## 🚀 Run Instructions\n"
                 f"{json_output.get('run_instructions', 'No run instructions provided.')}\n\n"
-                f"### Dependencies:\n"
+                f"## 📦 Dependencies\n"
                 f"```\n{json_output.get('dependencies', 'No dependencies provided.')}\n```"
             )
-            response_msg = cl.Message(content=output_to_render)
-            response_msg.author = "assistant"
-            await response_msg.send()
-            messages.append(response_msg)
 
-        cl.user_session.set("messages", messages)
+            response_msg = cl.Message(content=output_to_render, author="assistant")
+            await response_msg.send()
+
+            # Add assistant response to history
+            message_history.append({"role": "assistant", "content": output_to_render})
+
+        # Update session with new message history
+        cl.user_session.set("message_history", message_history)
 
     except Exception as e:
-        await cl.Message(content=f"An error occurred: {str(e)}", author="Error").send()
+        await cl.Message(content=f"❌ **Error occurred:** {str(e)}", author="Error").send()
 
 
 if __name__ == "__main__":
-    from chainlit.cli import run_chainlit
+    import chainlit.cli
 
-    run_chainlit(__file__)
+    chainlit.cli.run_chainlit(__file__)
