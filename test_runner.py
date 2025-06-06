@@ -8,6 +8,7 @@ import importlib.util
 import json
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 
@@ -21,6 +22,7 @@ class TestResult:
         self.agent_imports_valid = False
         self.agent_execution_success = False
         self.agent_error = None
+        self.agent_directory = None
 
     def to_dict(self):
         return {
@@ -32,6 +34,7 @@ class TestResult:
             "agent_imports_valid": self.agent_imports_valid,
             "agent_execution_success": self.agent_execution_success,
             "agent_error": str(self.agent_error) if self.agent_error else None,
+            "agent_directory": self.agent_directory,
         }
 
 
@@ -58,8 +61,8 @@ class AgentFactoryTester:
 
             # Read output in real-time
             while True:
-                stdout_line = process.stdout.readline()
-                stderr_line = process.stderr.readline()
+                stdout_line = ""  # process.stdout.readline()
+                stderr_line = ""  # process.stderr.readline()
 
                 if stdout_line:
                     print(stdout_line.rstrip())  # Show live
@@ -119,6 +122,23 @@ class AgentFactoryTester:
                 result.agent_factory_error = f"Missing files: {missing}"
 
         return result
+
+    def get_most_recent_archive_directory(self) -> str | None:
+        """Find the most recent archive directory"""
+        archive_dir = Path("generated_workflows/archive")
+        if not archive_dir.exists():
+            return None
+
+        # Find all archive directories
+        archive_dirs = [d for d in archive_dir.iterdir() if d.is_dir()]
+
+        if not archive_dirs:
+            return None
+
+        # Sort by modification time and get the most recent
+        most_recent = max(archive_dirs, key=lambda d: d.stat().st_mtime)
+
+        return str(most_recent)
 
     def test_agent_syntax(self, result: TestResult, agent_file: Path) -> TestResult:
         """Test if the generated agent has valid Python syntax"""
@@ -205,6 +225,9 @@ class AgentFactoryTester:
                     if result.agent_imports_valid:
                         result = self.test_agent_basic_execution(result)
 
+                # Find the archived directory path
+                result.agent_directory = self.get_most_recent_archive_directory()
+
         return result
 
     def run_tests(self, prompts: list[str]) -> list[TestResult]:
@@ -288,14 +311,17 @@ def main():
     # Example prompts
     test_prompts = [
         "Summarize text content from a given webpage URL",
-    ]
-
+    ] * 10
     tester = AgentFactoryTester(timeout_seconds=120)
     results = tester.run_tests(test_prompts)
     tester.print_detailed_results(results)
 
-    # Optionally save results to JSON
-    output_file = Path("test_results.json")
+    # Optionally save results to JSON with timestamp
+    test_results_dir = Path("test_results")
+    test_results_dir.mkdir(exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = test_results_dir / f"{timestamp}.json"
     output_file.write_text(json.dumps([r.to_dict() for r in results], indent=2))
     print(f"Results saved to {output_file}")
 
