@@ -342,7 +342,8 @@ def main():
     """Example usage"""
     # Example prompts
     test_prompts = [
-        "Summarize text content from a given webpage URL",
+        # "Summarize text content from a given webpage URL",
+        "Given the URL of webpage, download its contents, summarize, and translate them in Italian",
     ] * 10
     tester = AgentFactoryTester(timeout_seconds=120)
     results = tester.run_tests(test_prompts)
