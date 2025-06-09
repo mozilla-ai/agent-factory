@@ -1,0 +1,171 @@
+# Agent Factory Test Runner
+
+A testing tool for agent-factory that validates both agent generation and basic agent functionality across multiple test stages.
+
+## Overview
+
+Test-runner executes a multi-stage validation process for each prompt:
+
+1. **Agent Generation** - Tests if agent-factory can successfully generate an agent
+2. **File Generation** - Verifies expected files are created (agent.py, INSTRUCTIONS.md, requirements.txt)
+3. **Syntax Validation** - Checks if the generated Python code has valid syntax
+4. **Import Validation** - Tests if all imports in the agent work correctly
+5. **Basic Execution** - Verifies the agent can start without immediate crashes (by running the command with `--help`)
+
+## Installation
+
+Test-runner uses standard Python libraries and should work with your existing agent-factory environment. Note, however, that some extra libraries might be needed by the generated agents. As you would need both agent-factory and generated agent dependencies, we suggest you to create an environment specifically for testing, which will include both.
+
+**NOTE** that at the moment the generated `requirements.txt` file is not pip-installed automatically, you should do that manually if you believe there will be new dependencies which are not in your environment yet.
+
+## Basic Usage
+
+### Single Prompt Testing
+
+Test a single prompt once:
+```bash
+python test/test_runner.py --prompt "Summarize text from a webpage"
+```
+
+Test a single prompt multiple times (useful for stability testing):
+```bash
+python test/test_runner.py --prompt "Summarize text from a webpage" --repeat 5
+```
+
+### Multiple Prompts Testing
+
+Test multiple different prompts from the command line:
+```bash
+python test/test_runner.py --prompts "Prompt 1" "Prompt 2" "Prompt 3"
+```
+
+Repeat multiple prompts several times each:
+```bash
+python test/test_runner.py --prompts "Prompt 1" "Prompt 2" --repeat 3
+```
+
+### File-Based Prompt Testing
+
+Create a file with prompts (one per line):
+```
+# prompts.txt
+Summarize text content from a given webpage URL
+Create a simple task manager
+Generate a weather report for a city
+```
+
+Run tests from the file:
+```bash
+python test/test_runner.py --prompts-file prompts.txt
+```
+
+Alternatively, use JSON format:
+```json
+[
+  "Summarize text content from a given webpage URL",
+  "Create a simple task manager",
+  "Generate a weather report for a city"
+]
+```
+
+Test all prompts from file, repeating each 5 times:
+```bash
+python test/test_runner.py --prompts-file prompts.json --repeat 5
+```
+
+## Configuration Options
+
+### Timeout Control
+
+Adjust the timeout for agent generation (useful for complex prompts):
+```bash
+python test/test_runner.py --prompt "Complex multi-step agent prompt" --timeout 300
+```
+
+### Custom Output File
+
+Specify a custom output file instead of the default timestamp-based naming:
+```bash
+python test/test_runner.py --prompt "Test prompt" --output-file my_test_results.json
+```
+
+## Advanced Examples
+
+### Comprehensive Testing
+
+Test a variety of prompts with extended timeout and custom output:
+```bash
+python test/test_runner.py \
+  --prompts-file comprehensive_prompts.txt \
+  --repeat 10 \
+  --timeout 180 \
+  --output-file comprehensive_test_results.json
+```
+
+### Stability Testing
+
+Test the same prompt many times to check for consistency:
+```bash
+python test/test_runner.py \
+  --prompt "Create an agent that summarizes a web page" \
+  --repeat 50 \
+  --output-file stability_test.json
+```
+
+
+## Output and Results
+
+### JSON Output
+
+Test results are automatically saved to JSON files in the `test_results/` directory. The default naming convention uses timestamps (e.g., `20240609_143022.json`), but you can specify custom names with `--output-file`.
+
+Each test result includes:
+- Original prompt
+- Success/failure status for each validation stage
+- Detailed error messages if applicable
+- Location of generated agent files
+
+### Console Output
+
+The test runner provides real-time feedback during execution:
+- Progress indicators for each test stage
+- Immediate pass/fail status for each test
+- Summary statistics at the end
+- Detailed error information for failed tests
+
+
+### File Structure
+
+After running tests, your directory structure will look like:
+```
+test_results/
+├── 20250609_143022.json      # Timestamped results
+├── custom_results.json       # Custom named results
+└── ...
+
+generated_workflows/
+├── latest/                   # Most recent generated agent
+│   ├── agent.py
+│   ├── INSTRUCTIONS.md
+│   └── requirements.txt
+└── archive/                  # Previously generated agents
+    ├── 2025-06-09_14:25:59_d34db33f/
+    └── ...
+```
+
+## Visual Results Analysis
+
+### Using the Test Runner UI
+
+For a more comprehensive analysis of your test results, use the included HTML visualizer:
+
+1. **Open the visualizer**: Open `test/test_runner_ui.html` in your web browser
+
+2. **Load your results**: Click "📂 Load Test Results JSON" and select any JSON file generated by the test runner
+
+3. **Analyze the data**: The visualizer provides:
+   - **Overall Statistics**: Success rate, total tests, pass/fail counts
+   - **Progress Visualization**: Visual progress bar showing overall success rate
+   - **Step-by-Step Breakdown**: Success rates for each validation stage
+   - **Individual Test Details**: Expandable view of each test with full error details
+   - **Interactive Navigation**: Click on any test to see detailed information

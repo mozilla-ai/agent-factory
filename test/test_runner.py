@@ -3,6 +3,7 @@
 Tests both agent generation and basic agent functionality
 """
 
+import argparse
 import ast
 import importlib.util
 import json
@@ -338,23 +339,120 @@ class AgentFactoryTester:
             print()
 
 
+def load_prompts_from_file(file_path: str) -> list[str]:
+    """Load prompts from a file (one per line or JSON format)"""
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Prompts file not found: {file_path}")
+
+    content = path.read_text(encoding="utf-8").strip()
+
+    # Try to parse as JSON first
+    try:
+        data = json.loads(content)
+        if isinstance(data, list):
+            return [str(item) for item in data]
+        else:
+            raise ValueError("JSON content must be a list of prompts")
+    except json.JSONDecodeError:
+        # Fall back to line-by-line parsing
+        prompts = [line.strip() for line in content.splitlines() if line.strip()]
+        if not prompts:
+            raise ValueError("No prompts found in file") from None
+        return prompts
+
+
 def main():
-    """Example usage"""
-    # Example prompts
-    test_prompts = [
-        # "Summarize text content from a given webpage URL",
-        "Given the URL of webpage, download its contents, summarize, and translate them in Italian",
-    ] * 10
-    tester = AgentFactoryTester(timeout_seconds=120)
-    results = tester.run_tests(test_prompts)
+    """Main function with argparse support"""
+    parser = argparse.ArgumentParser(
+        description="Test runner for agent-factory",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Test a single prompt once
+  python test_runner.py --prompt "Summarize text from a webpage"
+
+  # Test a single prompt multiple times
+  python test_runner.py --prompt "Summarize text from a webpage" --repeat 5
+
+  # Test multiple prompts from command line
+  python test_runner.py --prompts "Prompt 1" "Prompt 2" "Prompt 3"
+
+  # Test prompts from a file (one per line)
+  python test_runner.py --prompts-file prompts.txt
+
+  # Test prompts from a JSON file
+  python test_runner.py --prompts-file prompts.json
+
+  # Adjust timeout for slow generations
+  python test_runner.py --prompt "Complex prompt" --timeout 300
+        """,
+    )
+
+    # Input options (mutually exclusive)
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--prompt", type=str, help="Single prompt to test")
+    input_group.add_argument("--prompts", nargs="+", type=str, help="Multiple prompts to test (space-separated)")
+    input_group.add_argument("--prompts-file", type=str, help="File containing prompts (one per line or JSON array)")
+
+    # Additional options
+    parser.add_argument("--repeat", type=int, default=1, help="Number of times to repeat each prompt (default: 1)")
+    parser.add_argument(
+        "--timeout", type=int, default=120, help="Timeout in seconds for agent generation (default: 120)"
+    )
+    parser.add_argument(
+        "--output-file", type=str, help="Custom output file for test results (default: auto-generated timestamp)"
+    )
+
+    args = parser.parse_args()
+
+    # Determine the list of prompts
+    if args.prompt:
+        prompts = [args.prompt] * args.repeat
+    elif args.prompts:
+        prompts = args.prompts * args.repeat
+    elif args.prompts_file:
+        try:
+            base_prompts = load_prompts_from_file(args.prompts_file)
+            prompts = base_prompts * args.repeat
+        except Exception as e:
+            print(f"Error loading prompts from file: {e}")
+            sys.exit(1)
+
+    # Validate inputs
+    if not prompts:
+        print("Error: No prompts provided")
+        sys.exit(1)
+
+    if args.timeout <= 0:
+        print("Error: Timeout must be a positive integer")
+        sys.exit(1)
+
+    # Show configuration
+    print("Configuration:")
+    print(f"  Total prompts: {len(prompts)}")
+    print(f"  Unique prompts: {len(set(prompts))}")
+    print(f"  Timeout: {args.timeout} seconds")
+    print(f"  Repeat factor: {args.repeat}")
+
+    # Run tests
+    tester = AgentFactoryTester(timeout_seconds=args.timeout)
+    results = tester.run_tests(prompts)
     tester.print_detailed_results(results)
 
-    # Optionally save results to JSON with timestamp
+    # Save results
     test_results_dir = Path("test_results")
     test_results_dir.mkdir(exist_ok=True)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = test_results_dir / f"{timestamp}.json"
+    if args.output_file:
+        output_file = Path(args.output_file)
+    else:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = test_results_dir / f"{timestamp}.json"
+
+    # Ensure output directory exists
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
     output_file.write_text(json.dumps([r.to_dict() for r in results], indent=2))
     print(f"Results saved to {output_file}")
 
