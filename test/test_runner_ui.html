@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Factory Test Results Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .file-input-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .file-input-label:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #3b82f6; }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.8s ease;
+        }
+
+        .step-breakdown {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .step-breakdown h3 {
+            margin-bottom: 20px;
+            color: #1e293b;
+            font-size: 1.3rem;
+        }
+
+        .step-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .step-stat {
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .step-stat.error { border-left-color: #ef4444; }
+        .step-stat.success { border-left-color: #10b981; }
+
+        .individual-results {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .results-header {
+            background: #f1f5f9;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .results-header h3 {
+            color: #1e293b;
+            font-size: 1.3rem;
+        }
+
+        .test-item {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s ease;
+        }
+
+        .test-item:hover {
+            background: #f8fafc;
+        }
+
+        .test-summary {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .test-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .test-status.success { background: #10b981; }
+        .test-status.error { background: #ef4444; }
+
+        .test-prompt {
+            flex: 1;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .test-steps {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .step-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+        }
+
+        .step-indicator.success { background: #10b981; }
+        .step-indicator.error { background: #ef4444; }
+        .step-indicator.not-executed { background: #cbd5e1; }
+
+        .expand-icon {
+            margin-left: 10px;
+            color: #64748b;
+            transition: transform 0.3s ease;
+        }
+
+        .test-details {
+            display: none;
+            padding: 0 20px 20px 20px;
+            background: #f8fafc;
+        }
+
+        .test-details.expanded {
+            display: block;
+        }
+
+        .test-item.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .detail-content.error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .step-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .step-detail {
+            padding: 12px;
+            border-radius: 6px;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+
+        .step-detail.success {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .step-detail.not-executed {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+
+        .step-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .step-status-text {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .test-summary {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .test-steps {
+                align-self: stretch;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Agent Factory Test Visualizer</h1>
+            <p>Analyze and visualize your agent generation test results</p>
+        </div>
+
+        <div class="file-input-section">
+            <input type="file" id="jsonFile" class="file-input" accept=".json">
+            <label for="jsonFile" class="file-input-label">
+                📂 Load Test Results JSON
+            </label>
+            <p style="margin-top: 15px; color: #64748b;">
+                Select a JSON file generated by the test runner
+            </p>
+        </div>
+
+        <div id="results-container" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number success" id="total-tests">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number success" id="success-count">0</div>
+                    <div class="stat-label">Successful</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number error" id="failure-count">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number info" id="success-rate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <h3 style="margin-bottom: 15px; color: #1e293b;">Overall Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p style="margin-top: 10px; color: #64748b;" id="progress-text">0 of 0 tests passed</p>
+            </div>
+
+            <div class="step-breakdown">
+                <h3>Step-by-Step Breakdown</h3>
+                <div class="step-stats" id="step-stats">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+
+            <div class="individual-results">
+                <div class="results-header">
+                    <h3>Individual Test Results</h3>
+                </div>
+                <div id="test-list">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <div id="empty-state" class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <h3>No Test Results Loaded</h3>
+            <p>Upload a JSON file generated by the agent factory test runner to see detailed analytics and visualizations.</p>
+        </div>
+    </div>
+
+    <script>
+        let testData = [];
+
+        document.getElementById('jsonFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    testData = JSON.parse(e.target.result);
+                    displayResults(testData);
+                } catch (error) {
+                    alert('Error parsing JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        function displayResults(data) {
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('results-container').style.display = 'block';
+
+            updateStatistics(data);
+            updateStepBreakdown(data);
+            updateIndividualResults(data);
+        }
+
+        function updateStatistics(data) {
+            const total = data.length;
+            const successful = data.filter(isTestSuccessful).length;
+            const failed = total - successful;
+            const successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+
+            document.getElementById('total-tests').textContent = total;
+            document.getElementById('success-count').textContent = successful;
+            document.getElementById('failure-count').textContent = failed;
+            document.getElementById('success-rate').textContent = successRate + '%';
+
+            // Update progress bar
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+
+            setTimeout(() => {
+                progressFill.style.width = successRate + '%';
+                progressText.textContent = `${successful} of ${total} tests passed`;
+            }, 100);
+        }
+
+        function updateStepBreakdown(data) {
+            const steps = [
+                { key: 'agent_factory_success', label: 'Agent Generation', icon: '🏭' },
+                { key: 'generated_files_exist', label: 'File Generation', icon: '📁' },
+                { key: 'agent_syntax_valid', label: 'Syntax Validation', icon: '✅' },
+                { key: 'agent_imports_valid', label: 'Import Validation', icon: '📦' },
+                { key: 'agent_execution_success', label: 'Basic Execution', icon: '🚀' }
+            ];
+
+            const stepStatsContainer = document.getElementById('step-stats');
+            stepStatsContainer.innerHTML = '';
+
+            steps.forEach((step, stepIndex) => {
+                const executed = data.filter(test => wasStepExecuted(test, stepIndex)).length;
+                const successful = data.filter(test => test[step.key]).length;
+                const total = data.length;
+                const rate = executed > 0 ? Math.round((successful / executed) * 100) : 0;
+                const isGood = rate >= 80;
+
+                const stepDiv = document.createElement('div');
+                stepDiv.className = `step-stat ${isGood ? 'success' : 'error'}`;
+                stepDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 1.2rem;">${step.icon}</span>
+                        <strong>${step.label}</strong>
+                    </div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: ${isGood ? '#10b981' : '#ef4444'};">
+                        ${rate}%
+                    </div>
+                    <div style="font-size: 0.9rem; color: #64748b;">
+                        ${successful}/${executed} passed${executed < total ? ` (${total - executed} not executed)` : ''}
+                    </div>
+                `;
+                stepStatsContainer.appendChild(stepDiv);
+            });
+        }
+
+        function updateIndividualResults(data) {
+            const testList = document.getElementById('test-list');
+            testList.innerHTML = '';
+
+            data.forEach((test, index) => {
+                const testItem = createTestItem(test, index);
+                testList.appendChild(testItem);
+            });
+        }
+
+        function createTestItem(test, index) {
+            const isSuccessful = isTestSuccessful(test);
+
+            const testItem = document.createElement('div');
+            testItem.className = 'test-item';
+
+            testItem.innerHTML = `
+                <div class="test-summary" onclick="toggleTestDetails(${index})">
+                    <div class="test-status ${isSuccessful ? 'success' : 'error'}"></div>
+                    <div class="test-prompt">${test.prompt}</div>
+                    <div class="test-steps">
+                        ${createStepIndicators(test)}
+                    </div>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="test-details" id="details-${index}">
+                    ${createTestDetails(test)}
+                </div>
+            `;
+
+            return testItem;
+        }
+
+        function createStepIndicators(test) {
+            const steps = [
+                'agent_factory_success',
+                'generated_files_exist',
+                'agent_syntax_valid',
+                'agent_imports_valid',
+                'agent_execution_success'
+            ];
+
+            return steps.map((stepKey, index) => {
+                if (!wasStepExecuted(test, index)) {
+                    return `<div class="step-indicator not-executed"></div>`;
+                }
+                return `<div class="step-indicator ${test[stepKey] ? 'success' : 'error'}"></div>`;
+            }).join('');
+        }
+
+        function createTestDetails(test) {
+            const steps = [
+                { key: 'agent_factory_success', label: 'Agent Generation', error: test.agent_factory_error },
+                { key: 'generated_files_exist', label: 'File Generation', error: null },
+                { key: 'agent_syntax_valid', label: 'Syntax Validation', error: test.agent_error },
+                { key: 'agent_imports_valid', label: 'Import Validation', error: test.agent_error },
+                { key: 'agent_execution_success', label: 'Basic Execution', error: test.agent_error }
+            ];
+
+            let detailsHTML = `
+                <div class="detail-section">
+                    <div class="detail-title">Test Prompt</div>
+                    <div class="detail-content">${test.prompt}</div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-title">Step Results</div>
+                    <div class="step-details">
+            `;
+
+            steps.forEach((step, index) => {
+                if (!wasStepExecuted(test, index)) {
+                    detailsHTML += `
+                        <div class="step-detail not-executed">
+                            <div class="step-name">${step.label}</div>
+                            <div class="step-status-text">⚪ Not executed</div>
+                        </div>
+                    `;
+                } else {
+                    const success = test[step.key];
+                    detailsHTML += `
+                        <div class="step-detail ${success ? 'success' : 'error'}">
+                            <div class="step-name">${step.label}</div>
+                            <div class="step-status-text">${success ? '✅ Passed' : '❌ Failed'}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            detailsHTML += '</div></div>';
+
+            // Add error details if any
+            if (test.agent_factory_error || test.agent_error) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <div class="detail-title">Error Details</div>
+                `;
+
+                if (test.agent_factory_error) {
+                    detailsHTML += `
+                        <div class="detail-content error">Generation Error:
+${test.agent_factory_error}</div>
+                    `;
+                }
+
+                if (test.agent_error) {
+                    detailsHTML += `
+                        <div class="detail-content error">Agent Error:
+${test.agent_error}</div>
+                    `;
+                }
+
+                detailsHTML += '</div>';
+            }
+
+            // Add agent directory if available
+            if (test.agent_directory) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <div class="detail-title">Generated Agent Location</div>
+                        <div class="detail-content">${test.agent_directory}</div>
+                    </div>
+                `;
+            }
+
+            return detailsHTML;
+        }
+
+        function toggleTestDetails(index) {
+            const details = document.getElementById(`details-${index}`);
+            const testItem = details.parentElement;
+
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                testItem.classList.remove('expanded');
+            } else {
+                details.classList.add('expanded');
+                testItem.classList.add('expanded');
+            }
+        }
+
+        function wasStepExecuted(test, stepIndex) {
+            // Step 0 (agent_factory_success) is always executed
+            if (stepIndex === 0) return true;
+
+            // Step 1 (generated_files_exist) is executed if factory succeeded
+            if (stepIndex === 1) return test.agent_factory_success;
+
+            // Step 2 (agent_syntax_valid) is executed if files exist
+            if (stepIndex === 2) return test.agent_factory_success && test.generated_files_exist;
+
+            // Step 3 (agent_imports_valid) is executed if syntax is valid
+            if (stepIndex === 3) return test.agent_factory_success && test.generated_files_exist && test.agent_syntax_valid;
+
+            // Step 4 (agent_execution_success) is executed if imports are valid
+            if (stepIndex === 4) return test.agent_factory_success && test.generated_files_exist && test.agent_syntax_valid && test.agent_imports_valid;
+
+            return false;
+        }
+
+        function isTestSuccessful(test) {
+            return test.agent_factory_success &&
+                   test.generated_files_exist &&
+                   test.agent_syntax_valid &&
+                   test.agent_imports_valid &&
+                   test.agent_execution_success;
+        }
+    </script>
+</body>
+</html>
