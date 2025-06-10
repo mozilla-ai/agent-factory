@@ -126,7 +126,9 @@ The final output should be a JSON with the following structure:
 {
     "agent_code": "The python script as a single string that is runnable as agent.py",
     "run_instructions": "The instructions for setting up the environment in Markdown format",
-    "dependencies": "The list of python dependencies in Markdown format"
+    "dependencies": "The list of python dependencies in Markdown format",
+    "dockerfile": "The Dockerfile content as a string (ONLY include this field if dockerization is requested)"
+
 }
 
 1. agent_code should contain all the code implementation of the agent which will correspond to the runnable agent.py script
@@ -135,9 +137,22 @@ The final output should be a JSON with the following structure:
     - Setting up the environment via mamba (Python version 3.11)
     - Installing dependencies via requirements.txt
     - Run instructions for agent.py
+    - If dockerization is requested, include Docker build and run instructions
 3. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow
     - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
+4. dockerfile should ONLY be included if the user explicitly requests dockerization in their prompt. When included, it should contain:
+    - Use python:3.11-slim as base image
+    - Set working directory to /app
+    - Copy files using paths relative to project root (e.g., "generated_workflows/latest/requirements.txt")
+    - Include tools/ and mcps/ directories only if the agent code actually uses them
+    - Copy agent.py from generated_workflows/latest/
+    - Create necessary directory structure (generated_workflows/latest/)
+    - Set appropriate environment variables as needed
+    - Set CMD to run the agent
+    - Include comments with build instructions using root directory as build context
+
+
 
 """  # noqa: E501
 
@@ -205,6 +220,19 @@ The code implementation should include the agent trace being saved into a JSON f
 - Include proper import statements and dependency management
 - Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:
     - Use Python dotenv library to load the environment variables and access them using os.getenv()
+
+### Dockerization (when requested)
+If the user explicitly requests dockerization (mentions docker, dockerfile, containerize, etc.), you must:
+- Include a dockerfile field in your JSON output
+- Generate a production-ready Dockerfile that:
+  - Uses python:3.11-slim as the base image
+  - Sets /app as the working directory
+  - Copies and installs requirements.txt first (for better layer caching)
+  - Copies the agent.py file
+  - Handles environment variables appropriately
+  - Sets the default command to run the agent
+- Update run_instructions to include Docker build and run commands
+- Consider any special requirements for containerized execution
 
 Refer to the any-agent documentation URLs for implementation details and best practices.
 
