@@ -21,7 +21,7 @@ mcps_dir = repo_root / "mcps"
 
 
 class AgentFactoryOutputs(BaseModel):
-    agent_code: str = Field(..., description="The agent code in Markdown format")
+    agent_code: str = Field(..., description="The python script as a string that is runnable as agent.py")
     run_instructions: str = Field(..., description="The run instructions in Markdown format")
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
 
@@ -160,7 +160,9 @@ def build_run_instructions(user_prompt):
 
     Generate python code for an agentic workflow using any-agent library to be able to do the following:
     {user_prompt}
-    """
+
+    Before generating the code, first check the contents of the tools/ and mcps/ directories to understand the tools and MCPs available.
+    """  # noqa: E501
 
 
 def save_agent_trace(agent_trace, latest_dir):

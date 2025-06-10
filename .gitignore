@@ -182,5 +182,10 @@ cython_debug/
 # generated agents
 generated_workflows
 
+# chainlit
+.chainlit/translations
+
+# node
+node_modules/
 # test results
 test_results

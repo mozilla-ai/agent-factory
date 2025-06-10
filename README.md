@@ -49,7 +49,7 @@ Before running the agent factory, you need to set up your OpenAI API key (requir
 > export OPENAI_API_KEY=sk-...
 > ```
 
-You will need a Tavily API key to use the `search_tavily` tool. You can get a free API key by signing up at [Tavily](https://app.tavily.com/). 
+You will need a Tavily API key to use the `search_tavily` tool. You can get a free API key by signing up at [Tavily](https://app.tavily.com/).
 > Set it as an environment variable:
 > ```bash
 > export TAVILY_API_KEY=tvly_...
@@ -115,6 +115,22 @@ See detailed instructions in [api/README.md](api/README.md).
 ## How to run the UI
 
 See detailed instructions in [ui/README.md](ui/README.md).
+
+## Multi-turn Agent Building with Chainlit
+
+You can interact with the agent-factory using [Chainlit](https://docs.chainlit.io/get-started/overview) for multi-turn conversations:
+
+A sample Chainlit app is provided in `src/chainlit_app.py` for interactive workflow building and testing. It uses any-agent under the hood to generate the agent code.
+
+To launch the Chainlit UI for your agent workflow, run:
+```bash
+chainlit run src/chainlit_app.py
+# or for interactive mode - to hot reload the app on code changes
+chainlit run src/chainlit_app.py - w
+```
+
+This will start a local web server on `http://localhost:8000`. Open the URL in your browser to interact with your agent in a chat-like interface.
+
 
 ## License
 
