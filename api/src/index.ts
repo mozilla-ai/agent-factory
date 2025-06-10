@@ -5,6 +5,9 @@ import {
   runAgentFactoryWorkflowWithStreaming,
   getRunningPythonProcess,
   stopRunningPythonProcess,
+  runPythonScriptWithStreaming,
+  initializeEnvironment,
+  isEnvironmentReady
 } from './helpers/agent-factory-helpers.js'
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -32,30 +35,116 @@ app.use(express.json())
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 
-app.get('/', (_req: Request, res: Response) => {
-  res.send('Hello World!')
+// Resolve workflow path based on path param (latest or archive/<workflow_id>)
+function resolveWorkflowPath(workflowPath: string): string {
+  const workflowsDir = path.resolve(__dirname, '../../generated_workflows')
+
+  if (workflowPath === 'latest') {
+    return path.join(workflowsDir, 'latest')
+  } else if (workflowPath.startsWith('archive/')) {
+    return path.join(workflowsDir, workflowPath)
+  } else {
+    throw new Error('Invalid workflow path. Must be "latest" or start with "archive/"')
+  }
+}
+
+// Common streaming handler setup for evaluation endpoints
+function setupStreamingResponse(res: Response) {
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+  return (source: 'stdout' | 'stderr', text: string) => {
+    if (source === 'stdout') {
+      console.log(`[evaluation stdout]: ${text}`)
+      res.write(`[stdout]: ${text}`)
+    } else if (source === 'stderr') {
+      console.log(`[evaluation stderr]: ${text}`)
+      res.write(`[stderr]: ${text}`)
+    }
+  }
+}
+
+// 1. Run agent (generates agent_eval_trace.json)
+app.post('/agent-factory/evaluate/run-agent/:workflowPath', async (req: Request, res: Response) => {
+  try {
+    const workflowPath = req.params.workflowPath
+    const fullPath = resolveWorkflowPath(workflowPath)
+    const agentPath = path.join(fullPath, 'agent.py')
+    console.log({
+      workflowPath,
+      fullPath,
+      agentPath
+    })
+
+    // Check if agent.py exists
+    try {
+      await fs.access(agentPath)
+    } catch (error) {
+      return res.status(404).send(`Agent not found at path: ${workflowPath}/agent.py`)
+    }
+
+    const outputCallback = setupStreamingResponse(res)
+
+    await runPythonScriptWithStreaming(agentPath, [], outputCallback)
+
+    res.end('\n[Agent run completed. Generated agent_eval_trace.json]')
+  } catch (error: unknown) {
+    console.error('Error running agent:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).send(`[Error running agent]: ${errorMessage}`)
+  }
 })
 
-// Run agent factory workflow
-app.get('/agent-factory', async (req: Request, res: Response) => {
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-  const prompt = (req.query.prompt as string) || 'Summarize text content from a given webpage URL'
-
+// 2. Generate evaluation cases (original version without workflowPath parameter)
+app.post('/agent-factory/evaluate/generate-cases', async (req: Request, res: Response) => {
   try {
-    await runAgentFactoryWorkflowWithStreaming(prompt, (source: 'stdout' | 'stderr', text: string) => {
-      if (source === 'stdout') {
-        console.log(`[agent-factory stdout]: ${text}`)
-        res.write(`[agent-factory stdout]: ${text}`)
-      } else if (source === 'stderr') {
-        console.log(`[agent-factory stderr]: ${text}`)
-        res.write(`[agent-factory stderr]: ${text}`)
-      }
-    })
-    res.end('\n[agent-factory] Workflow completed successfully.')
+    const outputCallback = setupStreamingResponse(res)
+
+    await runPythonScriptWithStreaming('-m', ['eval.main'], outputCallback)
+
+    res.end('\n[Evaluation cases generation completed. Saved to evaluation_case.yaml]')
   } catch (error: unknown) {
-    console.error('Error during agent factory workflow:', error)
+    console.error('Error generating evaluation cases:', error)
     const errorMessage = error instanceof Error ? error.message : String(error)
-    res.status(500).send(`[agent-factory] Workflow failed: ${errorMessage}`)
+    res.status(500).send(`[Error generating evaluation cases]: ${errorMessage}`)
+  }
+})
+
+// 3. Run agent evaluation (original version)
+app.post('/agent-factory/evaluate/run-evaluation/:workflowPath', async (req: Request, res: Response) => {
+  try {
+    const workflowPath = req.params.workflowPath
+    const fullPath = resolveWorkflowPath(workflowPath)
+
+    // Check if agent trace exists in the workflow directory
+    const tracePath = path.join(fullPath, 'agent_eval_trace.json')
+
+    try {
+      await fs.access(tracePath)
+    } catch (error) {
+      return res.status(404).send('Agent trace file not found. Make sure to run the agent first.')
+    }
+
+    // Check if evaluation cases exist (globally)
+    try {
+      await fs.access(path.resolve(__dirname, '../../evaluation_case.yaml'))
+    } catch (error) {
+      return res.status(404).send('Evaluation cases not found. Make sure to generate evaluation cases first.')
+    }
+
+    const outputCallback = setupStreamingResponse(res)
+
+    // Set environment variables for the evaluation script
+    const env = {
+      ...process.env,
+      AGENT_PATH: fullPath
+    }
+
+    await runPythonScriptWithStreaming('-m', ['eval.run_agent_eval'], outputCallback, env)
+
+    res.end('\n[Agent evaluation completed. Results saved to evaluation_results.json]')
+  } catch (error: unknown) {
+    console.error('Error running agent evaluation:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).send(`[Error running agent evaluation]: ${errorMessage}`)
   }
 })
 
@@ -156,51 +245,77 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   })
 })
 
-// Start the server
-const server: Server = app.listen(PORT, () => {
-  console.log(`✅ Server is running on http://localhost:${PORT}`)
-})
+// Initialize the server
+async function startServer() {
+  try {
+    // Initialize Python environment before starting server
+    await initializeEnvironment()
 
-// Handle server errors
-server.on('error', (err: NodeJS.ErrnoException) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use!`)
-  } else {
-    console.error('❌ Server error:', err)
+    // Start listening once environment is ready
+    const server = app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`)
+    })
+
+    // Handle graceful shutdown
+    setupGracefulShutdown(server)
+
+    return server
+  } catch (error) {
+    console.error('Failed to initialize environment:', error)
+    process.exit(1)
   }
+}
+
+// Handle server shutdown
+function setupGracefulShutdown(server: Server) {
+  // Handle graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully')
+
+    server.close(() => {
+      console.log('Server closed, shutting down Python processes')
+
+      // Then stop any running Python processes
+      stopRunningPythonProcess()
+      console.log('Python processes terminated')
+
+      console.log('Shutdown complete')
+      process.exit(0)
+    })
+  })
+
+  // Also handle SIGINT (Ctrl+C) with similar cleanup
+  process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully')
+
+    server.close(() => {
+      console.log('Server closed, shutting down Python processes')
+
+      // Then stop any running Python processes
+      stopRunningPythonProcess()
+      console.log('Python processes terminated')
+
+      console.log('Shutdown complete')
+      process.exit(0)
+    })
+  })
+}
+
+// Add middleware to check if environment is ready
+const checkEnvironmentMiddleware = (req, res, next) => {
+  if (!isEnvironmentReady()) {
+    return res.status(503).json({
+      error: "Server is still initializing. Please try again in a few moments."
+    });
+  }
+  next();
+};
+
+// Apply the middleware to routes that need the Python environment
+app.use('/agent-factory', checkEnvironmentMiddleware);
+
+// Start the server
+startServer().catch(error => {
+  console.error('Failed to start server:', error)
   process.exit(1)
-})
-
-// Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully')
-
-  // First stop accepting new connections
-  server.close(() => {
-    console.log('Server closed, shutting down Python processes')
-
-    // Then stop any running Python processes
-    stopRunningPythonProcess()
-    console.log('Python processes terminated')
-
-    console.log('Shutdown complete')
-    process.exit(0)
-  })
-})
-
-// Also handle SIGINT (Ctrl+C) with similar cleanup
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully')
-
-  // First stop accepting new connections
-  server.close(() => {
-    console.log('Server closed, shutting down Python processes')
-
-    // Then stop any running Python processes
-    stopRunningPythonProcess()
-    console.log('Python processes terminated')
-
-    console.log('Shutdown complete')
-    process.exit(0)
-  })
-})
+});

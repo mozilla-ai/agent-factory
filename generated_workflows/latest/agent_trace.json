@@ -1,0 +1,1654 @@
+{
+  "spans": [
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204145523620000,
+      "end_time": 1749204146952381000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 14679890889743782037,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.input.messages": "[{\"content\": \"\\nYou are an expert software developer with a deep understanding of Mozilla AI's any-agent Python library.\\n\\n**Library Overview**\\nAny-agent library enables you to:\\n- Build agent systems with a unified API regardless of the underlying framework\\n- Switch between different agent frameworks (like OpenAI, LangChain, smolagents) without rewriting code\\n- Create both single-agent and multi-agent systems with consistent patterns\\n- Leverage built-in tools like web search and webpage visiting as well as MCP servers\\n- Implement comprehensive tracing and evaluation capabilities\\n\\nYou may access to the following webpages using `visit_webpage` tool:\\n\\n\\n- https://mozilla-ai.github.io/any-agent/agents/: Primary reference whenever you are defining single or multi-agent systems with any-agent.This page provides essential setup patterns and configuration examples for creating agents.\\n\\n- https://mozilla-ai.github.io/any-agent/frameworks/openai/: Reference whenever you are implementing OpenAI-based agents in any-agent.This page details the default agent types, model configurations, and run arguments specific to the OpenAI Agents SDK.\\n\\n- https://mozilla-ai.github.io/any-agent/tools/: Visit when adding tools to your agent's capabilities.This page explains how to use both callable toolsand MCP (Model Context Protocol) tools in your agent configurations.\\n\\n- https://mozilla-ai.github.io/any-agent/tracing/: Useful for debugging and monitoring agent behavior with OpenTelemetry traces.This page shows how to capture, visualize, and analyze agent execution traces for better insights.\\n\\n- https://mozilla-ai.github.io/any-agent/evaluation/: Consult when implementing evaluation for your agent systems.This page provides a trace-first approach to evaluateagent performance against custom criteria using LLM-as-a-judge techniques.\\n\\n- https://mozilla-ai.github.io/any-agent/api/agent/: Reference for the core AnyAgent class API and its methods.\\n\\n- https://mozilla-ai.github.io/any-agent/api/config/: Consult for detailed configuration options like AgentConfig, TracingConfig, and MCP integrations.Provides all parameters needed to properly configure your agent instances.\\n\\n- https://mozilla-ai.github.io/any-agent/api/tools/: Reference for either built-in tools provided by any-agent like search_web, search_tavily, visit_webpage or custom-defined tools as python functions.\\n\\n- https://mozilla-ai.github.io/any-agent/api/tracing/: Use when working with AgentTrace and AgentSpan objects returned by agent.run().Helps access and analyze the execution trace data for debugging or evaluation.\\n\\n- https://mozilla-ai.github.io/any-agent/api/logging/: Reference for configuring the any-agent logging system.Provides functions to set up custom loggers with different verbosity levels and output formats.\\n\\n\\nFor reading URLs, use `visit_webpage` tool (never use the `read_file` tool for reading web URLs)\\n\\n**Any-agent Code Generation Instructions**\\n\\n# Single Agent Implementation with Multiple Steps\\n\\n## Task Overview\\nCreate a complete implementation of a single agent that executes a multi-step workflow\\nusing Mozilla's any-agent library. The implementation should:\\n\\n1. Use the OpenAI framework as the underlying agent provider\\n2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output\\n3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument\\n4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are :\\n    a. built-in tools from any-agent library: search_web, search_tavily and visit_webpage\\n    b. python functions from the available_tools.md file\\n    c. MCPs from the available_mcps.md file\\n\\n## Required Components\\n\\n### Agent Configuration\\nRefer to the any-agent documentation for valid parameters for AgentConfig.\\n\\n#### Model (model_id):\\n- Use gpt-4.1 as the model_id\\n\\n#### Instructions (instructions):\\n- Decide on the number of steps that you think would be necessary to complete the task\\n- Keep the number of steps to a minimum\\n- Provide a step-by-step clear multi-step system instructions that guides the agent's behavior\\n- The instructions should be as detailed and as unambiguous as possible\\n- Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig\\n\\n#### Tools (tools):\\n- Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).\\n- You must choose tools from one of the following 3 options:\\n    a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.\\n       Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.\\n    b. Tools pre-defined in any-agent library: `search_web`, `search_tavily` and `visit_webpage` tools\\n    c. MCPs: You can use MCPs to access external services. The available MCPs are described in the local file at mcps/available_mcps.md - which can be read using `read_file` tool.\\n       Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().\\n       All information required to implement the MCP configuration is available in the mcps/available_mcps.md file.\\n       Visit the webpages to corresponding to the chosen MCPs to understand the tools available from the MCP server.\\n       Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.\\n       If the user's workflow requires file operations, you must include the filesystem MCPStdio() in the agent configuration.\\n       If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).\\n\\n#### Structured Output (output_type via agent_args):\\n- Define Pydantic v2 models to structure the agent's final output\\n- Implement the output_type argument correctly to obtain this structured response\\n- Refer to the any-agent documentation for more details on structured output\\n\\n#### Agent Trace (agent_trace):\\nThe code implementation should include the agent trace being saved into a JSON file named `agent_trace.json` after agent.run().\\n- Saving of the agent trace in the code should be done to the `generated_workflows/` directory\\n- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code.\\n\\n### Code Organization\\n- Create well-documented, modular code with appropriate comments\\n- Follow Python best practices for readability and maintainability\\n- Include proper import statements and dependency management\\n- Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:\\n    - Use Python dotenv library to load the environment variables and access them using os.getenv()\\n\\nRefer to the any-agent documentation URLs for implementation details and best practices.\\n\\n\\n\\nAs input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `agent_args`:\\n\\n# Example imports for the agent.py file:\\nfrom any_agent import AnyAgent, AgentConfig, AgentFramework, TracingConfig\\nfrom any_agent.tools import search_web, visit_webpage\\nfrom any_agent.config import MCPStdio\\nfrom tools.review_code_with_llm import review_code_with_llm\\nfrom pydantic import BaseModel, Field\\n\\n# Imports for environment variables\\nimport os\\nfrom dotenv import load_dotenv\\nload_dotenv()\\n\\n# Pydantic model for structured output\\nclass CodeReviewOutput(BaseModel):\\n    code: str = Field(..., description=\\\"The code to be reviewed.\\\")\\n    review: str = Field(..., description=\\\"The review of the code.\\\")\\n\\n# Example Single Agent syntax:\\nagent = AnyAgent.create(\\n    # agent framework name (1st positional arg)\\n    \\\"openai\\\",\\n    # agent configuration (2nd positional arg), never config = AgentConfig()\\n    AgentConfig(\\n        model_id=\\\"gpt-4.1\\\",\\n        instructions=\\\"Example instructions\\\",\\n        tools=[\\n            search_web, # Example tool available from any-agent library\\n            review_code_with_llm, # Example tool taken from tools/available_tools.md\\n            # Example of MCP server usage\\n            MCPStdio(\\n                    command=\\\"docker\\\",\\n                    # args taken verbatim from available_mcps.md\\n                    args=[\\n                        \\\"run\\\",\\n                        \\\"-i\\\",\\n                        \\\"--rm\\\",\\n                        \\\"-e\\\",\\n                        \\\"BRAVE_API_KEY\\\",\\n                        \\\"mcp/brave-search\\\",\\n                    ],\\n                    # Specify necessary environment variables\\n                    env={\\n                        \\\"BRAVE_API_KEY\\\": os.getenv(\\\"BRAVE_API_KEY\\\"),\\n                    },\\n                    # From among the tools available from the MCP server\\n                    # list only the tools that are necessary for the solving the task at hand\\n                    tools=[\\n                        \\\"brave_web_search\\\",\\n                    ],\\n            ),\\n        ],\\n        agent_args={\\n            \\\"output_type\\\": CodeReviewOutput\\n        }\\n    ),\\n)\\n\\n# Running the agent\\nuser_input = \\\"Example user input\\\"\\nagent.run(prompt=f\\\"Example prompt referencing the task and the input: {user_input}\\\")\\n\\n# Saving the agent trace at the end\\nwith open(\\\"generated_workflows/agent_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n    f.write(agent_trace.model_dump_json(indent=2))\\n\\n\\n** Save File Instructions**\\n\\nThe generated code and associated files should be saved in the `generated_workflows/` directory. The three files to be saved are:\\n\\n1. Complete `agent.py` file with all the code implementation of the agent\\n2. INSTRUCTIONS.md with clear and concise setup:\\n    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required\\n    - Setting up the environment via mamba (Python version 3.11)\\n    - Installing dependencies via requirements.txt\\n    - Run instructions for agent.py\\n3. A requirements.txt file listing all the python libraries (including the ones required by the tools) as dependencies to be installed.\\n\\nUse the `write_file` tool to save the generated artifacts, name the files `agent.py`, `INSTRUCTIONS.md` and `requirements.txt`.\\n\\n- In the requirements.txt file,\\n    - the first line should be \\\"any-agent[all]\\\" dependency, since we are using any-agent to run the agent workflow.\\n    - the second line should be \\\"uv\\\" dependency, if we use uvx to spin up any MCP server that will be used in the code.\\n\\n- All 3 files should be saved to the /app/generated_workflows directory as /app/generated_workflows/agent.py, /app/generated_workflows/INSTRUCTIONS.md and /app/generated_workflows/requirements.txt.\\n- You must save the 3 files (no need to ask for permission)\\n- Check if they exist in the /app/generated_workflows directory before stopping.\\n\\n\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"\\n    Generate python code for an agentic workflow using any-agent library to be able to do the following:\\n    Summarize text content from a given webpage URL\\n\\n    ## File Saving Instructions\\n    YOU MUST save all generated files (including agent.py, INSTRUCTIONS.md, requirements.txt, etc.)\\n    inside the directory: `/app/generated_workflows/latest`. For example, save agent.py as `/app/generated_workflows/latest/agent.py`\\n    and overwrite the files if they already exist. Double check that the saved files exist using list_directory tool\\n    and that the latest version have been saved or overwritten correctly before stopping.\\n    \"}]",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"path\\\":\\\"tools/available_tools.md\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 3474,
+        "gen_ai.usage.output_tokens": 18,
+        "gen_ai.usage.input_cost": 0.006947999999999999,
+        "gen_ai.usage.output_cost": 0.000144
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204146960009000,
+      "end_time": 1749204146972181000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 13153891827172073061,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"path\":\"tools/available_tools.md\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"# Available Tools\\n\\nBelow is the list of all available files that can be looked up to fetch the tool function.\\n\\n- `extract_text_from_url.py`: Extracts all text content from a given URL using BeautifulSoup to parse and extract human-readable text.\\n- `plot_pandas_series_line_graph.py`: Plots a line graph from a pandas Series and saves it as an image file with a unique filename.\\n- `generate_recipe_from_ingredients.py`: Generates a recipe using a list of provided ingredients via an LLM.\\n- `translate_text_with_llm.py`: Translates text from a source language to a target language using an LLM.\\n- `summarize_text_with_llm.py`: Summarizes a given text using an LLM with customizable summary length or style.\\n- `combine_mp3_files_for_podcast.py`: Combines a list of MP3 audio files into a single MP3 podcast file using ffmpeg.\\n- `extract_text_from_markdown_or_html.py`: Preprocesses raw input content (Markdown or HTML) to extract plain text.\\n- `generate_podcast_script_with_llm.py`: Writes a podcast script from a given text document using an LLM with configurable number of hosts/speakers.\\n- `generate_database_query_with_llm.py`: Constructs database queries (e.g., SQL) based on natural language requests using an LLM.\\n- `review_code_with_llm.py`: Reviews a given piece of code for errors, bugs, security issues, and style violations using an LLM.\\n\\n\\nEach of the above tools has a corresponding .py file in the tools/ directory that implements the function.\\nIf a tool is found relevant based on the filename and description, further read the .py file to understand the tool's implementation and parameters and usage, before using it in the agent configuration.\\n\\n--- General Note on LiteLLM and API Keys ---\\nThe functions using LiteLLM (e.g., for OpenAI API calls) require API keys\\nto be configured in your environment. For OpenAI, one would set the OPENAI_API_KEY\\nenvironment variable.\\n\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204146974303000,
+      "end_time": 1749204150787025000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 3856739088296868217,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"path\\\":\\\"tools/extract_text_from_url.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 3957,
+        "gen_ai.usage.output_tokens": 20,
+        "gen_ai.usage.input_cost": 0.007914,
+        "gen_ai.usage.output_cost": 0.00015999999999999999
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204150794767000,
+      "end_time": 1749204150806395000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 12313258314690498638,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"path\":\"tools/extract_text_from_url.py\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"import requests\\nfrom bs4 import BeautifulSoup\\n\\n\\ndef extract_text_from_url(url: str) -> str:\\n    \\\"\\\"\\\"Extracts all text content from a given URL.\\n\\n    This function fetches the HTML content of the URL and uses BeautifulSoup\\n    to parse and extract all human-readable text.\\n\\n    Args:\\n        url: The URL from which to extract text (e.g., \\\"https://example.com\\\").\\n\\n    Returns:\\n        A string containing the extracted text. If an error occurs (e.g.,\\n        network issue, invalid URL), it returns an error message string.\\n    \\\"\\\"\\\"\\n    try:\\n        response = requests.get(url, timeout=10)\\n        response.raise_for_status()  # Raise an exception for HTTP errors\\n        soup = BeautifulSoup(response.content, \\\"html.parser\\\")\\n\\n        # Remove script and style elements\\n        for script_or_style in soup([\\\"script\\\", \\\"style\\\"]):\\n            script_or_style.decompose()\\n\\n        # Get text\\n        text = soup.get_text(separator=\\\" \\\", strip=True)\\n        return text\\n    except requests.exceptions.RequestException as e:\\n        return f\\\"Error fetching URL: {e}\\\"\\n    except Exception as e:\\n        return f\\\"An unexpected error occurred during URL text extraction: {e}\\\"\\n\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204150810339000,
+      "end_time": 1749204151648911000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 16401125634245129078,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"path\\\":\\\"tools/summarize_text_with_llm.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 4287,
+        "gen_ai.usage.output_tokens": 22,
+        "gen_ai.usage.input_cost": 0.008574,
+        "gen_ai.usage.output_cost": 0.000176
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204151657688000,
+      "end_time": 1749204151666824000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 9215599530827803755,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"path\":\"tools/summarize_text_with_llm.py\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"from litellm import completion\\n\\n\\ndef summarize_text_with_llm(text: str, summary_length: str = \\\"a concise paragraph\\\", model: str = \\\"gpt-4o-mini\\\") -> str:\\n    \\\"\\\"\\\"Summarizes a given text using an LLM.\\n\\n    Args:\\n        text: The text to be summarized.\\n        summary_length: A description of the desired summary length or style\\n                        (e.g., \\\"a concise paragraph\\\", \\\"three key bullet points\\\",\\n                        \\\"approximately 100 words\\\"). Defaults to \\\"a concise paragraph\\\".\\n        model: The LLM model to use for summarization (default: \\\"gpt-4o-mini\\\").\\n\\n    Returns:\\n        A string containing the summary. If an error occurs,\\n        an error message string is returned.\\n    \\\"\\\"\\\"\\n    if not text.strip():\\n        return \\\"Error: No text provided for summarization.\\\"\\n\\n    system_prompt = (\\n        \\\"You are an expert summarizer, skilled in extracting key information and presenting it clearly and concisely.\\\"\\n    )\\n    user_prompt = (\\n        f\\\"Summarize the following text. The desired summary style is: {summary_length}.\\\\n\\\\nText:\\\\n---\\\\n{text}\\\\n---\\\"\\n    )\\n\\n    try:\\n        response = completion(\\n            model=model,\\n            messages=[{\\\"role\\\": \\\"system\\\", \\\"content\\\": system_prompt}, {\\\"role\\\": \\\"user\\\", \\\"content\\\": user_prompt}],\\n        )\\n        return response.choices[0].message.content\\n    except Exception as e:\\n        return f\\\"Error calling LLM for summarization: {e}\\\"\\n\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204151670838000,
+      "end_time": 1749204152661666000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 4425570679454565546,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"create_directory\", \"tool.args\": \"{\\\"path\\\":\\\"/app/generated_workflows/latest\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 4700,
+        "gen_ai.usage.output_tokens": 19,
+        "gen_ai.usage.input_cost": 0.0094,
+        "gen_ai.usage.output_cost": 0.00015199999999999998
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool create_directory",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204152669209000,
+      "end_time": 1749204152682212000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 6238488945067176582,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "create_directory",
+        "gen_ai.tool.args": "{\"path\":\"/app/generated_workflows/latest\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"Successfully created directory /app/generated_workflows/latest\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204152685669000,
+      "end_time": 1749204153461211000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 3019816367918885940,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"list_directory\", \"tool.args\": \"{\\\"path\\\":\\\"/app/generated_workflows/latest\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 4748,
+        "gen_ai.usage.output_tokens": 19,
+        "gen_ai.usage.input_cost": 0.009496,
+        "gen_ai.usage.output_cost": 0.00015199999999999998
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool list_directory",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204153469205000,
+      "end_time": 1749204153474093000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 12734053258417973596,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "list_directory",
+        "gen_ai.tool.args": "{\"path\":\"/app/generated_workflows/latest\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"[FILE] INSTRUCTIONS.md\\n[FILE] agent.py\\n[FILE] agent_trace.json\\n[FILE] requirements.txt\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204153476647000,
+      "end_time": 1749204154314524000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 1287105456127936334,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"path\\\":\\\"tools/extract_text_from_url.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 4812,
+        "gen_ai.usage.output_tokens": 20,
+        "gen_ai.usage.input_cost": 0.009623999999999999,
+        "gen_ai.usage.output_cost": 0.00015999999999999999
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204154318506000,
+      "end_time": 1749204154324233000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 14291685330936929615,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"path\":\"tools/extract_text_from_url.py\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"import requests\\nfrom bs4 import BeautifulSoup\\n\\n\\ndef extract_text_from_url(url: str) -> str:\\n    \\\"\\\"\\\"Extracts all text content from a given URL.\\n\\n    This function fetches the HTML content of the URL and uses BeautifulSoup\\n    to parse and extract all human-readable text.\\n\\n    Args:\\n        url: The URL from which to extract text (e.g., \\\"https://example.com\\\").\\n\\n    Returns:\\n        A string containing the extracted text. If an error occurs (e.g.,\\n        network issue, invalid URL), it returns an error message string.\\n    \\\"\\\"\\\"\\n    try:\\n        response = requests.get(url, timeout=10)\\n        response.raise_for_status()  # Raise an exception for HTTP errors\\n        soup = BeautifulSoup(response.content, \\\"html.parser\\\")\\n\\n        # Remove script and style elements\\n        for script_or_style in soup([\\\"script\\\", \\\"style\\\"]):\\n            script_or_style.decompose()\\n\\n        # Get text\\n        text = soup.get_text(separator=\\\" \\\", strip=True)\\n        return text\\n    except requests.exceptions.RequestException as e:\\n        return f\\\"Error fetching URL: {e}\\\"\\n    except Exception as e:\\n        return f\\\"An unexpected error occurred during URL text extraction: {e}\\\"\\n\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204154326356000,
+      "end_time": 1749204154989962000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 17727875934670585174,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"path\\\":\\\"tools/summarize_text_with_llm.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 5142,
+        "gen_ai.usage.output_tokens": 22,
+        "gen_ai.usage.input_cost": 0.010284,
+        "gen_ai.usage.output_cost": 0.000176
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204154993804000,
+      "end_time": 1749204154996916000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 12873791025083159442,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"path\":\"tools/summarize_text_with_llm.py\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"from litellm import completion\\n\\n\\ndef summarize_text_with_llm(text: str, summary_length: str = \\\"a concise paragraph\\\", model: str = \\\"gpt-4o-mini\\\") -> str:\\n    \\\"\\\"\\\"Summarizes a given text using an LLM.\\n\\n    Args:\\n        text: The text to be summarized.\\n        summary_length: A description of the desired summary length or style\\n                        (e.g., \\\"a concise paragraph\\\", \\\"three key bullet points\\\",\\n                        \\\"approximately 100 words\\\"). Defaults to \\\"a concise paragraph\\\".\\n        model: The LLM model to use for summarization (default: \\\"gpt-4o-mini\\\").\\n\\n    Returns:\\n        A string containing the summary. If an error occurs,\\n        an error message string is returned.\\n    \\\"\\\"\\\"\\n    if not text.strip():\\n        return \\\"Error: No text provided for summarization.\\\"\\n\\n    system_prompt = (\\n        \\\"You are an expert summarizer, skilled in extracting key information and presenting it clearly and concisely.\\\"\\n    )\\n    user_prompt = (\\n        f\\\"Summarize the following text. The desired summary style is: {summary_length}.\\\\n\\\\nText:\\\\n---\\\\n{text}\\\\n---\\\"\\n    )\\n\\n    try:\\n        response = completion(\\n            model=model,\\n            messages=[{\\\"role\\\": \\\"system\\\", \\\"content\\\": system_prompt}, {\\\"role\\\": \\\"user\\\", \\\"content\\\": user_prompt}],\\n        )\\n        return response.choices[0].message.content\\n    except Exception as e:\\n        return f\\\"Error calling LLM for summarization: {e}\\\"\\n\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204154999723000,
+      "end_time": 1749204155734510000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 17417343035474731140,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"list_directory\", \"tool.args\": \"{\\\"path\\\":\\\"tools\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 5555,
+        "gen_ai.usage.output_tokens": 14,
+        "gen_ai.usage.input_cost": 0.01111,
+        "gen_ai.usage.output_cost": 0.000112
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool list_directory",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204155746160000,
+      "end_time": 1749204155754327000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 15114091068979423760,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "list_directory",
+        "gen_ai.tool.args": "{\"path\":\"tools\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"[FILE] __init__.py\\n[FILE] available_tools.md\\n[FILE] combine_mp3_files_for_podcast.py\\n[FILE] extract_text_from_markdown_or_html.py\\n[FILE] extract_text_from_url.py\\n[FILE] generate_database_query_with_llm.py\\n[FILE] generate_podcast_script_with_llm.py\\n[FILE] generate_recipe_from_ingredients.py\\n[FILE] plot_pandas_series_line_graph.py\\n[FILE] review_code_with_llm.py\\n[FILE] summarize_text_with_llm.py\\n[FILE] translate_text_with_llm.py\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204155757408000,
+      "end_time": 1749204156535714000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 10725796358634677372,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"path\\\":\\\"tools/extract_text_from_url.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 5710,
+        "gen_ai.usage.output_tokens": 20,
+        "gen_ai.usage.input_cost": 0.01142,
+        "gen_ai.usage.output_cost": 0.00015999999999999999
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204156540957000,
+      "end_time": 1749204156544773000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 8275415268295450969,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"path\":\"tools/extract_text_from_url.py\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"import requests\\nfrom bs4 import BeautifulSoup\\n\\n\\ndef extract_text_from_url(url: str) -> str:\\n    \\\"\\\"\\\"Extracts all text content from a given URL.\\n\\n    This function fetches the HTML content of the URL and uses BeautifulSoup\\n    to parse and extract all human-readable text.\\n\\n    Args:\\n        url: The URL from which to extract text (e.g., \\\"https://example.com\\\").\\n\\n    Returns:\\n        A string containing the extracted text. If an error occurs (e.g.,\\n        network issue, invalid URL), it returns an error message string.\\n    \\\"\\\"\\\"\\n    try:\\n        response = requests.get(url, timeout=10)\\n        response.raise_for_status()  # Raise an exception for HTTP errors\\n        soup = BeautifulSoup(response.content, \\\"html.parser\\\")\\n\\n        # Remove script and style elements\\n        for script_or_style in soup([\\\"script\\\", \\\"style\\\"]):\\n            script_or_style.decompose()\\n\\n        # Get text\\n        text = soup.get_text(separator=\\\" \\\", strip=True)\\n        return text\\n    except requests.exceptions.RequestException as e:\\n        return f\\\"Error fetching URL: {e}\\\"\\n    except Exception as e:\\n        return f\\\"An unexpected error occurred during URL text extraction: {e}\\\"\\n\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204156547427000,
+      "end_time": 1749204157744432000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 17559581651889793871,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"path\\\":\\\"tools/summarize_text_with_llm.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 6040,
+        "gen_ai.usage.output_tokens": 22,
+        "gen_ai.usage.input_cost": 0.012079999999999999,
+        "gen_ai.usage.output_cost": 0.000176
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204157751951000,
+      "end_time": 1749204157767050000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 10401996184067466216,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"path\":\"tools/summarize_text_with_llm.py\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"from litellm import completion\\n\\n\\ndef summarize_text_with_llm(text: str, summary_length: str = \\\"a concise paragraph\\\", model: str = \\\"gpt-4o-mini\\\") -> str:\\n    \\\"\\\"\\\"Summarizes a given text using an LLM.\\n\\n    Args:\\n        text: The text to be summarized.\\n        summary_length: A description of the desired summary length or style\\n                        (e.g., \\\"a concise paragraph\\\", \\\"three key bullet points\\\",\\n                        \\\"approximately 100 words\\\"). Defaults to \\\"a concise paragraph\\\".\\n        model: The LLM model to use for summarization (default: \\\"gpt-4o-mini\\\").\\n\\n    Returns:\\n        A string containing the summary. If an error occurs,\\n        an error message string is returned.\\n    \\\"\\\"\\\"\\n    if not text.strip():\\n        return \\\"Error: No text provided for summarization.\\\"\\n\\n    system_prompt = (\\n        \\\"You are an expert summarizer, skilled in extracting key information and presenting it clearly and concisely.\\\"\\n    )\\n    user_prompt = (\\n        f\\\"Summarize the following text. The desired summary style is: {summary_length}.\\\\n\\\\nText:\\\\n---\\\\n{text}\\\\n---\\\"\\n    )\\n\\n    try:\\n        response = completion(\\n            model=model,\\n            messages=[{\\\"role\\\": \\\"system\\\", \\\"content\\\": system_prompt}, {\\\"role\\\": \\\"user\\\", \\\"content\\\": user_prompt}],\\n        )\\n        return response.choices[0].message.content\\n    except Exception as e:\\n        return f\\\"Error calling LLM for summarization: {e}\\\"\\n\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204157770558000,
+      "end_time": 1749204159083377000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 10020405579868378991,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"path\\\":\\\"mcps/available_mcps.md\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 6453,
+        "gen_ai.usage.output_tokens": 20,
+        "gen_ai.usage.input_cost": 0.012905999999999999,
+        "gen_ai.usage.output_cost": 0.00015999999999999999
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204159088188000,
+      "end_time": 1749204159095633000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 16199094911164947353,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"path\":\"mcps/available_mcps.md\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"# Available MCPs\\n\\nBelow is the list of all available MCP servers, a description of each MCP, a link to its README and the configuration of how it must be used in the agent configuration.\\nFor each MCP server, you can also check available MCP tools from the provided link (either Python file or JavaScript/TypeScript file).\\n\\n1. Brave Search\\n    - Description: For web and local search using Brave's Search API\\n    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/README.md\\n    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/brave-search/index.ts\\n    - Configuration:\\n    ```\\n    {\\n    \\\"mcpServers\\\": {\\n        \\\"brave-search\\\": {\\n        \\\"command\\\": \\\"docker\\\",\\n        \\\"args\\\": [\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"BRAVE_API_KEY\\\",\\n            \\\"mcp/brave-search\\\"\\n        ],\\n        \\\"env\\\": {\\n            \\\"BRAVE_API_KEY\\\": \\\"YOUR_API_KEY_HERE\\\"\\n        }\\n        }\\n    }\\n    }\\n    ```\\n    Note: You may only use `brave_web_search` tool from this MCP server and never use `brave_local_search` tool.\\n\\n2. ElevenLabs Text-to-Speech\\n    - Description: For text-to-speech and audio processing using ElevenLabs API\\n    - Link to README: https://raw.githubusercontent.com/elevenlabs/elevenlabs-mcp/main/README.md\\n    - Check available MCP tools: https://raw.githubusercontent.com/elevenlabs/elevenlabs-mcp/main/elevenlabs_mcp/server.py\\n    - Configuration:\\n    ```\\n    {\\n        \\\"mcpServers\\\": {\\n            \\\"ElevenLabs\\\": {\\n            \\\"command\\\": \\\"uvx\\\",\\n            \\\"args\\\": [\\\"elevenlabs-mcp\\\"],\\n            \\\"env\\\": {\\n                \\\"ELEVENLABS_API_KEY\\\": \\\"YOUR_API_KEY_HERE\\\"\\n            }\\n            }\\n        }\\n    }\\n    ```\\n    Note: If no specific directory is requested for saving the audio files, you may use the default source directory `${os.getcwd()}`.\\n\\n3. Filesystem\\n    - Description: For file system operations such as reading files, writing files, listing directory contents, etc.\\n    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/filesystem/README.md\\n    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/filesystem/index.ts\\n    - Configuration:\\n    ```\\n    {\\n    \\\"mcpServers\\\": {\\n        \\\"filesystem\\\": {\\n        \\\"command\\\": \\\"docker\\\",\\n        \\\"args\\\": [\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"--mount\\\", \\\"type=bind,src=/path/to/allowed/dir,dst=/projects/allowed/dir\\\",\\n            \\\"mcp/filesystem\\\",\\n            \\\"/projects\\\"\\n        ]\\n        }\\n    }\\n    }\\n    ```\\n    Note: If no specific directory is requested for mounting, you may use the default source directory `${os.getcwd()}/generated_workflows` and the destination directory `/projects/generated_workflows`.\\n\\n4. Slack\\n    - Description: For interacting with Slack workspaces, through Slack messages or Slack channels\\n    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/slack/README.md\\n    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/slack/index.ts\\n    - Configuration:\\n    ```\\n    {\\n    \\\"mcpServers\\\": {\\n        \\\"slack\\\": {\\n        \\\"command\\\": \\\"docker\\\",\\n        \\\"args\\\": [\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"SLACK_BOT_TOKEN\\\",\\n            \\\"-e\\\",\\n            \\\"SLACK_TEAM_ID\\\",\\n            \\\"-e\\\",\\n            \\\"SLACK_CHANNEL_IDS\\\",\\n            \\\"mcp/slack\\\"\\n        ],\\n        \\\"env\\\": {\\n            \\\"SLACK_BOT_TOKEN\\\": \\\"xoxb-your-bot-token\\\",\\n            \\\"SLACK_TEAM_ID\\\": \\\"T01234567\\\",\\n            \\\"SLACK_CHANNEL_IDS\\\": \\\"C01234567, C76543210\\\"\\n        }\\n        }\\n    }\\n    }\\n    ```\\n\\n5. GitHub\\n    - Description: For extracting and analysing data from GitHub repositories and automating GitHub workflows and processes.\\n    - Link to README: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/github/README.md\\n    - Check available MCP tools: https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/github/README.md\\n    - Configuration:\\n    ```\\n    {\\n    \\\"mcpServers\\\": {\\n        \\\"github\\\": {\\n        \\\"command\\\": \\\"docker\\\",\\n        \\\"args\\\": [\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"GITHUB_PERSONAL_ACCESS_TOKEN\\\",\\n            \\\"mcp/github\\\"\\n        ],\\n        \\\"env\\\": {\\n            \\\"GITHUB_PERSONAL_ACCESS_TOKEN\\\": \\\"<YOUR_TOKEN>\\\"\\n        }\\n        }\\n    }\\n    }\\n    ```\\n\\n6. Google Sheets\\n    - Description: For interacting with Google Spreadsheets using a defined set of tools.\\n    - Link to README: https://raw.githubusercontent.com/xing5/mcp-google-sheets/main/README.md\\n    - Check available MCP tools: https://raw.githubusercontent.com/xing5/mcp-google-sheets/main/src/mcp_google_sheets/server.py\\n    - Configuration:\\n    ```\\n    {\\n    \\\"mcpServers\\\": {\\n        \\\"google-sheets\\\": {\\n        \\\"command\\\": \\\"uvx\\\",\\n        \\\"args\\\": [\\\"mcp-google-sheets@latest\\\"],\\n        \\\"env\\\": {\\n            // Use ABSOLUTE paths here\\n            \\\"SERVICE_ACCOUNT_PATH\\\": \\\"/full/path/to/your/service-account-key.json\\\",\\n            \\\"DRIVE_FOLDER_ID\\\": \\\"your_shared_folder_id_here\\\"\\n        },\\n        \\\"healthcheck_url\\\": \\\"http://localhost:8000/health\\\" // Adjust host/port if needed\\n        }\\n    }\\n    }\\n    ```\\n\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204159098333000,
+      "end_time": 1749204183298080000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 12057521216887765513,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"write_file\", \"tool.args\": \"{\\\"path\\\":\\\"/app/generated_workflows/latest/agent.py\\\",\\\"content\\\":\\\"from any_agent import AnyAgent, AgentConfig\\\\nfrom tools.extract_text_from_url import extract_text_from_url\\\\nfrom tools.summarize_text_with_llm import summarize_text_with_llm\\\\nfrom pydantic import BaseModel, Field\\\\n\\\\nimport os\\\\nfrom dotenv import load_dotenv\\\\n\\\\nload_dotenv()\\\\n\\\\n# Structured output for agent response\\\\nclass WebpageSummaryOutput(BaseModel):\\\\n    input_url: str = Field(..., description=\\\\\\\"The original webpage URL provided by the user.\\\\\\\")\\\\n    extracted_text: str = Field(..., description=\\\\\\\"All extracted human-readable text content from the provided webpage.\\\\\\\")\\\\n    summary: str = Field(..., description=\\\\\\\"A concise summary of the extracted webpage content.\\\\\\\")\\\\n\\\\nINSTRUCTIONS = \\\\\\\"\\\\\\\"\\\\\\\"\\\\nYou are an agent designed to summarize the text content of a webpage given its URL.\\\\nYour workflow consists of the following steps:\\\\n\\\\nStep 1: Extract all human-readable text from the input URL using the 'extract_text_from_url' tool. \\\\n- Input: The provided URL.\\\\n- Output: The extracted text string.\\\\n- If the url is invalid or text extraction fails, report the extraction error in the 'extracted_text' field and set 'summary' to an empty string.\\\\n\\\\nStep 2: Summarize the extracted text using the 'summarize_text_with_llm' tool.\\\\n- Input: The full extracted text string from Step 1.\\\\n- Use the summary_length of 'a concise paragraph'.\\\\n- Output: The summary string.\\\\n- If the previous step failed, skip summarization.\\\\n\\\\nFinal Output:\\\\nReturn all of the following in structured format:\\\\n- input_url: The input URL provided.\\\\n- extracted_text: The result from Step 1.\\\\n- summary: The result from Step 2.\\\\n\\\\\\\"\\\\\\\"\\\\\\\"\\\\n\\\\nagent = AnyAgent.create(\\\\n    \\\\\\\"openai\\\\\\\",\\\\n    AgentConfig(\\\\n        model_id=\\\\\\\"gpt-4.1\\\\\\\",\\\\n        instructions=INSTRUCTIONS,\\\\n        tools=[\\\\n            extract_text_from_url,\\\\n            summarize_text_with_llm,\\\\n        ],\\\\n        agent_args={\\\\n            \\\\\\\"output_type\\\\\\\": WebpageSummaryOutput,\\\\n        }\\\\n    ),\\\\n)\\\\n\\\\nif __name__ == \\\\\\\"__main__\\\\\\\":\\\\n    # Example: replace this URL with any URL you want to summarize\\\\n    user_url = input(\\\\\\\"Enter a webpage URL to summarize: \\\\\\\").strip()\\\\n    run_prompt = (\\\\n        f\\\\\\\"You are provided with the following URL: {user_url}.\\\\\\\\n\\\\\\\"\\\\n        \\\\\\\"Follow your instructions to extract all human-readable text from this page and generate a concise summary.\\\\\\\"\\\\n    )\\\\n    agent_trace = agent.run(prompt=run_prompt, input_url=user_url)\\\\n    # Save agent trace for debugging or evaluation purposes\\\\n    os.makedirs(\\\\\\\"generated_workflows/latest\\\\\\\", exist_ok=True)\\\\n    with open(\\\\\\\"generated_workflows/latest/agent_trace.json\\\\\\\", \\\\\\\"w\\\\\\\", encoding=\\\\\\\"utf-8\\\\\\\") as f:\\\\n        f.write(agent_trace.model_dump_json(indent=2))\\\\n    print(\\\\\\\"Summarization complete. Results and agent trace saved to generated_workflows/latest/agent_trace.json\\\\\\\")\\\\n\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 7926,
+        "gen_ai.usage.output_tokens": 1864,
+        "gen_ai.usage.input_cost": 0.015851999999999998,
+        "gen_ai.usage.output_cost": 0.014912
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool write_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204183306804000,
+      "end_time": 1749204183323658000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 6679360210259514309,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "write_file",
+        "gen_ai.tool.args": "{\"path\":\"/app/generated_workflows/latest/agent.py\",\"content\":\"from any_agent import AnyAgent, AgentConfig\\nfrom tools.extract_text_from_url import extract_text_from_url\\nfrom tools.summarize_text_with_llm import summarize_text_with_llm\\nfrom pydantic import BaseModel, Field\\n\\nimport os\\nfrom dotenv import load_dotenv\\n\\nload_dotenv()\\n\\n# Structured output for agent response\\nclass WebpageSummaryOutput(BaseModel):\\n    input_url: str = Field(..., description=\\\"The original webpage URL provided by the user.\\\")\\n    extracted_text: str = Field(..., description=\\\"All extracted human-readable text content from the provided webpage.\\\")\\n    summary: str = Field(..., description=\\\"A concise summary of the extracted webpage content.\\\")\\n\\nINSTRUCTIONS = \\\"\\\"\\\"\\nYou are an agent designed to summarize the text content of a webpage given its URL.\\nYour workflow consists of the following steps:\\n\\nStep 1: Extract all human-readable text from the input URL using the 'extract_text_from_url' tool. \\n- Input: The provided URL.\\n- Output: The extracted text string.\\n- If the url is invalid or text extraction fails, report the extraction error in the 'extracted_text' field and set 'summary' to an empty string.\\n\\nStep 2: Summarize the extracted text using the 'summarize_text_with_llm' tool.\\n- Input: The full extracted text string from Step 1.\\n- Use the summary_length of 'a concise paragraph'.\\n- Output: The summary string.\\n- If the previous step failed, skip summarization.\\n\\nFinal Output:\\nReturn all of the following in structured format:\\n- input_url: The input URL provided.\\n- extracted_text: The result from Step 1.\\n- summary: The result from Step 2.\\n\\\"\\\"\\\"\\n\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"gpt-4.1\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=[\\n            extract_text_from_url,\\n            summarize_text_with_llm,\\n        ],\\n        agent_args={\\n            \\\"output_type\\\": WebpageSummaryOutput,\\n        }\\n    ),\\n)\\n\\nif __name__ == \\\"__main__\\\":\\n    # Example: replace this URL with any URL you want to summarize\\n    user_url = input(\\\"Enter a webpage URL to summarize: \\\").strip()\\n    run_prompt = (\\n        f\\\"You are provided with the following URL: {user_url}.\\\\n\\\"\\n        \\\"Follow your instructions to extract all human-readable text from this page and generate a concise summary.\\\"\\n    )\\n    agent_trace = agent.run(prompt=run_prompt, input_url=user_url)\\n    # Save agent trace for debugging or evaluation purposes\\n    os.makedirs(\\\"generated_workflows/latest\\\", exist_ok=True)\\n    with open(\\\"generated_workflows/latest/agent_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n    print(\\\"Summarization complete. Results and agent trace saved to generated_workflows/latest/agent_trace.json\\\")\\n\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"Successfully wrote to /app/generated_workflows/latest/agent.py\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204183326306000,
+      "end_time": 1749204187182622000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 687372887418801728,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"write_file\", \"tool.args\": \"{\\\"path\\\":\\\"/app/generated_workflows/latest/INSTRUCTIONS.md\\\",\\\"content\\\":\\\"# Webpage Summarization Agent\\\\n\\\\nThis project provides an agent workflow that summarizes the text content from a given webpage URL using Mozilla's any-agent library.\\\\n\\\\n## Environment Setup\\\\n\\\\n1. **Create a `.env` file** in the project root with the following content:\\\\n\\\\n```\\\\nOPENAI_API_KEY=your_openai_api_key\\\\n```\\\\nReplace `your_openai_api_key` with your actual OpenAI API key.\\\\n\\\\n2. **Install Mamba (if not already installed):**\\\\nYou must use Python 3.11.\\\\n\\\\n```sh\\\\ncurl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba\\\\n./bin/micromamba shell init -s bash -p ~/micromamba\\\\nsource ~/.bashrc\\\\nmicromamba create -n agentpy311 python=3.11\\\\nmicromamba activate agentpy311\\\\n```\\\\n\\\\n3. **Install dependencies:**\\\\n\\\\n```sh\\\\npip install -r requirements.txt\\\\n```\\\\n\\\\n## Running the Agent\\\\n\\\\n```sh\\\\npython agent.py\\\\n```\\\\nYou will be prompted to enter a webpage URL. The agent will extract text, summarize it, and save a detailed execution trace to `generated_workflows/latest/agent_trace.json`.\\\\n\\\\n---\\\\n\\\\n#### Required Environment Variables\\\\n\\\\n- `OPENAI_API_KEY`: API key for OpenAI (used by summarize_text_with_llm tool)\\\\n\\\\n## Files\\\\n\\\\n- `agent.py`: Run this script to launch the workflow.\\\\n- `requirements.txt`: All required Python packages.\\\\n- `.env`: Place your API keys here.\\\\n- `agent_trace.json`: Full trace/output per run.\\\\n\\\\n---\\\\n\\\\n*If you encounter issues with litellm or API keys, check your .env and ensure dependencies are correctly installed.*\\\\n\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 9825,
+        "gen_ai.usage.output_tokens": 425,
+        "gen_ai.usage.input_cost": 0.01965,
+        "gen_ai.usage.output_cost": 0.0034
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool write_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204187186788000,
+      "end_time": 1749204187190874000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 7739269395181692279,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "write_file",
+        "gen_ai.tool.args": "{\"path\":\"/app/generated_workflows/latest/INSTRUCTIONS.md\",\"content\":\"# Webpage Summarization Agent\\n\\nThis project provides an agent workflow that summarizes the text content from a given webpage URL using Mozilla's any-agent library.\\n\\n## Environment Setup\\n\\n1. **Create a `.env` file** in the project root with the following content:\\n\\n```\\nOPENAI_API_KEY=your_openai_api_key\\n```\\nReplace `your_openai_api_key` with your actual OpenAI API key.\\n\\n2. **Install Mamba (if not already installed):**\\nYou must use Python 3.11.\\n\\n```sh\\ncurl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba\\n./bin/micromamba shell init -s bash -p ~/micromamba\\nsource ~/.bashrc\\nmicromamba create -n agentpy311 python=3.11\\nmicromamba activate agentpy311\\n```\\n\\n3. **Install dependencies:**\\n\\n```sh\\npip install -r requirements.txt\\n```\\n\\n## Running the Agent\\n\\n```sh\\npython agent.py\\n```\\nYou will be prompted to enter a webpage URL. The agent will extract text, summarize it, and save a detailed execution trace to `generated_workflows/latest/agent_trace.json`.\\n\\n---\\n\\n#### Required Environment Variables\\n\\n- `OPENAI_API_KEY`: API key for OpenAI (used by summarize_text_with_llm tool)\\n\\n## Files\\n\\n- `agent.py`: Run this script to launch the workflow.\\n- `requirements.txt`: All required Python packages.\\n- `.env`: Place your API keys here.\\n- `agent_trace.json`: Full trace/output per run.\\n\\n---\\n\\n*If you encounter issues with litellm or API keys, check your .env and ensure dependencies are correctly installed.*\\n\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"Successfully wrote to /app/generated_workflows/latest/INSTRUCTIONS.md\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204187193791000,
+      "end_time": 1749204193448234000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 4201698286036739927,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"write_file\", \"tool.args\": \"{\\\"path\\\":\\\"/app/generated_workflows/latest/requirements.txt\\\",\\\"content\\\":\\\"any-agent[all]\\\\npython-dotenv\\\\npydantic>=2.0.0\\\\nrequests\\\\nbeautifulsoup4\\\\nlitellm\\\\n\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 10283,
+        "gen_ai.usage.output_tokens": 56,
+        "gen_ai.usage.input_cost": 0.020565999999999997,
+        "gen_ai.usage.output_cost": 0.000448
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool write_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204193453799000,
+      "end_time": 1749204193460036000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 3745125581075297966,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "write_file",
+        "gen_ai.tool.args": "{\"path\":\"/app/generated_workflows/latest/requirements.txt\",\"content\":\"any-agent[all]\\npython-dotenv\\npydantic>=2.0.0\\nrequests\\nbeautifulsoup4\\nlitellm\\n\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"Successfully wrote to /app/generated_workflows/latest/requirements.txt\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204193463709000,
+      "end_time": 1749204194424544000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 14029748950236577717,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "[{\"tool.name\": \"list_directory\", \"tool.args\": \"{\\\"path\\\":\\\"/app/generated_workflows/latest\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 10371,
+        "gen_ai.usage.output_tokens": 19,
+        "gen_ai.usage.input_cost": 0.020742,
+        "gen_ai.usage.output_cost": 0.00015199999999999998
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool list_directory",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204194430801000,
+      "end_time": 1749204194437813000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 6460384232870686863,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "list_directory",
+        "gen_ai.tool.args": "{\"path\":\"/app/generated_workflows/latest\"}",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"[FILE] INSTRUCTIONS.md\\n[FILE] agent.py\\n[FILE] agent_trace.json\\n[FILE] requirements.txt\",\"annotations\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204194441021000,
+      "end_time": 1749204196842622000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 12172636675801346413,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "All requested files have been successfully generated and saved to `/app/generated_workflows/latest`:\n\n- `agent.py`: Complete any-agent workflow for webpage summarization\n- `INSTRUCTIONS.md`: Setup, environment, and run instructions\n- `requirements.txt`: All Python dependencies\n\nYou can now proceed with your workflow setup and run the workflow using these files.",
+        "gen_ai.output.type": "text",
+        "gen_ai.usage.input_tokens": 10435,
+        "gen_ai.usage.output_tokens": 72,
+        "gen_ai.usage.input_cost": 0.02087,
+        "gen_ai.usage.output_cost": 0.000576
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "invoke_agent [any_agent]",
+      "kind": "internal",
+      "parent": {
+        "trace_id": null,
+        "span_id": null,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749204145509534000,
+      "end_time": 1749204196851749000,
+      "status": {
+        "status_code": "unset",
+        "description": null
+      },
+      "context": {
+        "trace_id": 85085831961432878859412625610168650564,
+        "span_id": 2374067890230905507,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.agent.name": "any_agent",
+        "gen_ai.agent.description": "No description.",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.request.id": "3d2defff-3be6-4ba9-a730-44cc60abd977"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.33.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    }
+  ],
+  "final_output": "All requested files have been successfully generated and saved to `/app/generated_workflows/latest`:\n\n- `agent.py`: Complete any-agent workflow for webpage summarization\n- `INSTRUCTIONS.md`: Setup, environment, and run instructions\n- `requirements.txt`: All Python dependencies\n\nYou can now proceed with your workflow setup and run the workflow using these files."
+}

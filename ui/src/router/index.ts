@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import WorkflowsView from '../views/WorkflowsView.vue'
+import WorkflowDetailsView from '../views/WorkflowDetailsView.vue'
 import FileView from '../views/FileView.vue'
 
 const routes: Array<RouteRecordRaw> = [
@@ -22,14 +23,24 @@ const routes: Array<RouteRecordRaw> = [
     component: WorkflowsView,
   },
   {
-    // Catch-all route for file paths
+    // Specific workflow details page
+    path: '/workflows/:id',
+    name: 'workflow-details',
+    component: WorkflowDetailsView,
+    props: true,
+  },
+  {
+    path: '/workflows/evaluate',
+    name: 'agent-evaluation',
+    component: () => import('@/views/AgentEvaluationView.vue'),
+    meta: { requiresAuth: false },
+  },
+  {
+    // Catch-all route for file paths - keep for legacy support
     path: '/workflows/:pathMatch(.*)*',
     name: 'file-view',
     component: FileView,
-    // Add this to fix active class on parent route
-    props: true,
   },
-  { path: '/:pathMatch(.*)*', redirect: '/chat' }, // Redirect to home for any unmatched routes
 ]
 
 const router = createRouter({
@@ -37,20 +48,13 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to, _from, next) => {
-  const auth = useAuthStore()
+// Authentication guard
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
 
-  // Restore from localStorage on refresh
-  if (!auth.token && localStorage.getItem('token')) {
-    auth.token = localStorage.getItem('token') || undefined
-    // await auth.fetchUser()
-  }
-
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    next({ path: '/login', query: { redirect: to.fullPath } })
-  } else if (to.path === '/login' && auth.isAuthenticated) {
-    // Redirect to home page if the user is authenticated and tries to go to the login page
-    next({ path: '/' }) // or any other page you want
+  if (requiresAuth && !authStore.isAuthenticated) {
+    next({ name: 'Login', query: { redirect: to.fullPath } })
   } else {
     next()
   }

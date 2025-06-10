@@ -1,0 +1,212 @@
+{
+  "spans": [
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 47511419200872662320679940210213000923,
+        "span_id": 17500149178031317798,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749560973306412000,
+      "end_time": 1749560976970011000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 47511419200872662320679940210213000923,
+        "span_id": 4140447790739673508,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.input.messages": "[{\"content\": \"\\nYou are an expert assistant whose task is to summarize text content from a webpage given its URL. Follow this precise workflow:\\n\\nStep 1: Receive the input URL from the user prompt.\\nStep 2: Use the provided 'visit_webpage' tool to retrieve the text and main content from the given URL. Only use the content returned by the tool; do not hallucinate or use external information.\\nStep 3: Read the webpage content carefully. Identify and focus on the main body text, skipping headers, footers, navigation, ads, and unrelated material.\\nStep 4: Write a clear, concise summary (4-6 sentences) capturing the essential points and main arguments or information from the body text. Do not include a list of sections, metadata, or raw sentences; your summary should be human-readable and coherent.\\nStep 5: Output your results as JSON with two fields:\\n- 'url': the original webpage URL\\n- 'summary': your generated summary\\nYour output MUST match the schema given. Never return information not present in the visited webpage.\\n\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"Summarize the main textual content from this webpage: https://mozilla-ai.github.io/any-agent/agents/\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"visit_webpage\", \"tool.args\": \"{\\\"url\\\":\\\"https://mozilla-ai.github.io/any-agent/agents/\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 385,
+        "gen_ai.usage.output_tokens": 26,
+        "gen_ai.usage.input_cost": 0.00077,
+        "gen_ai.usage.output_cost": 0.000208
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool visit_webpage",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 47511419200872662320679940210213000923,
+        "span_id": 17500149178031317798,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749560976977454000,
+      "end_time": 1749560977271532000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 47511419200872662320679940210213000923,
+        "span_id": 15235097287494319149,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "visit_webpage",
+        "gen_ai.tool.args": "{\"url\":\"https://mozilla-ai.github.io/any-agent/agents/\"}",
+        "gen_ai.output": "Defining and Running Agents - any-agent\n[Skip to content](#defining-and-running-agents)\n[![logo](../images/any-agent-logo-mark.png)](.. \"any-agent\")\nany-agent\nDefining and Running Agents\nInitializing search\n[any-agent](https://github.com/mozilla-ai/any-agent \"Go to repository\")\n[![logo](../images/any-agent-logo-mark.png)](.. \"any-agent\")\nany-agent\n[any-agent](https://github.com/mozilla-ai/any-agent \"Go to repository\")\n* [Intro](..)\n* Agents\n  Agents\n  + Defining and Running Agents\n    [Defining and Running Agents](./)\n    Table of contents\n    - [Defining Agents](#defining-agents)\n      * [Single Agent](#single-agent)\n      * [Multi-Agent](#multi-agent)\n      * [Framework Specific Arguments](#framework-specific-arguments)\n    - [Running Agents](#running-agents)\n      * [Async](#async)\n  + Frameworks\n    Frameworks\n    - [Agno](frameworks/agno/)\n    - [Google ADK](frameworks/google_adk/)\n    - [Langchain](frameworks/langchain/)\n    - [LlamaIndex](frameworks/llama_index/)\n    - [OpenAI Agents SDK](frameworks/openai/)\n    - [smolagents](frameworks/smolagents/)\n    - [TinyAgent](frameworks/tinyagent/)\n  + [Tools](tools/)\n* [Tracing](../tracing/)\n* [Evaluation](../evaluation/)\n* [Serving](../serving/)\n* Cookbook\n  Cookbook\n  + [Creating your first agent](../cookbook/your_first_agent/)\n  + [Creating an agent with MCP](../cookbook/mcp_agent/)\n  + [Serve an Agent with A2A](../cookbook/serve_a2a/)\n  + [Use an Agent as a tool for another agent.](../cookbook/a2a_as_tool/)\n* API Reference\n  API Reference\n  + [Agent](../api/agent/)\n  + [Config](../api/config/)\n  + [Tools](../api/tools/)\n  + [Tracing](../api/tracing/)\n  + [Logging](../api/logging/)\nTable of contents\n* [Defining Agents](#defining-agents)\n  + [Single Agent](#single-agent)\n  + [Multi-Agent](#multi-agent)\n  + [Framework Specific Arguments](#framework-specific-arguments)\n* [Running Agents](#running-agents)\n  + [Async](#async)\nDefining and Running Agents\n===========================\nDefining Agents\n---------------\nTo define any agent system you will always use the same imports:\n```\nfrom any_agent import AgentConfig, AnyAgent\n# In these examples, the built-in tools will be used\nfrom any_agent.tools import search_web, visit_webpage\n```\nCheck [`AgentConfig`](../api/config/#any_agent.config.AgentConfig \"any_agent.config.AgentConfig\") for more info on how to configure agents.\n### Single Agent\n```\nagent = AnyAgent.create(\n    \"openai\",  # See other options under `Frameworks`\n    AgentConfig(\n        model_id=\"gpt-4.1-nano\",\n        instructions=\"Use the tools to find an answer\",\n        tools=[search_web, visit_webpage]\n    ),\n)\n```\n### Multi-Agent\nWarning\nA multi-agent system introduces even more complexity than a single agent.\nAs stated before, carefully consider whether you need to adopt this pattern to\nsolve the task.\nMulti-agent can be implemented today using the A2A protocol (see [A2A docs](https://mozilla-ai.github.io/any-agent/serving/)) and will be also supported with Agent-As-Tools (follow progress at https://github.com/mozilla-ai/any-agent/issues/382).\n### Framework Specific Arguments\nSometimes, there may be a new feature in a framework that you want to use that isn't yet supported universally in any-agent. The `agent_args` parameter in `AgentConfig` allows you to pass arguments specific to the underlying framework that the agent instance is built on.\n**Example-1**: To pass the `output_guardrails` parameter, when using the OpenAI Agents SDK:\n```\nfrom pydantic import BaseModel\nfrom any_agent import AgentConfig, AgentFramework, AnyAgent\nfrom agents import (\n    Agent,\n    GuardrailFunctionOutput,\n    OutputGuardrailTripwireTriggered,\n    RunContextWrapper,\n    Runner,\n    output_guardrail,\n)\nclass MessageOutput(BaseModel):\n    response: str\nclass MathOutput(BaseModel):\n    reasoning: str\n    is_math: bool\nguardrail_agent = Agent(\n    name=\"Guardrail check\",\n    instructions=\"Check if the output includes any math.\",\n    output_type=MathOutput,\n)\n@output_guardrail\nasync def math_guardrail(\n    ctx: RunContextWrapper, agent: Agent, output: MessageOutput\n) -> GuardrailFunctionOutput:\n    result = await Runner.run(guardrail_agent, output.response, context=ctx.context)\n    return GuardrailFunctionOutput(\n        output_info=result.final_output,\n        tripwire_triggered=result.final_output.is_math,\n    )\nframework = AgentFramework.OPENAI\nagent = AnyAgent.create(\n    framework,\n    AgentConfig(\n        model_id=\"gpt-4.1-mini\",\n        instructions=\"Check if the output contains any math\",\n        agent_args={\n            \"output_guardrails\": [math_guardrail]\n        }\n    )\n)\n```\nRunning Agents\n--------------\n```\nagent_trace = agent.run(\"Which Agent Framework is the best??\")\nprint(agent_trace.final_output)\n```\nCheck [`AgentTrace`](../api/tracing/#any_agent.tracing.agent_trace.AgentTrace \"any_agent.tracing.agent_trace.AgentTrace\") for more info on the return type.\n### Async\nIf you are running in `async` context, you should use the equivalent [`create_async`](../api/agent/#any_agent.AnyAgent.create_async \"create_async(agent_framework, agent_config)\n  \n      async\n      classmethod\n  \") and [`run_async`](../api/agent/#any_agent.AnyAgent.run_async \"run_async(prompt, instrument=True, **kwargs)\n  \n      async\n  \") methods:\n```\nimport asyncio\nasync def main():\n    agent = await AnyAgent.create_async(\n        \"openai\",\n        AgentConfig(\n            model_id=\"gpt-4.1-mini\",\n            instructions=\"Use the tools to find an answer\",\n            tools=[search_web, visit_webpage]\n        )\n    )\n    agent_trace = await agent.run_async(\"Which Agent Framework is the best??\")\n    print(agent_trace.final_output)\nif __name__ == \"__main__\":\n    asyncio.run(main())\n```\nMade with\n[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)",
+        "gen_ai.output.type": "text"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm gpt-4.1",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 47511419200872662320679940210213000923,
+        "span_id": 17500149178031317798,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749560977292253000,
+      "end_time": 1749560981307460000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 47511419200872662320679940210213000923,
+        "span_id": 4624452576051126100,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.output": "{\"url\":\"https://mozilla-ai.github.io/any-agent/agents/\",\"summary\":\"This page explains how to define and run agents using the any-agent framework. It describes the basic setup, requiring imports from any_agent and its tools, and demonstrates how to create a single agent by specifying the framework, model, instructions, and tools. For more complex needs, it discusses multi-agent systems, highlighting their additional complexity and suggesting the use of the A2A protocol or forthcoming Agent-As-Tools support. The documentation also covers how to pass framework-specific arguments, such as output guardrails, when using particular frameworks like the OpenAI Agents SDK. Finally, it provides examples for running agents synchronously and asynchronously, including guidance for integration with async functions.\"}",
+        "gen_ai.output.type": "text",
+        "gen_ai.usage.input_tokens": 1847,
+        "gen_ai.usage.output_tokens": 156,
+        "gen_ai.usage.input_cost": 0.003694,
+        "gen_ai.usage.output_cost": 0.001248
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "invoke_agent [any_agent]",
+      "kind": "internal",
+      "parent": {
+        "trace_id": null,
+        "span_id": null,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1749560973305938000,
+      "end_time": 1749560981318906000,
+      "status": {
+        "status_code": "unset",
+        "description": null
+      },
+      "context": {
+        "trace_id": 47511419200872662320679940210213000923,
+        "span_id": 17500149178031317798,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.agent.name": "any_agent",
+        "gen_ai.agent.description": "No description.",
+        "gen_ai.request.model": "gpt-4.1",
+        "gen_ai.request.id": "f0b622e0-3254-4f47-a636-b61ee170f3ea"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    }
+  ],
+  "final_output": "url='https://mozilla-ai.github.io/any-agent/agents/' summary='This page explains how to define and run agents using the any-agent framework. It describes the basic setup, requiring imports from any_agent and its tools, and demonstrates how to create a single agent by specifying the framework, model, instructions, and tools. For more complex needs, it discusses multi-agent systems, highlighting their additional complexity and suggesting the use of the A2A protocol or forthcoming Agent-As-Tools support. The documentation also covers how to pass framework-specific arguments, such as output guardrails, when using particular frameworks like the OpenAI Agents SDK. Finally, it provides examples for running agents synchronously and asynchronously, including guidance for integration with async functions.'"
+}

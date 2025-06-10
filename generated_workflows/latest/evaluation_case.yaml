@@ -1,0 +1,10 @@
+llm_judge: openai/gpt-4.1
+checkpoints:
+- criteria: Check that the agent correctly identifies and focuses on the main body
+    text of the webpage, omitting headers, footers, navigation menus, advertisements,
+    and unrelated material in the summary.
+  points: 2
+- criteria: Check that the summary is human-readable, avoids copying large verbatim
+    excerpts or listing sections/metadata, and does not include content in bullet
+    points or as raw sentences.
+  points: 1
