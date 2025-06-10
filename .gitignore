@@ -187,3 +187,5 @@ generated_workflows
 
 # node
 node_modules/
+# test results
+test_results
