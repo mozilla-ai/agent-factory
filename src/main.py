@@ -69,9 +69,7 @@ def get_default_tools(mount_config):
 
 def validate_agent_outputs(str_output: str):
     try:
-        if str_output.startswith("```json"):
-            print("Removing markdown code from the output JSON string")
-            json_output = str_output[7:-3]
+        str_output = remove_markdown_code_block_delimiters(str_output)
         json_output = json.loads(str_output)
         agent_factory_outputs = AgentFactoryOutputs.model_validate(json_output)
     except Exception as e:
