@@ -77,10 +77,10 @@ a:hover {
 /* Card (li) */
 li {
   background: var(--card-background);
-  border: 0.09375rem solid var(--card-border-color);
+  /* border: 0.09375rem solid var(--card-border-color); */
   border-radius: 0.5rem;
   color: var(--card-text-color);
-  padding: 1rem;
+  /* padding: 1rem; */
   display: flex;
   flex-direction: column;
   cursor: pointer;
