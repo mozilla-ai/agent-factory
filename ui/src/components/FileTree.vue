@@ -60,14 +60,15 @@ const handleClick = () => {
 
 <style scoped>
 .file-tree-item {
-  margin: 4px 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .file-label {
   cursor: pointer;
-  display: flex;
+  /* display: flex; */
   align-items: center;
-  gap: 4px;
+  /* gap: 1rem; */
   padding: 4px 8px;
   border-radius: 4px;
   user-select: none;
@@ -88,7 +89,7 @@ const handleClick = () => {
 }
 
 .sub-items {
-  margin-left: 20px;
+  margin-left: 1.5rem;
   list-style-type: none;
   padding-left: 0;
 }

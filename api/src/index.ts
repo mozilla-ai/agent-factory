@@ -44,8 +44,10 @@ app.get('/agent-factory', async (req: Request, res: Response) => {
   try {
     await runAgentFactoryWorkflowWithStreaming(prompt, (source: 'stdout' | 'stderr', text: string) => {
       if (source === 'stdout') {
+        console.log(`[agent-factory stdout]: ${text}`)
         res.write(`[agent-factory stdout]: ${text}`)
       } else if (source === 'stderr') {
+        console.log(`[agent-factory stderr]: ${text}`)
         res.write(`[agent-factory stderr]: ${text}`)
       }
     })
@@ -172,8 +174,33 @@ server.on('error', (err: NodeJS.ErrnoException) => {
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully')
+
+  // First stop accepting new connections
   server.close(() => {
-    console.log('Server closed')
+    console.log('Server closed, shutting down Python processes')
+
+    // Then stop any running Python processes
+    stopRunningPythonProcess()
+    console.log('Python processes terminated')
+
+    console.log('Shutdown complete')
+    process.exit(0)
+  })
+})
+
+// Also handle SIGINT (Ctrl+C) with similar cleanup
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully')
+
+  // First stop accepting new connections
+  server.close(() => {
+    console.log('Server closed, shutting down Python processes')
+
+    // Then stop any running Python processes
+    stopRunningPythonProcess()
+    console.log('Python processes terminated')
+
+    console.log('Shutdown complete')
     process.exit(0)
   })
 })
