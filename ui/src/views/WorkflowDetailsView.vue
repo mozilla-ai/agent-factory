@@ -129,6 +129,7 @@
         <div v-if="activeTab === 'evaluate'" class="evaluate-tab">
           <EvaluationPanel
             :workflow-path="workflowPath"
+            :evaluation-status="evaluationStatus"
             @evaluation-status-changed="handleEvaluationStatusChange"
           />
         </div>
@@ -411,11 +412,24 @@ async function selectFile(file) {
   }
 }
 
-// Add this function to invalidate the cache when evaluation status changes
+// Update the handleEvaluationStatusChange function to directly update the data value:
 function handleEvaluationStatusChange(status) {
   console.log('Evaluation status changed:', status)
   if (status) {
-    // Invalidate the query cache to refresh the status
+    // Get the current status data from the query
+    const currentStatus = evaluationStatusQuery.data.value || {
+      hasAgentTrace: false,
+      hasEvalCases: false,
+      hasEvalResults: false,
+    }
+
+    // Update the status in-memory immediately - this makes UI updates instant
+    evaluationStatusQuery.data.value = {
+      ...currentStatus,
+      ...status, // Merge in the new status without losing existing values
+    }
+
+    // Also invalidate the query for future data fetches
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', workflowPath.value],
     })
@@ -426,6 +440,17 @@ function handleEvaluationStatusChange(status) {
     }
   }
 }
+
+// Add this watch to ensure the evaluation status is refreshed when switching back to the evaluate tab
+watch(
+  () => activeTab.value,
+  (newTab) => {
+    if (newTab === 'evaluate') {
+      // Force refetch when switching to evaluate tab to ensure we have up-to-date status
+      evaluationStatusQuery.refetch()
+    }
+  },
+)
 
 // Load data when the component is mounted
 onMounted(async () => {

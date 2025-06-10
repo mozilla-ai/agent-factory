@@ -7,7 +7,7 @@ import {
   stopRunningPythonProcess,
   runPythonScriptWithStreaming,
   initializeEnvironment,
-  isEnvironmentReady
+  isEnvironmentReady,
 } from './helpers/agent-factory-helpers.js'
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -44,7 +44,9 @@ function resolveWorkflowPath(workflowPath: string): string {
   } else if (workflowPath.startsWith('archive/')) {
     return path.join(workflowsDir, workflowPath)
   } else {
-    throw new Error('Invalid workflow path. Must be "latest" or start with "archive/"')
+    throw new Error(
+      'Invalid workflow path. Must be "latest" or start with "archive/"',
+    )
   }
 }
 
@@ -63,90 +65,121 @@ function setupStreamingResponse(res: Response) {
 }
 
 // 1. Run agent (generates agent_eval_trace.json)
-app.post('/agent-factory/evaluate/run-agent/:workflowPath', async (req: Request, res: Response) => {
-  try {
-    const workflowPath = req.params.workflowPath
-    const fullPath = resolveWorkflowPath(workflowPath)
-    const agentPath = path.join(fullPath, 'agent.py')
-    console.log({
-      workflowPath,
-      fullPath,
-      agentPath
-    })
-
-    // Check if agent.py exists
+app.post(
+  '/agent-factory/evaluate/run-agent/:workflowPath',
+  async (req: Request, res: Response) => {
     try {
-      await fs.access(agentPath)
-    } catch (error) {
-      return res.status(404).send(`Agent not found at path: ${workflowPath}/agent.py`)
+      const workflowPath = req.params.workflowPath
+      const fullPath = resolveWorkflowPath(workflowPath)
+      const agentPath = path.join(fullPath, 'agent.py')
+      console.log({
+        workflowPath,
+        fullPath,
+        agentPath,
+      })
+
+      // Check if agent.py exists
+      try {
+        await fs.access(agentPath)
+      } catch (error) {
+        return res
+          .status(404)
+          .send(`Agent not found at path: ${workflowPath}/agent.py`)
+      }
+
+      const outputCallback = setupStreamingResponse(res)
+
+      await runPythonScriptWithStreaming(agentPath, [], outputCallback)
+
+      res.end('\n[Agent run completed. Generated agent_eval_trace.json]')
+    } catch (error: unknown) {
+      console.error('Error running agent:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      res.status(500).send(`[Error running agent]: ${errorMessage}`)
     }
-
-    const outputCallback = setupStreamingResponse(res)
-
-    await runPythonScriptWithStreaming(agentPath, [], outputCallback)
-
-    res.end('\n[Agent run completed. Generated agent_eval_trace.json]')
-  } catch (error: unknown) {
-    console.error('Error running agent:', error)
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    res.status(500).send(`[Error running agent]: ${errorMessage}`)
-  }
-})
+  },
+)
 
 // 2. Generate evaluation cases (original version without workflowPath parameter)
-app.post('/agent-factory/evaluate/generate-cases', async (req: Request, res: Response) => {
-  try {
-    const outputCallback = setupStreamingResponse(res)
+app.post(
+  '/agent-factory/evaluate/generate-cases',
+  async (req: Request, res: Response) => {
+    try {
+      const outputCallback = setupStreamingResponse(res)
 
-    await runPythonScriptWithStreaming('-m', ['eval.main'], outputCallback)
+      await runPythonScriptWithStreaming('-m', ['eval.main'], outputCallback)
 
-    res.end('\n[Evaluation cases generation completed. Saved to evaluation_case.yaml]')
-  } catch (error: unknown) {
-    console.error('Error generating evaluation cases:', error)
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    res.status(500).send(`[Error generating evaluation cases]: ${errorMessage}`)
-  }
-})
+      res.end(
+        '\n[Evaluation cases generation completed. Saved to evaluation_case.yaml]',
+      )
+    } catch (error: unknown) {
+      console.error('Error generating evaluation cases:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      res
+        .status(500)
+        .send(`[Error generating evaluation cases]: ${errorMessage}`)
+    }
+  },
+)
 
 // 3. Run agent evaluation (original version)
-app.post('/agent-factory/evaluate/run-evaluation/:workflowPath', async (req: Request, res: Response) => {
-  try {
-    const workflowPath = req.params.workflowPath
-    const fullPath = resolveWorkflowPath(workflowPath)
-
-    // Check if agent trace exists in the workflow directory
-    const tracePath = path.join(fullPath, 'agent_eval_trace.json')
-
+app.post(
+  '/agent-factory/evaluate/run-evaluation/:workflowPath',
+  async (req: Request, res: Response) => {
     try {
-      await fs.access(tracePath)
-    } catch (error) {
-      return res.status(404).send('Agent trace file not found. Make sure to run the agent first.')
+      const workflowPath = req.params.workflowPath
+      const fullPath = resolveWorkflowPath(workflowPath)
+
+      // Check if agent trace exists in the workflow directory
+      const tracePath = path.join(fullPath, 'agent_eval_trace.json')
+
+      try {
+        await fs.access(tracePath)
+      } catch (error) {
+        return res
+          .status(404)
+          .send('Agent trace file not found. Make sure to run the agent first.')
+      }
+
+      // Check if evaluation cases exist (globally)
+      try {
+        await fs.access(path.resolve(__dirname, '../../evaluation_case.yaml'))
+      } catch (error) {
+        return res
+          .status(404)
+          .send(
+            'Evaluation cases not found. Make sure to generate evaluation cases first.',
+          )
+      }
+
+      const outputCallback = setupStreamingResponse(res)
+
+      // Set environment variables for the evaluation script
+      const env = {
+        ...process.env,
+        AGENT_PATH: fullPath,
+      }
+
+      await runPythonScriptWithStreaming(
+        '-m',
+        ['eval.run_agent_eval'],
+        outputCallback,
+        env,
+      )
+
+      res.end(
+        '\n[Agent evaluation completed. Results saved to evaluation_results.json]',
+      )
+    } catch (error: unknown) {
+      console.error('Error running agent evaluation:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      res.status(500).send(`[Error running agent evaluation]: ${errorMessage}`)
     }
-
-    // Check if evaluation cases exist (globally)
-    try {
-      await fs.access(path.resolve(__dirname, '../../evaluation_case.yaml'))
-    } catch (error) {
-      return res.status(404).send('Evaluation cases not found. Make sure to generate evaluation cases first.')
-    }
-
-    const outputCallback = setupStreamingResponse(res)
-
-    // Set environment variables for the evaluation script
-    const env = {
-      ...process.env,
-      AGENT_PATH: fullPath
-    }
-
-    await runPythonScriptWithStreaming('-m', ['eval.run_agent_eval'], outputCallback, env)
-
-    res.end('\n[Agent evaluation completed. Results saved to evaluation_results.json]')
-  } catch (error: unknown) {
-    console.error('Error running agent evaluation:', error)
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    res.status(500).send(`[Error running agent evaluation]: ${errorMessage}`)
-  }
-})
+  },
+)
 
 // Send input to running Python process
 app.post('/agent-factory/input', (req: Request, res: Response) => {
@@ -192,7 +225,7 @@ async function listFilesRecursive(dirPath: string): Promise<FileEntry[]> {
             isDirectory: false,
           }
         }
-      })
+      }),
     )
   } catch (error) {
     console.error(`Failed to read directory ${dirPath}:`, error)
@@ -213,7 +246,7 @@ app.get('/agent-factory/workflows', async (_req: Request, res: Response) => {
           name: entry.name,
           isDirectory: true,
           files: await listFilesRecursive(path.join(workflowsDir, entry.name)),
-        }))
+        })),
     )
 
     res.json(result)
@@ -227,21 +260,24 @@ app.get('/agent-factory/workflows', async (_req: Request, res: Response) => {
 const workflowsDir = path.resolve(__dirname, '../../generated_workflows')
 
 // Serve static files from workflows directory
-app.use('/agent-factory/workflows', express.static(workflowsDir, {
-  setHeaders: (res, filepath) => {
-    // Set content type for code and text files
-    if (filepath.match(/\.(py|md|txt|json|js|ts|yaml|yml)$/i)) {
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    }
-  }
-}))
+app.use(
+  '/agent-factory/workflows',
+  express.static(workflowsDir, {
+    setHeaders: (res, filepath) => {
+      // Set content type for code and text files
+      if (filepath.match(/\.(py|md|txt|json|js|ts|yaml|yml)$/i)) {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+      }
+    },
+  }),
+)
 
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Unhandled error:', err)
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'production' ? undefined : err.message
+    message: process.env.NODE_ENV === 'production' ? undefined : err.message,
   })
 })
 
@@ -305,17 +341,17 @@ function setupGracefulShutdown(server: Server) {
 const checkEnvironmentMiddleware = (req, res, next) => {
   if (!isEnvironmentReady()) {
     return res.status(503).json({
-      error: "Server is still initializing. Please try again in a few moments."
-    });
+      error: 'Server is still initializing. Please try again in a few moments.',
+    })
   }
-  next();
-};
+  next()
+}
 
 // Apply the middleware to routes that need the Python environment
-app.use('/agent-factory', checkEnvironmentMiddleware);
+app.use('/agent-factory', checkEnvironmentMiddleware)
 
 // Start the server
-startServer().catch(error => {
+startServer().catch((error) => {
   console.error('Failed to start server:', error)
   process.exit(1)
-});
+})

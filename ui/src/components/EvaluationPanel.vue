@@ -92,27 +92,31 @@
 import { ref, computed, onMounted, defineProps, defineEmits, watch } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 
-const props = defineProps<{
-  workflowPath: string
-}>()
+const props = defineProps({
+  workflowPath: {
+    type: String,
+    required: true,
+  },
+  evaluationStatus: {
+    type: Object,
+    default: () => ({
+      hasAgentTrace: false,
+      hasEvalCases: false,
+      hasEvalResults: false,
+    }),
+  },
+})
 
 const emit = defineEmits(['evaluation-status-changed'])
 const queryClient = useQueryClient()
 const output = ref('')
 
-// Evaluation status tracking
-const evaluationStatus = ref({
-  hasAgentTrace: false,
-  hasEvalCases: false,
-  hasEvalResults: false,
-})
-
 // Computed property to check if all evaluation files exist
 const allEvaluationFilesExist = computed(
   () =>
-    evaluationStatus.value.hasAgentTrace &&
-    evaluationStatus.value.hasEvalCases &&
-    evaluationStatus.value.hasEvalResults,
+    props.evaluationStatus.hasAgentTrace &&
+    props.evaluationStatus.hasEvalCases &&
+    props.evaluationStatus.hasEvalResults,
 )
 
 // Debug logging
@@ -314,14 +318,12 @@ watch(
   ([traceExists, casesExist, resultsExist]) => {
     log('Query results updated:', { traceExists, casesExist, resultsExist })
 
-    evaluationStatus.value = {
+    // Emit status change to parent
+    emit('evaluation-status-changed', {
       hasAgentTrace: !!traceExists,
       hasEvalCases: !!casesExist,
       hasEvalResults: !!resultsExist,
-    }
-
-    // Emit status change to parent
-    emit('evaluation-status-changed', evaluationStatus.value)
+    })
   },
 )
 

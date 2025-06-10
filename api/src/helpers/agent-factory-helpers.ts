@@ -135,8 +135,12 @@ export async function runAgentFactoryWorkflowWithStreaming(
     const agentProcess = runAgentFactory(prompt)
 
     await new Promise<void>((resolve, reject) => {
-      agentProcess.stdout.on('data', (data) => onData('stdout', data.toString()))
-      agentProcess.stderr.on('data', (data) => onData('stderr', data.toString()))
+      agentProcess.stdout.on('data', (data) =>
+        onData('stdout', data.toString()),
+      )
+      agentProcess.stderr.on('data', (data) =>
+        onData('stderr', data.toString()),
+      )
       agentProcess.on('error', reject)
       agentProcess.on('exit', (code) => {
         if (code === 0) resolve()
@@ -154,13 +158,15 @@ export async function runPythonScriptWithStreaming(
   scriptPath,
   args = [],
   outputCallback,
-  customEnv = null
+  customEnv = null,
 ) {
   return new Promise((resolve, reject) => {
     // Use the virtual environment Python when possible
     const pythonExecutable = venvPython
 
-    console.log(`Running Python script: ${pythonExecutable} ${scriptPath} ${args.join(' ')}`)
+    console.log(
+      `Running Python script: ${pythonExecutable} ${scriptPath} ${args.join(' ')}`,
+    )
 
     const pythonProcess = spawn(pythonExecutable, [scriptPath, ...args], {
       cwd: agentFactoryPath,

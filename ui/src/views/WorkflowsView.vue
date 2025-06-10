@@ -3,17 +3,11 @@
     <h1>Workflows</h1>
 
     <!-- Loading, error and empty states -->
-    <div v-if="loading" class="loading">
-      Loading workflows...
-    </div>
+    <div v-if="loading" class="loading">Loading workflows...</div>
 
-    <div v-else-if="error" class="error">
-      Error loading workflows: {{ error }}
-    </div>
+    <div v-else-if="error" class="error">Error loading workflows: {{ error }}</div>
 
-    <div v-else-if="workflows.length === 0" class="no-workflows">
-      No workflows found.
-    </div>
+    <div v-else-if="workflows.length === 0" class="no-workflows">No workflows found.</div>
 
     <!-- Workflows list grid -->
     <div v-else class="workflows-grid">
@@ -49,7 +43,7 @@ const error = computed(() => workflowsStore.error)
 function selectWorkflow(workflow) {
   router.push({
     name: 'workflow-details',
-    params: { id: workflow.name }
+    params: { id: workflow.name },
   })
 }
 

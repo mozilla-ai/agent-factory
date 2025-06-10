@@ -16,15 +16,15 @@ export const useWorkflowsStore = defineStore('workflows', () => {
 
   // Computed getters
   const getWorkflowById = computed(() => {
-    return (id: string) => workflows.value.find(w => w.name === id)
+    return (id: string) => workflows.value.find((w) => w.name === id)
   })
 
   const latestWorkflow = computed(() => {
-    return workflows.value.find(w => w.name === 'latest')
+    return workflows.value.find((w) => w.name === 'latest')
   })
 
   const archiveWorkflows = computed(() => {
-    return workflows.value.filter(w => w.name !== 'latest')
+    return workflows.value.filter((w) => w.name !== 'latest')
   })
 
   // Actions
@@ -52,7 +52,7 @@ export const useWorkflowsStore = defineStore('workflows', () => {
 
   // Process raw workflow data into a more usable format
   function processWorkflowsData(data: any[]): File[] {
-    let result: File[] = []
+    const result: File[] = []
 
     for (const item of data) {
       if (item.name === 'latest') {
@@ -61,10 +61,9 @@ export const useWorkflowsStore = defineStore('workflows', () => {
           name: 'latest',
           isDirectory: true,
           files: item.files || [],
-          path: 'latest'
+          path: 'latest',
         })
-      }
-      else if (item.name === 'archive' && item.isDirectory && item.files) {
+      } else if (item.name === 'archive' && item.isDirectory && item.files) {
         // For the archive directory, include each sub-workflow as a top-level item
         for (const archiveWorkflow of item.files) {
           if (archiveWorkflow.isDirectory) {
@@ -72,7 +71,7 @@ export const useWorkflowsStore = defineStore('workflows', () => {
               name: archiveWorkflow.name,
               isDirectory: true,
               files: archiveWorkflow.files || [],
-              path: `archive/${archiveWorkflow.name}`
+              path: `archive/${archiveWorkflow.name}`,
             })
           }
         }
@@ -89,6 +88,6 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     getWorkflowById,
     latestWorkflow,
     archiveWorkflows,
-    loadWorkflows
+    loadWorkflows,
   }
 })

@@ -3,16 +3,14 @@
     <!-- Only show back button when used as a standalone page -->
     <div v-if="!workflowName" class="file-nav">
       <button class="back-button" @click="goBack">
-        <span class="back-icon">←</span> Back to Workflows
+        <span class="back-icon">←</span> Back
       </button>
     </div>
 
     <!-- Show close button when embedded in another view -->
     <div v-else class="file-nav file-nav-embedded">
       <h3>{{ fileName }}</h3>
-      <button class="close-button" @click="$emit('close')">
-        <span>✕</span> Close
-      </button>
+      <button class="close-button" @click="$emit('close')"><span>✕</span> Close</button>
     </div>
 
     <div class="file-header">
@@ -40,12 +38,12 @@ const props = defineProps({
   // When used as an embedded component
   pathMatch: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   workflowName: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 })
 
 const emit = defineEmits(['close'])
@@ -99,11 +97,7 @@ const fileQuery = useQuery({
 // Navigation function - only used in standalone mode
 const goBack = () => {
   // If we have a workflowName, go back to that workflow
-  if (props.workflowName) {
-    router.push(`/workflows/${props.workflowName}`)
-  } else {
-    router.push('/workflows')
-  }
+  router.back()
 }
 </script>
 
@@ -133,7 +127,8 @@ const goBack = () => {
   font-size: 1rem;
 }
 
-.back-button, .close-button {
+.back-button,
+.close-button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -147,7 +142,8 @@ const goBack = () => {
   transition: all 0.2s ease;
 }
 
-.back-button:hover, .close-button:hover {
+.back-button:hover,
+.close-button:hover {
   background-color: var(--color-background-mute);
   border-color: var(--color-border-hover);
 }
