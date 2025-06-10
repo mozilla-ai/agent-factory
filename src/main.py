@@ -160,7 +160,9 @@ def build_run_instructions(user_prompt):
 
     Generate python code for an agentic workflow using any-agent library to be able to do the following:
     {user_prompt}
-    """
+
+    Before generating the code, first check the contents of the tools/ and mcps/ directories to understand the tools and MCPs available.
+    """  # noqa: E501
 
 
 def save_agent_trace(agent_trace, latest_dir):
