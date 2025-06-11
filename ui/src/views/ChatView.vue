@@ -30,22 +30,25 @@
 
       <router-link
         v-if="generationComplete"
-        to="/workflows/latest/agent.py"
+        :to="{ name: 'workflow-details', params: { id: 'latest' }}"
         class="view-files-link"
       >
-        📁 View Generated agent
+        📁 View Generated Workflow
       </router-link>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useQueryClient } from '@tanstack/vue-query'
 import { ref } from 'vue'
 
 const prompt = ref<string>('Summarize text content from a given webpage URL')
 const response = ref<string>('')
 const isLoading = ref<boolean>(false)
 const generationComplete = ref<boolean>(false)
+
+const queryClient = useQueryClient()
 
 const handleSendClicked = async () => {
   try {
@@ -89,6 +92,9 @@ const handleSendClicked = async () => {
     // Check if generation was successful
     if (response.value.includes('Workflow completed successfully')) {
       generationComplete.value = true
+      queryClient.invalidateQueries({
+        queryKey: ['workflows'],
+      })
     }
 
     isLoading.value = false

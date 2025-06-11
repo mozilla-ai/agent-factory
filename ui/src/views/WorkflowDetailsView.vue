@@ -129,7 +129,7 @@
         <div v-if="activeTab === 'evaluate'" class="evaluate-tab">
           <EvaluationPanel
             :workflow-path="workflowPath"
-            :evaluation-status="evaluationStatus"
+            :evaluation-status="evaluationStatusQuery.data.value"
             @evaluation-status-changed="handleEvaluationStatusChange"
           />
         </div>
@@ -139,7 +139,7 @@
           <h3>Evaluation Results</h3>
 
           <div class="eval-files-grid">
-            <div class="eval-file-card" v-if="evaluationStatus.hasAgentTrace">
+            <div class="eval-file-card" v-if="evaluationStatusQuery.data.hasAgentTrace">
               <div class="card-header">
                 <h4>Agent Execution Trace</h4>
               </div>
@@ -157,7 +157,7 @@
               </div>
             </div>
 
-            <div class="eval-file-card" v-if="evaluationStatus.hasEvalCases">
+            <div class="eval-file-card" v-if="evaluationStatusQuery.data.hasEvalCases">
               <div class="card-header">
                 <h4>Evaluation Cases</h4>
               </div>
@@ -174,7 +174,7 @@
               </div>
             </div>
 
-            <div class="eval-file-card" v-if="evaluationStatus.hasEvalResults">
+            <div class="eval-file-card" v-if="evaluationStatusQuery.data.hasEvalResults">
               <div class="card-header">
                 <h4>Evaluation Results</h4>
               </div>
@@ -253,24 +253,26 @@ const evaluationStatusQuery = useQuery({
         hasEvalCases: false,
         hasEvalResults: false,
       }
-
     // We'll check for existence of each file
-    const results = await Promise.all([
+    const [hasAgentTrace, hasEvalCases, hasEvalResults] = await Promise.all([
       checkFileExists(`${workflowPath.value}/agent_eval_trace.json`),
       checkFileExists(`${workflowPath.value}/evaluation_case.yaml`), // Check in workflow dir directly
       checkFileExists(`${workflowPath.value}/evaluation_results.json`),
     ])
 
-    console.log('File check results:', results)
+    console.log('File check results:', {
+      hasAgentTrace,
+      hasEvalCases,
+      hasEvalResults,
+    })
 
     return {
-      hasAgentTrace: results[0],
-      hasEvalCases: results[1],
-      hasEvalResults: results[2],
+      hasAgentTrace,
+      hasEvalCases,
+      hasEvalResults,
     }
   },
   enabled: computed(() => !!workflowPath.value),
-  staleTime: 1000 * 60 * 5, // Cache for 5 minutes
 })
 
 // ADDED: Watch for workflow path changes to refetch evaluation status
@@ -288,10 +290,10 @@ watch(
 )
 
 // Helper function to check if a file exists
-async function checkFileExists(filePath) {
+async function checkFileExists(filePath: string) {
   try {
     const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath}`, {
-      method: 'HEAD',
+      method: 'GET',
     })
     return response.ok
   } catch (e) {
@@ -300,20 +302,9 @@ async function checkFileExists(filePath) {
   }
 }
 
-// Change the evaluationStatus computed property to use the query result
-const evaluationStatus = computed(() => {
-  return (
-    evaluationStatusQuery.data.value || {
-      hasAgentTrace: false,
-      hasEvalCases: false,
-      hasEvalResults: false,
-    }
-  )
-})
-
 // FIXED: The computed property for if any evaluation files exist
 const hasEvaluationFiles = computed(() => {
-  const status = evaluationStatus.value
+  const status = evaluationStatusQuery.data.value
   const result = !!(status.hasAgentTrace || status.hasEvalCases || status.hasEvalResults)
 
   console.log('hasEvaluationFiles computed:', result)
@@ -410,33 +401,18 @@ async function selectFile(file) {
 }
 
 // Update the handleEvaluationStatusChange function to directly update the data value:
-function handleEvaluationStatusChange(status) {
+async function handleEvaluationStatusChange(status) {
+  if (!status) return
+
   console.log('Evaluation status changed:', status)
-  if (status) {
-    // Get the current status data from the query
-    const currentStatus = evaluationStatusQuery.data.value || {
-      hasAgentTrace: false,
-      hasEvalCases: false,
-      hasEvalResults: false,
-    }
 
-    // Update the status in-memory immediately - this makes UI updates instant
-    evaluationStatusQuery.data.value = {
-      ...currentStatus,
-      ...status, // Merge in the new status without losing existing values
-    }
+  await queryClient.invalidateQueries({
+    queryKey: ['evaluationStatus', workflowPath.value],
+  })
 
-    console.log('Updated evaluation status:', evaluationStatusQuery.data.value)
-
-    // Also invalidate the query for future data fetches
-    queryClient.invalidateQueries({
-      queryKey: ['evaluationStatus', workflowPath.value],
-    })
-
-    // If a tab is specified in the status update, switch to that tab
-    if (status.tab) {
-      setActiveTab(status.tab)
-    }
+  // Switch to tab if specified
+  if (status.tab) {
+    activeTab.value = status.tab
   }
 }
 
@@ -481,14 +457,14 @@ watch(
     console.log('Workflow path changed, refetching evaluation status:', newPath)
     // Force refetch when workflow path changes
     if (newPath) {
-      evaluationStatusQuery.refetch.value()
+      evaluationStatusQuery.refetch()
     }
   },
 )
 
 // In WorkflowDetailsView.vue
 watch(
-  () => evaluationStatus.value,
+  () => evaluationStatusQuery.data.value,
   (newStatus) => {
     console.log('Evaluation status updated in WorkflowDetailsView:', newStatus)
   },

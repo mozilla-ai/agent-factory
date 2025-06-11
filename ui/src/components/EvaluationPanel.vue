@@ -157,76 +157,6 @@ async function processStreamingResponse(response: Response): Promise<void> {
   }
 }
 
-// FIXED: Check for specific files directly using the file access API
-// not the directory API which doesn't exist
-const agentTraceQuery = useQuery({
-  queryKey: ['fileExists', 'agent_eval_trace.json', props.workflowPath],
-  queryFn: async () => {
-    // Use the direct file path for the trace
-    const filePath = `${props.workflowPath}/agent_eval_trace.json`
-    log('Checking agent trace file at:', filePath)
-    try {
-      const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath}`, {
-        method: 'HEAD',
-      })
-      return response.ok
-    } catch (e) {
-      console.error('Error checking agent trace:', e)
-      return false
-    }
-  },
-  enabled: !!props.workflowPath,
-})
-
-const evalCasesQuery = useQuery({
-  queryKey: ['fileExists', 'evaluation_case.yaml', props.workflowPath],
-  queryFn: async () => {
-    // The evaluation_case.yaml might be in the root, not in the workflow directory
-    // Try both locations
-    const filePath = `evaluation_case.yaml`
-    log('Checking evaluation cases file at root:', filePath)
-    try {
-      const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath}`, {
-        method: 'HEAD',
-      })
-
-      if (response.ok) return true
-
-      // If not found at root, try in the workflow directory
-      const workflowFilePath = `${props.workflowPath}/evaluation_case.yaml`
-      const workflowResponse = await fetch(
-        `http://localhost:3000/agent-factory/workflows/${workflowFilePath}`,
-        {
-          method: 'HEAD',
-        },
-      )
-
-      return workflowResponse.ok
-    } catch (e) {
-      return false
-    }
-  },
-  enabled: !!props.workflowPath,
-})
-
-const evalResultsQuery = useQuery({
-  queryKey: ['fileExists', 'evaluation_results.json', props.workflowPath],
-  queryFn: async () => {
-    // Use workflow-specific path for evaluation results
-    const filePath = `${props.workflowPath}/evaluation_results.json`
-    log('Checking evaluation results file at:', filePath)
-    try {
-      const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath}`, {
-        method: 'HEAD',
-      })
-      return response.ok
-    } catch (e) {
-      return false
-    }
-  },
-  enabled: !!props.workflowPath,
-})
-
 // Mutations for evaluation steps
 const runAgentMutation = useMutation({
   mutationFn: async () => {
@@ -252,7 +182,13 @@ const runAgentMutation = useMutation({
   },
   onSuccess: () => {
     log('Agent run successful, invalidating evaluation status query')
-    // Emit that evaluation status has changed
+
+    // Missing: Invalidate the query for agent trace
+    queryClient.invalidateQueries({
+      queryKey: ['evaluationStatus', props.workflowPath],
+    })
+
+    // Emit status change as before
     emit('evaluation-status-changed', {
       hasAgentTrace: true,
     })
@@ -288,7 +224,7 @@ const genCasesMutation = useMutation({
   onSuccess: () => {
     log('Case generation successful, invalidating cases query')
     queryClient.invalidateQueries({
-      queryKey: ['fileExists', 'evaluation_case.yaml', props.workflowPath],
+      queryKey: ['evaluationStatus', props.workflowPath],
     })
 
     // Add direct status update like in runAgentMutation
@@ -327,7 +263,7 @@ const runEvalMutation = useMutation({
   onSuccess: () => {
     log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
-      queryKey: ['fileExists', 'evaluation_results.json', props.workflowPath],
+      queryKey: ['evaluationStatus', props.workflowPath],
     })
 
     // Add this line to directly update status (like in runAgentMutation)
@@ -340,25 +276,6 @@ const runEvalMutation = useMutation({
     output.value += `Failed to run evaluation. Check console for details.\n`
   },
 })
-
-// Update evaluation status when queries change
-watch(
-  [
-    () => agentTraceQuery.data.value,
-    () => evalCasesQuery.data.value,
-    () => evalResultsQuery.data.value,
-  ],
-  ([traceExists, casesExist, resultsExist]) => {
-    log('Query results updated:', { traceExists, casesExist, resultsExist })
-
-    // Emit status change to parent
-    emit('evaluation-status-changed', {
-      hasAgentTrace: !!traceExists,
-      hasEvalCases: !!casesExist,
-      hasEvalResults: !!resultsExist,
-    })
-  },
-)
 
 // Initial check on component mount
 onMounted(() => {

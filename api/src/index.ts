@@ -277,7 +277,23 @@ app.get('/agent-factory/workflows', async (_req: Request, res: Response) => {
   const workflowsDir = path.resolve(__dirname, '../../generated_workflows')
 
   try {
+    // Check if directory exists first
+    try {
+      await fs.access(workflowsDir)
+    } catch (err) {
+      // Directory doesn't exist, return empty array
+      console.log('Workflows directory does not exist, returning empty array')
+      return res.json([])
+    }
+
+    // Directory exists, read its contents
     const entries = await fs.readdir(workflowsDir, { withFileTypes: true })
+
+    // If no entries or no directories, return empty array
+    if (entries.length === 0 || !entries.some((entry) => entry.isDirectory())) {
+      return res.json([])
+    }
+
     const result = await Promise.all(
       entries
         .filter((entry) => entry.isDirectory())
@@ -290,7 +306,8 @@ app.get('/agent-factory/workflows', async (_req: Request, res: Response) => {
 
     res.json(result)
   } catch (error) {
-    console.error('Failed to read workflows directory:', error)
+    // Only unexpected errors should return 500
+    console.error('Unexpected error reading workflows directory:', error)
     res.status(500).json({ error: 'Failed to read workflows directory' })
   }
 })
