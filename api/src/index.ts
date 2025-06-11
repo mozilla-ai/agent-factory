@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename)
 // Load environment variables
 dotenv.config()
 
-type FileEntry = {
+export type FileEntry = {
   name: string
   isDirectory: boolean
   files?: FileEntry[]
@@ -67,7 +67,7 @@ function setupStreamingResponse(res: Response) {
 // 1. Run agent (generates agent_eval_trace.json) - UPDATED
 app.post(
   '/agent-factory/evaluate/run-agent/:workflowPath',
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const workflowPath = req.params.workflowPath
       const fullPath = resolveWorkflowPath(workflowPath)
@@ -90,10 +90,11 @@ app.post(
       // Check if agent.py exists
       try {
         await fs.access(agentPath)
-      } catch (error) {
-        return res
+      } catch {
+        res
           .status(404)
           .send(`Agent not found at path: ${workflowPath}/agent.py`)
+        return
       }
 
       // Set the AGENT_WORKFLOW_DIR environment variable to tell the agent where to save the trace
@@ -102,9 +103,10 @@ app.post(
         [], // No command line args needed with environment variables
         outputCallback,
         {
-          ...process.env, // Directly spread process.env here
+          // Cast to NodeJS.ProcessEnv
+          ...process.env,
           AGENT_WORKFLOW_DIR: `${process.cwd()}/generated_workflows/${workflowName}`,
-        },
+        } as NodeJS.ProcessEnv,
       )
 
       res.end('\n[Agent run completed. Generated agent_eval_trace.json]')
@@ -120,7 +122,7 @@ app.post(
 // 2. Generate evaluation cases - with workflowPath parameter
 app.post(
   '/agent-factory/evaluate/generate-cases/:workflowPath',
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const workflowPath = req.params.workflowPath
       const fullPath = resolveWorkflowPath(workflowPath)
@@ -145,7 +147,7 @@ app.post(
       // Pass just the workflow name to the Python script
       await runPythonScriptWithStreaming(
         'eval/main.py',
-        [`generated_workflows/${workflowName}`], // Use the simplified path
+        [`generated_workflows/${workflowName}`] as string[], // Fix using type assertion
         outputCallback,
       )
 
@@ -166,7 +168,7 @@ app.post(
 // 3. Run agent evaluation (original version)
 app.post(
   '/agent-factory/evaluate/run-evaluation/:workflowPath',
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const workflowPath = req.params.workflowPath
       const fullPath = resolveWorkflowPath(workflowPath)
@@ -174,23 +176,26 @@ app.post(
       // Check if agent trace exists in the workflow directory
       const tracePath = path.join(fullPath, 'agent_eval_trace.json')
 
+      // Fix both return statements
       try {
         await fs.access(tracePath)
-      } catch (error) {
-        return res
+      } catch {
+        res
           .status(404)
           .send('Agent trace file not found. Make sure to run the agent first.')
+        return
       }
 
       // Check if evaluation cases exist (globally)
       try {
         await fs.access(path.resolve(fullPath, 'evaluation_case.yaml'))
-      } catch (error) {
-        return res
+      } catch {
+        res
           .status(404)
           .send(
             'Evaluation cases not found. Make sure to generate evaluation cases first.',
           )
+        return
       }
 
       const outputCallback = setupStreamingResponse(res)
@@ -203,7 +208,7 @@ app.post(
 
       await runPythonScriptWithStreaming(
         '-m',
-        ['eval.run_agent_eval'],
+        ['eval.run_agent_eval'] as string[], // Fix using type assertion
         outputCallback,
         env,
       )
@@ -273,44 +278,54 @@ async function listFilesRecursive(dirPath: string): Promise<FileEntry[]> {
 }
 
 // List all generated workflows and their files
-app.get('/agent-factory/workflows', async (_req: Request, res: Response) => {
-  const workflowsDir = path.resolve(__dirname, '../../generated_workflows')
+app.get(
+  '/agent-factory/workflows',
+  async (_req: Request, res: Response): Promise<void> => {
+    const workflowsDir = path.resolve(__dirname, '../../generated_workflows')
 
-  try {
-    // Check if directory exists first
     try {
-      await fs.access(workflowsDir)
-    } catch (err) {
-      // Directory doesn't exist, return empty array
-      console.log('Workflows directory does not exist, returning empty array')
-      return res.json([])
+      // Check if directory exists first
+      try {
+        await fs.access(workflowsDir)
+      } catch {
+        // Directory doesn't exist, return empty array
+        console.log('Workflows directory does not exist, returning empty array')
+        res.json([])
+        return
+      }
+
+      // Directory exists, read its contents
+      const entries = await fs.readdir(workflowsDir, { withFileTypes: true })
+
+      // If no entries or no directories, return empty array
+      if (
+        entries.length === 0 ||
+        !entries.some((entry) => entry.isDirectory())
+      ) {
+        res.json([])
+        return
+      }
+
+      const result = await Promise.all(
+        entries
+          .filter((entry) => entry.isDirectory())
+          .map(async (entry) => ({
+            name: entry.name,
+            isDirectory: true,
+            files: await listFilesRecursive(
+              path.join(workflowsDir, entry.name),
+            ),
+          })),
+      )
+
+      res.json(result)
+    } catch (error) {
+      // Only unexpected errors should return 500
+      console.error('Unexpected error reading workflows directory:', error)
+      res.status(500).json({ error: 'Failed to read workflows directory' })
     }
-
-    // Directory exists, read its contents
-    const entries = await fs.readdir(workflowsDir, { withFileTypes: true })
-
-    // If no entries or no directories, return empty array
-    if (entries.length === 0 || !entries.some((entry) => entry.isDirectory())) {
-      return res.json([])
-    }
-
-    const result = await Promise.all(
-      entries
-        .filter((entry) => entry.isDirectory())
-        .map(async (entry) => ({
-          name: entry.name,
-          isDirectory: true,
-          files: await listFilesRecursive(path.join(workflowsDir, entry.name)),
-        })),
-    )
-
-    res.json(result)
-  } catch (error) {
-    // Only unexpected errors should return 500
-    console.error('Unexpected error reading workflows directory:', error)
-    res.status(500).json({ error: 'Failed to read workflows directory' })
-  }
-})
+  },
+)
 
 // Define workflows directory path
 const workflowsDir = path.resolve(__dirname, '../../generated_workflows')
@@ -426,7 +441,11 @@ function setupGracefulShutdown(server: Server) {
 }
 
 // Add middleware to check if environment is ready
-const checkEnvironmentMiddleware = (req, res, next) => {
+const checkEnvironmentMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   if (!isEnvironmentReady()) {
     return res.status(503).json({
       error: 'Server is still initializing. Please try again in a few moments.',
@@ -435,8 +454,14 @@ const checkEnvironmentMiddleware = (req, res, next) => {
   next()
 }
 
-// Apply the middleware to routes that need the Python environment
-app.use('/agent-factory', checkEnvironmentMiddleware)
+// Update middleware application
+// Change this:
+// app.use('/agent-factory', checkEnvironmentMiddleware)
+
+// To this:
+app.use('/agent-factory', (req: Request, res: Response, next: NextFunction) => {
+  checkEnvironmentMiddleware(req, res, next)
+})
 
 // Start the server
 startServer().catch((error) => {

@@ -30,7 +30,7 @@
 
       <router-link
         v-if="generationComplete"
-        :to="{ name: 'workflow-details', params: { id: 'latest' }}"
+        :to="{ name: 'workflow-details', params: { id: 'latest' } }"
         class="view-files-link"
       >
         📁 View Generated Workflow
@@ -98,10 +98,10 @@ const handleSendClicked = async () => {
     }
 
     isLoading.value = false
-  } catch (err) {
-    console.error('Error in generate:', err)
-    response.value += '\n\nError occurred: ' + err.message
+  } catch (error: unknown) {
     isLoading.value = false
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    response.value += '\n\nError occurred: ' + errorMessage
   }
 }
 </script>

@@ -349,7 +349,7 @@ function goBack(): void {
 
 // Helper to find parent directory of a file
 function findParent(files: File[] | undefined, target: File): File | undefined {
-  if (!files) return undefined;
+  if (!files) return undefined
 
   for (const file of files) {
     if (file.isDirectory && file.files) {
@@ -412,16 +412,18 @@ async function selectFile(file: File): Promise<void> {
     // For text files, display the content
     const content = await response.text()
     fileContent.value = content
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching file:', error)
-    fileContent.value = `Error loading file: ${error.message}`
+    fileContent.value = `Error loading file: ${error instanceof Error ? error.message : String(error)}`
   } finally {
     loadingFileContent.value = false
   }
 }
 
 // Update the handleEvaluationStatusChange function
-async function handleEvaluationStatusChange(status: Partial<EvaluationStatus> & { tab?: string }): Promise<void> {
+async function handleEvaluationStatusChange(
+  status: Partial<EvaluationStatus> & { tab?: string },
+): Promise<void> {
   if (!status) return
 
   console.log('Evaluation status changed:', status)
@@ -457,8 +459,8 @@ onMounted(async () => {
       if (!workflow.value) {
         error.value = `Workflow "${workflowId.value}" not found`
       }
-    } catch (err: any) {
-      error.value = `Error loading workflow: ${err.message}`
+    } catch (err: unknown) {
+      error.value = `Error loading workflow: ${err instanceof Error ? err.message : String(err)}`
     } finally {
       loading.value = false
     }

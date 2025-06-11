@@ -1,16 +1,9 @@
+import type { FileEntry, TransformedFileEntry } from '@/types/FileEntry'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-export type File = {
-  name: string
-  isDirectory: boolean
-  files?: File[]
-  path?: string
-  content?: string
-}
-
 export const useWorkflowsStore = defineStore('workflows', () => {
-  const workflows = ref<File[]>([])
+  const workflows = ref<TransformedFileEntry[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -28,7 +21,7 @@ export const useWorkflowsStore = defineStore('workflows', () => {
   })
 
   // Actions
-  async function loadWorkflows() {
+  async function loadWorkflows(): Promise<void> {
     loading.value = true
     error.value = null
 
@@ -41,9 +34,9 @@ export const useWorkflowsStore = defineStore('workflows', () => {
 
       const data = await response.json()
       workflows.value = processWorkflowsData(data)
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error loading workflows:', err)
-      error.value = err.message
+      error.value = err instanceof Error ? err.message : String(err)
       throw err
     } finally {
       loading.value = false
@@ -51,8 +44,8 @@ export const useWorkflowsStore = defineStore('workflows', () => {
   }
 
   // Process raw workflow data into a more usable format
-  function processWorkflowsData(data: any[]): File[] {
-    const result: File[] = []
+  function processWorkflowsData(data: FileEntry[]): TransformedFileEntry[] {
+    const result: TransformedFileEntry[] = []
 
     for (const item of data) {
       if (item.name === 'latest') {

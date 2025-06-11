@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, defineProps, defineEmits, watch } from 'vue'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useMutation, useQueryClient } from '@tanstack/vue-query'
 
 const props = defineProps({
   workflowPath: {
@@ -119,20 +119,11 @@ const allEvaluationFilesExist = computed(
     props.evaluationStatus.hasEvalResults,
 )
 
-// Debug logging
-const debug = ref(true)
-
-function log(...args: any[]) {
-  if (debug.value) {
-    console.log('[EvaluationPanel]', ...args)
-  }
-}
-
 // Watch for workflow path changes
 watch(
   () => props.workflowPath,
   (newPath) => {
-    log('Workflow path changed to:', newPath)
+    console.log('Workflow path changed to:', newPath)
   },
 )
 
@@ -165,7 +156,7 @@ const runAgentMutation = useMutation({
     // URL encode the path parameter to handle special characters
     const encodedPath = encodeURIComponent(props.workflowPath)
 
-    log(`Sending run agent request for: ${props.workflowPath}`)
+    console.log(`Sending run agent request for: ${props.workflowPath}`)
     const response = await fetch(
       `http://localhost:3000/agent-factory/evaluate/run-agent/${encodedPath}`,
       { method: 'POST' },
@@ -181,7 +172,7 @@ const runAgentMutation = useMutation({
     return true
   },
   onSuccess: () => {
-    log('Agent run successful, invalidating evaluation status query')
+    console.log('Agent run successful, invalidating evaluation status query')
 
     // Missing: Invalidate the query for agent trace
     queryClient.invalidateQueries({
@@ -193,7 +184,7 @@ const runAgentMutation = useMutation({
       hasAgentTrace: true,
     })
   },
-  onError: (error) => {
+  onError: (error: unknown) => {
     console.error('Error running agent:', error)
     output.value += `Failed to run agent. Check console for details.\n`
   },
@@ -206,7 +197,7 @@ const genCasesMutation = useMutation({
     // Encode the path for the URL
     const encodedPath = encodeURIComponent(props.workflowPath)
 
-    log('Sending generate cases request with path:', props.workflowPath)
+    console.log('Sending generate cases request with path:', props.workflowPath)
     const response = await fetch(
       `http://localhost:3000/agent-factory/evaluate/generate-cases/${encodedPath}`,
       { method: 'POST' },
@@ -222,7 +213,7 @@ const genCasesMutation = useMutation({
     return true
   },
   onSuccess: () => {
-    log('Case generation successful, invalidating cases query')
+    console.log('Case generation successful, invalidating cases query')
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
@@ -245,7 +236,7 @@ const runEvalMutation = useMutation({
     // Add this line to define encodedPath
     const encodedPath = encodeURIComponent(props.workflowPath)
 
-    log(`Sending run evaluation request for: ${props.workflowPath}`)
+    console.log(`Sending run evaluation request for: ${props.workflowPath}`)
     const response = await fetch(
       `http://localhost:3000/agent-factory/evaluate/run-evaluation/${encodedPath}`,
       { method: 'POST' },
@@ -261,7 +252,7 @@ const runEvalMutation = useMutation({
     return true
   },
   onSuccess: () => {
-    log('Evaluation successful, invalidating results query')
+    console.log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
@@ -279,7 +270,7 @@ const runEvalMutation = useMutation({
 
 // Initial check on component mount
 onMounted(() => {
-  log('Component mounted with workflow path:', props.workflowPath)
+  console.log('Component mounted with workflow path:', props.workflowPath)
   // Queries are automatically run due to their setup
 })
 </script>

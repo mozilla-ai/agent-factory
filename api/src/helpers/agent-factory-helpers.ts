@@ -155,11 +155,11 @@ export async function runAgentFactoryWorkflowWithStreaming(
 
 // Add a new function to run any Python script with streaming output
 export async function runPythonScriptWithStreaming(
-  scriptPath,
-  args = [],
-  outputCallback,
-  customEnv = null,
-) {
+  scriptPath: string,
+  args: string[] = [],
+  outputCallback: (source: 'stdout' | 'stderr', text: string) => void,
+  env: NodeJS.ProcessEnv | null = null,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     // Use the virtual environment Python when possible
     const pythonExecutable = venvPython
@@ -170,7 +170,7 @@ export async function runPythonScriptWithStreaming(
 
     const pythonProcess = spawn(pythonExecutable, [scriptPath, ...args], {
       cwd: agentFactoryPath,
-      env: customEnv || process.env,
+      env: env || process.env,
     })
 
     // Handle stdout data
@@ -194,7 +194,7 @@ export async function runPythonScriptWithStreaming(
     // Handle process completion
     pythonProcess.on('close', (code) => {
       if (code === 0) {
-        resolve()
+        resolve(void 0)
       } else {
         reject(new Error(`Python process exited with code ${code}`))
       }

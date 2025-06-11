@@ -73,8 +73,8 @@ onMounted(async () => {
 
       // Filter for archived workflows (anything not named "latest")
       archivedWorkflows.value = workflows
-        .filter((w: any) => w.name !== 'latest')
-        .map((w: any) => w.name)
+        .filter((w: File) => w.name !== 'latest')
+        .map((w: File) => w.name)
     }
   } catch (error) {
     console.error('Failed to load workflows:', error)
@@ -115,8 +115,9 @@ async function runAgent() {
     )
 
     await handleStreamingResponse(response)
-  } catch (error) {
-    output.value += '\nError: ' + (error instanceof Error ? error.message : String(error))
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    output.value += '\nError: ' + errorMessage
   } finally {
     isRunningAgent.value = false
     currentOperation.value = ''
@@ -138,8 +139,9 @@ async function generateEvaluationCases() {
     )
 
     await handleStreamingResponse(response)
-  } catch (error) {
-    output.value += '\nError: ' + (error instanceof Error ? error.message : String(error))
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    output.value += '\nError: ' + errorMessage
   } finally {
     isGeneratingCases.value = false
     currentOperation.value = ''
@@ -159,8 +161,9 @@ async function runEvaluation() {
     )
 
     await handleStreamingResponse(response)
-  } catch (error) {
-    output.value += '\nError: ' + (error instanceof Error ? error.message : String(error))
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    output.value += '\nError: ' + errorMessage
   } finally {
     isRunningEval.value = false
     currentOperation.value = ''

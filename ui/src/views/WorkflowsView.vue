@@ -40,7 +40,7 @@ const loading = computed(() => workflowsStore.loading)
 const error = computed(() => workflowsStore.error)
 
 // Navigate to the workflow details view - no direct API calls
-function selectWorkflow(workflow) {
+function selectWorkflow(workflow: { name: string }) {
   router.push({
     name: 'workflow-details',
     params: { id: workflow.name },
