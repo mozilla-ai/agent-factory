@@ -311,6 +311,38 @@ app.use(
   }),
 )
 
+app.get('/', (_req: Request, res: Response) => {
+  res.send('Hello World!')
+})
+
+// Run agent factory workflow
+app.get('/agent-factory', async (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+  const prompt =
+    (req.query.prompt as string) ||
+    'Summarize text content from a given webpage URL'
+
+  try {
+    await runAgentFactoryWorkflowWithStreaming(
+      prompt,
+      (source: 'stdout' | 'stderr', text: string) => {
+        if (source === 'stdout') {
+          console.log(`[agent-factory stdout]: ${text}`)
+          res.write(`[agent-factory stdout]: ${text}`)
+        } else if (source === 'stderr') {
+          console.log(`[agent-factory stderr]: ${text}`)
+          res.write(`[agent-factory stderr]: ${text}`)
+        }
+      },
+    )
+    res.end('\n[agent-factory] Workflow completed successfully.')
+  } catch (error: unknown) {
+    console.error('Error during agent factory workflow:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).send(`[agent-factory] Workflow failed: ${errorMessage}`)
+  }
+})
+
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Unhandled error:', err)

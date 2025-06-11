@@ -130,9 +130,12 @@ async function generateEvaluationCases() {
     currentOperation.value = 'Generating evaluation cases'
     output.value = ''
 
-    const response = await fetch('http://localhost:3000/agent-factory/evaluate/generate-cases', {
-      method: 'POST',
-    })
+    const response = await fetch(
+      `http://localhost:3000/agent-factory/evaluate/generate-cases/${selectedWorkflow.value}`,
+      {
+        method: 'POST',
+      },
+    )
 
     await handleStreamingResponse(response)
   } catch (error) {
