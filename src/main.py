@@ -18,7 +18,6 @@ dotenv.load_dotenv()
 repo_root = Path.cwd()
 workflows_root = repo_root / "generated_workflows"
 tools_dir = repo_root / "tools"
-mcps_dir = repo_root / "mcps"
 
 
 class AgentFactoryOutputs(BaseModel):
@@ -30,9 +29,7 @@ class AgentFactoryOutputs(BaseModel):
 def get_mount_config():
     return {
         "host_tools_dir": str(tools_dir),
-        "host_mcps_dir": str(mcps_dir),
         "container_tools_dir": "/app/tools",
-        "container_mcps_dir": "/app/mcps",
         "file_ops_dir": "/app",
     }
 
@@ -53,9 +50,6 @@ def get_default_tools(mount_config):
                 # Mount tools directory
                 "--mount",
                 f"type=bind,src={mount_config['host_tools_dir']},dst={mount_config['container_tools_dir']}",
-                # Mount mcps directory
-                "--mount",
-                f"type=bind,src={mount_config['host_mcps_dir']},dst={mount_config['container_mcps_dir']}",
                 "mcp/filesystem",
                 mount_config["file_ops_dir"],
             ],
