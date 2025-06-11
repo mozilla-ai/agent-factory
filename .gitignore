@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Generated workflows archive
-generated_workflows/archive/
-
 # C extensions
 *.so
 

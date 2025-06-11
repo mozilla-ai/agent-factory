@@ -11,6 +11,9 @@ const venvUv = path.resolve(agentFactoryPath, '.venv/bin/uv')
 
 let agentFactoryProcess: ChildProcessWithoutNullStreams | undefined
 
+// Flag to track initialization status
+let isEnvironmentInitialized = false
+
 // installs pip
 export function installPip(): ChildProcessWithoutNullStreams {
   return spawn(venvPython, ['-m', 'ensurepip'], {
@@ -33,6 +36,67 @@ export function runUvSync(): ChildProcessWithoutNullStreams {
     cwd: agentFactoryPath,
     shell: false,
   })
+}
+
+// Function to initialize the environment once
+export async function initializeEnvironment(): Promise<void> {
+  if (isEnvironmentInitialized) {
+    console.log('Environment already initialized, skipping setup')
+    return
+  }
+
+  console.log('Initializing Python environment...')
+
+  const steps = [
+    { name: 'ensurepip', fn: installPip },
+    { name: 'install uv', fn: installUv },
+    { name: 'uv sync', fn: runUvSync },
+  ]
+
+  for (const step of steps) {
+    console.log(`Running initialization step: ${step.name}`)
+    await new Promise<void>((resolve, reject) => {
+      const cmd = step.fn()
+
+      // Buffer stdout for logging
+      let stdoutBuffer = ''
+      let stderrBuffer = ''
+
+      cmd.stdout.on('data', (data) => {
+        const text = data.toString()
+        stdoutBuffer += text
+      })
+
+      cmd.stderr.on('data', (data) => {
+        const text = data.toString()
+        stderrBuffer += text
+      })
+
+      cmd.on('error', (error) => {
+        console.error(`Error in ${step.name}:`, error)
+        reject(error)
+      })
+
+      cmd.on('exit', (code) => {
+        if (code === 0) {
+          console.log(`✅ ${step.name} completed successfully`)
+          // Log brief output summary
+          if (stdoutBuffer) {
+            console.log(`stdout: ${stdoutBuffer.split('\n')[0]}...`)
+          }
+          resolve()
+        } else {
+          console.error(`❌ ${step.name} failed with code ${code}`)
+          console.error(`stdout: ${stdoutBuffer}`)
+          console.error(`stderr: ${stderrBuffer}`)
+          reject(new Error(`${step.name} failed with code ${code}`))
+        }
+      })
+    })
+  }
+
+  isEnvironmentInitialized = true
+  console.log('✅ Python environment initialized successfully')
 }
 
 // runs the agent factory Python script
@@ -65,23 +129,80 @@ export async function runAgentFactoryWorkflowWithStreaming(
   prompt: string = 'Summarize text content from a given webpage URL',
   onData: (source: 'stdout' | 'stderr', text: string) => void,
 ) {
-  const steps = [
-    { name: 'ensurepip', fn: installPip },
-    { name: 'install uv', fn: installUv },
-    { name: 'uv sync', fn: runUvSync },
-    { name: 'run python', fn: () => runAgentFactory(prompt) },
-  ]
+  // Ensure environment is initialized
+  try {
+    // Just run the agent directly since setup is already handled
+    const agentProcess = runAgentFactory(prompt)
 
-  for (const step of steps) {
     await new Promise<void>((resolve, reject) => {
-      const cmd = step.fn()
-      cmd.stdout.on('data', (data) => onData('stdout', data.toString()))
-      cmd.stderr.on('data', (data) => onData('stderr', data.toString()))
-      cmd.on('error', reject)
-      cmd.on('exit', (code) => {
+      agentProcess.stdout.on('data', (data) =>
+        onData('stdout', data.toString()),
+      )
+      agentProcess.stderr.on('data', (data) =>
+        onData('stderr', data.toString()),
+      )
+      agentProcess.on('error', reject)
+      agentProcess.on('exit', (code) => {
         if (code === 0) resolve()
-        else reject(new Error(`${step.name} failed with code ${code}`))
+        else reject(new Error(`Agent process failed with code ${code}`))
       })
     })
+  } catch (error) {
+    console.error('Error in agent factory workflow:', error)
+    throw error
   }
+}
+
+// Add a new function to run any Python script with streaming output
+export async function runPythonScriptWithStreaming(
+  scriptPath: string,
+  args: string[] = [],
+  outputCallback: (source: 'stdout' | 'stderr', text: string) => void,
+  env: NodeJS.ProcessEnv | null = null,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Use the virtual environment Python when possible
+    const pythonExecutable = venvPython
+
+    console.log(
+      `Running Python script: ${pythonExecutable} ${scriptPath} ${args.join(' ')}`,
+    )
+
+    const pythonProcess = spawn(pythonExecutable, [scriptPath, ...args], {
+      cwd: agentFactoryPath,
+      env: env || process.env,
+    })
+
+    // Handle stdout data
+    pythonProcess.stdout.on('data', (data) => {
+      const text = data.toString('utf-8')
+      outputCallback('stdout', text)
+    })
+
+    // Handle stderr data
+    pythonProcess.stderr.on('data', (data) => {
+      const text = data.toString('utf-8')
+      outputCallback('stderr', text)
+    })
+
+    // Handle process errors
+    pythonProcess.on('error', (error) => {
+      console.error(`Error running Python script:`, error)
+      reject(error)
+    })
+
+    // Handle process completion
+    pythonProcess.on('close', (code) => {
+      if (code === 0) {
+        resolve(void 0)
+      } else {
+        reject(new Error(`Python process exited with code ${code}`))
+      }
+    })
+  })
+}
+
+// Export the isEnvironmentInitialized flag for checking from outside
+export function isEnvironmentReady(): boolean {
+  return isEnvironmentInitialized
 }

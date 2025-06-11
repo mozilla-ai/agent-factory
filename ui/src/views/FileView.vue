@@ -1,13 +1,17 @@
 <template>
   <div class="file-view">
-    <div class="file-nav">
-      <button class="back-button" @click="goBack">
-        <span class="back-icon">←</span> Back to Workflows
-      </button>
+    <!-- Only show back button when used as a standalone page -->
+    <div v-if="!workflowName" class="file-nav">
+      <button class="back-button" @click="goBack"><span class="back-icon">←</span> Back</button>
+    </div>
+
+    <!-- Show close button when embedded in another view -->
+    <div v-else class="file-nav file-nav-embedded">
+      <h3>{{ fileName }}</h3>
+      <button class="close-button" @click="$emit('close')"><span>✕</span> Close</button>
     </div>
 
     <div class="file-header">
-      <h2>{{ fileName }}</h2>
       <div class="file-path">{{ filePath }}</div>
     </div>
 
@@ -24,17 +28,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, defineProps, defineEmits } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
+
+const props = defineProps({
+  // When used as an embedded component
+  pathMatch: {
+    type: Array,
+    default: () => [],
+  },
+  workflowName: {
+    type: String,
+    default: '',
+  },
+})
+
+defineEmits(['close'])
 
 const route = useRoute()
 const router = useRouter()
 
-// Extract the file path from route params
+// Extract the file path from route params or props
 const filePath = computed(() => {
-  // The pathMatch will contain the full path after /workflows/
-  return (route.params.pathMatch as string[]).join('/')
+  // If we have pathMatch prop, use that (embedded mode)
+  if (props.pathMatch && props.pathMatch.length > 0) {
+    return props.pathMatch.join('/')
+  }
+
+  // Otherwise use the route params (standalone mode)
+  return (route.params.pathMatch as string[])?.join('/') || ''
 })
 
 const fileName = computed(() => {
@@ -42,54 +65,85 @@ const fileName = computed(() => {
   return parts[parts.length - 1]
 })
 
+// Use vue-query for fetching file content with caching
 const fileQuery = useQuery({
-  queryKey: ['fileContent', filePath],
+  queryKey: ['fileContent', filePath.value],
   queryFn: async () => {
     const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath.value}`)
 
     if (!response.ok) {
-      throw new Error(`Failed to load file: ${response.statusText}`)
+      throw new Error(`Failed to load file: ${response.status} ${response.statusText}`)
+    }
+
+    // Handle binary files - return a message instead of binary content
+    const contentType = response.headers.get('content-type') || ''
+    if (
+      contentType.includes('image/') ||
+      contentType.includes('audio/') ||
+      contentType.includes('video/') ||
+      contentType.includes('application/octet-stream')
+    ) {
+      return `[This is a binary file (${contentType}) and cannot be displayed inline]\n\nYou can download it at: http://localhost:3000/agent-factory/workflows/${filePath.value}`
     }
 
     return response.text()
   },
-  // Refetch when the path changes
   enabled: computed(() => !!filePath.value),
+  staleTime: 1000 * 60 * 5, // Cache for 5 minutes
 })
 
+// Navigation function - only used in standalone mode
 const goBack = () => {
-  router.push('/workflows')
+  // If we have a workflowName, go back to that workflow
+  router.back()
 }
 </script>
 
 <style scoped>
 .file-view {
   width: 100%;
-  max-width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   text-align: left;
 }
 
 .file-nav {
-  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-background-soft);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.back-button {
+.file-nav-embedded {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-nav-embedded h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.back-button,
+.close-button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
-  background-color: var(--color-background-soft, #f5f5f5);
-  color: var(--color-text, #333);
-  border: 1px solid var(--color-border, #ddd);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.back-button:hover {
-  background-color: var(--color-background-mute, #eaeaea);
-  border-color: var(--color-border-hover, #aaa);
+.back-button:hover,
+.close-button:hover {
+  background-color: var(--color-background-mute);
+  border-color: var(--color-border-hover);
 }
 
 .back-icon {
@@ -97,24 +151,22 @@ const goBack = () => {
 }
 
 .file-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border, #ddd);
+  padding: 0.5rem 1rem;
+  background-color: var(--color-background);
 }
 
 .file-path {
-  color: var(--color-text-light, #888);
+  color: var(--color-text-light);
   font-size: 0.9rem;
-  margin-top: 0.25rem;
+  font-family: monospace;
 }
 
 .file-content {
-  background: var(--color-background-soft, #f5f5f5);
-  border-radius: 6px;
+  flex: 1;
+  overflow: auto;
+  background: var(--color-background-soft);
   padding: 1rem;
-  overflow-x: auto;
-  color: var(--color-text, #333);
-  border: 1px solid var(--color-border, #ddd);
+  color: var(--color-text);
 }
 
 pre {
@@ -125,15 +177,16 @@ pre {
 
 .loading,
 .error {
+  flex: 1;
   padding: 1rem;
-  background: var(--color-background-soft, #f5f5f5);
-  border-radius: 6px;
-  color: var(--color-text, #333);
-  border: 1px solid var(--color-border, #ddd);
+  background: var(--color-background-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
 }
 
 .error {
   color: var(--color-error, #d32f2f);
-  border-color: var(--color-error-border, #ffcdd2);
 }
 </style>

@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+import type { FileEntry } from '@/types/FileEntry'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -36,7 +37,7 @@ const props = defineProps<{
   item: {
     name: string
     isDirectory: boolean
-    files?: any[]
+    files?: FileEntry[]
   }
   path?: string
 }>()
