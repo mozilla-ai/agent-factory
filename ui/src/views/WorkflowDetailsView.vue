@@ -139,7 +139,7 @@
           <h3>Evaluation Results</h3>
 
           <div class="eval-files-grid">
-            <div class="eval-file-card" v-if="evaluationStatusQuery.data.hasAgentTrace">
+            <div class="eval-file-card" v-if="evaluationStatusQuery.data.value?.hasAgentTrace">
               <div class="card-header">
                 <h4>Agent Execution Trace</h4>
               </div>
@@ -157,7 +157,7 @@
               </div>
             </div>
 
-            <div class="eval-file-card" v-if="evaluationStatusQuery.data.hasEvalCases">
+            <div class="eval-file-card" v-if="evaluationStatusQuery.data.value?.hasEvalCases">
               <div class="card-header">
                 <h4>Evaluation Cases</h4>
               </div>
@@ -174,7 +174,7 @@
               </div>
             </div>
 
-            <div class="eval-file-card" v-if="evaluationStatusQuery.data.hasEvalResults">
+            <div class="eval-file-card" v-if="evaluationStatusQuery.data.value?.hasEvalResults">
               <div class="card-header">
                 <h4>Evaluation Results</h4>
               </div>
@@ -211,18 +211,31 @@ import { useWorkflowsStore } from '../stores/workflows'
 import EvaluationPanel from '../components/EvaluationPanel.vue'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 
+// Define types for file structure
+interface File {
+  name: string
+  isDirectory: boolean
+  files?: File[]
+}
+
+interface EvaluationStatus {
+  hasAgentTrace: boolean
+  hasEvalCases: boolean
+  hasEvalResults: boolean
+}
+
 const route = useRoute()
 const router = useRouter()
 const workflowsStore = useWorkflowsStore()
 const queryClient = useQueryClient()
 
-// UI state
-const loading = ref(false)
-const error = ref('')
-const activeTab = ref('files')
-const selectedFile = ref(null)
-const loadingFileContent = ref(false)
-const fileContent = ref('')
+// UI state with proper types
+const loading = ref<boolean>(false)
+const error = ref<string>('')
+const activeTab = ref<string>('files')
+const selectedFile = ref<File | undefined>(undefined) // Changed from null to undefined
+const loadingFileContent = ref<boolean>(false)
+const fileContent = ref<string>('')
 
 // Extract the workflow id from the route
 const workflowId = computed(() => route.params.id as string)
@@ -241,10 +254,10 @@ const workflowPath = computed(() => {
   )
 })
 
-// FIXED: Use the current value in the query key, not the reactive reference
+// Use the current value in the query key
 const evaluationStatusQuery = useQuery({
   queryKey: ['evaluationStatus', workflowPath.value],
-  queryFn: async () => {
+  queryFn: async (): Promise<EvaluationStatus> => {
     console.log('Fetching evaluation status for:', workflowPath.value)
 
     if (!workflowPath.value)
@@ -253,10 +266,11 @@ const evaluationStatusQuery = useQuery({
         hasEvalCases: false,
         hasEvalResults: false,
       }
+
     // We'll check for existence of each file
     const [hasAgentTrace, hasEvalCases, hasEvalResults] = await Promise.all([
       checkFileExists(`${workflowPath.value}/agent_eval_trace.json`),
-      checkFileExists(`${workflowPath.value}/evaluation_case.yaml`), // Check in workflow dir directly
+      checkFileExists(`${workflowPath.value}/evaluation_case.yaml`),
       checkFileExists(`${workflowPath.value}/evaluation_results.json`),
     ])
 
@@ -275,7 +289,7 @@ const evaluationStatusQuery = useQuery({
   enabled: computed(() => !!workflowPath.value),
 })
 
-// ADDED: Watch for workflow path changes to refetch evaluation status
+// Watch for workflow path changes to refetch evaluation status
 watch(
   () => workflowPath.value,
   (newPath, oldPath) => {
@@ -290,7 +304,7 @@ watch(
 )
 
 // Helper function to check if a file exists
-async function checkFileExists(filePath: string) {
+async function checkFileExists(filePath: string): Promise<boolean> {
   try {
     const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath}`, {
       method: 'GET',
@@ -302,9 +316,13 @@ async function checkFileExists(filePath: string) {
   }
 }
 
-// FIXED: The computed property for if any evaluation files exist
-const hasEvaluationFiles = computed(() => {
+// The computed property for if any evaluation files exist
+const hasEvaluationFiles = computed((): boolean => {
   const status = evaluationStatusQuery.data.value
+  if (!status) {
+    console.log('No evaluation status data available yet')
+    return false
+  }
   const result = !!(status.hasAgentTrace || status.hasEvalCases || status.hasEvalResults)
 
   console.log('hasEvaluationFiles computed:', result)
@@ -312,9 +330,9 @@ const hasEvaluationFiles = computed(() => {
 })
 
 // Set active tab and update URL
-function setActiveTab(tab) {
+function setActiveTab(tab: string): void {
   activeTab.value = tab
-  selectedFile.value = null
+  selectedFile.value = undefined // Changed from null to undefined
   fileContent.value = ''
 
   // Update URL to preserve tab when refreshing
@@ -325,13 +343,15 @@ function setActiveTab(tab) {
 }
 
 // Go back to workflows list
-function goBack() {
+function goBack(): void {
   router.push('/workflows')
 }
 
 // Helper to find parent directory of a file
-function findParent(files, target) {
-  for (const file of files || []) {
+function findParent(files: File[] | undefined, target: File): File | undefined {
+  if (!files) return undefined;
+
+  for (const file of files) {
     if (file.isDirectory && file.files) {
       if (file.files.some((f) => f === target)) {
         return file
@@ -343,11 +363,11 @@ function findParent(files, target) {
       }
     }
   }
-  return null
+  return undefined // Changed from null to undefined
 }
 
 // Select a file and load its content
-async function selectFile(file) {
+async function selectFile(file: File): Promise<void> {
   // If it's a directory, don't load content
   if (file.isDirectory) {
     selectedFile.value = file
@@ -358,10 +378,10 @@ async function selectFile(file) {
   let filePath = `${workflowPath.value}/${file.name}`
 
   // If this file is nested in directories, we need to build the full path
-  let parent = findParent(workflow.value.files, file)
+  let parent = workflow.value?.files ? findParent(workflow.value.files, file) : undefined
   while (parent) {
     filePath = `${workflowPath.value}/${parent.name}/${file.name}`
-    parent = findParent(workflow.value.files, parent)
+    parent = workflow.value?.files ? findParent(workflow.value.files, parent) : undefined
   }
 
   // Load file content
@@ -392,7 +412,7 @@ async function selectFile(file) {
     // For text files, display the content
     const content = await response.text()
     fileContent.value = content
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching file:', error)
     fileContent.value = `Error loading file: ${error.message}`
   } finally {
@@ -400,8 +420,8 @@ async function selectFile(file) {
   }
 }
 
-// Update the handleEvaluationStatusChange function to directly update the data value:
-async function handleEvaluationStatusChange(status) {
+// Update the handleEvaluationStatusChange function
+async function handleEvaluationStatusChange(status: Partial<EvaluationStatus> & { tab?: string }): Promise<void> {
   if (!status) return
 
   console.log('Evaluation status changed:', status)
@@ -416,7 +436,7 @@ async function handleEvaluationStatusChange(status) {
   }
 }
 
-// Add this watch to ensure the evaluation status is refreshed when switching back to the evaluate tab
+// Watch to ensure the evaluation status is refreshed when switching back to the evaluate tab
 watch(
   () => activeTab.value,
   (newTab) => {
@@ -437,7 +457,7 @@ onMounted(async () => {
       if (!workflow.value) {
         error.value = `Workflow "${workflowId.value}" not found`
       }
-    } catch (err) {
+    } catch (err: any) {
       error.value = `Error loading workflow: ${err.message}`
     } finally {
       loading.value = false
@@ -450,19 +470,7 @@ onMounted(async () => {
   }
 })
 
-// Update the query to watch for workflowPath changes and refetch
-watch(
-  () => workflowPath.value,
-  (newPath) => {
-    console.log('Workflow path changed, refetching evaluation status:', newPath)
-    // Force refetch when workflow path changes
-    if (newPath) {
-      evaluationStatusQuery.refetch()
-    }
-  },
-)
-
-// In WorkflowDetailsView.vue
+// Update the watch to monitor evaluation status changes
 watch(
   () => evaluationStatusQuery.data.value,
   (newStatus) => {
