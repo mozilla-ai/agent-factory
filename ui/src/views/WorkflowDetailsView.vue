@@ -257,7 +257,7 @@ const evaluationStatusQuery = useQuery({
     // We'll check for existence of each file
     const results = await Promise.all([
       checkFileExists(`${workflowPath.value}/agent_eval_trace.json`),
-      checkFileExists(`${workflowPath.value}/evaluation_case.yaml`),
+      checkFileExists(`${workflowPath.value}/evaluation_case.yaml`), // Check in workflow dir directly
       checkFileExists(`${workflowPath.value}/evaluation_results.json`),
     ])
 
@@ -302,16 +302,13 @@ async function checkFileExists(filePath) {
 
 // Change the evaluationStatus computed property to use the query result
 const evaluationStatus = computed(() => {
-  const status = evaluationStatusQuery.data.value || {
-    hasAgentTrace: false,
-    hasEvalCases: false,
-    hasEvalResults: false,
-  }
-
-  // Log status changes to help debug
-  console.log('Current evaluation status:', status)
-
-  return status
+  return (
+    evaluationStatusQuery.data.value || {
+      hasAgentTrace: false,
+      hasEvalCases: false,
+      hasEvalResults: false,
+    }
+  )
 })
 
 // FIXED: The computed property for if any evaluation files exist
@@ -429,6 +426,8 @@ function handleEvaluationStatusChange(status) {
       ...status, // Merge in the new status without losing existing values
     }
 
+    console.log('Updated evaluation status:', evaluationStatusQuery.data.value)
+
     // Also invalidate the query for future data fetches
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', workflowPath.value],
@@ -485,6 +484,15 @@ watch(
       evaluationStatusQuery.refetch.value()
     }
   },
+)
+
+// In WorkflowDetailsView.vue
+watch(
+  () => evaluationStatus.value,
+  (newStatus) => {
+    console.log('Evaluation status updated in WorkflowDetailsView:', newStatus)
+  },
+  { deep: true },
 )
 </script>
 

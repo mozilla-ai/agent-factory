@@ -181,14 +181,27 @@ const agentTraceQuery = useQuery({
 const evalCasesQuery = useQuery({
   queryKey: ['fileExists', 'evaluation_case.yaml', props.workflowPath],
   queryFn: async () => {
-    // Use workflow-specific path for evaluation cases
-    const filePath = `${props.workflowPath}/evaluation_case.yaml`
-    log('Checking evaluation cases file at:', filePath)
+    // The evaluation_case.yaml might be in the root, not in the workflow directory
+    // Try both locations
+    const filePath = `evaluation_case.yaml`
+    log('Checking evaluation cases file at root:', filePath)
     try {
       const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath}`, {
         method: 'HEAD',
       })
-      return response.ok
+
+      if (response.ok) return true
+
+      // If not found at root, try in the workflow directory
+      const workflowFilePath = `${props.workflowPath}/evaluation_case.yaml`
+      const workflowResponse = await fetch(
+        `http://localhost:3000/agent-factory/workflows/${workflowFilePath}`,
+        {
+          method: 'HEAD',
+        },
+      )
+
+      return workflowResponse.ok
     } catch (e) {
       return false
     }
@@ -219,9 +232,12 @@ const runAgentMutation = useMutation({
   mutationFn: async () => {
     output.value = `Running agent for workflow: ${props.workflowPath}...\n`
 
+    // URL encode the path parameter to handle special characters
+    const encodedPath = encodeURIComponent(props.workflowPath)
+
     log(`Sending run agent request for: ${props.workflowPath}`)
     const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/run-agent/${props.workflowPath}`,
+      `http://localhost:3000/agent-factory/evaluate/run-agent/${encodedPath}`,
       { method: 'POST' },
     )
 
@@ -251,10 +267,14 @@ const genCasesMutation = useMutation({
   mutationFn: async () => {
     output.value = 'Generating evaluation cases...\n'
 
-    log('Sending generate cases request')
-    const response = await fetch('http://localhost:3000/agent-factory/evaluate/generate-cases', {
-      method: 'POST',
-    })
+    // Encode the path for the URL
+    const encodedPath = encodeURIComponent(props.workflowPath)
+
+    log('Sending generate cases request with path:', props.workflowPath)
+    const response = await fetch(
+      `http://localhost:3000/agent-factory/evaluate/generate-cases/${encodedPath}`,
+      { method: 'POST' },
+    )
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -270,6 +290,11 @@ const genCasesMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['fileExists', 'evaluation_case.yaml', props.workflowPath],
     })
+
+    // Add direct status update like in runAgentMutation
+    emit('evaluation-status-changed', {
+      hasEvalCases: true,
+    })
   },
   onError: (error) => {
     console.error('Error generating cases:', error)
@@ -281,9 +306,12 @@ const runEvalMutation = useMutation({
   mutationFn: async () => {
     output.value = `Running evaluation for workflow: ${props.workflowPath}...\n`
 
+    // Add this line to define encodedPath
+    const encodedPath = encodeURIComponent(props.workflowPath)
+
     log(`Sending run evaluation request for: ${props.workflowPath}`)
     const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/run-evaluation/${props.workflowPath}`,
+      `http://localhost:3000/agent-factory/evaluate/run-evaluation/${encodedPath}`,
       { method: 'POST' },
     )
 
@@ -300,6 +328,11 @@ const runEvalMutation = useMutation({
     log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
       queryKey: ['fileExists', 'evaluation_results.json', props.workflowPath],
+    })
+
+    // Add this line to directly update status (like in runAgentMutation)
+    emit('evaluation-status-changed', {
+      hasEvalResults: true,
     })
   },
   onError: (error) => {

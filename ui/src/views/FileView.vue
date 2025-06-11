@@ -2,9 +2,7 @@
   <div class="file-view">
     <!-- Only show back button when used as a standalone page -->
     <div v-if="!workflowName" class="file-nav">
-      <button class="back-button" @click="goBack">
-        <span class="back-icon">←</span> Back
-      </button>
+      <button class="back-button" @click="goBack"><span class="back-icon">←</span> Back</button>
     </div>
 
     <!-- Show close button when embedded in another view -->

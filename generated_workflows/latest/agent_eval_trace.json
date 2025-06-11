@@ -4,8 +4,8 @@
       "name": "call_llm gpt-4.1",
       "kind": "internal",
       "parent": {
-        "trace_id": 47511419200872662320679940210213000923,
-        "span_id": 17500149178031317798,
+        "trace_id": 223186367781008978175389235652758145866,
+        "span_id": 5058406441612782072,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -14,15 +14,15 @@
           "entries": {}
         }
       },
-      "start_time": 1749560973306412000,
-      "end_time": 1749560976970011000,
+      "start_time": 1749633135556955000,
+      "end_time": 1749633136358702000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 47511419200872662320679940210213000923,
-        "span_id": 4140447790739673508,
+        "trace_id": 223186367781008978175389235652758145866,
+        "span_id": 13949237052520342796,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -34,13 +34,13 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "gpt-4.1",
-        "gen_ai.input.messages": "[{\"content\": \"\\nYou are an expert assistant whose task is to summarize text content from a webpage given its URL. Follow this precise workflow:\\n\\nStep 1: Receive the input URL from the user prompt.\\nStep 2: Use the provided 'visit_webpage' tool to retrieve the text and main content from the given URL. Only use the content returned by the tool; do not hallucinate or use external information.\\nStep 3: Read the webpage content carefully. Identify and focus on the main body text, skipping headers, footers, navigation, ads, and unrelated material.\\nStep 4: Write a clear, concise summary (4-6 sentences) capturing the essential points and main arguments or information from the body text. Do not include a list of sections, metadata, or raw sentences; your summary should be human-readable and coherent.\\nStep 5: Output your results as JSON with two fields:\\n- 'url': the original webpage URL\\n- 'summary': your generated summary\\nYour output MUST match the schema given. Never return information not present in the visited webpage.\\n\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"Summarize the main textual content from this webpage: https://mozilla-ai.github.io/any-agent/agents/\"}]",
-        "gen_ai.output": "[{\"tool.name\": \"visit_webpage\", \"tool.args\": \"{\\\"url\\\":\\\"https://mozilla-ai.github.io/any-agent/agents/\\\"}\"}]",
+        "gen_ai.input.messages": "[{\"content\": \"\\nYou are an intelligent assistant whose task is to summarize the main text content from a specified webpage URL in a concise manner.\\n\\nStep-by-step process:\\n1. Visit the URL provided by the user, retrieving the main readable text content of the webpage. Avoid summarizing metadata, navigation text, or unrelated sidebars—focus on the article or central content block.\\n2. Analyze the extracted text, distill key points, and write a succinct summary that captures the overall essence. The summary should be factual, clear, and no longer than 8 sentences.\\n3. Return the original URL and the generated summary, structured according to the instructed output schema.\\n\\nAlways ensure summaries are faithful to the source, with no hallucinations or inferred claims. If the webpage fails to load or does not contain readable content, return an appropriate brief note in the summary field indicating this.\\n\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"Summarize the main content of the following webpage.\\nURL: https://en.wikipedia.org/wiki/Artificial_intelligence\\nIf the page cannot be accessed, state that in the summary.\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"visit_webpage\", \"tool.args\": \"{\\\"url\\\":\\\"https://en.wikipedia.org/wiki/Artificial_intelligence\\\"}\"}]",
         "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 385,
-        "gen_ai.usage.output_tokens": 26,
-        "gen_ai.usage.input_cost": 0.00077,
-        "gen_ai.usage.output_cost": 0.000208
+        "gen_ai.usage.input_tokens": 357,
+        "gen_ai.usage.output_tokens": 24,
+        "gen_ai.usage.input_cost": 0.000714,
+        "gen_ai.usage.output_cost": 0.000192
       },
       "links": [],
       "events": [],
@@ -58,8 +58,8 @@
       "name": "execute_tool visit_webpage",
       "kind": "internal",
       "parent": {
-        "trace_id": 47511419200872662320679940210213000923,
-        "span_id": 17500149178031317798,
+        "trace_id": 223186367781008978175389235652758145866,
+        "span_id": 5058406441612782072,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -68,15 +68,15 @@
           "entries": {}
         }
       },
-      "start_time": 1749560976977454000,
-      "end_time": 1749560977271532000,
+      "start_time": 1749633136365739000,
+      "end_time": 1749633137167344000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 47511419200872662320679940210213000923,
-        "span_id": 15235097287494319149,
+        "trace_id": 223186367781008978175389235652758145866,
+        "span_id": 14665734191582194670,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -88,8 +88,8 @@
       "attributes": {
         "gen_ai.operation.name": "execute_tool",
         "gen_ai.tool.name": "visit_webpage",
-        "gen_ai.tool.args": "{\"url\":\"https://mozilla-ai.github.io/any-agent/agents/\"}",
-        "gen_ai.output": "Defining and Running Agents - any-agent\n[Skip to content](#defining-and-running-agents)\n[![logo](../images/any-agent-logo-mark.png)](.. \"any-agent\")\nany-agent\nDefining and Running Agents\nInitializing search\n[any-agent](https://github.com/mozilla-ai/any-agent \"Go to repository\")\n[![logo](../images/any-agent-logo-mark.png)](.. \"any-agent\")\nany-agent\n[any-agent](https://github.com/mozilla-ai/any-agent \"Go to repository\")\n* [Intro](..)\n* Agents\n  Agents\n  + Defining and Running Agents\n    [Defining and Running Agents](./)\n    Table of contents\n    - [Defining Agents](#defining-agents)\n      * [Single Agent](#single-agent)\n      * [Multi-Agent](#multi-agent)\n      * [Framework Specific Arguments](#framework-specific-arguments)\n    - [Running Agents](#running-agents)\n      * [Async](#async)\n  + Frameworks\n    Frameworks\n    - [Agno](frameworks/agno/)\n    - [Google ADK](frameworks/google_adk/)\n    - [Langchain](frameworks/langchain/)\n    - [LlamaIndex](frameworks/llama_index/)\n    - [OpenAI Agents SDK](frameworks/openai/)\n    - [smolagents](frameworks/smolagents/)\n    - [TinyAgent](frameworks/tinyagent/)\n  + [Tools](tools/)\n* [Tracing](../tracing/)\n* [Evaluation](../evaluation/)\n* [Serving](../serving/)\n* Cookbook\n  Cookbook\n  + [Creating your first agent](../cookbook/your_first_agent/)\n  + [Creating an agent with MCP](../cookbook/mcp_agent/)\n  + [Serve an Agent with A2A](../cookbook/serve_a2a/)\n  + [Use an Agent as a tool for another agent.](../cookbook/a2a_as_tool/)\n* API Reference\n  API Reference\n  + [Agent](../api/agent/)\n  + [Config](../api/config/)\n  + [Tools](../api/tools/)\n  + [Tracing](../api/tracing/)\n  + [Logging](../api/logging/)\nTable of contents\n* [Defining Agents](#defining-agents)\n  + [Single Agent](#single-agent)\n  + [Multi-Agent](#multi-agent)\n  + [Framework Specific Arguments](#framework-specific-arguments)\n* [Running Agents](#running-agents)\n  + [Async](#async)\nDefining and Running Agents\n===========================\nDefining Agents\n---------------\nTo define any agent system you will always use the same imports:\n```\nfrom any_agent import AgentConfig, AnyAgent\n# In these examples, the built-in tools will be used\nfrom any_agent.tools import search_web, visit_webpage\n```\nCheck [`AgentConfig`](../api/config/#any_agent.config.AgentConfig \"any_agent.config.AgentConfig\") for more info on how to configure agents.\n### Single Agent\n```\nagent = AnyAgent.create(\n    \"openai\",  # See other options under `Frameworks`\n    AgentConfig(\n        model_id=\"gpt-4.1-nano\",\n        instructions=\"Use the tools to find an answer\",\n        tools=[search_web, visit_webpage]\n    ),\n)\n```\n### Multi-Agent\nWarning\nA multi-agent system introduces even more complexity than a single agent.\nAs stated before, carefully consider whether you need to adopt this pattern to\nsolve the task.\nMulti-agent can be implemented today using the A2A protocol (see [A2A docs](https://mozilla-ai.github.io/any-agent/serving/)) and will be also supported with Agent-As-Tools (follow progress at https://github.com/mozilla-ai/any-agent/issues/382).\n### Framework Specific Arguments\nSometimes, there may be a new feature in a framework that you want to use that isn't yet supported universally in any-agent. The `agent_args` parameter in `AgentConfig` allows you to pass arguments specific to the underlying framework that the agent instance is built on.\n**Example-1**: To pass the `output_guardrails` parameter, when using the OpenAI Agents SDK:\n```\nfrom pydantic import BaseModel\nfrom any_agent import AgentConfig, AgentFramework, AnyAgent\nfrom agents import (\n    Agent,\n    GuardrailFunctionOutput,\n    OutputGuardrailTripwireTriggered,\n    RunContextWrapper,\n    Runner,\n    output_guardrail,\n)\nclass MessageOutput(BaseModel):\n    response: str\nclass MathOutput(BaseModel):\n    reasoning: str\n    is_math: bool\nguardrail_agent = Agent(\n    name=\"Guardrail check\",\n    instructions=\"Check if the output includes any math.\",\n    output_type=MathOutput,\n)\n@output_guardrail\nasync def math_guardrail(\n    ctx: RunContextWrapper, agent: Agent, output: MessageOutput\n) -> GuardrailFunctionOutput:\n    result = await Runner.run(guardrail_agent, output.response, context=ctx.context)\n    return GuardrailFunctionOutput(\n        output_info=result.final_output,\n        tripwire_triggered=result.final_output.is_math,\n    )\nframework = AgentFramework.OPENAI\nagent = AnyAgent.create(\n    framework,\n    AgentConfig(\n        model_id=\"gpt-4.1-mini\",\n        instructions=\"Check if the output contains any math\",\n        agent_args={\n            \"output_guardrails\": [math_guardrail]\n        }\n    )\n)\n```\nRunning Agents\n--------------\n```\nagent_trace = agent.run(\"Which Agent Framework is the best??\")\nprint(agent_trace.final_output)\n```\nCheck [`AgentTrace`](../api/tracing/#any_agent.tracing.agent_trace.AgentTrace \"any_agent.tracing.agent_trace.AgentTrace\") for more info on the return type.\n### Async\nIf you are running in `async` context, you should use the equivalent [`create_async`](../api/agent/#any_agent.AnyAgent.create_async \"create_async(agent_framework, agent_config)\n  \n      async\n      classmethod\n  \") and [`run_async`](../api/agent/#any_agent.AnyAgent.run_async \"run_async(prompt, instrument=True, **kwargs)\n  \n      async\n  \") methods:\n```\nimport asyncio\nasync def main():\n    agent = await AnyAgent.create_async(\n        \"openai\",\n        AgentConfig(\n            model_id=\"gpt-4.1-mini\",\n            instructions=\"Use the tools to find an answer\",\n            tools=[search_web, visit_webpage]\n        )\n    )\n    agent_trace = await agent.run_async(\"Which Agent Framework is the best??\")\n    print(agent_trace.final_output)\nif __name__ == \"__main__\":\n    asyncio.run(main())\n```\nMade with\n[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)",
+        "gen_ai.tool.args": "{\"url\":\"https://en.wikipedia.org/wiki/Artificial_intelligence\"}",
+        "gen_ai.output": "Artificial intelligence - Wikipedia\n[Jump to content](#bodyContent)\nMain menu\nMain menu\nmove to sidebar\nhide\nNavigation\n* [Main page](/wiki/Main_Page \"Visit the main page [z]\")\n* [Contents](/wiki/Wikipedia:Contents \"Guides to browsing Wikipedia\")\n* [Current events](/wiki/Portal:Current_events \"Articles related to current events\")\n* [Random article](/wiki/Special:Random \"Visit a randomly selected article [x]\")\n* [About Wikipedia](/wiki/Wikipedia:About \"Learn about Wikipedia and how it works\")\n* [Contact us](//en.wikipedia.org/wiki/Wikipedia:Contact_us \"How to contact Wikipedia\")\nContribute\n* [Help](/wiki/Help:Contents \"Guidance on how to use and edit Wikipedia\")\n* [Learn to edit](/wiki/Help:Introduction \"Learn how to edit Wikipedia\")\n* [Community portal](/wiki/Wikipedia:Community_portal \"The hub for editors\")\n* [Recent changes](/wiki/Special:RecentChanges \"A list of recent changes to Wikipedia [r]\")\n* [Upload file](/wiki/Wikipedia:File_upload_wizard \"Add images or other media for use on Wikipedia\")\n* [Special pages](/wiki/Special:SpecialPages)\n[![](/static/images/icons/wikipedia.png)\n![Wikipedia](/static/images/mobile/copyright/wikipedia-wordmark-en.svg)\n![The Free Encyclopedia](/static/images/mobile/copyright/wikipedia-tagline-en.svg)](/wiki/Main_Page)\n[Search](/wiki/Special:Search \"Search Wikipedia [f]\")\nSearch\nAppearance\n* [Donate](https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=en.wikipedia.org&uselang=en)\n* [Create account](/w/index.php?title=Special:CreateAccount&returnto=Artificial+intelligence \"You are encouraged to create an account and log in; however, it is not mandatory\")\n* [Log in](/w/index.php?title=Special:UserLogin&returnto=Artificial+intelligence \"You're encouraged to log in; however, it's not mandatory. [o]\")\nPersonal tools\n* [Donate](https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=en.wikipedia.org&uselang=en)\n* [Create account](/w/index.php?title=Special:CreateAccount&returnto=Artificial+intelligence \"You are encouraged to create an account and log in; however, it is not mandatory\")\n* [Log in](/w/index.php?title=Special:UserLogin&returnto=Artificial+intelligence \"You're encouraged to log in; however, it's not mandatory. [o]\")\nPages for logged out editors [learn more](/wiki/Help:Introduction)\n* [Contributions](/wiki/Special:MyContributions \"A list of edits made from this IP address [y]\")\n* [Talk](/wiki/Special:MyTalk \"Discussion about edits from this IP address [n]\")\nContents\n--------\nmove to sidebar\nhide\n* [(Top)](#)\n* [1\n  Goals](#Goals)\n  Toggle Goals subsection\n  + [1.1\n    Reasoning and problem-solving](#Reasoning_and_problem-solving)\n  + [1.2\n    Knowledge representation](#Knowledge_representation)\n  + [1.3\n    Planning and decision-making](#Planning_and_decision-making)\n  + [1.4\n    Learning](#Learning)\n  + [1.5\n    Natural language processing](#Natural_language_processing)\n  + [1.6\n    Perception](#Perception)\n  + [1.7\n    Social intelligence](#Social_intelligence)\n  + [1.8\n    General intelligence](#General_intelligence)\n* [2\n  Techniques](#Techniques)\n  Toggle Techniques subsection\n  + [2.1\n    Search and optimization](#Search_and_optimization)\n    - [2.1.1\n      State space search](#State_space_search)\n    - [2.1.2\n      Local search](#Local_search)\n  + [2.2\n    Logic](#Logic)\n  + [2.3\n    Probabilistic methods for uncertain reasoning](#Probabilistic_methods_for_uncertain_reasoning)\n  + [2.4\n    Classifiers and statistical learning methods](#Classifiers_and_statistical_learning_methods)\n  + [2.5\n    Artificial neural networks](#Artificial_neural_networks)\n  + [2.6\n    Deep learning](#Deep_learning)\n  + [2.7\n    GPT](#GPT)\n  + [2.8\n    Hardware and software](#Hardware_and_software)\n* [3\n  Applications](#Applications)\n  Toggle Applications subsection\n  + [3.1\n    Health and medicine](#Health_and_medicine)\n  + [3.2\n    Games](#Games)\n  + [3.3\n    Mathematics](#Mathematics)\n  + [3.4\n    Finance](#Finance)\n  + [3.5\n    Military](#Military)\n  + [3.6\n    Generative AI](#Generative_AI)\n  + [3.7\n    Agents](#Agents)\n  + [3.8\n    Sexuality](#Sexuality)\n  + [3.9\n    Other industry-specific tasks](#Other_industry-specific_tasks)\n* [4\n  Ethics](#Ethics)\n  Toggle Ethics subsection\n  + [4.1\n    Risks and harm](#Risks_and_harm)\n    - [4.1.1\n      Privacy and copyright](#Privacy_and_copyright)\n    - [4.1.2\n      Dominance by tech giants](#Dominance_by_tech_giants)\n    - [4.1.3\n      Power needs and environmental impacts](#Power_needs_and_environmental_impacts)\n    - [4.1.4\n      Misinformation](#Misinformation)\n    - [4.1.5\n      Algorithmic bias and fairness](#Algorithmic_bias_and_fairness)\n    - [4.1.6\n      Lack of transparency](#Lack_of_transparency)\n    - [4.1.7\n      Bad actors and weaponized AI](#Bad_actors_and_weaponized_AI)\n    - [4.1.8\n      Technological unemployment](#Technological_unemployment)\n    - [4.1.9\n      Existential risk](#Existential_risk)\n  + [4.2\n    Ethical machines and alignment](#Ethical_machines_and_align\n..._This content has been truncated to stay below 10000 characters_...\nttps://kopkatalogs.lv/F?func=direct&local_base=lnc10&doc_number=000050010&P_CON_LNG=ENG) * [Israel](https://www.nli.org.il/en/authorities/987007294969105171) |\n![](https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?type=1x1&usesul3=1)\nRetrieved from \"<https://en.wikipedia.org/w/index.php?title=Artificial_intelligence&oldid=1294488978>\"\n[Categories](/wiki/Help:Category \"Help:Category\"):\n* [Artificial intelligence](/wiki/Category:Artificial_intelligence \"Category:Artificial intelligence\")\n* [Computational fields of study](/wiki/Category:Computational_fields_of_study \"Category:Computational fields of study\")\n* [Computational neuroscience](/wiki/Category:Computational_neuroscience \"Category:Computational neuroscience\")\n* [Cybernetics](/wiki/Category:Cybernetics \"Category:Cybernetics\")\n* [Data science](/wiki/Category:Data_science \"Category:Data science\")\n* [Formal sciences](/wiki/Category:Formal_sciences \"Category:Formal sciences\")\n* [Intelligence by type](/wiki/Category:Intelligence_by_type \"Category:Intelligence by type\")\nHidden categories:\n* [Webarchive template wayback links](/wiki/Category:Webarchive_template_wayback_links \"Category:Webarchive template wayback links\")\n* [CS1 German-language sources (de)](/wiki/Category:CS1_German-language_sources_(de) \"Category:CS1 German-language sources (de)\")\n* [CS1 Japanese-language sources (ja)](/wiki/Category:CS1_Japanese-language_sources_(ja) \"Category:CS1 Japanese-language sources (ja)\")\n* [Articles with short description](/wiki/Category:Articles_with_short_description \"Category:Articles with short description\")\n* [Short description is different from Wikidata](/wiki/Category:Short_description_is_different_from_Wikidata \"Category:Short description is different from Wikidata\")\n* [Use dmy dates from July 2023](/wiki/Category:Use_dmy_dates_from_July_2023 \"Category:Use dmy dates from July 2023\")\n* [Wikipedia indefinitely semi-protected pages](/wiki/Category:Wikipedia_indefinitely_semi-protected_pages \"Category:Wikipedia indefinitely semi-protected pages\")\n* [Articles with excerpts](/wiki/Category:Articles_with_excerpts \"Category:Articles with excerpts\")\n* [All accuracy disputes](/wiki/Category:All_accuracy_disputes \"Category:All accuracy disputes\")\n* [Articles with disputed statements from July 2024](/wiki/Category:Articles_with_disputed_statements_from_July_2024 \"Category:Articles with disputed statements from July 2024\")\n* [Pages displaying short descriptions of redirect targets via Module:Annotated link](/wiki/Category:Pages_displaying_short_descriptions_of_redirect_targets_via_Module:Annotated_link \"Category:Pages displaying short descriptions of redirect targets via Module:Annotated link\")\n* [CS1: long volume value](/wiki/Category:CS1:_long_volume_value \"Category:CS1: long volume value\")\n* [Pages using Sister project links with hidden wikidata](/wiki/Category:Pages_using_Sister_project_links_with_hidden_wikidata \"Category:Pages using Sister project links with hidden wikidata\")\n* [Articles with Internet Encyclopedia of Philosophy links](/wiki/Category:Articles_with_Internet_Encyclopedia_of_Philosophy_links \"Category:Articles with Internet Encyclopedia of Philosophy links\")\n* This page was last edited on 8 June 2025, at 01:05 (UTC).\n* Text is available under the [Creative Commons Attribution-ShareAlike 4.0 License](/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License \"Wikipedia:Text of the Creative Commons Attribution-ShareAlike 4.0 International License\");\n  additional terms may apply. By using this site, you agree to the [Terms of Use](https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use \"foundation:Special:MyLanguage/Policy:Terms of Use\") and [Privacy Policy](https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy \"foundation:Special:MyLanguage/Policy:Privacy policy\"). Wikipedia® is a registered trademark of the [Wikimedia Foundation, Inc.](https://wikimediafoundation.org/), a non-profit organization.\n* [Privacy policy](https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy)\n* [About Wikipedia](/wiki/Wikipedia:About)\n* [Disclaimers](/wiki/Wikipedia:General_disclaimer)\n* [Contact Wikipedia](//en.wikipedia.org/wiki/Wikipedia:Contact_us)\n* [Code of Conduct](https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct)\n* [Developers](https://developer.wikimedia.org)\n* [Statistics](https://stats.wikimedia.org/#/en.wikipedia.org)\n* [Cookie statement](https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement)\n* [Mobile view](//en.m.wikipedia.org/w/index.php?title=Artificial_intelligence&mobileaction=toggle_view_mobile)\n* [![Wikimedia Foundation](/static/images/footer/wikimedia.svg)](https://www.wikimedia.org/)\n* [![Powered by MediaWiki](/w/resources/assets/mediawiki_compact.svg)](https://www.mediawiki.org/)\nSearch\nSearch\nToggle the table of contents\nArtificial intelligence\n166 languages\n[Add topic](#)",
         "gen_ai.output.type": "text"
       },
       "links": [],
@@ -108,8 +108,8 @@
       "name": "call_llm gpt-4.1",
       "kind": "internal",
       "parent": {
-        "trace_id": 47511419200872662320679940210213000923,
-        "span_id": 17500149178031317798,
+        "trace_id": 223186367781008978175389235652758145866,
+        "span_id": 5058406441612782072,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -118,15 +118,15 @@
           "entries": {}
         }
       },
-      "start_time": 1749560977292253000,
-      "end_time": 1749560981307460000,
+      "start_time": 1749633137179290000,
+      "end_time": 1749633140781598000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 47511419200872662320679940210213000923,
-        "span_id": 4624452576051126100,
+        "trace_id": 223186367781008978175389235652758145866,
+        "span_id": 13449814569756854122,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -138,12 +138,12 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "gpt-4.1",
-        "gen_ai.output": "{\"url\":\"https://mozilla-ai.github.io/any-agent/agents/\",\"summary\":\"This page explains how to define and run agents using the any-agent framework. It describes the basic setup, requiring imports from any_agent and its tools, and demonstrates how to create a single agent by specifying the framework, model, instructions, and tools. For more complex needs, it discusses multi-agent systems, highlighting their additional complexity and suggesting the use of the A2A protocol or forthcoming Agent-As-Tools support. The documentation also covers how to pass framework-specific arguments, such as output guardrails, when using particular frameworks like the OpenAI Agents SDK. Finally, it provides examples for running agents synchronously and asynchronously, including guidance for integration with async functions.\"}",
+        "gen_ai.output": "{\"url\":\"https://en.wikipedia.org/wiki/Artificial_intelligence\",\"summary\":\"The Wikipedia page on Artificial Intelligence (AI) provides a comprehensive overview of the field, which concerns the creation of machines capable of performing tasks that typically require human intelligence. It details the main goals of AI, including reasoning, knowledge representation, planning, learning, natural language processing, perception, and social intelligence. The article discusses various AI techniques such as search and optimization, logic, probabilistic reasoning, neural networks, deep learning, and generative models like GPT. It reviews numerous applications across domains like healthcare, finance, games, and industry, as well as generative AI and autonomous agents. Ethical considerations, including privacy, environmental impact, algorithmic bias, misinformation, and risks such as technological unemployment and existential threats, are explored in depth. The page also traces the history of AI, highlighting key developments and milestones. Overall, the article provides context for AI's current capabilities, ongoing research challenges, and its societal significance.\"}",
         "gen_ai.output.type": "text",
-        "gen_ai.usage.input_tokens": 1847,
-        "gen_ai.usage.output_tokens": 156,
-        "gen_ai.usage.input_cost": 0.003694,
-        "gen_ai.usage.output_cost": 0.001248
+        "gen_ai.usage.input_tokens": 3032,
+        "gen_ai.usage.output_tokens": 206,
+        "gen_ai.usage.input_cost": 0.006064,
+        "gen_ai.usage.output_cost": 0.001648
       },
       "links": [],
       "events": [],
@@ -171,15 +171,15 @@
           "entries": {}
         }
       },
-      "start_time": 1749560973305938000,
-      "end_time": 1749560981318906000,
+      "start_time": 1749633135556497000,
+      "end_time": 1749633140793362000,
       "status": {
         "status_code": "unset",
         "description": null
       },
       "context": {
-        "trace_id": 47511419200872662320679940210213000923,
-        "span_id": 17500149178031317798,
+        "trace_id": 223186367781008978175389235652758145866,
+        "span_id": 5058406441612782072,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -193,7 +193,7 @@
         "gen_ai.agent.name": "any_agent",
         "gen_ai.agent.description": "No description.",
         "gen_ai.request.model": "gpt-4.1",
-        "gen_ai.request.id": "f0b622e0-3254-4f47-a636-b61ee170f3ea"
+        "gen_ai.request.id": "92ccf1a9-4cd5-4307-bc0b-ee94452b3f79"
       },
       "links": [],
       "events": [],
@@ -208,5 +208,5 @@
       }
     }
   ],
-  "final_output": "url='https://mozilla-ai.github.io/any-agent/agents/' summary='This page explains how to define and run agents using the any-agent framework. It describes the basic setup, requiring imports from any_agent and its tools, and demonstrates how to create a single agent by specifying the framework, model, instructions, and tools. For more complex needs, it discusses multi-agent systems, highlighting their additional complexity and suggesting the use of the A2A protocol or forthcoming Agent-As-Tools support. The documentation also covers how to pass framework-specific arguments, such as output guardrails, when using particular frameworks like the OpenAI Agents SDK. Finally, it provides examples for running agents synchronously and asynchronously, including guidance for integration with async functions.'"
+  "final_output": "url='https://en.wikipedia.org/wiki/Artificial_intelligence' summary=\"The Wikipedia page on Artificial Intelligence (AI) provides a comprehensive overview of the field, which concerns the creation of machines capable of performing tasks that typically require human intelligence. It details the main goals of AI, including reasoning, knowledge representation, planning, learning, natural language processing, perception, and social intelligence. The article discusses various AI techniques such as search and optimization, logic, probabilistic reasoning, neural networks, deep learning, and generative models like GPT. It reviews numerous applications across domains like healthcare, finance, games, and industry, as well as generative AI and autonomous agents. Ethical considerations, including privacy, environmental impact, algorithmic bias, misinformation, and risks such as technological unemployment and existential threats, are explored in depth. The page also traces the history of AI, highlighting key developments and milestones. Overall, the article provides context for AI's current capabilities, ongoing research challenges, and its societal significance.\""
 }

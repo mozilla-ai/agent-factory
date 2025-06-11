@@ -64,19 +64,28 @@ function setupStreamingResponse(res: Response) {
   }
 }
 
-// 1. Run agent (generates agent_eval_trace.json)
+// 1. Run agent (generates agent_eval_trace.json) - UPDATED
 app.post(
   '/agent-factory/evaluate/run-agent/:workflowPath',
   async (req: Request, res: Response) => {
     try {
       const workflowPath = req.params.workflowPath
       const fullPath = resolveWorkflowPath(workflowPath)
-      const agentPath = path.join(fullPath, 'agent.py')
+
+      // Use the same pattern as in generate-cases
+      const workflowName = workflowPath.startsWith('archive/')
+        ? workflowPath
+        : 'latest'
+
       console.log({
         workflowPath,
         fullPath,
-        agentPath,
+        workflowName,
       })
+
+      const outputCallback = setupStreamingResponse(res)
+
+      const agentPath = path.join(fullPath, 'agent.py')
 
       // Check if agent.py exists
       try {
@@ -87,9 +96,16 @@ app.post(
           .send(`Agent not found at path: ${workflowPath}/agent.py`)
       }
 
-      const outputCallback = setupStreamingResponse(res)
-
-      await runPythonScriptWithStreaming(agentPath, [], outputCallback)
+      // Set the AGENT_WORKFLOW_DIR environment variable to tell the agent where to save the trace
+      await runPythonScriptWithStreaming(
+        agentPath,
+        [], // No command line args needed with environment variables
+        outputCallback,
+        {
+          ...process.env, // Directly spread process.env here
+          AGENT_WORKFLOW_DIR: `${process.cwd()}/generated_workflows/${workflowName}`,
+        },
+      )
 
       res.end('\n[Agent run completed. Generated agent_eval_trace.json]')
     } catch (error: unknown) {
@@ -101,14 +117,37 @@ app.post(
   },
 )
 
-// 2. Generate evaluation cases (original version without workflowPath parameter)
+// 2. Generate evaluation cases - with workflowPath parameter
 app.post(
-  '/agent-factory/evaluate/generate-cases',
+  '/agent-factory/evaluate/generate-cases/:workflowPath',
   async (req: Request, res: Response) => {
     try {
+      const workflowPath = req.params.workflowPath
+      const fullPath = resolveWorkflowPath(workflowPath)
+
+      // ⚠️ FIX: Make sure we're only passing the workflow-relative path, not the full system path
+      // Instead of this:
+      // const relativePath = fullPath.replace(process.cwd(), '').replace(/^\//, '');
+
+      // Do this - just pass the workflow name directly:
+      const workflowName = workflowPath.startsWith('archive/')
+        ? workflowPath
+        : 'latest'
+
+      console.log({
+        workflowPath,
+        fullPath,
+        workflowName, // Use this simpler path
+      })
+
       const outputCallback = setupStreamingResponse(res)
 
-      await runPythonScriptWithStreaming('-m', ['eval.main'], outputCallback)
+      // Pass just the workflow name to the Python script
+      await runPythonScriptWithStreaming(
+        'eval/main.py',
+        [`generated_workflows/${workflowName}`], // Use the simplified path
+        outputCallback,
+      )
 
       res.end(
         '\n[Evaluation cases generation completed. Saved to evaluation_case.yaml]',
@@ -145,7 +184,7 @@ app.post(
 
       // Check if evaluation cases exist (globally)
       try {
-        await fs.access(path.resolve(__dirname, '../../evaluation_case.yaml'))
+        await fs.access(path.resolve(fullPath, 'evaluation_case.yaml'))
       } catch (error) {
         return res
           .status(404)

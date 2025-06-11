@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Generated workflows archive
-generated_workflows/archive/
-
 # C extensions
 *.so
 
@@ -180,7 +177,7 @@ cython_debug/
 .DS_Store
 
 # generated agents
-# generated_workflows
+generated_workflows
 
 # chainlit
 .chainlit/translations
