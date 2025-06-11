@@ -291,6 +291,7 @@ onMounted(() => {
   gap: 1.5rem;
 }
 
+/* Improved success banner contrast */
 .evaluation-status {
   display: flex;
   align-items: center;
@@ -298,6 +299,8 @@ onMounted(() => {
   padding: 0.75rem 1rem;
   border-radius: 4px;
   background-color: var(--color-success-background, rgba(0, 128, 0, 0.1));
+  /* Add border for better contrast */
+  border: 1px solid var(--color-success, green);
 }
 
 .success-icon {
@@ -315,6 +318,8 @@ onMounted(() => {
 .status-text {
   flex: 1;
   font-weight: 500;
+  /* Use main text color for better contrast */
+  color: var(--color-text);
 }
 
 .view-results-button {
@@ -325,6 +330,8 @@ onMounted(() => {
   border: none;
   font-weight: 500;
   cursor: pointer;
+  /* Add box shadow for better distinction */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .view-results-button:hover {
@@ -334,9 +341,10 @@ onMounted(() => {
 .evaluation-steps {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem; /* Slightly more gap for better separation */
 }
 
+/* Higher contrast for buttons */
 .eval-button {
   display: flex;
   align-items: center;
@@ -344,7 +352,7 @@ onMounted(() => {
   padding: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: none;
+  background: var(--color-background);
   cursor: pointer;
   transition: all 0.3s;
   text-align: left;
@@ -360,9 +368,12 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+/* Improved contrast for completed steps */
 .eval-button.completed {
   border-color: var(--color-success, green);
   background-color: var(--color-success-background, rgba(0, 128, 0, 0.1));
+  /* Add box-shadow for more distinction */
+  box-shadow: 0 0 0 1px var(--color-success, green);
 }
 
 .step-number {
@@ -373,21 +384,26 @@ onMounted(() => {
   height: 2rem;
   border-radius: 50%;
   background-color: var(--color-background-soft);
+  color: var(--color-text); /* Ensure text uses main color */
   font-weight: bold;
+  /* Add subtle border for more contrast */
+  border: 1px solid var(--color-border);
 }
 
+/* Make step title more visible */
 .step-content {
   flex: 1;
 }
 
 .step-content h4 {
   margin: 0 0 0.25rem;
+  color: var(--color-heading, var(--color-text)); /* Use heading color if available */
 }
 
 .step-content p {
   margin: 0;
   font-size: 0.9rem;
-  color: var(--color-text-light);
+  color: var(--color-text-secondary); /* Use the existing secondary text color */
 }
 
 .step-status {
@@ -402,15 +418,21 @@ onMounted(() => {
   font-size: 1.25rem;
 }
 
+/* Improve indicator visibility */
 .success-indicator {
   color: var(--color-success, green);
+  /* Make success slightly larger for better visibility */
+  font-size: 1.4rem;
 }
 
+/* Improve console output contrast */
 .evaluation-output {
   margin-top: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
+  /* Add subtle shadow for depth */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .output-header {
@@ -425,6 +447,8 @@ onMounted(() => {
 .output-header h3 {
   margin: 0;
   font-size: 1rem;
+  color: var(--color-heading, var(--color-text)); /* Use heading color if available */
+  font-weight: 600;
 }
 
 .clear-button {
@@ -433,10 +457,12 @@ onMounted(() => {
   background-color: var(--color-background);
   border: 1px solid var(--color-border);
   cursor: pointer;
+  color: var(--color-text);
 }
 
 .clear-button:hover {
   background-color: var(--color-background-mute);
+  border-color: var(--color-border-hover);
 }
 
 .output-content {
@@ -448,5 +474,7 @@ onMounted(() => {
   font-size: 0.9rem;
   white-space: pre-wrap;
   background-color: var(--color-background);
+  color: var(--color-text); /* Ensure text color has good contrast */
+  border-top: 1px solid var(--color-border); /* Add subtle separator */
 }
 </style>
