@@ -281,7 +281,7 @@ const workflowPath = computed(() => {
 
 // Use the current value in the query key
 const evaluationStatusQuery = useQuery({
-  queryKey: ['evaluationStatus', workflowPath.value],
+  queryKey: ['evaluationStatus', workflowPath],
   queryFn: async (): Promise<EvaluationStatus> => {
     console.log('Fetching evaluation status for:', workflowPath.value)
 
@@ -299,12 +299,6 @@ const evaluationStatusQuery = useQuery({
       checkFileExists(`${workflowPath.value}/evaluation_results.json`),
     ])
 
-    console.log('File check results:', {
-      hasAgentTrace,
-      hasEvalCases,
-      hasEvalResults,
-    })
-
     return {
       hasAgentTrace,
       hasEvalCases,
@@ -314,19 +308,19 @@ const evaluationStatusQuery = useQuery({
   enabled: computed(() => !!workflowPath.value),
 })
 
-// Watch for workflow path changes to refetch evaluation status
-watch(
-  () => workflowPath.value,
-  (newPath, oldPath) => {
-    console.log('Workflow path changed from:', oldPath, 'to:', newPath)
-    if (newPath && newPath !== oldPath) {
-      console.log('Refetching evaluation status')
-      queryClient.invalidateQueries({
-        queryKey: ['evaluationStatus', newPath],
-      })
-    }
-  },
-)
+// // Watch for workflow path changes to refetch evaluation status
+// watch(
+//   () => workflowPath.value,
+//   (newPath, oldPath) => {
+//     console.log('Workflow path changed from:', oldPath, 'to:', newPath)
+//     if (newPath && newPath !== oldPath) {
+//       console.log('Refetching evaluation status')
+//       queryClient.invalidateQueries({
+//         queryKey: ['evaluationStatus', newPath],
+//       })
+//     }
+//   },
+// )
 
 // Helper function to check if a file exists
 async function checkFileExists(filePath: string): Promise<boolean> {
@@ -350,7 +344,6 @@ const hasEvaluationFiles = computed((): boolean => {
   }
   const result = !!(status.hasAgentTrace || status.hasEvalCases || status.hasEvalResults)
 
-  console.log('hasEvaluationFiles computed:', result)
   return result
 })
 
@@ -446,34 +439,15 @@ async function selectFile(file: File): Promise<void> {
 }
 
 // Update the handleEvaluationStatusChange function
-async function handleEvaluationStatusChange(
-  status: Partial<EvaluationStatus> & { tab?: string },
-): Promise<void> {
+async function handleEvaluationStatusChange(status: Partial<EvaluationStatus>): Promise<void> {
   if (!status) return
 
   console.log('Evaluation status changed:', status)
 
-  await queryClient.invalidateQueries({
-    queryKey: ['evaluationStatus', workflowPath.value],
-  })
-
-  // Switch to tab if specified
-  if (status.tab) {
-    activeTab.value = status.tab
-  }
+  // await queryClient.invalidateQueries({
+  //   queryKey: ['evaluationStatus', workflowPath.value],
+  // })
 }
-
-// Watch to ensure the evaluation status is refreshed when switching back to the evaluate tab
-watch(
-  () => activeTab.value,
-  (newTab) => {
-    if (newTab === 'evaluate') {
-      // Force refetch when switching to evaluate tab to ensure we have up-to-date status
-      evaluationStatusQuery.refetch()
-    }
-  },
-)
-
 // Load data when the component is mounted
 onMounted(async () => {
   // Load the workflow if not already in store
@@ -498,13 +472,13 @@ onMounted(async () => {
 })
 
 // Update the watch to monitor evaluation status changes
-watch(
-  () => evaluationStatusQuery.data.value,
-  (newStatus) => {
-    console.log('Evaluation status updated in WorkflowDetailsView:', newStatus)
-  },
-  { deep: true },
-)
+// watch(
+//   () => evaluationStatusQuery.data.value,
+//   (newStatus) => {
+//     console.log('Evaluation status updated in WorkflowDetailsView:', newStatus)
+//   },
+//   { deep: true },
+// )
 </script>
 
 <style scoped>

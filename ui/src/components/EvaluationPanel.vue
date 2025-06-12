@@ -120,12 +120,12 @@ const allEvaluationFilesExist = computed(
 )
 
 // Watch for workflow path changes
-watch(
-  () => props.workflowPath,
-  (newPath) => {
-    console.log('Workflow path changed to:', newPath)
-  },
-)
+// watch(
+//   () => props.workflowPath,
+//   (newPath) => {
+//     console.log('Workflow path changed to:', newPath)
+//   },
+// )
 
 // Process streaming response
 async function processStreamingResponse(response: Response): Promise<void> {
