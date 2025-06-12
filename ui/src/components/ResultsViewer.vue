@@ -10,7 +10,10 @@
       <!-- Summary stats if results available -->
       <div v-if="hasValidScoreData" class="results-summary">
         <div class="score-card">
-          <div class="score-header">Final Score</div>
+          <div class="score-header">
+            Final Score
+            <div class="score-description">Based on point values assigned to each checkpoint</div>
+          </div>
           <div class="score-value">{{ scoreValue }} / {{ maxScoreValue }}</div>
           <div class="score-percentage">{{ scorePercentage }}%</div>
           <div class="score-bar">
@@ -291,6 +294,13 @@ function goToEvaluateTab() {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+}
+
+.score-description {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--color-text-light);
+  margin-top: 0.25rem;
 }
 
 .score-value {

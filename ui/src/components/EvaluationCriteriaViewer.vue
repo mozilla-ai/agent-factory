@@ -28,6 +28,29 @@
         </div>
       </div>
 
+      <!-- Final score (if results available) -->
+      <div class="final-score">
+        <h3>Final Score</h3>
+        <div class="score-display">
+          <div class="score-value">{{ totalScore }} / {{ totalPossiblePoints }}</div>
+          <div class="score-percentage">
+            {{ Math.round((totalScore / totalPossiblePoints) * 100) }}%
+          </div>
+        </div>
+        <div class="score-bar">
+          <div
+            class="score-progress"
+            :style="{ width: `${(totalScore / totalPossiblePoints) * 100}%` }"
+            :class="{
+              'score-high': totalScore / totalPossiblePoints >= 0.8,
+              'score-medium':
+                totalScore / totalPossiblePoints >= 0.5 && totalScore / totalPossiblePoints < 0.8,
+              'score-low': totalScore / totalPossiblePoints < 0.5,
+            }"
+          ></div>
+        </div>
+      </div>
+
       <!-- Criteria checklist -->
       <div class="criteria-checklist">
         <div
@@ -61,29 +84,6 @@
               {{ evaluationResults[index]?.feedback }}
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Final score (if results available) -->
-      <div class="final-score">
-        <h3>Final Score</h3>
-        <div class="score-display">
-          <div class="score-value">{{ totalScore }} / {{ totalPossiblePoints }}</div>
-          <div class="score-percentage">
-            {{ Math.round((totalScore / totalPossiblePoints) * 100) }}%
-          </div>
-        </div>
-        <div class="score-bar">
-          <div
-            class="score-progress"
-            :style="{ width: `${(totalScore / totalPossiblePoints) * 100}%` }"
-            :class="{
-              'score-high': totalScore / totalPossiblePoints >= 0.8,
-              'score-medium':
-                totalScore / totalPossiblePoints >= 0.5 && totalScore / totalPossiblePoints < 0.8,
-              'score-low': totalScore / totalPossiblePoints < 0.5,
-            }"
-          ></div>
         </div>
       </div>
     </div>
@@ -210,6 +210,15 @@ const totalScore = computed(() => {
 <style scoped>
 .evaluation-criteria-viewer {
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Top-level spacing between major sections */
+}
+
+.criteria-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Spacing between content sections */
 }
 
 .criteria-loading,
@@ -228,12 +237,11 @@ const totalScore = computed(() => {
   background-color: var(--color-background-soft);
   border-radius: 8px;
   padding: 1.5rem;
-  margin-bottom: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .judge-info {
-  margin: 0.5rem 0;
+  margin: 0.5rem 0; /* Keep this small internal spacing */
 }
 
 .judge-label,
@@ -257,7 +265,6 @@ const totalScore = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 2rem;
 }
 
 .checkpoint-item {
@@ -289,10 +296,12 @@ const totalScore = computed(() => {
 
 .checkpoint-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .checkpoint-criteria {
-  margin-bottom: 0.5rem;
 }
 
 .checkpoint-points {
@@ -337,22 +346,24 @@ const totalScore = computed(() => {
 }
 
 .final-score {
-  background-color: var(--color-background-soft);
+  background-color: var(--color-background);
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 2px solid var(--color-border);
+}
+
+/* Style for the success/error colors on the score */
+.score-value {
+  font-size: 2.2rem;
+  font-weight: bold;
 }
 
 .score-display {
   display: flex;
   align-items: baseline;
-  gap: 1rem;
-  margin: 1rem 0;
-}
-
-.score-value {
-  font-size: 2rem;
-  font-weight: bold;
+  gap: 1rem; /* Already using gap - good! */
+  margin: 1rem 0; /* Could convert to padding or parent gap */
 }
 
 .score-percentage {
