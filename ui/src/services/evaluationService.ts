@@ -11,7 +11,6 @@ export const evaluationService = {
       throw new Error(`HTTP error ${response.status}: ${response.statusText}`)
     }
 
-    // Return the native ReadableStream from fetch
     return response.body as ReadableStream
   },
 

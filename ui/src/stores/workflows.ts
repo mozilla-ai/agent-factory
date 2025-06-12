@@ -1,16 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { workflowService } from '@/services/workflowService'
-import type { Workflow, WorkflowFile } from '@/types'
+import type { WorkflowFile } from '@/types'
 
 export const useWorkflowsStore = defineStore('workflows', () => {
-  const workflows = ref<Workflow[]>([])
+  const workflows = ref<WorkflowFile[]>([])
   const loading = ref(false)
   const error = ref('')
 
   // Process raw workflow data
-  function processWorkflowsData(data: WorkflowFile[]): Workflow[] {
-    const result: Workflow[] = []
+  function processWorkflowsData(data: WorkflowFile[]): WorkflowFile[] {
+    const result: WorkflowFile[] = []
 
     for (const item of data) {
       if (item.name === 'latest') {

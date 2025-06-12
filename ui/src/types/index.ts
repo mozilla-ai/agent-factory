@@ -5,13 +5,6 @@ export interface WorkflowFile {
   path?: string
 }
 
-export interface Workflow {
-  name: string
-  isDirectory: boolean
-  files?: WorkflowFile[]
-  path?: string
-}
-
 export interface EvaluationStatus {
   hasAgentTrace: boolean
   hasEvalCases: boolean
@@ -61,6 +54,11 @@ export interface EvaluationCheckpoint {
   criteria: string
   result: 'pass' | 'fail'
   points: number
-  feedback?: string
-  // Add other properties that exist in your checkpoints
+  feedback: string
+}
+
+export interface EvaluationResults {
+  score: number
+  maxScore: number
+  checkpoints: EvaluationCheckpoint[]
 }

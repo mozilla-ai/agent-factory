@@ -20,3 +20,9 @@ apiClient.interceptors.response.use(
     return Promise.reject(error)
   },
 )
+
+export function getWorkflowUrl(workflowPath: string, filePath?: string): string {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+  const endpoint = `/agent-factory/workflows/${workflowPath}`
+  return filePath ? `${baseUrl}${endpoint}/${filePath}` : `${baseUrl}${endpoint}`
+}

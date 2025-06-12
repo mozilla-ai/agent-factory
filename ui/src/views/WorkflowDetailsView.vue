@@ -84,22 +84,22 @@ const { activeTab, setActiveTab } = useTabs('files')
 // Store the selected file
 const selectedFile = ref<WorkflowFile | undefined>(undefined)
 
+// Computed property for selected file path
+const selectedFilePath = computed(() =>
+  selectedFile.value ? selectedFile.value.path || selectedFile.value.name : null,
+)
+
 // Configure file content query with caching
 const fileContentQuery = useQuery({
-  queryKey: [
-    'fileContent',
-    workflowPath,
-    computed(() =>
-      selectedFile.value ? selectedFile.value.path || selectedFile.value.name : null,
-    ),
-  ],
-  queryFn: async () => {
-    if (!selectedFile.value) return ''
-    const filePath = selectedFile.value.path || selectedFile.value.name
-    return workflowService.getFileContent(workflowPath.value, filePath)
+  queryKey: ['fileContent', workflowPath, selectedFilePath],
+  queryFn: () => {
+    // Make sure we have both required parameters as strings
+    if (!workflowPath.value || !selectedFilePath.value) {
+      return Promise.resolve('') // Return empty string if path is missing
+    }
+    return workflowService.getFileContent(workflowPath.value, selectedFilePath.value)
   },
-  // Add caching settings
-  enabled: computed(() => !!selectedFile.value && !selectedFile.value.isDirectory),
+  enabled: computed(() => !!workflowPath.value && !!selectedFilePath.value),
   retry: 1,
 })
 

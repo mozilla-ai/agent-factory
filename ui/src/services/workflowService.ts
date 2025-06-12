@@ -1,8 +1,8 @@
 import { apiClient } from './api'
-import type { Workflow, EvaluationStatus } from '@/types'
+import type { WorkflowFile, EvaluationStatus } from '@/types'
 
 export const workflowService = {
-  async getWorkflows(): Promise<Workflow[]> {
+  async getWorkflows(): Promise<WorkflowFile[]> {
     const response = await apiClient.get('/agent-factory/workflows')
     return response.data
   },

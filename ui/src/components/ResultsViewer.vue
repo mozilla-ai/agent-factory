@@ -131,9 +131,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
-import { useRouter } from 'vue-router'
 import { workflowService } from '@/services/workflowService'
-import { apiClient } from '@/services/api'
+import { useRouter } from 'vue-router'
 import type { EvaluationCheckpoint } from '@/types'
 
 // Props
@@ -154,13 +153,7 @@ const statusQuery = useQuery({
 // Fetch evaluation results using API client instead of direct fetch
 const resultsQuery = useQuery({
   queryKey: ['evaluationResults', props.workflowPath],
-  queryFn: async () => {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
-    )
-    return response.data
-  },
-  enabled: computed(() => statusQuery.data.value?.hasEvalResults),
+  queryFn: () => workflowService.getEvaluationResults(props.workflowPath),
   retry: 1,
 })
 
