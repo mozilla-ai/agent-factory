@@ -27,6 +27,20 @@
           Evaluate
         </button>
         <button
+          class="tab-button"
+          :class="{ active: activeTab === 'agent-trace' }"
+          @click="setActiveTab('agent-trace')"
+        >
+          Agent Trace
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'criteria' }"
+          @click="setActiveTab('criteria')"
+        >
+          Criteria
+        </button>
+        <button
           v-if="hasEvaluationFiles"
           class="tab-button"
           :class="{ active: activeTab === 'results' }"
@@ -134,6 +148,17 @@
           />
         </div>
 
+
+        <!-- Agent Trace tab -->
+        <div v-else-if="activeTab === 'agent-trace'" class="agent-trace-tab">
+          <AgentTraceViewer :workflow-path="workflowPath" />
+        </div>
+
+        <!-- Evaluation Criteria tab -->
+        <div v-else-if="activeTab === 'criteria'" class="criteria-tab">
+          <EvaluationCriteriaViewer :workflow-path="workflowPath" />
+        </div>
+
         <!-- Results tab -->
         <div v-if="activeTab === 'results'" class="results-tab">
           <h3>Evaluation Results</h3>
@@ -210,7 +235,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWorkflowsStore } from '../stores/workflows'
 import EvaluationPanel from '../components/EvaluationPanel.vue'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-
+import AgentTraceViewer from '../components/AgentTraceViewer.vue'
+import EvaluationCriteriaViewer from '../components/EvaluationCriteriaViewer.vue'
 // Define types for file structure
 interface File {
   name: string
