@@ -65,9 +65,8 @@ const fileName = computed(() => {
   return parts[parts.length - 1]
 })
 
-// Use vue-query for fetching file content with caching
 const fileQuery = useQuery({
-  queryKey: ['fileContent', filePath.value],
+  queryKey: ['fileContent', filePath],
   queryFn: async () => {
     const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath.value}`)
 
@@ -89,7 +88,7 @@ const fileQuery = useQuery({
     return response.text()
   },
   enabled: computed(() => !!filePath.value),
-  staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  retry: 1,
 })
 
 // Navigation function - only used in standalone mode
@@ -110,7 +109,7 @@ const goBack = () => {
 
 .file-nav {
   padding: 0.75rem 1rem;
-  background-color: var(--color-background-soft);
+  /* background-color: var(--color-background-soft); */
   border-bottom: 1px solid var(--color-border);
 }
 

@@ -7,243 +7,59 @@
     <div v-else-if="workflow" class="workflow-details">
       <div class="workflow-header">
         <h2>{{ workflow.name }}</h2>
-        <button class="back-button" @click="goBack">Back to all workflows</button>
+        <button class="back-button" @click="navigateBack">Back to all workflows</button>
       </div>
 
       <!-- Tabs navigation -->
       <div class="tabs">
         <button
+          v-for="tab in availableTabs"
+          :key="tab.id"
           class="tab-button"
-          :class="{ active: activeTab === 'files' }"
-          @click="setActiveTab('files')"
+          :class="{ active: activeTab === tab.id }"
+          @click="setActiveTab(tab.id)"
         >
-          Files
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'evaluate' }"
-          @click="setActiveTab('evaluate')"
-        >
-          Evaluate
-        </button>
-        <button
-          v-if="hasEvaluationFiles"
-          class="tab-button"
-          :class="{ active: activeTab === 'results' }"
-          @click="setActiveTab('results')"
-        >
-          Results
+          {{ tab.label }}
         </button>
       </div>
 
       <!-- Tab content -->
       <div class="tab-content">
-        <!-- Files tab with split view -->
-        <div v-if="activeTab === 'files'" class="files-tab">
-          <div class="file-explorer">
-            <!-- File tree on the left -->
-            <div class="file-tree-container">
-              <h3>Files</h3>
-              <div class="file-browser">
-                <!-- Custom file tree rendering -->
-                <div class="custom-file-tree">
-                  <ul class="file-list">
-                    <template v-for="file in workflow.files" :key="file.name">
-                      <li
-                        class="file-item"
-                        :class="{
-                          'file-item--directory': file.isDirectory,
-                          'file-item--selected': selectedFile === file,
-                        }"
-                        @click="selectFile(file)"
-                      >
-                        <span class="file-icon">
-                          <template v-if="file.isDirectory">📁</template>
-                          <template v-else>📄</template>
-                        </span>
-                        <span class="file-name">{{ file.name }}</span>
-                      </li>
-                      <!-- Render any nested files if it's a directory and expanded -->
-                      <template v-if="file.isDirectory && file === selectedFile && file.files">
-                        <li
-                          v-for="subFile in file.files"
-                          :key="`${file.name}/${subFile.name}`"
-                          class="file-item file-item--nested"
-                          :class="{
-                            'file-item--directory': subFile.isDirectory,
-                            'file-item--selected': selectedFile === subFile,
-                          }"
-                          @click.stop="selectFile(subFile)"
-                        >
-                          <span class="file-icon">
-                            <template v-if="subFile.isDirectory">📁</template>
-                            <template v-else>📄</template>
-                          </span>
-                          <span class="file-name">{{ subFile.name }}</span>
-                        </li>
-                      </template>
-                    </template>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- File content on the right -->
-            <div class="file-content-container">
-              <div v-if="selectedFile && !selectedFile.isDirectory" class="file-content-header">
-                <h3>{{ selectedFile.name }}</h3>
-                <a
-                  :href="`http://localhost:3000/agent-factory/workflows/${workflowPath}/${selectedFile.name}`"
-                  target="_blank"
-                  class="download-link"
-                >
-                  Download/View Raw
-                </a>
-              </div>
-              <div v-else-if="selectedFile && selectedFile.isDirectory" class="file-content-header">
-                <h3>Directory: {{ selectedFile.name }}</h3>
-              </div>
-              <div v-else class="file-content-header">
-                <h3>Select a file to view its content</h3>
-              </div>
-
-              <!-- File content display -->
-              <div class="file-content">
-                <div v-if="loadingFileContent" class="loading-file">Loading file content...</div>
-                <div v-else-if="selectedFile && !selectedFile.isDirectory">
-                  <!-- Handle text content -->
-                  <pre class="code-preview">{{ fileContent }}</pre>
-                </div>
-                <div v-else-if="selectedFile && selectedFile.isDirectory" class="directory-info">
-                  <p>This is a directory containing {{ selectedFile.files?.length || 0 }} items</p>
-                </div>
-                <div v-else class="no-file-selected">
-                  <p>No file selected. Click on a file in the tree to view its content.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Evaluation tab -->
-        <div v-if="activeTab === 'evaluate'" class="evaluate-tab">
-          <EvaluationPanel
-            :workflow-path="workflowPath"
-            :evaluation-status="evaluationStatusQuery.data.value"
-            @evaluation-status-changed="handleEvaluationStatusChange"
-          />
-        </div>
-
-        <!-- Results tab -->
-        <div v-if="activeTab === 'results'" class="results-tab">
-          <h3>Evaluation Results</h3>
-
-          <div class="eval-files-grid">
-            <div class="eval-file-card" v-if="evaluationStatusQuery.data.value?.hasAgentTrace">
-              <div class="card-header">
-                <h4>Agent Execution Trace</h4>
-              </div>
-              <div class="card-content">
-                <p>Contains the detailed trace of the agent's execution</p>
-              </div>
-              <div class="card-actions">
-                <!-- Use direct file access path -->
-                <router-link
-                  :to="`/workflows/${workflowPath}/agent_eval_trace.json`"
-                  class="view-button"
-                >
-                  View Trace
-                </router-link>
-              </div>
-            </div>
-
-            <div class="eval-file-card" v-if="evaluationStatusQuery.data.value?.hasEvalCases">
-              <div class="card-header">
-                <h4>Evaluation Cases</h4>
-              </div>
-              <div class="card-content">
-                <p>Contains evaluation test cases for the agent</p>
-              </div>
-              <div class="card-actions">
-                <router-link
-                  :to="`/workflows/${workflowPath}/evaluation_case.yaml`"
-                  class="view-button"
-                >
-                  View Cases
-                </router-link>
-              </div>
-            </div>
-
-            <div class="eval-file-card" v-if="evaluationStatusQuery.data.value?.hasEvalResults">
-              <div class="card-header">
-                <h4>Evaluation Results</h4>
-              </div>
-              <div class="card-content">
-                <p>Contains the results of running evaluation on this agent</p>
-              </div>
-              <div class="card-actions">
-                <router-link
-                  :to="`/workflows/${workflowPath}/evaluation_results.json`"
-                  class="view-button"
-                >
-                  View Results
-                </router-link>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="!hasEvaluationFiles" class="no-results">
-            <p>No evaluation files found. Run evaluation first to generate results.</p>
-            <button class="action-button" @click="setActiveTab('evaluate')">
-              Go to Evaluation
-            </button>
-          </div>
-        </div>
+        <component :is="currentTabComponent" v-bind="tabProps"></component>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useWorkflowsStore } from '../stores/workflows'
-import EvaluationPanel from '../components/EvaluationPanel.vue'
-import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useWorkflowsStore } from '@/stores/workflows'
+import { useQuery } from '@tanstack/vue-query'
+import { useTabs } from '@/composables/useTabs'
+import { workflowService } from '@/services/workflowService'
+import { routes } from '@/config'
 
-// Define types for file structure
-interface File {
-  name: string
-  isDirectory: boolean
-  files?: File[]
-}
+// Components
+import FileExplorer from '@/components/FileExplorer.vue'
+import EvaluationPanel from '@/components/EvaluationPanel.vue'
+import AgentTraceViewer from '@/components/AgentTraceViewer.vue'
+import EvaluationCriteriaViewer from '@/components/EvaluationCriteriaViewer.vue'
+import ResultsViewer from '@/components/ResultsViewer.vue'
+import type { WorkflowFile } from '@/types'
 
-interface EvaluationStatus {
-  hasAgentTrace: boolean
-  hasEvalCases: boolean
-  hasEvalResults: boolean
-}
-
+// Setup
 const route = useRoute()
 const router = useRouter()
 const workflowsStore = useWorkflowsStore()
-const queryClient = useQueryClient()
-
-// UI state with proper types
-const loading = ref<boolean>(false)
-const error = ref<string>('')
-const activeTab = ref<string>('files')
-const selectedFile = ref<File | undefined>(undefined) // Changed from null to undefined
-const loadingFileContent = ref<boolean>(false)
-const fileContent = ref<string>('')
+const loading = ref(false)
+const error = ref('')
 
 // Extract the workflow id from the route
 const workflowId = computed(() => route.params.id as string)
 
-// Get the workflow from store or fetch it
-const workflow = computed(() => {
-  return workflowsStore.getWorkflowById(workflowId.value)
-})
+// Get the workflow from store
+const workflow = computed(() => workflowsStore.getWorkflowById(workflowId.value))
 
 // Computed workflow path for API calls
 const workflowPath = computed(() => {
@@ -254,202 +70,129 @@ const workflowPath = computed(() => {
   )
 })
 
-// Use the current value in the query key
+// Setup evaluation status checking
 const evaluationStatusQuery = useQuery({
-  queryKey: ['evaluationStatus', workflowPath.value],
-  queryFn: async (): Promise<EvaluationStatus> => {
-    console.log('Fetching evaluation status for:', workflowPath.value)
-
-    if (!workflowPath.value)
-      return {
-        hasAgentTrace: false,
-        hasEvalCases: false,
-        hasEvalResults: false,
-      }
-
-    // We'll check for existence of each file
-    const [hasAgentTrace, hasEvalCases, hasEvalResults] = await Promise.all([
-      checkFileExists(`${workflowPath.value}/agent_eval_trace.json`),
-      checkFileExists(`${workflowPath.value}/evaluation_case.yaml`),
-      checkFileExists(`${workflowPath.value}/evaluation_results.json`),
-    ])
-
-    console.log('File check results:', {
-      hasAgentTrace,
-      hasEvalCases,
-      hasEvalResults,
-    })
-
-    return {
-      hasAgentTrace,
-      hasEvalCases,
-      hasEvalResults,
-    }
-  },
+  queryKey: ['evaluationStatus', workflowPath],
+  queryFn: () => workflowService.getEvaluationStatus(workflowPath.value),
   enabled: computed(() => !!workflowPath.value),
+  retry: 1,
 })
 
-// Watch for workflow path changes to refetch evaluation status
-watch(
-  () => workflowPath.value,
-  (newPath, oldPath) => {
-    console.log('Workflow path changed from:', oldPath, 'to:', newPath)
-    if (newPath && newPath !== oldPath) {
-      console.log('Refetching evaluation status')
-      queryClient.invalidateQueries({
-        queryKey: ['evaluationStatus', newPath],
-      })
-    }
-  },
+// Setup tabs
+const { activeTab, setActiveTab } = useTabs('files')
+
+// Store the selected file
+const selectedFile = ref<WorkflowFile | undefined>(undefined)
+
+// Computed property for selected file path
+const selectedFilePath = computed(() =>
+  selectedFile.value ? selectedFile.value.path || selectedFile.value.name : null,
 )
 
-// Helper function to check if a file exists
-async function checkFileExists(filePath: string): Promise<boolean> {
-  try {
-    const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath}`, {
-      method: 'GET',
-    })
-    return response.ok
-  } catch (e) {
-    console.error(`Error checking file ${filePath}:`, e)
-    return false
-  }
-}
-
-// The computed property for if any evaluation files exist
-const hasEvaluationFiles = computed((): boolean => {
-  const status = evaluationStatusQuery.data.value
-  if (!status) {
-    console.log('No evaluation status data available yet')
-    return false
-  }
-  const result = !!(status.hasAgentTrace || status.hasEvalCases || status.hasEvalResults)
-
-  console.log('hasEvaluationFiles computed:', result)
-  return result
+// Configure file content query with caching
+const fileContentQuery = useQuery({
+  queryKey: ['fileContent', workflowPath, selectedFilePath],
+  queryFn: () => {
+    // Make sure we have both required parameters as strings
+    if (!workflowPath.value || !selectedFilePath.value) {
+      return Promise.resolve('') // Return empty string if path is missing
+    }
+    return workflowService.getFileContent(workflowPath.value, selectedFilePath.value)
+  },
+  enabled: computed(() => !!workflowPath.value && !!selectedFilePath.value),
+  retry: 1,
 })
 
-// Set active tab and update URL
-function setActiveTab(tab: string): void {
-  activeTab.value = tab
-  selectedFile.value = undefined // Changed from null to undefined
-  fileContent.value = ''
-
-  // Update URL to preserve tab when refreshing
-  router.replace({
-    path: route.path,
-    query: { tab },
-  })
+// Handle file selection
+function handleFileSelect(file: WorkflowFile) {
+  selectedFile.value = file
 }
 
-// Go back to workflows list
-function goBack(): void {
-  router.push('/workflows')
-}
+// Dynamic tab list based on evaluation status
+const availableTabs = computed(() => {
+  const tabs = [
+    { id: 'files', label: 'Files' },
+    { id: 'evaluate', label: 'Run Evaluation' },
+  ]
 
-// Helper to find parent directory of a file
-function findParent(files: File[] | undefined, target: File): File | undefined {
-  if (!files) return undefined
+  if (evaluationStatusQuery.data.value?.hasAgentTrace) {
+    tabs.push({ id: 'agent-trace', label: 'Agent Trace' })
+  }
 
-  for (const file of files) {
-    if (file.isDirectory && file.files) {
-      if (file.files.some((f) => f === target)) {
-        return file
+  if (evaluationStatusQuery.data.value?.hasEvalCases) {
+    tabs.push({ id: 'criteria', label: 'Evaluation Criteria' })
+  }
+
+  if (
+    evaluationStatusQuery.data.value?.hasAgentTrace ||
+    evaluationStatusQuery.data.value?.hasEvalCases ||
+    evaluationStatusQuery.data.value?.hasEvalResults
+  ) {
+    tabs.push({ id: 'results', label: 'Evaluation Results' })
+  }
+
+  return tabs
+})
+
+// Dynamic component loading based on active tab
+const currentTabComponent = computed(() => {
+  switch (activeTab.value) {
+    case 'files':
+      return FileExplorer
+    case 'evaluate':
+      return EvaluationPanel
+    case 'agent-trace':
+      return AgentTraceViewer
+    case 'criteria':
+      return EvaluationCriteriaViewer
+    case 'results':
+      return ResultsViewer
+    default:
+      return FileExplorer
+  }
+})
+
+// Props to pass to the current tab component
+const tabProps = computed(() => {
+  const baseProps = {
+    workflowPath: workflowPath.value,
+  }
+
+  // Add tab-specific props
+  switch (activeTab.value) {
+    case 'files':
+      return {
+        ...baseProps,
+        files: workflow.value?.files || [],
+        selectedFile: selectedFile.value,
+        content: fileContentQuery.data.value || '',
+        loading: fileContentQuery.isLoading.value,
+        error: fileContentQuery.error.value?.message || '',
+        onSelect: handleFileSelect,
       }
-
-      const nestedResult = findParent(file.files, target)
-      if (nestedResult) {
-        return nestedResult
+    case 'evaluate':
+      return {
+        ...baseProps,
+        evaluationStatus: evaluationStatusQuery.data.value,
+        onEvaluationStatusChanged: handleEvaluationStatusChange,
       }
-    }
+    default:
+      return baseProps
   }
-  return undefined // Changed from null to undefined
+})
+
+// Handle evaluation status changes
+function handleEvaluationStatusChange() {
+  // Invalidate the query to refresh evaluation status
+  evaluationStatusQuery.refetch()
 }
 
-// Select a file and load its content
-async function selectFile(file: File): Promise<void> {
-  // If it's a directory, don't load content
-  if (file.isDirectory) {
-    selectedFile.value = file
-    return
-  }
-
-  // Get the full path to the file
-  let filePath = `${workflowPath.value}/${file.name}`
-
-  // If this file is nested in directories, we need to build the full path
-  let parent = workflow.value?.files ? findParent(workflow.value.files, file) : undefined
-  while (parent) {
-    filePath = `${workflowPath.value}/${parent.name}/${file.name}`
-    parent = workflow.value?.files ? findParent(workflow.value.files, parent) : undefined
-  }
-
-  // Load file content
-  try {
-    loadingFileContent.value = true
-    selectedFile.value = file
-
-    const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath}`)
-
-    if (!response.ok) {
-      fileContent.value = `Error loading file: ${response.status} ${response.statusText}`
-      return
-    }
-
-    // Check if it's a binary file - if so, provide a link instead
-    const contentType = response.headers.get('content-type')
-    if (
-      contentType &&
-      (contentType.includes('image/') ||
-        contentType.includes('audio/') ||
-        contentType.includes('video/') ||
-        contentType.includes('application/octet-stream'))
-    ) {
-      fileContent.value = `This file type (${contentType}) cannot be displayed inline.\n\nYou can view/download it at:\n${response.url}`
-      return
-    }
-
-    // For text files, display the content
-    const content = await response.text()
-    fileContent.value = content
-  } catch (error: unknown) {
-    console.error('Error fetching file:', error)
-    fileContent.value = `Error loading file: ${error instanceof Error ? error.message : String(error)}`
-  } finally {
-    loadingFileContent.value = false
-  }
+// Navigation
+function navigateBack() {
+  router.push(routes.workflowList)
 }
 
-// Update the handleEvaluationStatusChange function
-async function handleEvaluationStatusChange(
-  status: Partial<EvaluationStatus> & { tab?: string },
-): Promise<void> {
-  if (!status) return
-
-  console.log('Evaluation status changed:', status)
-
-  await queryClient.invalidateQueries({
-    queryKey: ['evaluationStatus', workflowPath.value],
-  })
-
-  // Switch to tab if specified
-  if (status.tab) {
-    activeTab.value = status.tab
-  }
-}
-
-// Watch to ensure the evaluation status is refreshed when switching back to the evaluate tab
-watch(
-  () => activeTab.value,
-  (newTab) => {
-    if (newTab === 'evaluate') {
-      // Force refetch when switching to evaluate tab to ensure we have up-to-date status
-      evaluationStatusQuery.refetch()
-    }
-  },
-)
-
-// Load data when the component is mounted
+// Load data when the component mounts
 onMounted(async () => {
   // Load the workflow if not already in store
   if (!workflow.value) {
@@ -460,7 +203,7 @@ onMounted(async () => {
         error.value = `Workflow "${workflowId.value}" not found`
       }
     } catch (err: unknown) {
-      error.value = `Error loading workflow: ${err instanceof Error ? err.message : String(err)}`
+      error.value = err instanceof Error ? err.message : String(err)
     } finally {
       loading.value = false
     }
@@ -468,18 +211,9 @@ onMounted(async () => {
 
   // Set tab from query parameter if present
   if (route.query.tab) {
-    activeTab.value = route.query.tab.toString()
+    setActiveTab(route.query.tab.toString())
   }
 })
-
-// Update the watch to monitor evaluation status changes
-watch(
-  () => evaluationStatusQuery.data.value,
-  (newStatus) => {
-    console.log('Evaluation status updated in WorkflowDetailsView:', newStatus)
-  },
-  { deep: true },
-)
 </script>
 
 <style scoped>
@@ -544,6 +278,7 @@ watch(
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
+  border-radius: 0;
   color: var(--color-text);
   cursor: pointer;
   transition: all 0.2s;
@@ -552,12 +287,12 @@ watch(
 }
 
 .tab-button:hover {
-  color: var(--color-primary);
+  color: var(--link-color);
 }
 
 .tab-button.active {
-  color: var(--color-primary);
-  border-bottom: 2px solid var(--color-primary);
+  color: var(--link-color);
+  border-bottom: 2px solid var(--link-color);
 }
 
 .tab-content {
@@ -601,7 +336,7 @@ watch(
 .download-link {
   margin-right: 1rem;
   font-size: 0.9rem;
-  color: var(--color-primary);
+  color: var(--link-color);
   text-decoration: none;
 }
 
@@ -750,8 +485,8 @@ watch(
   justify-content: center;
   padding: 0.5rem 1rem;
   border-radius: 4px;
-  background: var(--color-primary);
-  border: 1px solid var(--color-primary);
+  background: var(--button-background-color);
+  border: 1px solid var(--button-background-color);
   color: white;
   cursor: pointer;
   transition: all 0.3s;
@@ -759,7 +494,11 @@ watch(
 }
 
 .action-button:hover {
-  background: var(--color-primary-dark);
+  background: var(--button-hover-color);
+}
+
+.action-button:active {
+  background: var(--button-active-color);
 }
 
 .no-results {

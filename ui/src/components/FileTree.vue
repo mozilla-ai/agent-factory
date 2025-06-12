@@ -1,129 +1,104 @@
 <template>
-  <div class="file-tree-item">
-    <div class="file-label" @click="handleClick">
-      <span v-if="item.isDirectory" class="directory-icon">
-        {{ isExpanded ? '📂' : '📁' }}
-      </span>
-      <span v-else class="file-icon">📄</span>
-      <span class="item-name">{{ item.name }}</span>
-      <span v-if="item.isDirectory && item.files" class="item-count">
-        ({{ item.files.length }} items)
-      </span>
-    </div>
-    <transition name="fade">
-      <ul
-        v-if="item.isDirectory && item.files && item.files.length > 0 && isExpanded"
-        class="sub-items"
-      >
-        <li v-for="subItem in item.files" :key="subItem.name" class="sub-item">
-          <FileTree :item="subItem" :path="path + '/' + item.name" />
+  <div class="custom-file-tree">
+    <ul class="file-list">
+      <template v-for="file in files" :key="file.name">
+        <li
+          class="file-item"
+          :class="{
+            'file-item--directory': file.isDirectory,
+            'file-item--selected': selectedFile === file,
+          }"
+          @click="selectFile(file)"
+        >
+          <span class="file-icon">
+            <template v-if="file.isDirectory">📁</template>
+            <template v-else>📄</template>
+          </span>
+          <span class="file-name">{{ file.name }}</span>
         </li>
-      </ul>
-    </transition>
+        <!-- Render nested files if directory is expanded -->
+        <template v-if="file.isDirectory && selectedFile === file && file.files">
+          <li
+            v-for="subFile in file.files"
+            :key="`${file.name}/${subFile.name}`"
+            class="file-item file-item--nested"
+            :class="{
+              'file-item--directory': subFile.isDirectory,
+              'file-item--selected': selectedFile === subFile,
+            }"
+            @click.stop="selectFile(subFile)"
+          >
+            <span class="file-icon">
+              <template v-if="subFile.isDirectory">📁</template>
+              <template v-else>📄</template>
+            </span>
+            <span class="file-name">{{ subFile.name }}</span>
+          </li>
+        </template>
+      </template>
+    </ul>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { FileEntry } from '@/types/FileEntry'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { defineProps, defineEmits } from 'vue'
+import type { WorkflowFile } from '@/types'
 
-// For recursive self-reference in <script setup>
-defineOptions({
-  name: 'FileTree',
-})
-
-const props = defineProps<{
-  item: {
-    name: string
-    isDirectory: boolean
-    files?: FileEntry[]
-  }
-  path?: string
+defineProps<{
+  files: WorkflowFile[]
+  selectedFile: WorkflowFile | undefined
 }>()
 
-// Default path is empty
-const path = props.path || ''
-const router = useRouter()
-const isExpanded = ref(false)
+const emit = defineEmits<{
+  (e: 'select', file: WorkflowFile): void
+}>()
 
-const handleClick = () => {
-  if (props.item.isDirectory) {
-    // Toggle expansion of directory
-    isExpanded.value = !isExpanded.value
-  } else {
-    // Navigate to file view when a file is clicked
-    const filePath = `${path}/${props.item.name}`.replace(/^\/+/, '')
-    router.push(`/workflows/${filePath}`)
-  }
+function selectFile(file: WorkflowFile) {
+  emit('select', file)
 }
 </script>
 
 <style scoped>
-.file-tree-item {
+.custom-file-tree {
+  /* Add any custom styles for the file tree component here */
+}
+
+.file-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.file-item {
   display: flex;
-  flex-direction: column;
-}
-
-.file-label {
-  cursor: pointer;
-  /* display: flex; */
   align-items: center;
-  /* gap: 1rem; */
-  padding: 4px 8px;
-  border-radius: 4px;
-  user-select: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.file-label:hover {
+.file-item:hover {
   background-color: var(--color-background-soft, #f5f5f5);
 }
 
-.item-name {
-  margin-left: 4px;
+.file-item--directory {
+  font-weight: bold;
 }
 
-.item-count {
-  font-size: 0.85em;
-  color: #888;
-  margin-left: 4px;
+.file-item--selected {
+  background-color: var(--color-primary-light, #e0f7fa);
 }
 
-.sub-items {
-  margin-left: 1.5rem;
-  list-style-type: none;
-  padding-left: 0;
-}
-
-.sub-item {
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
-  margin: 0;
-  cursor: default;
-  border-radius: 0;
-}
-
-.sub-item:hover {
-  background: transparent;
-  box-shadow: none;
-}
-
-.directory-icon,
 .file-icon {
-  display: inline-block;
-  width: 20px;
+  margin-right: 8px;
 }
 
-/* Transition animation */
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.2s ease;
+.file-name {
+  flex-grow: 1;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
+/* Nested file styles */
+.file-item--nested {
+  padding-left: 24px;
 }
 </style>

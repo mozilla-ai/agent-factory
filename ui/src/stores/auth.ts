@@ -8,7 +8,6 @@ interface User {
   id: number
   email: string
   name: string
-  // Add more fields as needed
 }
 
 interface Credentials {
@@ -18,7 +17,6 @@ interface Credentials {
 
 interface JwtPayload {
   exp: number
-  // Add other JWT payload fields as needed
 }
 
 interface TokenResponse {

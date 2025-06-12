@@ -4,8 +4,9 @@
       <span class="success-icon">✓</span>
       <span class="status-text">All evaluation files are already generated</span>
       <button
-        @click="$emit('evaluation-status-changed', { tab: 'results' })"
-        class="view-results-button"
+        class="action-button"
+        @click="viewResults"
+        :disabled="!evaluationStatus?.hasEvalResults"
       >
         View Results
       </button>
@@ -89,8 +90,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineProps, defineEmits, watch } from 'vue'
+import { ref, computed, onMounted, defineProps, defineEmits } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useRouter } from 'vue-router'
+import { evaluationService } from '@/services/evaluationService'
 
 const props = defineProps({
   workflowPath: {
@@ -109,6 +112,7 @@ const props = defineProps({
 
 const emit = defineEmits(['evaluation-status-changed'])
 const queryClient = useQueryClient()
+const router = useRouter()
 const output = ref('')
 
 // Computed property to check if all evaluation files exist
@@ -119,74 +123,32 @@ const allEvaluationFilesExist = computed(
     props.evaluationStatus.hasEvalResults,
 )
 
-// Watch for workflow path changes
-watch(
-  () => props.workflowPath,
-  (newPath) => {
-    console.log('Workflow path changed to:', newPath)
-  },
-)
-
-// Process streaming response
-async function processStreamingResponse(response: Response): Promise<void> {
-  const reader = response.body?.getReader()
-  if (!reader) {
-    output.value += 'Error: No response body\n'
-    return
-  }
-
-  const decoder = new TextDecoder()
-  let done = false
-
-  while (!done) {
-    const { value, done: streamDone } = await reader.read()
-    if (value) {
-      const chunk = decoder.decode(value, { stream: true })
-      output.value += chunk
-    }
-    done = streamDone
-  }
-}
-
 // Mutations for evaluation steps
 const runAgentMutation = useMutation({
   mutationFn: async () => {
     output.value = `Running agent for workflow: ${props.workflowPath}...\n`
 
-    // URL encode the path parameter to handle special characters
-    const encodedPath = encodeURIComponent(props.workflowPath)
-
-    console.log(`Sending run agent request for: ${props.workflowPath}`)
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/run-agent/${encodedPath}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      output.value += `Error: ${response.status} ${response.statusText}\n${errorText}\n`
-      throw new Error(`Failed to run agent: ${response.status} ${response.statusText}`)
+    try {
+      const stream = await evaluationService.runAgent(props.workflowPath)
+      await processStream(stream)
+      return true
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      output.value += `Error: ${errorMessage}\n`
+      throw error
     }
-
-    await processStreamingResponse(response)
-    return true
   },
   onSuccess: () => {
     console.log('Agent run successful, invalidating evaluation status query')
-
-    // Missing: Invalidate the query for agent trace
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
-
-    // Emit status change as before
     emit('evaluation-status-changed', {
       hasAgentTrace: true,
     })
   },
-  onError: (error: unknown) => {
+  onError: (error) => {
     console.error('Error running agent:', error)
-    output.value += `Failed to run agent. Check console for details.\n`
   },
 })
 
@@ -194,38 +156,27 @@ const genCasesMutation = useMutation({
   mutationFn: async () => {
     output.value = 'Generating evaluation cases...\n'
 
-    // Encode the path for the URL
-    const encodedPath = encodeURIComponent(props.workflowPath)
-
-    console.log('Sending generate cases request with path:', props.workflowPath)
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/generate-cases/${encodedPath}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      output.value += `Error: ${response.status} ${response.statusText}\n${errorText}\n`
-      throw new Error(`Failed to generate cases: ${response.status} ${response.statusText}`)
+    try {
+      const stream = await evaluationService.generateEvaluationCases(props.workflowPath)
+      await processStream(stream)
+      return true
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      output.value += `Error: ${errorMessage}\n`
+      throw error
     }
-
-    await processStreamingResponse(response)
-    return true
   },
   onSuccess: () => {
     console.log('Case generation successful, invalidating cases query')
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
-
-    // Add direct status update like in runAgentMutation
     emit('evaluation-status-changed', {
       hasEvalCases: true,
     })
   },
   onError: (error) => {
     console.error('Error generating cases:', error)
-    output.value += `Failed to generate cases. Check console for details.\n`
   },
 })
 
@@ -233,45 +184,51 @@ const runEvalMutation = useMutation({
   mutationFn: async () => {
     output.value = `Running evaluation for workflow: ${props.workflowPath}...\n`
 
-    // Add this line to define encodedPath
-    const encodedPath = encodeURIComponent(props.workflowPath)
-
-    console.log(`Sending run evaluation request for: ${props.workflowPath}`)
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/run-evaluation/${encodedPath}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      output.value += `Error: ${response.status} ${response.statusText}\n${errorText}\n`
-      throw new Error(`Failed to run evaluation: ${response.status} ${response.statusText}`)
+    try {
+      const stream = await evaluationService.runEvaluation(props.workflowPath)
+      await processStream(stream)
+      return true
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      output.value += `Error: ${errorMessage}\n`
+      throw error
     }
-
-    await processStreamingResponse(response)
-    return true
   },
   onSuccess: () => {
     console.log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
-
-    // Add this line to directly update status (like in runAgentMutation)
     emit('evaluation-status-changed', {
       hasEvalResults: true,
     })
   },
   onError: (error) => {
     console.error('Error running evaluation:', error)
-    output.value += `Failed to run evaluation. Check console for details.\n`
   },
 })
 
-// Initial check on component mount
+// Helper function to process streams from axios responses
+async function processStream(stream: ReadableStream) {
+  const reader = stream.getReader()
+  const decoder = new TextDecoder()
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+    output.value += decoder.decode(value, { stream: true })
+  }
+}
+
+function viewResults() {
+  router.push({
+    path: router.currentRoute.value.path,
+    query: { ...router.currentRoute.value.query, tab: 'results' },
+  })
+}
+
 onMounted(() => {
   console.log('Component mounted with workflow path:', props.workflowPath)
-  // Queries are automatically run due to their setup
 })
 </script>
 
@@ -282,7 +239,6 @@ onMounted(() => {
   gap: 1.5rem;
 }
 
-/* Improved success banner contrast */
 .evaluation-status {
   display: flex;
   align-items: center;
@@ -290,7 +246,6 @@ onMounted(() => {
   padding: 0.75rem 1rem;
   border-radius: 4px;
   background-color: var(--color-success-background, rgba(0, 128, 0, 0.1));
-  /* Add border for better contrast */
   border: 1px solid var(--color-success, green);
 }
 
@@ -309,30 +264,43 @@ onMounted(() => {
 .status-text {
   flex: 1;
   font-weight: 500;
-  /* Use main text color for better contrast */
   color: var(--color-text);
 }
 
-.view-results-button {
-  padding: 0.5rem 0.75rem;
+/* Replace the action-button styles to use defined variables */
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
-  background-color: var(--color-primary, #3b82f6);
+  background: var(--button-background-color);
+  border: 1px solid var(--button-background-color);
   color: white;
-  border: none;
-  font-weight: 500;
   cursor: pointer;
-  /* Add box shadow for better distinction */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+  font-weight: 500;
 }
 
-.view-results-button:hover {
-  background-color: var(--color-primary-dark, #2563eb);
+.action-button:hover {
+  background: var(--button-hover-color);
+}
+
+.action-button:active {
+  background: var(--button-active-color);
+}
+
+.action-button:disabled {
+  background: var(--button-disabled-background-color);
+  border-color: var(--color-border);
+  color: var(--button-disabled-text-color);
+  cursor: not-allowed;
 }
 
 .evaluation-steps {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* Slightly more gap for better separation */
+  gap: 0.75rem;
 }
 
 /* Higher contrast for buttons */
@@ -359,11 +327,9 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-/* Improved contrast for completed steps */
 .eval-button.completed {
   border-color: var(--color-success, green);
   background-color: var(--color-success-background, rgba(0, 128, 0, 0.1));
-  /* Add box-shadow for more distinction */
   box-shadow: 0 0 0 1px var(--color-success, green);
 }
 
@@ -377,11 +343,9 @@ onMounted(() => {
   background-color: var(--color-background-soft);
   color: var(--color-text); /* Ensure text uses main color */
   font-weight: bold;
-  /* Add subtle border for more contrast */
   border: 1px solid var(--color-border);
 }
 
-/* Make step title more visible */
 .step-content {
   flex: 1;
 }
@@ -409,20 +373,16 @@ onMounted(() => {
   font-size: 1.25rem;
 }
 
-/* Improve indicator visibility */
 .success-indicator {
   color: var(--color-success, green);
-  /* Make success slightly larger for better visibility */
   font-size: 1.4rem;
 }
 
-/* Improve console output contrast */
 .evaluation-output {
   margin-top: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
-  /* Add subtle shadow for depth */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 

@@ -1,51 +1,16 @@
-import type { FileEntry, TransformedFileEntry } from '@/types/FileEntry'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { workflowService } from '@/services/workflowService'
+import type { WorkflowFile } from '@/types'
 
 export const useWorkflowsStore = defineStore('workflows', () => {
-  const workflows = ref<TransformedFileEntry[]>([])
+  const workflows = ref<WorkflowFile[]>([])
   const loading = ref(false)
-  const error = ref<string | null>(null)
+  const error = ref('')
 
-  // Computed getters
-  const getWorkflowById = computed(() => {
-    return (id: string) => workflows.value.find((w) => w.name === id)
-  })
-
-  const latestWorkflow = computed(() => {
-    return workflows.value.find((w) => w.name === 'latest')
-  })
-
-  const archiveWorkflows = computed(() => {
-    return workflows.value.filter((w) => w.name !== 'latest')
-  })
-
-  // Actions
-  async function loadWorkflows(): Promise<void> {
-    loading.value = true
-    error.value = null
-
-    try {
-      const response = await fetch('http://localhost:3000/agent-factory/workflows')
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch workflows: ${response.status} ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      workflows.value = processWorkflowsData(data)
-    } catch (err: unknown) {
-      console.error('Error loading workflows:', err)
-      error.value = err instanceof Error ? err.message : String(err)
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  // Process raw workflow data into a more usable format
-  function processWorkflowsData(data: FileEntry[]): TransformedFileEntry[] {
-    const result: TransformedFileEntry[] = []
+  // Process raw workflow data
+  function processWorkflowsData(data: WorkflowFile[]): WorkflowFile[] {
+    const result: WorkflowFile[] = []
 
     for (const item of data) {
       if (item.name === 'latest') {
@@ -57,7 +22,7 @@ export const useWorkflowsStore = defineStore('workflows', () => {
           path: 'latest',
         })
       } else if (item.name === 'archive' && item.isDirectory && item.files) {
-        // For the archive directory, include each sub-workflow as a top-level item
+        // For archive directory, include each sub-workflow as a top-level item
         for (const archiveWorkflow of item.files) {
           if (archiveWorkflow.isDirectory) {
             result.push({
@@ -74,13 +39,31 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     return result
   }
 
+  // Fetch workflows
+  async function loadWorkflows() {
+    try {
+      loading.value = true
+      error.value = ''
+      const data = await workflowService.getWorkflows()
+      workflows.value = processWorkflowsData(data)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : String(err)
+      console.error('Error loading workflows:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Get workflow by ID
+  const getWorkflowById = computed(() => (id: string) => {
+    return workflows.value.find((w) => w.name === id || w.path === id)
+  })
+
   return {
     workflows,
     loading,
     error,
-    getWorkflowById,
-    latestWorkflow,
-    archiveWorkflows,
     loadWorkflows,
+    getWorkflowById,
   }
 })
