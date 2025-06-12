@@ -198,7 +198,18 @@ app.post(
         return
       }
 
-      const outputCallback = setupStreamingResponse(res)
+      // Collect all stdout for parsing
+      let outputText = '';
+      const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
+        if (source === 'stdout') {
+          console.log(`[evaluation stdout]: ${text}`);
+          outputText += text;
+          res.write(`[stdout]: ${text}`);
+        } else if (source === 'stderr') {
+          console.log(`[evaluation stderr]: ${text}`);
+          res.write(`[stderr]: ${text}`);
+        }
+      };
 
       // Set environment variables for the evaluation script
       const env = {
@@ -208,10 +219,23 @@ app.post(
 
       await runPythonScriptWithStreaming(
         '-m',
-        ['eval.run_agent_eval'] as string[], // Fix using type assertion
+        ['eval.run_agent_eval'] as string[],
         outputCallback,
         env,
       )
+
+      // Parse the evaluation results from output
+      const evaluationResults = parseEvaluationOutput(outputText);
+
+      // Save the results to a JSON file
+      const resultsPath = path.join(fullPath, 'evaluation_results.json');
+      await fs.writeFile(
+        resultsPath,
+        JSON.stringify(evaluationResults, null, 2),
+        'utf8'
+      );
+
+      console.log(`Evaluation results saved to ${resultsPath}`);
 
       res.end(
         '\n[Agent evaluation completed. Results saved to evaluation_results.json]',
@@ -468,3 +492,65 @@ startServer().catch((error) => {
   console.error('Failed to start server:', error)
   process.exit(1)
 })
+
+// Add these interfaces for evaluation results
+interface EvaluationCheckpointResult {
+  criteria: string;
+  points: number;
+  result: 'pass' | 'fail';
+  feedback: string;
+}
+
+interface EvaluationResults {
+  score: number;
+  maxScore: number;
+  checkpoints: EvaluationCheckpointResult[];
+}
+
+// Add this function to parse evaluation output
+function parseEvaluationOutput(output: string): EvaluationResults {
+  const results: EvaluationResults = {
+    score: 0,
+    maxScore: 0,
+    checkpoints: []
+  };
+
+  // Extract final score
+  const scoreMatch = output.match(/Final score: (\d+(?:\.\d+)?)/);
+  if (scoreMatch) {
+    results.score = parseFloat(scoreMatch[1]);
+  }
+
+  // Find the checkpoint results section
+  const checkpointSections = output.split(/\s*Checkpoint \d+:/g);
+  // Skip the first section which is the header
+  if (checkpointSections.length > 1) {
+    for (let i = 1; i < checkpointSections.length; i++) {
+      const section = checkpointSections[i];
+
+      // Extract the parts
+      const criteriaMatch = section.match(/Criteria: (.*?)(?=\s*Criteria Points:)/s);
+      const pointsMatch = section.match(/Criteria Points: (\d+)/);
+      const passedMatch = section.match(/Passed: (True|False)/);
+      const reasonMatch = section.match(/Reason: (.*?)(?=\s*(?:Checkpoint \d+:|$))/s);
+
+      if (criteriaMatch && pointsMatch && passedMatch && reasonMatch) {
+        const criteria = criteriaMatch[1].trim();
+        const points = parseInt(pointsMatch[1], 10);
+        const passed = passedMatch[1] === 'True';
+        const reason = reasonMatch[1].trim();
+
+        results.maxScore += points;
+
+        results.checkpoints.push({
+          criteria,
+          points,
+          result: passed ? 'pass' : 'fail',
+          feedback: reason
+        });
+      }
+    }
+  }
+
+  return results;
+}
