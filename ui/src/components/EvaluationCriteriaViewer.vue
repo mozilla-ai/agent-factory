@@ -137,6 +137,7 @@ const criteriaQuery = useQuery({
     const criteriaText = await response.text()
     return yaml.load(criteriaText) as EvaluationCriteria
   },
+  retry: 1, // Retry once on failure
 })
 
 // Fetch evaluation results

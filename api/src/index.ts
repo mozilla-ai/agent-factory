@@ -98,6 +98,7 @@ app.post(
       }
 
       // Set the AGENT_WORKFLOW_DIR environment variable to tell the agent where to save the trace
+      // The agent always saves to latest/ directory
       await runPythonScriptWithStreaming(
         agentPath,
         [], // No command line args needed with environment variables
@@ -105,9 +106,42 @@ app.post(
         {
           // Cast to NodeJS.ProcessEnv
           ...process.env,
-          AGENT_WORKFLOW_DIR: `${process.cwd()}/generated_workflows/${workflowName}`,
+          AGENT_WORKFLOW_DIR: `${process.cwd()}/generated_workflows/latest`,
         } as NodeJS.ProcessEnv,
       )
+
+      // Check if we need to copy the trace file to a different workflow directory
+      if (workflowPath !== 'latest') {
+        const latestWorkflowDir = path.resolve(
+          __dirname,
+          '../../generated_workflows/latest',
+        )
+        const targetWorkflowDir = fullPath
+
+        const sourceTracePath = path.join(
+          latestWorkflowDir,
+          'agent_eval_trace.json',
+        )
+        const targetTracePath = path.join(
+          targetWorkflowDir,
+          'agent_eval_trace.json',
+        )
+
+        try {
+          // Make sure the trace file was actually created
+          await fs.access(sourceTracePath)
+
+          // Copy the trace file to the target workflow directory
+          await fs.copyFile(sourceTracePath, targetTracePath)
+
+          console.log(
+            `Copied agent trace from ${sourceTracePath} to ${targetTracePath}`,
+          )
+        } catch (copyError) {
+          console.error('Error copying agent trace file:', copyError)
+          // Don't fail the request if copy fails, just log the error
+        }
+      }
 
       res.end('\n[Agent run completed. Generated agent_eval_trace.json]')
     } catch (error: unknown) {
@@ -194,17 +228,17 @@ app.post(
       }
 
       // Collect all stdout for parsing
-      let outputText = '';
+      let outputText = ''
       const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
         if (source === 'stdout') {
-          console.log(`[evaluation stdout]: ${text}`);
-          outputText += text;
-          res.write(`[stdout]: ${text}`);
+          console.log(`[evaluation stdout]: ${text}`)
+          outputText += text
+          res.write(`[stdout]: ${text}`)
         } else if (source === 'stderr') {
-          console.log(`[evaluation stderr]: ${text}`);
-          res.write(`[stderr]: ${text}`);
+          console.log(`[evaluation stderr]: ${text}`)
+          res.write(`[stderr]: ${text}`)
         }
-      };
+      }
 
       // Set environment variables for the evaluation script
       const env = {
@@ -220,17 +254,17 @@ app.post(
       )
 
       // Parse the evaluation results from output
-      const evaluationResults = parseEvaluationOutput(outputText);
+      const evaluationResults = parseEvaluationOutput(outputText)
 
       // Save the results to a JSON file
-      const resultsPath = path.join(fullPath, 'evaluation_results.json');
+      const resultsPath = path.join(fullPath, 'evaluation_results.json')
       await fs.writeFile(
         resultsPath,
         JSON.stringify(evaluationResults, null, 2),
-        'utf8'
-      );
+        'utf8',
+      )
 
-      console.log(`Evaluation results saved to ${resultsPath}`);
+      console.log(`Evaluation results saved to ${resultsPath}`)
 
       res.end(
         '\n[Agent evaluation completed. Results saved to evaluation_results.json]',
@@ -484,61 +518,65 @@ startServer().catch((error) => {
 })
 
 interface EvaluationCheckpointResult {
-  criteria: string;
-  points: number;
-  result: 'pass' | 'fail';
-  feedback: string;
+  criteria: string
+  points: number
+  result: 'pass' | 'fail'
+  feedback: string
 }
 
 interface EvaluationResults {
-  score: number;
-  maxScore: number;
-  checkpoints: EvaluationCheckpointResult[];
+  score: number
+  maxScore: number
+  checkpoints: EvaluationCheckpointResult[]
 }
 
 function parseEvaluationOutput(output: string): EvaluationResults {
   const results: EvaluationResults = {
     score: 0,
     maxScore: 0,
-    checkpoints: []
-  };
+    checkpoints: [],
+  }
 
   // Extract final score
-  const scoreMatch = output.match(/Final score: (\d+(?:\.\d+)?)/);
+  const scoreMatch = output.match(/Final score: (\d+(?:\.\d+)?)/)
   if (scoreMatch) {
-    results.score = parseFloat(scoreMatch[1]);
+    results.score = parseFloat(scoreMatch[1])
   }
 
   // Find the checkpoint results section
-  const checkpointSections = output.split(/\s*Checkpoint \d+:/g);
+  const checkpointSections = output.split(/\s*Checkpoint \d+:/g)
   // Skip the first section which is the header
   if (checkpointSections.length > 1) {
     for (let i = 1; i < checkpointSections.length; i++) {
-      const section = checkpointSections[i];
+      const section = checkpointSections[i]
 
       // Extract the parts
-      const criteriaMatch = section.match(/Criteria: (.*?)(?=\s*Criteria Points:)/s);
-      const pointsMatch = section.match(/Criteria Points: (\d+)/);
-      const passedMatch = section.match(/Passed: (True|False)/);
-      const reasonMatch = section.match(/Reason: (.*?)(?=\s*(?:Checkpoint \d+:|$))/s);
+      const criteriaMatch = section.match(
+        /Criteria: (.*?)(?=\s*Criteria Points:)/s,
+      )
+      const pointsMatch = section.match(/Criteria Points: (\d+)/)
+      const passedMatch = section.match(/Passed: (True|False)/)
+      const reasonMatch = section.match(
+        /Reason: (.*?)(?=\s*(?:Checkpoint \d+:|$))/s,
+      )
 
       if (criteriaMatch && pointsMatch && passedMatch && reasonMatch) {
-        const criteria = criteriaMatch[1].trim();
-        const points = parseInt(pointsMatch[1], 10);
-        const passed = passedMatch[1] === 'True';
-        const reason = reasonMatch[1].trim();
+        const criteria = criteriaMatch[1].trim()
+        const points = parseInt(pointsMatch[1], 10)
+        const passed = passedMatch[1] === 'True'
+        const reason = reasonMatch[1].trim()
 
-        results.maxScore += points;
+        results.maxScore += points
 
         results.checkpoints.push({
           criteria,
           points,
           result: passed ? 'pass' : 'fail',
-          feedback: reason
-        });
+          feedback: reason,
+        })
       }
     }
   }
 
-  return results;
+  return results
 }

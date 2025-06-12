@@ -101,13 +101,17 @@
                   <div class="metric-item">
                     <span class="metric-label">Input Cost</span>
                     <span class="metric-value"
-                      >${{ Number(span.attributes['gen_ai.usage.input_cost'] || 0).toFixed(6) }}</span
+                      >${{
+                        Number(span.attributes['gen_ai.usage.input_cost'] || 0).toFixed(6)
+                      }}</span
                     >
                   </div>
                   <div class="metric-item">
                     <span class="metric-label">Output Cost</span>
                     <span class="metric-value"
-                      >${{ Number(span.attributes['gen_ai.usage.output_cost'] || 0).toFixed(6) }}</span
+                      >${{
+                        Number(span.attributes['gen_ai.usage.output_cost'] || 0).toFixed(6)
+                      }}</span
                     >
                   </div>
                 </div>
@@ -197,6 +201,7 @@ const traceQuery = useQuery({
     return data
   },
   staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+  retry: 1, // Retry once on failure
 })
 
 // Toggle span expansion
