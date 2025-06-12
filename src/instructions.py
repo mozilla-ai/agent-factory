@@ -118,7 +118,7 @@ TOOLS = [
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
-        model_id="gpt-4.1",
+        model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
         agent_args={"output_type": StructuredOutput},
@@ -184,7 +184,7 @@ using Mozilla's any-agent library. The implementation should:
 Refer to the any-agent documentation for valid parameters for AgentConfig.
 
 #### Model (model_id):
-- Use gpt-4.1 as the model_id
+- Use o3 as the model_id
 
 #### Instructions (instructions):
 - Decide on the number of steps that you think would be necessary to complete the task
@@ -268,7 +268,7 @@ load_dotenv()
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
-        model_id="gpt-4.1",
+        model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
         agent_args={"output_type": StructuredOutput},

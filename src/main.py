@@ -130,7 +130,7 @@ def create_agent(mount_config):
     agent = AnyAgent.create(
         framework,
         AgentConfig(
-            model_id="gpt-4.1",
+            model_id="o3",
             instructions=INSTRUCTIONS,
             tools=get_default_tools(mount_config),
             model_args={"tool_choice": "required"}  # Ensure tool choice is required
@@ -141,25 +141,16 @@ def create_agent(mount_config):
 
 def build_run_instructions(user_prompt):
     return f"""
-    Use appropriate tools in the agent configuration:
-    - Use the `search_mcp_servers` tool to discover MCP servers to add in the agent configuration.
-    - Choose any other tools to add to the agent configuration from the available tools in
-      tools/available_tools.md:
-        - Use the `search_tavily` or the tool in the agent configuration to search the web.
-        - Use the `visit_webpage` tool in the agent configuration to visit webpages.
-    - You may use the following tools to browse and view the contents of the tools/ directory:
-        - `list_directory` tool to list the contents of the `tools/` directory
-        - `read_file` tool to read the contents of the `available_tools.md` file
-        - `search_files` tool to recursively search for `files/directories`
-        - `list_allowed_directories` tool to list all directories that you have access to
-
     Generate python code for an agentic workflow using any-agent library to be able to do the
     following:
     {user_prompt}
 
-    Before generating the code, first check the contents of the `tools/` directory to
-    understand the tools available and use the `search_mcp_servers` tool to discover available
-    MCP servers that the can be used to solve the task.
+    Use appropriate tools in the agent configuration:
+    - Select relevant tools from `tools/available_tools.md`.
+    - Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools
+      to the configuration.
+
+    Always use the simplest and most efficient tools available for the task.
     """
 
 

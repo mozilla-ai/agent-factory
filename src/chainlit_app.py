@@ -101,7 +101,7 @@ async def on_message(message: cl.Message):
             agent_factory = AnyAgent.create(
                 framework,
                 AgentConfig(
-                    model_id="gpt-4.1",
+                    model_id="o3",
                     instructions=INSTRUCTIONS,
                     tools=tools,
                 ),
