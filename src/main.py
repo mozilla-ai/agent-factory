@@ -24,6 +24,9 @@ class AgentFactoryOutputs(BaseModel):
     agent_code: str = Field(..., description="The python script as a string that is runnable as agent.py")
     run_instructions: str = Field(..., description="The run instructions in Markdown format")
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
+    dockerfile: str | None = Field(
+        None, description="The Dockerfile content as a string to run the agent (only if dockerization is requested)"
+    )
 
 
 def get_mount_config():
@@ -116,6 +119,12 @@ def save_agent_parsed_outputs(output: AgentFactoryOutputs, generated_workflows_d
     with requirements_path.open("w", encoding="utf-8") as f:
         f.write(remove_markdown_code_block_delimiters(output.dependencies))
 
+    if output.dockerfile:
+        dockerfile_path = Path(f"{save_artifacts_dir}/Dockerfile")
+        with dockerfile_path.open("w", encoding="utf-8") as f:
+            f.write(remove_markdown_code_block_delimiters(output.dockerfile))
+        print(f"Dockerfile saved to {dockerfile_path}")
+
     print(f"Files saved to {save_artifacts_dir}")
 
 
@@ -143,6 +152,24 @@ def create_agent(mount_config):
 
 
 def build_run_instructions(user_prompt):
+    # Check if user is requesting dockerization
+    dockerize_keywords = ["docker", "dockerfile", "containerize", "containerized"]
+    needs_dockerization = any(keyword.lower() in user_prompt.lower() for keyword in dockerize_keywords)
+    docker_instruction = ""
+    if needs_dockerization:
+        docker_instruction = """
+
+        ## Dockerization
+        The user has requested dockerization. You must include a dockerfile field in your output JSON.
+        Generate a Dockerfile that:
+        - Uses python:3.11-slim as the base image
+        - Sets up the working directory as /app
+        - Copies and installs requirements.txt
+        - Copies the agent.py file
+        - Sets the default command to run the agent
+        - Handles any environment variables that need to be passed at runtime
+        """
+
     return f"""
     ## Tools
     You may use appropriate tools provided from tools/available_tools.md in the agent configuration.
@@ -162,6 +189,7 @@ def build_run_instructions(user_prompt):
     {user_prompt}
 
     Before generating the code, first check the contents of the tools/ and mcps/ directories to understand the tools and MCPs available.
+    {docker_instruction}
     """  # noqa: E501
 
 
