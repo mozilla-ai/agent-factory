@@ -109,7 +109,7 @@ const goBack = () => {
 
 .file-nav {
   padding: 0.75rem 1rem;
-  background-color: var(--color-background-soft);
+  /* background-color: var(--color-background-soft); */
   border-bottom: 1px solid var(--color-border);
 }
 

@@ -40,6 +40,7 @@
             </p>
           </div>
           <div class="card-actions">
+            <!-- Replace tab navigation with direct file links -->
             <button class="view-button" @click="viewAgentTrace">View Agent Trace</button>
           </div>
         </div>
@@ -232,6 +233,12 @@ const failedCheckpoints = computed(() => {
 })
 
 // Navigation methods
+// function viewFile(filename: string) {
+//   const basePath = props.workflowPath === 'latest' ? 'latest' : `archive/${props.workflowPath}`
+
+//   router.push(`/workflows/${basePath}/${filename}`)
+// }
+
 function viewAgentTrace() {
   router.push({
     path: router.currentRoute.value.path,
@@ -324,6 +331,7 @@ function goToEvaluateTab() {
 
 .score-progress {
   height: 100%;
+  transition: width 0.5s ease;
 }
 
 .results-content {
