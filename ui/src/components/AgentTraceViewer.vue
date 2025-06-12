@@ -102,13 +102,13 @@
                   <div class="metric-item">
                     <span class="metric-label">Input Cost</span>
                     <span class="metric-value"
-                      >${{ (span.attributes['gen_ai.usage.input_cost'] || 0).toFixed(6) }}</span
+                      >${{ Number(span.attributes['gen_ai.usage.input_cost'] || 0).toFixed(6) }}</span
                     >
                   </div>
                   <div class="metric-item">
                     <span class="metric-label">Output Cost</span>
                     <span class="metric-value"
-                      >${{ (span.attributes['gen_ai.usage.output_cost'] || 0).toFixed(6) }}</span
+                      >${{ Number(span.attributes['gen_ai.usage.output_cost'] || 0).toFixed(6) }}</span
                     >
                   </div>
                 </div>
@@ -125,30 +125,45 @@
 import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 
-// Define trace data interface
+// Add these missing interface definitions
+interface TraceMessage {
+  role: string
+  content: string
+}
+
+interface AgentTrace {
+  spans: TraceSpan[]
+  final_output: string
+}
+
+// Update the TraceSpan interface to properly type the attributes
 interface TraceSpan {
   name: string
   kind: string
-  parent: any
+  parent: Record<string, unknown>
   start_time: number
   end_time: number
   status: {
     status_code: string
     description: string | null
   }
-  context: any
-  attributes: Record<string, any>
-  links: any[]
-  events: any[]
+  context: Record<string, unknown>
+  attributes: {
+    'gen_ai.input.messages'?: string
+    'gen_ai.output'?: string
+    'gen_ai.tool.args'?: string
+    'gen_ai.usage.input_tokens'?: number
+    'gen_ai.usage.output_tokens'?: number
+    'gen_ai.usage.input_cost'?: number
+    'gen_ai.usage.output_cost'?: number
+    [key: string]: unknown
+  }
+  links: unknown[]
+  events: unknown[]
   resource: {
     attributes: Record<string, string>
     schema_url: string
   }
-}
-
-interface AgentTrace {
-  spans: TraceSpan[]
-  final_output: string
 }
 
 // Props
@@ -174,7 +189,9 @@ const traceQuery = useQuery({
     const data = await response.json()
 
     // Auto-expand the invoke_agent span
-    const invokeIndex = data.spans.findIndex((s: any) => s.name === 'invoke_agent [any_agent]')
+    const invokeIndex = data.spans.findIndex(
+      (s: TraceSpan) => s.name === 'invoke_agent [any_agent]',
+    )
     if (invokeIndex >= 0) {
       expandedSpans.value[invokeIndex] = true
     }
@@ -185,7 +202,7 @@ const traceQuery = useQuery({
 })
 
 // Toggle span expansion
-function toggleSpan(index: number) {
+function toggleSpan(index: number): void {
   expandedSpans.value = {
     ...expandedSpans.value,
     [index]: !expandedSpans.value[index],
@@ -212,38 +229,44 @@ function formatTime(start: number, end: number): string {
 }
 
 // Format JSON messages for display
-function formatMessages(messagesJson: string): string {
+function formatMessages(messagesJson: unknown): string {
+  if (typeof messagesJson !== 'string') return String(messagesJson || '')
+
   try {
-    const messages = JSON.parse(messagesJson)
+    const messages = JSON.parse(messagesJson) as TraceMessage[]
     let formatted = ''
 
-    messages.forEach((msg: any, index: number) => {
+    messages.forEach((msg: TraceMessage) => {
       formatted += `[${msg.role}]:\n${msg.content}\n\n`
     })
 
     return formatted
-  } catch (e) {
-    return messagesJson
+  } catch {
+    return String(messagesJson)
   }
 }
 
 // Format JSON output for display
-function formatOutput(outputJson: string): string {
+function formatOutput(outputJson: unknown): string {
+  if (typeof outputJson !== 'string') return String(outputJson || '')
+
   try {
-    const output = JSON.parse(outputJson)
+    const output = JSON.parse(outputJson) as Record<string, unknown>
     return JSON.stringify(output, null, 2)
-  } catch (e) {
-    return outputJson
+  } catch {
+    return String(outputJson)
   }
 }
 
 // Format JSON for display
-function formatJson(jsonString: string): string {
+function formatJson(jsonString: unknown): string {
+  if (typeof jsonString !== 'string') return String(jsonString || '')
+
   try {
-    const obj = JSON.parse(jsonString)
+    const obj = JSON.parse(jsonString) as Record<string, unknown>
     return JSON.stringify(obj, null, 2)
-  } catch (e) {
-    return jsonString
+  } catch {
+    return String(jsonString)
   }
 }
 
@@ -266,6 +289,7 @@ const executionDuration = computed(() => {
       !earliest || span.start_time < earliest.start_time ? span : earliest,
     null,
   )
+
   const lastSpan = traceQuery.data.value.spans.reduce(
     (latest: TraceSpan | null, span: TraceSpan) =>
       !latest || span.end_time > latest.end_time ? span : latest,
@@ -280,8 +304,8 @@ const totalCost = computed(() => {
   if (!traceQuery.data.value) return 0
 
   return traceQuery.data.value.spans.reduce((sum: number, span: TraceSpan) => {
-    const inputCost = span.attributes['gen_ai.usage.input_cost'] || 0
-    const outputCost = span.attributes['gen_ai.usage.output_cost'] || 0
+    const inputCost = Number(span.attributes['gen_ai.usage.input_cost']) || 0
+    const outputCost = Number(span.attributes['gen_ai.usage.output_cost']) || 0
     return sum + inputCost + outputCost
   }, 0)
 })
@@ -291,8 +315,8 @@ const totalTokens = computed(() => {
   if (!traceQuery.data.value) return 0
 
   return traceQuery.data.value.spans.reduce((sum: number, span: TraceSpan) => {
-    const inputTokens = span.attributes['gen_ai.usage.input_tokens'] || 0
-    const outputTokens = span.attributes['gen_ai.usage.output_tokens'] || 0
+    const inputTokens = Number(span.attributes['gen_ai.usage.input_tokens']) || 0
+    const outputTokens = Number(span.attributes['gen_ai.usage.output_tokens']) || 0
     return sum + inputTokens + outputTokens
   }, 0)
 })

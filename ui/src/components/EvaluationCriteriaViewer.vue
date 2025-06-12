@@ -97,6 +97,27 @@ import { computed } from 'vue'
 import yaml from 'js-yaml'
 import { useQuery } from '@tanstack/vue-query'
 
+// Add proper types
+interface Checkpoint {
+  criteria: string
+  points: number
+}
+
+interface EvaluationCriteria {
+  llm_judge: string
+  checkpoints: Checkpoint[]
+}
+
+interface EvaluationResult {
+  result: 'pass' | 'fail' | null
+  feedback?: string
+  points?: number
+}
+
+interface EvaluationResults {
+  checkpoints: EvaluationResult[]
+}
+
 // Props
 const props = defineProps<{
   workflowPath: string
@@ -105,7 +126,7 @@ const props = defineProps<{
 // Fetch evaluation criteria
 const criteriaQuery = useQuery({
   queryKey: ['evaluation-criteria', props.workflowPath],
-  queryFn: async () => {
+  queryFn: async (): Promise<EvaluationCriteria> => {
     const response = await fetch(
       `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_case.yaml`,
     )
@@ -117,20 +138,14 @@ const criteriaQuery = useQuery({
     }
 
     const criteriaText = await response.text()
-    return yaml.load(criteriaText) as {
-      llm_judge: string
-      checkpoints: Array<{
-        criteria: string
-        points: number
-      }>
-    }
+    return yaml.load(criteriaText) as EvaluationCriteria
   },
 })
 
 // Fetch evaluation results
 const resultsQuery = useQuery({
   queryKey: ['evaluation-results', props.workflowPath],
-  queryFn: async () => {
+  queryFn: async (): Promise<EvaluationResults> => {
     const response = await fetch(
       `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
     )
@@ -155,7 +170,7 @@ const evaluationResults = computed(() => {
     return []
   }
 
-  const results = resultsQuery.data.value.checkpoints || []
+  const results = [...(resultsQuery.data.value.checkpoints || [])]
 
   // Ensure we have a result for each criterion
   if (criteriaQuery.data.value.checkpoints.length > results.length) {
@@ -171,14 +186,14 @@ const evaluationResults = computed(() => {
 
 // Check if evaluation results are available
 const hasResults = computed(() => {
-  return resultsQuery.data.value?.checkpoints?.length > 0
+  return (resultsQuery.data.value?.checkpoints?.length || 0) > 0
 })
 
 // Calculate total possible points
 const totalPossiblePoints = computed(() => {
   if (!criteriaQuery.data.value || !criteriaQuery.data.value.checkpoints) return 0
   return criteriaQuery.data.value.checkpoints.reduce(
-    (sum: number, checkpoint: any) => sum + checkpoint.points,
+    (sum: number, checkpoint: Checkpoint) => sum + checkpoint.points,
     0,
   )
 })
@@ -186,8 +201,7 @@ const totalPossiblePoints = computed(() => {
 // Calculate total score from results
 const totalScore = computed(() => {
   if (!hasResults.value) return 0
-  return evaluationResults.value.reduce((sum: number, result: any, index: number) => {
-    // Fix this line to use .value when accessing criteriaQuery.data
+  return evaluationResults.value.reduce((sum: number, result: EvaluationResult, index: number) => {
     const points = criteriaQuery.data.value?.checkpoints[index]?.points || 0
     return sum + (result.result === 'pass' ? points : 0)
   }, 0)
