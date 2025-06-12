@@ -1,9 +1,13 @@
 <!-- filepath: /Users/khaled/github/agent-factory/ui/src/components/AgentTraceViewer.vue -->
 <template>
   <div class="agent-trace-viewer">
-    <div v-if="loading" class="trace-loading">Loading agent trace...</div>
-    <div v-else-if="error" class="trace-error">{{ error }}</div>
-    <div v-else-if="!trace" class="trace-empty">No agent trace data available</div>
+    <div v-if="traceQuery.isLoading.value" class="trace-loading">Loading agent trace...</div>
+    <div v-else-if="traceQuery.isError.value" class="trace-error">
+      {{
+        traceQuery.error instanceof Error ? traceQuery.error.message : 'Error loading agent trace'
+      }}
+    </div>
+    <div v-else-if="!traceQuery.data.value" class="trace-empty">No agent trace data available</div>
 
     <div v-else class="trace-content">
       <!-- Summary Card -->
@@ -24,12 +28,12 @@
           </div>
           <div class="stat">
             <span class="stat-label">Steps</span>
-            <span class="stat-value">{{ trace.spans.length }}</span>
+            <span class="stat-value">{{ traceQuery.data.value.spans.length }}</span>
           </div>
         </div>
         <div class="final-output">
           <h4>Final Output</h4>
-          <pre>{{ trace.final_output }}</pre>
+          <pre>{{ traceQuery.data.value.final_output }}</pre>
         </div>
       </div>
 
@@ -38,7 +42,7 @@
         <h3>Execution Timeline</h3>
         <div class="timeline">
           <div
-            v-for="(span, index) in trace.spans"
+            v-for="(span, index) in traceQuery.data.value.spans"
             :key="index"
             class="timeline-item"
             :class="{
@@ -118,18 +122,67 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { useQuery } from '@tanstack/vue-query'
+
+// Define trace data interface
+interface TraceSpan {
+  name: string
+  kind: string
+  parent: any
+  start_time: number
+  end_time: number
+  status: {
+    status_code: string
+    description: string | null
+  }
+  context: any
+  attributes: Record<string, any>
+  links: any[]
+  events: any[]
+  resource: {
+    attributes: Record<string, string>
+    schema_url: string
+  }
+}
+
+interface AgentTrace {
+  spans: TraceSpan[]
+  final_output: string
+}
 
 // Props
 const props = defineProps<{
   workflowPath: string
 }>()
 
-// State
-const trace = ref<any>(null)
-const loading = ref(true)
-const error = ref('')
+// State for UI interactions
 const expandedSpans = ref<Record<number, boolean>>({})
+
+// Fetch agent trace data using TanStack Query
+const traceQuery = useQuery({
+  queryKey: ['agent-trace', props.workflowPath],
+  queryFn: async (): Promise<AgentTrace> => {
+    const response = await fetch(
+      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/agent_eval_trace.json`,
+    )
+
+    if (!response.ok) {
+      throw new Error(`Failed to load agent trace: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    // Auto-expand the invoke_agent span
+    const invokeIndex = data.spans.findIndex((s: any) => s.name === 'invoke_agent [any_agent]')
+    if (invokeIndex >= 0) {
+      expandedSpans.value[invokeIndex] = true
+    }
+
+    return data
+  },
+  staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+})
 
 // Toggle span expansion
 function toggleSpan(index: number) {
@@ -139,7 +192,7 @@ function toggleSpan(index: number) {
   }
 }
 
-// Format span title
+// Format span title for display
 function formatSpanTitle(name: string): string {
   return name
     .replace('call_llm ', 'LLM Call: ')
@@ -147,18 +200,18 @@ function formatSpanTitle(name: string): string {
     .replace('invoke_agent', 'Agent Execution')
 }
 
-// Format duration
+// Format duration for display
 function formatDuration(nanoseconds: number): string {
   return (nanoseconds / 1_000_000_000).toFixed(2)
 }
 
-// Format time
+// Format time for display
 function formatTime(start: number, end: number): string {
   const durationMs = (end - start) / 1_000_000
   return `${durationMs.toFixed(0)}ms`
 }
 
-// Format JSON messages
+// Format JSON messages for display
 function formatMessages(messagesJson: string): string {
   try {
     const messages = JSON.parse(messagesJson)
@@ -174,7 +227,7 @@ function formatMessages(messagesJson: string): string {
   }
 }
 
-// Format JSON output
+// Format JSON output for display
 function formatOutput(outputJson: string): string {
   try {
     const output = JSON.parse(outputJson)
@@ -184,7 +237,7 @@ function formatOutput(outputJson: string): string {
   }
 }
 
-// Format JSON
+// Format JSON for display
 function formatJson(jsonString: string): string {
   try {
     const obj = JSON.parse(jsonString)
@@ -195,7 +248,7 @@ function formatJson(jsonString: string): string {
 }
 
 // Check if span has token info
-function hasTokenInfo(span: any): boolean {
+function hasTokenInfo(span: TraceSpan): boolean {
   return !!(
     span.attributes['gen_ai.usage.input_tokens'] ||
     span.attributes['gen_ai.usage.output_tokens'] ||
@@ -204,67 +257,44 @@ function hasTokenInfo(span: any): boolean {
   )
 }
 
-// Computed properties
+// Calculate execution duration
 const executionDuration = computed(() => {
-  if (!trace.value) return 0
-  const firstSpan = trace.value.spans.reduce(
-    (earliest: any, span: any) =>
+  if (!traceQuery.data.value) return 0
+
+  const firstSpan = traceQuery.data.value.spans.reduce(
+    (earliest: TraceSpan | null, span: TraceSpan) =>
       !earliest || span.start_time < earliest.start_time ? span : earliest,
     null,
   )
-  const lastSpan = trace.value.spans.reduce(
-    (latest: any, span: any) => (!latest || span.end_time > latest.end_time ? span : latest),
+  const lastSpan = traceQuery.data.value.spans.reduce(
+    (latest: TraceSpan | null, span: TraceSpan) =>
+      !latest || span.end_time > latest.end_time ? span : latest,
     null,
   )
 
   return firstSpan && lastSpan ? lastSpan.end_time - firstSpan.start_time : 0
 })
 
+// Calculate total cost
 const totalCost = computed(() => {
-  if (!trace.value) return 0
-  return trace.value.spans.reduce((sum: number, span: any) => {
+  if (!traceQuery.data.value) return 0
+
+  return traceQuery.data.value.spans.reduce((sum: number, span: TraceSpan) => {
     const inputCost = span.attributes['gen_ai.usage.input_cost'] || 0
     const outputCost = span.attributes['gen_ai.usage.output_cost'] || 0
     return sum + inputCost + outputCost
   }, 0)
 })
 
+// Calculate total tokens
 const totalTokens = computed(() => {
-  if (!trace.value) return 0
-  return trace.value.spans.reduce((sum: number, span: any) => {
+  if (!traceQuery.data.value) return 0
+
+  return traceQuery.data.value.spans.reduce((sum: number, span: TraceSpan) => {
     const inputTokens = span.attributes['gen_ai.usage.input_tokens'] || 0
     const outputTokens = span.attributes['gen_ai.usage.output_tokens'] || 0
     return sum + inputTokens + outputTokens
   }, 0)
-})
-
-// Load trace data
-onMounted(async () => {
-  try {
-    loading.value = true
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/agent_eval_trace.json`,
-    )
-
-    if (!response.ok) {
-      throw new Error(`Failed to load agent trace: ${response.status} ${response.statusText}`)
-    }
-
-    trace.value = await response.json()
-
-    // Auto-expand the invoke_agent span to show the final result
-    const invokeIndex = trace.value.spans.findIndex(
-      (s: any) => s.name === 'invoke_agent [any_agent]',
-    )
-    if (invokeIndex >= 0) {
-      expandedSpans.value[invokeIndex] = true
-    }
-  } catch (err) {
-    console.error('Error loading agent trace:', err)
-    error.value = err instanceof Error ? err.message : String(err)
-  } finally {
-    loading.value = false
-  }
 })
 </script>
 

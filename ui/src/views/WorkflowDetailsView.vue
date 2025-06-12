@@ -148,7 +148,6 @@
           />
         </div>
 
-
         <!-- Agent Trace tab -->
         <div v-else-if="activeTab === 'agent-trace'" class="agent-trace-tab">
           <AgentTraceViewer :workflow-path="workflowPath" />

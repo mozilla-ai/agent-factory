@@ -1,9 +1,20 @@
 <!-- filepath: /Users/khaled/github/agent-factory/ui/src/components/EvaluationCriteriaViewer.vue -->
 <template>
+  <!-- Fix reactive property access in conditionals -->
   <div class="evaluation-criteria-viewer">
-    <div v-if="loading" class="criteria-loading">Loading evaluation criteria...</div>
-    <div v-else-if="error" class="criteria-error">{{ error }}</div>
-    <div v-else-if="!criteria" class="criteria-empty">No evaluation criteria available</div>
+    <div v-if="criteriaQuery.isPending.value" class="criteria-loading">
+      Loading evaluation criteria...
+    </div>
+    <div v-else-if="criteriaQuery.isError.value" class="criteria-error">
+      {{
+        criteriaQuery.error.value instanceof Error
+          ? criteriaQuery.error.value.message
+          : 'Error loading criteria'
+      }}
+    </div>
+    <div v-else-if="!criteriaQuery.data.value" class="criteria-empty">
+      No evaluation criteria available
+    </div>
 
     <div v-else class="criteria-content">
       <!-- Header with judge info -->
@@ -11,7 +22,7 @@
         <h3>Evaluation Criteria</h3>
         <div class="judge-info">
           <span class="judge-label">LLM Judge:</span>
-          <span class="judge-model">{{ criteria.llm_judge }}</span>
+          <span class="judge-model">{{ criteriaQuery.data.value.llm_judge }}</span>
         </div>
         <div class="points-summary">
           <span class="points-label">Total Points Possible:</span>
@@ -22,7 +33,7 @@
       <!-- Criteria checklist -->
       <div class="criteria-checklist">
         <div
-          v-for="(checkpoint, index) in criteria.checkpoints"
+          v-for="(checkpoint, index) in criteriaQuery.data.value.checkpoints"
           :key="index"
           class="checkpoint-item"
         >
@@ -46,7 +57,7 @@
             >
               <span v-if="evaluationResults[index]?.result === 'pass'">✓</span>
               <span v-else-if="evaluationResults[index]?.result === 'fail'">✗</span>
-              <span v-else>?</span>
+              <span v-else>N/A</span>
             </div>
             <div v-if="evaluationResults[index]?.feedback" class="result-feedback">
               {{ evaluationResults[index]?.feedback }}
@@ -56,7 +67,7 @@
       </div>
 
       <!-- Final score (if results available) -->
-      <div v-if="hasResults" class="final-score">
+      <div class="final-score">
         <h3>Final Score</h3>
         <div class="score-display">
           <div class="score-value">{{ totalScore }} / {{ totalPossiblePoints }}</div>
@@ -82,27 +93,91 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import yaml from 'js-yaml'
+import { useQuery } from '@tanstack/vue-query'
 
 // Props
 const props = defineProps<{
   workflowPath: string
 }>()
 
-// State
-const criteria = ref<any>(null)
-const evaluationResults = ref<any[]>([])
-const loading = ref(true)
-const error = ref('')
+// Fetch evaluation criteria
+const criteriaQuery = useQuery({
+  queryKey: ['evaluation-criteria', props.workflowPath],
+  queryFn: async () => {
+    const response = await fetch(
+      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_case.yaml`,
+    )
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to load evaluation criteria: ${response.status} ${response.statusText}`,
+      )
+    }
+
+    const criteriaText = await response.text()
+    return yaml.load(criteriaText) as {
+      llm_judge: string
+      checkpoints: Array<{
+        criteria: string
+        points: number
+      }>
+    }
+  },
+})
+
+// Fetch evaluation results
+const resultsQuery = useQuery({
+  queryKey: ['evaluation-results', props.workflowPath],
+  queryFn: async () => {
+    const response = await fetch(
+      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
+    )
+
+    if (!response.ok) {
+      // If no results yet, we don't throw an error
+      // This is expected when results haven't been generated
+      return { checkpoints: [] }
+    }
+
+    return response.json()
+  },
+  // No need to wait for criteria to load to fetch results
+  enabled: computed(() => !!props.workflowPath),
+  // Don't retry too many times for results that might not exist yet
+  retry: 1,
+})
+
+// Prepare evaluation results with proper alignment to criteria
+const evaluationResults = computed(() => {
+  if (!resultsQuery.data.value || !criteriaQuery.data.value) {
+    return []
+  }
+
+  const results = resultsQuery.data.value.checkpoints || []
+
+  // Ensure we have a result for each criterion
+  if (criteriaQuery.data.value.checkpoints.length > results.length) {
+    // Pad with empty results if needed
+    const missing = criteriaQuery.data.value.checkpoints.length - results.length
+    for (let i = 0; i < missing; i++) {
+      results.push({ result: null })
+    }
+  }
+
+  return results
+})
 
 // Check if evaluation results are available
-const hasResults = computed(() => evaluationResults.value.length > 0)
+const hasResults = computed(() => {
+  return resultsQuery.data.value?.checkpoints?.length > 0
+})
 
 // Calculate total possible points
 const totalPossiblePoints = computed(() => {
-  if (!criteria.value || !criteria.value.checkpoints) return 0
-  return criteria.value.checkpoints.reduce(
+  if (!criteriaQuery.data.value || !criteriaQuery.data.value.checkpoints) return 0
+  return criteriaQuery.data.value.checkpoints.reduce(
     (sum: number, checkpoint: any) => sum + checkpoint.points,
     0,
   )
@@ -111,59 +186,11 @@ const totalPossiblePoints = computed(() => {
 // Calculate total score from results
 const totalScore = computed(() => {
   if (!hasResults.value) return 0
-  return evaluationResults.value.reduce((sum: number, result: any) => {
-    return sum + (result.result === 'pass' ? result.points : 0)
+  return evaluationResults.value.reduce((sum: number, result: any, index: number) => {
+    // Fix this line to use .value when accessing criteriaQuery.data
+    const points = criteriaQuery.data.value?.checkpoints[index]?.points || 0
+    return sum + (result.result === 'pass' ? points : 0)
   }, 0)
-})
-
-// Load criteria data
-onMounted(async () => {
-  try {
-    loading.value = true
-
-    // Load evaluation criteria
-    const criteriaResponse = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_case.yaml`,
-    )
-
-    if (!criteriaResponse.ok) {
-      throw new Error(
-        `Failed to load evaluation criteria: ${criteriaResponse.status} ${criteriaResponse.statusText}`,
-      )
-    }
-
-    const criteriaText = await criteriaResponse.text()
-    criteria.value = yaml.load(criteriaText)
-
-    // Try to load evaluation results if they exist
-    try {
-      const resultsResponse = await fetch(
-        `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
-      )
-
-      if (resultsResponse.ok) {
-        const results = await resultsResponse.json()
-        evaluationResults.value = results.checkpoints || []
-
-        // Make sure we have a result for each criterion
-        if (criteria.value.checkpoints.length > evaluationResults.value.length) {
-          // Pad with empty results if needed
-          const missing = criteria.value.checkpoints.length - evaluationResults.value.length
-          for (let i = 0; i < missing; i++) {
-            evaluationResults.value.push({ result: null })
-          }
-        }
-      }
-    } catch (err) {
-      console.log('No evaluation results available:', err)
-      // This is not an error - results may not exist yet
-    }
-  } catch (err) {
-    console.error('Error loading evaluation criteria:', err)
-    error.value = err instanceof Error ? err.message : String(err)
-  } finally {
-    loading.value = false
-  }
 })
 </script>
 
