@@ -49,7 +49,6 @@ WEBPAGE_DESCRIPTIONS = {
 }
 
 CODE_EXAMPLE_WITH_COMMENTS = """
-
 # agent.py
 
 # good to have
@@ -68,12 +67,14 @@ from tools.translate_text_with_llm import translate_text_with_llm
 
 load_dotenv()
 
+
 # ========= Structured output definition =========
 class StructuredOutput(BaseModel):
     url: str = Field(..., description="The URL of the webpage that was translated.")
     source_language: str = Field(..., description="The source language detected on the webpage (should be 'English').")
     extracted_text: str = Field(..., description="The main text content extracted from the original English webpage.")
     translated_text: str = Field(..., description="The English text translated to Italian.")
+
 
 # ========= System Instructions =========
 INSTRUCTIONS = '''
@@ -89,10 +90,11 @@ You are an assistant that translates the main text content of an English webpage
 Limit the output to 1000 tokens if the page is very long. Ensure the translation is accurate and clear. Do not make up or hallucinate content.
 '''
 
+
 TOOLS = [
     visit_webpage,                # To fetch and extract page text
     translate_text_with_llm,      # To translate extracted text
-    MCPStdio(
+    MCPStdio(                     # To search results on the web
         command="docker",
         args=[
             "run",
@@ -125,6 +127,7 @@ agent = AnyAgent.create(
     ),
 )
 
+
 def run_agent(url: str):
     \"\"\"
     Given a webpage URL, translate its main English content to Italian,
@@ -136,6 +139,7 @@ def run_agent(url: str):
         f.write(agent_trace.model_dump_json(indent=2))
     return agent_trace.final_output
 
+
 if __name__ == "__main__":
     Fire(run_agent)
 """  # noqa: E501
@@ -144,9 +148,9 @@ DELIVERABLES_INSTRUCTIONS = """
 The final output should be a JSON with the following structure:
 
 {
-    "agent_code": "The python script as a single string that is runnable as agent.py",
-    "run_instructions": "The instructions for setting up the environment in Markdown format",
-    "dependencies": "The list of python dependencies in Markdown format"
+    "agent_code": "The python script as a single string that is runnable as agent.py.",
+    "run_instructions": "The instructions for setting up the environment in Markdown format.",
+    "dependencies": "The list of python dependencies in Markdown format."
 }
 
 1. agent_code should contain all the code implementation of the agent which will correspond to the runnable agent.py script
@@ -170,13 +174,7 @@ using Mozilla's any-agent library. The implementation should:
 1. Use the OpenAI framework as the underlying agent provider
 2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
 3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument
-4. Whenever required, assign tools in the agent configuration. The tools available for you to assign are:
-    a. built-in tools from any-agent library: search_tavily and visit_webpage
-    b. python functions from the available_tools.md file
-    c. MCP Servers that provide tools relevant to the task.
-       You can discover relevant MCP Servers using the `search_mcp_servers` tool, and then verify
-       their relevance using the `visit_webpage` tool to visit the MCP server's spec page.
-       Do not make up MCP servers or tools, always use the `search_mcp_servers` tool to discover them.
+4. Whenever required, assign tools in the agent configuration.
 
 ## Required Components
 
