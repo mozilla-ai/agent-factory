@@ -4,8 +4,9 @@
       <span class="success-icon">✓</span>
       <span class="status-text">All evaluation files are already generated</span>
       <button
-        @click="$emit('evaluation-status-changed', { tab: 'results' })"
-        class="view-results-button"
+        class="action-button"
+        @click="viewResults"
+        :disabled="!evaluationStatus?.hasEvalResults"
       >
         View Results
       </button>
@@ -91,6 +92,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, defineProps, defineEmits, watch } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   workflowPath: {
@@ -109,6 +111,7 @@ const props = defineProps({
 
 const emit = defineEmits(['evaluation-status-changed'])
 const queryClient = useQueryClient()
+const router = useRouter()
 const output = ref('')
 
 // Computed property to check if all evaluation files exist
@@ -263,6 +266,13 @@ const runEvalMutation = useMutation({
   },
 })
 
+function viewResults() {
+  router.push({
+    path: router.currentRoute.value.path,
+    query: { ...router.currentRoute.value.query, tab: 'results' },
+  })
+}
+
 onMounted(() => {
   console.log('Component mounted with workflow path:', props.workflowPath)
 })
@@ -303,19 +313,34 @@ onMounted(() => {
   color: var(--color-text);
 }
 
-.view-results-button {
-  padding: 0.5rem 0.75rem;
+/* Replace the action-button styles to use defined variables */
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
-  background-color: var(--color-primary, #3b82f6);
+  background: var(--button-background-color);
+  border: 1px solid var(--button-background-color);
   color: white;
-  border: none;
-  font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+  font-weight: 500;
 }
 
-.view-results-button:hover {
-  background-color: var(--color-primary-dark, #2563eb);
+.action-button:hover {
+  background: var(--button-hover-color);
+}
+
+.action-button:active {
+  background: var(--button-active-color);
+}
+
+.action-button:disabled {
+  background: var(--button-disabled-background-color);
+  border-color: var(--color-border);
+  color: var(--button-disabled-text-color);
+  cursor: not-allowed;
 }
 
 .evaluation-steps {
