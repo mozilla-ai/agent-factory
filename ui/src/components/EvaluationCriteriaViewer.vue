@@ -1,16 +1,16 @@
 <template>
   <div class="evaluation-criteria-viewer">
-    <div v-if="criteriaQuery.isPending.value" class="criteria-loading">
+    <div v-if="evaluationCriteriaQuery.isPending.value" class="criteria-loading">
       Loading evaluation criteria...
     </div>
-    <div v-else-if="criteriaQuery.isError.value" class="criteria-error">
+    <div v-else-if="evaluationCriteriaQuery.isError.value" class="criteria-error">
       {{
-        criteriaQuery.error.value instanceof Error
-          ? criteriaQuery.error.value.message
+        evaluationCriteriaQuery.error.value instanceof Error
+          ? evaluationCriteriaQuery.error.value.message
           : 'Error loading criteria'
       }}
     </div>
-    <div v-else-if="!criteriaQuery.data.value" class="criteria-empty">
+    <div v-else-if="!evaluationCriteriaQuery.data.value" class="criteria-empty">
       No evaluation criteria available
     </div>
 
@@ -20,7 +20,7 @@
         <h3>Evaluation Criteria</h3>
         <div class="judge-info">
           <span class="judge-label">LLM Judge:</span>
-          <span class="judge-model">{{ criteriaQuery.data.value.llm_judge }}</span>
+          <span class="judge-model">{{ evaluationCriteriaQuery.data.value.llm_judge }}</span>
         </div>
         <div class="points-summary">
           <span class="points-label">Total Points Possible:</span>
@@ -31,7 +31,7 @@
       <!-- Criteria checklist -->
       <div class="criteria-checklist">
         <div
-          v-for="(checkpoint, index) in criteriaQuery.data.value.checkpoints"
+          v-for="(checkpoint, index) in evaluationCriteriaQuery.data.value.checkpoints"
           :key="index"
           class="checkpoint-item"
         >
@@ -121,7 +121,7 @@ const props = defineProps<{
 }>()
 
 // Fetch evaluation criteria
-const criteriaQuery = useQuery({
+const evaluationCriteriaQuery = useQuery({
   queryKey: ['evaluation-criteria', props.workflowPath],
   queryFn: async (): Promise<EvaluationCriteria> => {
     const response = await fetch(
@@ -141,7 +141,7 @@ const criteriaQuery = useQuery({
 })
 
 // Fetch evaluation results
-const resultsQuery = useQuery({
+const evaluationResultsQuery = useQuery({
   queryKey: ['evaluation-results', props.workflowPath],
   queryFn: async (): Promise<EvaluationResults> => {
     const response = await fetch(
@@ -164,16 +164,16 @@ const resultsQuery = useQuery({
 
 // Prepare evaluation results with proper alignment to criteria
 const evaluationResults = computed(() => {
-  if (!resultsQuery.data.value || !criteriaQuery.data.value) {
+  if (!evaluationResultsQuery.data.value || !evaluationCriteriaQuery.data.value) {
     return []
   }
 
-  const results = [...(resultsQuery.data.value.checkpoints || [])]
+  const results = [...(evaluationResultsQuery.data.value.checkpoints || [])]
 
   // Ensure we have a result for each criterion
-  if (criteriaQuery.data.value.checkpoints.length > results.length) {
+  if (evaluationCriteriaQuery.data.value.checkpoints.length > results.length) {
     // Pad with empty results if needed
-    const missing = criteriaQuery.data.value.checkpoints.length - results.length
+    const missing = evaluationCriteriaQuery.data.value.checkpoints.length - results.length
     for (let i = 0; i < missing; i++) {
       results.push({ result: null })
     }
@@ -184,13 +184,14 @@ const evaluationResults = computed(() => {
 
 // Check if evaluation results are available
 const hasResults = computed(() => {
-  return (resultsQuery.data.value?.checkpoints?.length || 0) > 0
+  return (evaluationResultsQuery.data.value?.checkpoints?.length || 0) > 0
 })
 
 // Calculate total possible points
 const totalPossiblePoints = computed(() => {
-  if (!criteriaQuery.data.value || !criteriaQuery.data.value.checkpoints) return 0
-  return criteriaQuery.data.value.checkpoints.reduce(
+  if (!evaluationCriteriaQuery.data.value || !evaluationCriteriaQuery.data.value.checkpoints)
+    return 0
+  return evaluationCriteriaQuery.data.value.checkpoints.reduce(
     (sum: number, checkpoint: Checkpoint) => sum + checkpoint.points,
     0,
   )
@@ -200,7 +201,7 @@ const totalPossiblePoints = computed(() => {
 const totalScore = computed(() => {
   if (!hasResults.value) return 0
   return evaluationResults.value.reduce((sum: number, result: EvaluationResult, index: number) => {
-    const points = criteriaQuery.data.value?.checkpoints[index]?.points || 0
+    const points = evaluationCriteriaQuery.data.value?.checkpoints[index]?.points || 0
     return sum + (result.result === 'pass' ? points : 0)
   }, 0)
 })

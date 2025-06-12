@@ -200,7 +200,6 @@ const traceQuery = useQuery({
 
     return data
   },
-  staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   retry: 1, // Retry once on failure
 })
 
