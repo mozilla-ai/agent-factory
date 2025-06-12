@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineProps, defineEmits, watch } from 'vue'
+import { ref, computed, onMounted, defineProps, defineEmits } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
@@ -122,35 +122,6 @@ const allEvaluationFilesExist = computed(
     props.evaluationStatus.hasEvalCases &&
     props.evaluationStatus.hasEvalResults,
 )
-
-// Watch for workflow path changes
-// watch(
-//   () => props.workflowPath,
-//   (newPath) => {
-//     console.log('Workflow path changed to:', newPath)
-//   },
-// )
-
-// Process streaming response
-async function processStreamingResponse(response: Response): Promise<void> {
-  const reader = response.body?.getReader()
-  if (!reader) {
-    output.value += 'Error: No response body\n'
-    return
-  }
-
-  const decoder = new TextDecoder()
-  let done = false
-
-  while (!done) {
-    const { value, done: streamDone } = await reader.read()
-    if (value) {
-      const chunk = decoder.decode(value, { stream: true })
-      output.value += chunk
-    }
-    done = streamDone
-  }
-}
 
 // Mutations for evaluation steps
 const runAgentMutation = useMutation({

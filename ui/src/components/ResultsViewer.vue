@@ -129,11 +129,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { workflowService } from '@/services/workflowService'
 import { apiClient } from '@/services/api'
+import type { EvaluationCheckpoint } from '@/types'
 
 // Props
 const props = defineProps<{
@@ -147,6 +148,7 @@ const router = useRouter()
 const statusQuery = useQuery({
   queryKey: ['evaluationStatus', props.workflowPath],
   queryFn: () => workflowService.getEvaluationStatus(props.workflowPath),
+  retry: 1,
 })
 
 // Fetch evaluation results using API client instead of direct fetch
@@ -159,6 +161,7 @@ const resultsQuery = useQuery({
     return response.data
   },
   enabled: computed(() => statusQuery.data.value?.hasEvalResults),
+  retry: 1,
 })
 
 // Computed properties for evaluation files
@@ -220,12 +223,16 @@ const scoreColorClass = computed(() => {
 // Add the missing computed properties for checkpoint counts
 const passedCheckpoints = computed(() => {
   if (!resultsQuery.data.value?.checkpoints) return 0
-  return resultsQuery.data.value.checkpoints.filter((c) => c.result === 'pass').length
+  return resultsQuery.data.value.checkpoints.filter(
+    (c: EvaluationCheckpoint) => c.result === 'pass',
+  ).length
 })
 
 const failedCheckpoints = computed(() => {
   if (!resultsQuery.data.value?.checkpoints) return 0
-  return resultsQuery.data.value.checkpoints.filter((c) => c.result === 'fail').length
+  return resultsQuery.data.value.checkpoints.filter(
+    (c: EvaluationCheckpoint) => c.result === 'fail',
+  ).length
 })
 
 // Navigation methods

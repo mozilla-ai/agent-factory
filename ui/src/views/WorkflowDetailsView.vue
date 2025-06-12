@@ -37,7 +37,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { useQuery } from '@tanstack/vue-query'
 import { useTabs } from '@/composables/useTabs'
-import { useFileExplorer } from '@/composables/useFileExplorer'
 import { workflowService } from '@/services/workflowService'
 import { routes } from '@/config'
 
@@ -47,6 +46,7 @@ import EvaluationPanel from '@/components/EvaluationPanel.vue'
 import AgentTraceViewer from '@/components/AgentTraceViewer.vue'
 import EvaluationCriteriaViewer from '@/components/EvaluationCriteriaViewer.vue'
 import ResultsViewer from '@/components/ResultsViewer.vue'
+import type { WorkflowFile } from '@/types'
 
 // Setup
 const route = useRoute()
@@ -75,19 +75,38 @@ const evaluationStatusQuery = useQuery({
   queryKey: ['evaluationStatus', workflowPath],
   queryFn: () => workflowService.getEvaluationStatus(workflowPath.value),
   enabled: computed(() => !!workflowPath.value),
+  retry: 1,
 })
 
 // Setup tabs
 const { activeTab, setActiveTab } = useTabs('files')
 
-// Setup file explorer
-const {
-  selectedFile,
-  fileContent,
-  loadingFileContent,
-  error: fileError,
-  selectFile,
-} = useFileExplorer(workflowPath)
+// Store the selected file
+const selectedFile = ref<WorkflowFile | undefined>(undefined)
+
+// Configure file content query with caching
+const fileContentQuery = useQuery({
+  queryKey: [
+    'fileContent',
+    workflowPath,
+    computed(() =>
+      selectedFile.value ? selectedFile.value.path || selectedFile.value.name : null,
+    ),
+  ],
+  queryFn: async () => {
+    if (!selectedFile.value) return ''
+    const filePath = selectedFile.value.path || selectedFile.value.name
+    return workflowService.getFileContent(workflowPath.value, filePath)
+  },
+  // Add caching settings
+  enabled: computed(() => !!selectedFile.value && !selectedFile.value.isDirectory),
+  retry: 1,
+})
+
+// Handle file selection
+function handleFileSelect(file: WorkflowFile) {
+  selectedFile.value = file
+}
 
 // Dynamic tab list based on evaluation status
 const availableTabs = computed(() => {
@@ -146,10 +165,10 @@ const tabProps = computed(() => {
         ...baseProps,
         files: workflow.value?.files || [],
         selectedFile: selectedFile.value,
-        content: fileContent.value,
-        loading: loadingFileContent.value,
-        error: fileError.value,
-        onSelect: selectFile,
+        content: fileContentQuery.data.value || '',
+        loading: fileContentQuery.isLoading.value,
+        error: fileContentQuery.error.value?.message || '',
+        onSelect: handleFileSelect,
       }
     case 'evaluate':
       return {

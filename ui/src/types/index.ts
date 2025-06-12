@@ -1,14 +1,14 @@
-export interface File {
+export interface WorkflowFile {
   name: string
   isDirectory: boolean
-  files?: File[]
+  files?: WorkflowFile[]
   path?: string
 }
 
 export interface Workflow {
   name: string
   isDirectory: boolean
-  files?: File[]
+  files?: WorkflowFile[]
   path?: string
 }
 
@@ -57,4 +57,10 @@ export interface AgentTrace {
   final_output: string
 }
 
-// Other type definitions as needed
+export interface EvaluationCheckpoint {
+  criteria: string
+  result: 'pass' | 'fail'
+  points: number
+  feedback?: string
+  // Add other properties that exist in your checkpoints
+}

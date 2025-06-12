@@ -42,18 +42,18 @@
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
-import type { File } from '@/types'
+import type { WorkflowFile } from '@/types'
 
-const props = defineProps<{
-  files: File[]
-  selectedFile: File | undefined
+defineProps<{
+  files: WorkflowFile[]
+  selectedFile: WorkflowFile | undefined
 }>()
 
 const emit = defineEmits<{
-  (e: 'select', file: File): void
+  (e: 'select', file: WorkflowFile): void
 }>()
 
-function selectFile(file: File) {
+function selectFile(file: WorkflowFile) {
   emit('select', file)
 }
 </script>
