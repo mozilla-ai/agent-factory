@@ -38,7 +38,7 @@
           :class="{ active: activeTab === 'criteria' }"
           @click="setActiveTab('criteria')"
         >
-          Criteria
+          Evaluation Criteria
         </button>
         <button
           v-if="hasEvaluationFiles"
@@ -388,7 +388,7 @@ function findParent(files: File[] | undefined, target: File): File | undefined {
       }
     }
   }
-  return undefined // Changed from null to undefined
+  return undefined
 }
 
 // Select a file and load its content

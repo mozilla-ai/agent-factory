@@ -174,12 +174,10 @@ const runAgentMutation = useMutation({
   onSuccess: () => {
     console.log('Agent run successful, invalidating evaluation status query')
 
-    // Missing: Invalidate the query for agent trace
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
 
-    // Emit status change as before
     emit('evaluation-status-changed', {
       hasAgentTrace: true,
     })
@@ -218,7 +216,6 @@ const genCasesMutation = useMutation({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
 
-    // Add direct status update like in runAgentMutation
     emit('evaluation-status-changed', {
       hasEvalCases: true,
     })
@@ -233,7 +230,6 @@ const runEvalMutation = useMutation({
   mutationFn: async () => {
     output.value = `Running evaluation for workflow: ${props.workflowPath}...\n`
 
-    // Add this line to define encodedPath
     const encodedPath = encodeURIComponent(props.workflowPath)
 
     console.log(`Sending run evaluation request for: ${props.workflowPath}`)
@@ -257,7 +253,6 @@ const runEvalMutation = useMutation({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
 
-    // Add this line to directly update status (like in runAgentMutation)
     emit('evaluation-status-changed', {
       hasEvalResults: true,
     })
@@ -268,10 +263,8 @@ const runEvalMutation = useMutation({
   },
 })
 
-// Initial check on component mount
 onMounted(() => {
   console.log('Component mounted with workflow path:', props.workflowPath)
-  // Queries are automatically run due to their setup
 })
 </script>
 
@@ -282,7 +275,6 @@ onMounted(() => {
   gap: 1.5rem;
 }
 
-/* Improved success banner contrast */
 .evaluation-status {
   display: flex;
   align-items: center;
@@ -290,7 +282,6 @@ onMounted(() => {
   padding: 0.75rem 1rem;
   border-radius: 4px;
   background-color: var(--color-success-background, rgba(0, 128, 0, 0.1));
-  /* Add border for better contrast */
   border: 1px solid var(--color-success, green);
 }
 
@@ -309,7 +300,6 @@ onMounted(() => {
 .status-text {
   flex: 1;
   font-weight: 500;
-  /* Use main text color for better contrast */
   color: var(--color-text);
 }
 
@@ -321,7 +311,6 @@ onMounted(() => {
   border: none;
   font-weight: 500;
   cursor: pointer;
-  /* Add box shadow for better distinction */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -332,7 +321,7 @@ onMounted(() => {
 .evaluation-steps {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* Slightly more gap for better separation */
+  gap: 0.75rem;
 }
 
 /* Higher contrast for buttons */
@@ -359,11 +348,9 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-/* Improved contrast for completed steps */
 .eval-button.completed {
   border-color: var(--color-success, green);
   background-color: var(--color-success-background, rgba(0, 128, 0, 0.1));
-  /* Add box-shadow for more distinction */
   box-shadow: 0 0 0 1px var(--color-success, green);
 }
 
@@ -377,11 +364,9 @@ onMounted(() => {
   background-color: var(--color-background-soft);
   color: var(--color-text); /* Ensure text uses main color */
   font-weight: bold;
-  /* Add subtle border for more contrast */
   border: 1px solid var(--color-border);
 }
 
-/* Make step title more visible */
 .step-content {
   flex: 1;
 }
@@ -409,20 +394,16 @@ onMounted(() => {
   font-size: 1.25rem;
 }
 
-/* Improve indicator visibility */
 .success-indicator {
   color: var(--color-success, green);
-  /* Make success slightly larger for better visibility */
   font-size: 1.4rem;
 }
 
-/* Improve console output contrast */
 .evaluation-output {
   margin-top: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
-  /* Add subtle shadow for depth */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 

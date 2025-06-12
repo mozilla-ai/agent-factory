@@ -1,4 +1,3 @@
-<!-- filepath: /Users/khaled/github/agent-factory/ui/src/components/AgentTraceViewer.vue -->
 <template>
   <div class="agent-trace-viewer">
     <div v-if="traceQuery.isLoading.value" class="trace-loading">Loading agent trace...</div>
@@ -125,7 +124,6 @@
 import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 
-// Add these missing interface definitions
 interface TraceMessage {
   role: string
   content: string

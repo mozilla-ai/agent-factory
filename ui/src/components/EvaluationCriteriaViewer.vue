@@ -1,6 +1,4 @@
-<!-- filepath: /Users/khaled/github/agent-factory/ui/src/components/EvaluationCriteriaViewer.vue -->
 <template>
-  <!-- Fix reactive property access in conditionals -->
   <div class="evaluation-criteria-viewer">
     <div v-if="criteriaQuery.isPending.value" class="criteria-loading">
       Loading evaluation criteria...
@@ -97,7 +95,6 @@ import { computed } from 'vue'
 import yaml from 'js-yaml'
 import { useQuery } from '@tanstack/vue-query'
 
-// Add proper types
 interface Checkpoint {
   criteria: string
   points: number

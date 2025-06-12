@@ -65,7 +65,6 @@ const fileName = computed(() => {
   return parts[parts.length - 1]
 })
 
-// Use vue-query for fetching file content with caching
 const fileQuery = useQuery({
   queryKey: ['fileContent', filePath.value],
   queryFn: async () => {

@@ -127,11 +127,7 @@ app.post(
       const workflowPath = req.params.workflowPath
       const fullPath = resolveWorkflowPath(workflowPath)
 
-      // ⚠️ FIX: Make sure we're only passing the workflow-relative path, not the full system path
-      // Instead of this:
-      // const relativePath = fullPath.replace(process.cwd(), '').replace(/^\//, '');
-
-      // Do this - just pass the workflow name directly:
+      // Make sure we're only passing the workflow-relative path, not the full system path
       const workflowName = workflowPath.startsWith('archive/')
         ? workflowPath
         : 'latest'
@@ -139,7 +135,7 @@ app.post(
       console.log({
         workflowPath,
         fullPath,
-        workflowName, // Use this simpler path
+        workflowName,
       })
 
       const outputCallback = setupStreamingResponse(res)
@@ -147,7 +143,7 @@ app.post(
       // Pass just the workflow name to the Python script
       await runPythonScriptWithStreaming(
         'eval/main.py',
-        [`generated_workflows/${workflowName}`] as string[], // Fix using type assertion
+        [`generated_workflows/${workflowName}`] as string[],
         outputCallback,
       )
 
@@ -176,7 +172,6 @@ app.post(
       // Check if agent trace exists in the workflow directory
       const tracePath = path.join(fullPath, 'agent_eval_trace.json')
 
-      // Fix both return statements
       try {
         await fs.access(tracePath)
       } catch {
@@ -478,11 +473,6 @@ const checkEnvironmentMiddleware = (
   next()
 }
 
-// Update middleware application
-// Change this:
-// app.use('/agent-factory', checkEnvironmentMiddleware)
-
-// To this:
 app.use('/agent-factory', (req: Request, res: Response, next: NextFunction) => {
   checkEnvironmentMiddleware(req, res, next)
 })
@@ -493,7 +483,6 @@ startServer().catch((error) => {
   process.exit(1)
 })
 
-// Add these interfaces for evaluation results
 interface EvaluationCheckpointResult {
   criteria: string;
   points: number;
@@ -507,7 +496,6 @@ interface EvaluationResults {
   checkpoints: EvaluationCheckpointResult[];
 }
 
-// Add this function to parse evaluation output
 function parseEvaluationOutput(output: string): EvaluationResults {
   const results: EvaluationResults = {
     score: 0,

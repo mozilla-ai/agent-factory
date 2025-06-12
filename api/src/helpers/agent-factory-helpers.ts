@@ -153,7 +153,6 @@ export async function runAgentFactoryWorkflowWithStreaming(
   }
 }
 
-// Add a new function to run any Python script with streaming output
 export async function runPythonScriptWithStreaming(
   scriptPath: string,
   args: string[] = [],
