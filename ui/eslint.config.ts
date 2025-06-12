@@ -22,6 +22,13 @@ export default defineConfigWithVueTs(
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
 
+  // Add rule override to allow unused vars with underscore prefix
+  {
+    files: ["**/*.{js,ts}"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+    }
+  },
   {
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/*'],
