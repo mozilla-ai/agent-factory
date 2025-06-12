@@ -133,6 +133,7 @@ import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { workflowService } from '@/services/workflowService'
+import { apiClient } from '@/services/api'
 
 // Props
 const props = defineProps<{
@@ -141,26 +142,21 @@ const props = defineProps<{
 
 // Setup
 const router = useRouter()
-const loading = ref(false)
-const error = ref('')
 
-// Fetch evaluation status - using workflowService instead of direct endpoint
+// Fetch evaluation status using workflowService
 const statusQuery = useQuery({
   queryKey: ['evaluationStatus', props.workflowPath],
   queryFn: () => workflowService.getEvaluationStatus(props.workflowPath),
 })
 
-// Fetch evaluation results if available
+// Fetch evaluation results using API client instead of direct fetch
 const resultsQuery = useQuery({
   queryKey: ['evaluationResults', props.workflowPath],
   queryFn: async () => {
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
+    const response = await apiClient.get(
+      `/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
     )
-    if (!response.ok) {
-      throw new Error(`Failed to load evaluation results: ${response.statusText}`)
-    }
-    return await response.json()
+    return response.data
   },
   enabled: computed(() => statusQuery.data.value?.hasEvalResults),
 })

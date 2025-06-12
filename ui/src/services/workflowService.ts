@@ -33,4 +33,25 @@ export const workflowService = {
 
     return { hasAgentTrace, hasEvalCases, hasEvalResults }
   },
+
+  async getEvaluationResults(workflowPath: string) {
+    const response = await apiClient.get(
+      `/agent-factory/workflows/${workflowPath}/evaluation_results.json`,
+    )
+    return response.data
+  },
+
+  async getAgentTrace(workflowPath: string) {
+    const response = await apiClient.get(
+      `/agent-factory/workflows/${workflowPath}/agent_eval_trace.json`,
+    )
+    return response.data
+  },
+
+  async getEvaluationCriteria(workflowPath: string) {
+    const response = await apiClient.get(
+      `/agent-factory/workflows/${workflowPath}/evaluation_case.yaml`,
+    )
+    return response.data
+  },
 }

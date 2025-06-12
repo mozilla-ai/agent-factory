@@ -16,7 +16,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Global error handling (logging, notifications)
-    console.error('API Error:', error)
+    // console.error('API Error:', error)
     return Promise.reject(error)
   },
 )

@@ -93,6 +93,7 @@
 import { ref, computed, onMounted, defineProps, defineEmits, watch } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
+import { evaluationService } from '@/services/evaluationService'
 
 const props = defineProps({
   workflowPath: {
@@ -156,38 +157,27 @@ const runAgentMutation = useMutation({
   mutationFn: async () => {
     output.value = `Running agent for workflow: ${props.workflowPath}...\n`
 
-    // URL encode the path parameter to handle special characters
-    const encodedPath = encodeURIComponent(props.workflowPath)
-
-    console.log(`Sending run agent request for: ${props.workflowPath}`)
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/run-agent/${encodedPath}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      output.value += `Error: ${response.status} ${response.statusText}\n${errorText}\n`
-      throw new Error(`Failed to run agent: ${response.status} ${response.statusText}`)
+    try {
+      const stream = await evaluationService.runAgent(props.workflowPath)
+      await processStream(stream)
+      return true
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      output.value += `Error: ${errorMessage}\n`
+      throw error
     }
-
-    await processStreamingResponse(response)
-    return true
   },
   onSuccess: () => {
     console.log('Agent run successful, invalidating evaluation status query')
-
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
-
     emit('evaluation-status-changed', {
       hasAgentTrace: true,
     })
   },
-  onError: (error: unknown) => {
+  onError: (error) => {
     console.error('Error running agent:', error)
-    output.value += `Failed to run agent. Check console for details.\n`
   },
 })
 
@@ -195,37 +185,27 @@ const genCasesMutation = useMutation({
   mutationFn: async () => {
     output.value = 'Generating evaluation cases...\n'
 
-    // Encode the path for the URL
-    const encodedPath = encodeURIComponent(props.workflowPath)
-
-    console.log('Sending generate cases request with path:', props.workflowPath)
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/generate-cases/${encodedPath}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      output.value += `Error: ${response.status} ${response.statusText}\n${errorText}\n`
-      throw new Error(`Failed to generate cases: ${response.status} ${response.statusText}`)
+    try {
+      const stream = await evaluationService.generateEvaluationCases(props.workflowPath)
+      await processStream(stream)
+      return true
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      output.value += `Error: ${errorMessage}\n`
+      throw error
     }
-
-    await processStreamingResponse(response)
-    return true
   },
   onSuccess: () => {
     console.log('Case generation successful, invalidating cases query')
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
-
     emit('evaluation-status-changed', {
       hasEvalCases: true,
     })
   },
   onError: (error) => {
     console.error('Error generating cases:', error)
-    output.value += `Failed to generate cases. Check console for details.\n`
   },
 })
 
@@ -233,38 +213,41 @@ const runEvalMutation = useMutation({
   mutationFn: async () => {
     output.value = `Running evaluation for workflow: ${props.workflowPath}...\n`
 
-    const encodedPath = encodeURIComponent(props.workflowPath)
-
-    console.log(`Sending run evaluation request for: ${props.workflowPath}`)
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/run-evaluation/${encodedPath}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      output.value += `Error: ${response.status} ${response.statusText}\n${errorText}\n`
-      throw new Error(`Failed to run evaluation: ${response.status} ${response.statusText}`)
+    try {
+      const stream = await evaluationService.runEvaluation(props.workflowPath)
+      await processStream(stream)
+      return true
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      output.value += `Error: ${errorMessage}\n`
+      throw error
     }
-
-    await processStreamingResponse(response)
-    return true
   },
   onSuccess: () => {
     console.log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
       queryKey: ['evaluationStatus', props.workflowPath],
     })
-
     emit('evaluation-status-changed', {
       hasEvalResults: true,
     })
   },
   onError: (error) => {
     console.error('Error running evaluation:', error)
-    output.value += `Failed to run evaluation. Check console for details.\n`
   },
 })
+
+// Helper function to process streams from axios responses
+async function processStream(stream: ReadableStream) {
+  const reader = stream.getReader()
+  const decoder = new TextDecoder()
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+    output.value += decoder.decode(value, { stream: true })
+  }
+}
 
 function viewResults() {
   router.push({
