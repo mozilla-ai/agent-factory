@@ -162,6 +162,7 @@ def build_run_instructions(user_prompt):
     {user_prompt}
 
     Before generating the code, first check the contents of the tools/ and mcps/ directories to understand the tools and MCPs available.
+    Always return only the structured outputs in JSON format as defined in the deliverables section.
     """  # noqa: E501
 
 

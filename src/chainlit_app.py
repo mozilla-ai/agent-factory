@@ -1,4 +1,6 @@
 import json
+import uuid
+from datetime import datetime
 from pathlib import Path
 
 import chainlit as cl
@@ -6,7 +8,14 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from dotenv import load_dotenv
 from src.instructions import INSTRUCTIONS
-from src.main import build_run_instructions, get_default_tools
+from src.main import (
+    AgentFactoryOutputs,
+    archive_latest_run_artifacts,
+    build_run_instructions,
+    get_default_tools,
+    save_agent_parsed_outputs,
+    setup_directories,
+)
 
 load_dotenv()
 
@@ -148,7 +157,17 @@ async def on_message(message: cl.Message):
                 f"```\n{json_output.get('dependencies', 'No dependencies provided.')}\n```"
             )
 
-            response_msg = cl.Message(content=output_to_render, author="assistant")
+            # Add export button action
+            actions = [
+                cl.Action(
+                    name="export_workflow",
+                    payload=json_output,
+                    tooltip="Export the generated agent code, instructions, and dependencies to generated_workflows/latest directory.",  # noqa: E501
+                    label="📁 Save Workflow to Files",
+                    icon="download",
+                )
+            ]
+            response_msg = cl.Message(content=output_to_render, author="assistant", actions=actions)
             await response_msg.send()
 
             # Add assistant response to history
@@ -159,6 +178,26 @@ async def on_message(message: cl.Message):
 
     except Exception as e:
         await cl.Message(content=f"❌ **Error occurred:** {str(e)}", author="Error").send()
+
+
+@cl.action_callback("export_workflow")
+async def export_workflow_action(action: cl.Action):
+    """Handle export workflow button click: validate and save agent outputs."""
+    latest_dir, archive_root = setup_directories(workflows_root, workflows_root / "latest")
+    workflow_id = str(uuid.uuid4())
+    timestamp_id = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + workflow_id[:8]
+    archive_dir = archive_root / timestamp_id
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        agent_factory_outputs = AgentFactoryOutputs.model_validate(action.payload)
+        save_agent_parsed_outputs(agent_factory_outputs, "latest")
+        archive_latest_run_artifacts(latest_dir, archive_dir)
+        await cl.Message(
+            content="✅ Workflow exported successfully to the 'generated_workflows/latest' directory.",
+            author="assistant",
+        ).send()
+    except Exception as e:
+        await cl.Message(content=f"❌ Failed to export workflow: {e}", author="Error").send()
 
 
 if __name__ == "__main__":
