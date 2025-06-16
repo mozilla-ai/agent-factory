@@ -22,7 +22,6 @@ load_dotenv()
 repo_root = Path.cwd()
 workflows_root = repo_root / "generated_workflows"
 tools_dir = repo_root / "tools"
-mcps_dir = repo_root / "mcps"
 
 MCP_TOOLS = []
 
@@ -31,10 +30,8 @@ def get_mount_config():
     return {
         "host_workflows_dir": str(workflows_root),
         "host_tools_dir": str(tools_dir),
-        "host_mcps_dir": str(mcps_dir),
         "container_workflows_dir": "/app/generated_workflows",
         "container_tools_dir": "/app/tools",
-        "container_mcps_dir": "/app/mcps",
         "file_ops_dir": "/app",
     }
 
