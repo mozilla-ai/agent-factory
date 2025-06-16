@@ -2,6 +2,28 @@
 
 from jinja2 import Template
 
+TOOLS_REMINDER = """Use appropriate tools in the agent configuration:
+- Select relevant tools from `tools/available_tools.md`.
+- Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools
+    to the configuration.
+
+Always use the simplest and most efficient tools available for the task.
+"""
+
+USER_PROMPT = """Generate Python code for an agentic workflow using the `any-agent` library
+to do the following:
+{0}
+
+{1}
+"""
+
+AMENDMENT_PROMPT = """
+Amend the Python code you generated for the agentic workflow to do the following:
+{0}
+
+If necessary, {1}
+"""
+
 WEBPAGE_DESCRIPTIONS = {
     # Docs
     "https://mozilla-ai.github.io/any-agent/agents/": (
