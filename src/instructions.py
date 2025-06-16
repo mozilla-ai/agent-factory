@@ -194,7 +194,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 #### Tools (tools):
 - Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).
   Try to use only the minimum subset of tools that are necessary for the solving the task at hand.
-- You must choose tools from the following 3 options:
+- You must choose tools from the following 3 options, listed in order of priority (i.e. if a functionality is available in an earlier step, prefer it to equivalent tools in following ones)
     a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
        Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
@@ -202,7 +202,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
        giving it a keyword that describes the task you want to accomplish.
        Then, use the `visit_webpage` tool to visit the MCP server's spec page
        and verify that it provides the tools you need for the task.
-       To cunstruct the URL for the MCP server's spec page, use the following format:
+       To construct the URL for the MCP server's spec page, use the following format:
        `https://raw.githubusercontent.com/pathintegral-institute/mcpm.sh/refs/heads/main/mcp-registry/servers/<server__name>.json`
        where `server_name` is the name of the MCP server you found using the `search_mcp_servers` tool.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
