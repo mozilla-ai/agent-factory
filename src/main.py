@@ -1,4 +1,3 @@
-import json
 import shutil
 import uuid
 from datetime import datetime
@@ -10,7 +9,7 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
-from src.instructions import INSTRUCTIONS
+from src.instructions import AGENT_CODE_TEMPLATE, INSTRUCTIONS
 from src.tools import search_mcp_servers
 
 dotenv.load_dotenv()
@@ -19,9 +18,15 @@ repo_root = Path.cwd()
 workflows_root = repo_root / "generated_workflows"
 tools_dir = repo_root / "tools"
 
+OUTPUT_DICTIONARY = {}
+
 
 class AgentFactoryOutputs(BaseModel):
-    agent_code: str = Field(..., description="The python script as a string that is runnable as agent.py")
+    agent_instructions: str = Field(..., description="The instructions passed to the generated agent.")
+    tools: str = Field(..., description="The python code that defines the tools to be used by the generated agent.")
+    imports: str = Field(..., description="The python code snippet used to import the required tools.")
+    structured_outputs: str = Field(..., description="The Pydantic v2 models used to structure the agent's output.")
+    run_agent_code: str = Field(..., description="The main function in agent.py.")
     run_instructions: str = Field(..., description="The run instructions in Markdown format")
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
 
@@ -34,11 +39,23 @@ def get_mount_config():
     }
 
 
+def save_to_dictionary(key: str, value: str) -> None:
+    """Saves key/value pairs into the output dictionary.
+
+    Parameters:
+    - key: the dictionary key under which we want to save the value
+    - value: the value that is saved under the provided key name
+    """
+    print(f"[i] Adding the following to the dictionary:\n  - key: {key}\n  - value: {value}")
+    OUTPUT_DICTIONARY[key] = value
+
+
 def get_default_tools(mount_config):
     return [
         visit_webpage,
         search_tavily,
         search_mcp_servers,
+        save_to_dictionary,
         MCPStdio(
             command="docker",
             args=[
@@ -63,11 +80,10 @@ def get_default_tools(mount_config):
     ]
 
 
-def validate_agent_outputs(str_output: str):
+def validate_agent_outputs():
+    print(OUTPUT_DICTIONARY)
     try:
-        str_output = remove_markdown_code_block_delimiters(str_output)
-        json_output = json.loads(str_output)
-        agent_factory_outputs = AgentFactoryOutputs.model_validate(json_output)
+        agent_factory_outputs = AgentFactoryOutputs.model_validate(OUTPUT_DICTIONARY)
     except Exception as e:
         raise ValueError(
             f"Invalid format received for agent outputs: {e}. Could not parse the output as AgentFactoryOutputs."
@@ -95,7 +111,7 @@ def save_agent_raw_output(output: str, generated_workflows_dir: str = "latest"):
 
 
 def save_agent_parsed_outputs(output: AgentFactoryOutputs, generated_workflows_dir: str = "latest"):
-    """Save all three outputs from AgentFactoryOutputs to separate files."""
+    """Save outputs from AgentFactoryOutputs to separate files."""
     save_artifacts_dir = workflows_root / generated_workflows_dir
     Path(save_artifacts_dir).mkdir(exist_ok=True)
 
@@ -103,8 +119,12 @@ def save_agent_parsed_outputs(output: AgentFactoryOutputs, generated_workflows_d
     instructions_path = Path(f"{save_artifacts_dir}/INSTRUCTIONS.md")
     requirements_path = Path(f"{save_artifacts_dir}/requirements.txt")
 
+    # build agent code from dict keys + template
+    agent_code = AGENT_CODE_TEMPLATE.format(**OUTPUT_DICTIONARY)
+
+    # save the agent code
     with agent_path.open("w", encoding="utf-8") as f:
-        f.write(remove_markdown_code_block_delimiters(output.agent_code))
+        f.write(remove_markdown_code_block_delimiters(agent_code))
 
     with instructions_path.open("w", encoding="utf-8") as f:
         f.write(output.run_instructions)
@@ -133,7 +153,7 @@ def create_agent(mount_config):
             model_id="o3",
             instructions=INSTRUCTIONS,
             tools=get_default_tools(mount_config),
-            model_args={"tool_choice": "required"}  # Ensure tool choice is required
+            model_args={"tool_choice": "required"},  # Ensure tool choice is required
         ),
     )
     return agent
@@ -192,7 +212,7 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
     # Save raw agent output for debugging
     save_agent_raw_output(agent_trace.final_output, latest_dir)
     # Validate and save parsed agent outputs
-    agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
+    agent_factory_outputs = validate_agent_outputs()
     save_agent_parsed_outputs(agent_factory_outputs, latest_dir)
 
     archive_latest_run_artifacts(latest_dir, archive_dir)

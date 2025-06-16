@@ -145,26 +145,106 @@ if __name__ == "__main__":
 """  # noqa: E501
 
 DELIVERABLES_INSTRUCTIONS = """
-The final output should be a JSON with the following structure:
+# Instructions to generate final deliverables
+
+The final expected output is a dictionary with the following structure:
 
 {
-    "agent_code": "The python script as a single string that is runnable as agent.py.",
+    "agent_instructions": "The instructions passed to the generated agent.",
+    "tools": "The python code that defines the tools to be used by the generated agent.",
+    "imports": "The python code snippet needed to import the required tools.",
+    "structured_outputs": "The Pydantic v2 models used to structure the agent's final output.",
+    "run_agent_code": "The python code for the `run_agent` function, taking input parameters from the user and calling the agent.",
     "run_instructions": "The instructions for setting up the environment in Markdown format.",
     "dependencies": "The list of python dependencies in Markdown format."
 }
 
-1. agent_code should contain all the code implementation of the agent which will correspond to the runnable agent.py script
-2. run_instructions should contain clear and concise setup instructions:
+## Building the dictionary
+
+To build the output dictionary, you will add each individual key by calling the available tool `save_to_dictionary` with the proper parameters.
+The parameters required by the function are two, respectively the key and the value of the dictionary element.
+
+## Values to assign to dictionary keys
+
+1. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).
+This string replaces the {agent_instructions} placeholder in the agent code template.
+2. `tools` is python code that assigns the `TOOLS` variable with the list of tools required by the generated agent. This code replaces the {tools} placeholder in the agent code template.
+3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {imports} placeholder in the agent code template.
+4. `structured_outputs` is python code that defines the class `StructuredOutput(BaseModel)`) defining the agent's output schema as a Pydantic v2 model.
+This code replaces the {structured_outputs} placeholder in the agent code template.
+5. `run_agent_code` is a function definition (`def run_agent(...):`). You need to define the argument(s) passed to it, a docstring description of the agent, and a prompt
+template that, together with the input parameters, defines the input prompt passed to the agent. The general structure of the `run_agent` function is the following one:
+
+    ```
+    def run_agent({CLI_ARGS}):
+        \"\"\"Agent description\"\"\"
+        input_prompt = f"{PROMPT_TEMPLATE}".format(**kwargs)
+        agent_trace = agent.run(prompt=input_prompt)
+        with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
+            f.write(agent_trace.model_dump_json(indent=2))
+        return agent_trace.final_output
+    ```
+
+6. `run_instructions` should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
     - Setting up the environment via mamba (Python version 3.11)
     - Installing dependencies via requirements.txt
     - Run instructions for agent.py
-3. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
+7. `dependencies` should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow
     - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
+
 """  # noqa: E501
 
-CODE_GENERATION_INSTRUCTIONS = """
+AGENT_CODE_TEMPLATE = """
+# agent.py
+
+# good to have
+import os
+
+# ALWAYS used
+from dotenv import load_dotenv
+from any_agent import AgentConfig, AnyAgent
+from any_agent.config import MCPStdio
+from pydantic import BaseModel, Field
+from fire import Fire
+
+# ADD BELOW HERE: tools made available by any-agent or agent-factory
+{imports}
+
+load_dotenv()
+
+# ========== Structured output definition ==========
+{structured_outputs}
+
+# ========== System (Multi-step) Instructions ===========
+INSTRUCTIONS='''
+{agent_instructions}
+'''
+
+# ========== Tools definition ===========
+{tools}
+
+agent = AnyAgent.create(
+    "openai",
+    AgentConfig(
+        model_id="o3",
+        instructions=INSTRUCTIONS,
+        tools=TOOLS,
+        agent_args={{"output_type": StructuredOutput}},
+        model_args={{"tool_choice": "required"}},
+    ),
+)
+
+{run_agent_code}
+
+if __name__ == "__main__":
+    Fire(run_agent)
+
+"""
+
+
+CODE_GENERATION_INSTRUCTIONS = f"""
 # Single Agent Implementation with Multiple Steps
 
 ## Task Overview
@@ -194,7 +274,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 #### Tools (tools):
 - Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).
   Try to use only the minimum subset of tools that are necessary for the solving the task at hand.
-- You must choose tools from the following 3 options, listed in order of priority (i.e. if a functionality is available in an earlier step, prefer it to equivalent tools in following ones)
+- You must choose tools from the following 3 categories, *listed in order of priority* (i.e. tools found in an earlier category are preferable to equivalent tools found in following ones):
     a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
        Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
@@ -231,60 +311,13 @@ The code implementation should include the agent trace being saved into a JSON f
 
 Refer to the any-agent documentation URLs for implementation details and best practices.
 
-#### Agent code template
+### Agent code template
 
 - Rely on the following template to write the agent code:
 
 ```
-# agent.py
-
-# good to have
-import os
-
-# ALWAYS used
-from dotenv import load_dotenv
-from any_agent import AgentConfig, AnyAgent
-from any_agent.config import MCPStdio
-from pydantic import BaseModel, Field
-from fire import Fire
-
-# ADD BELOW HERE: tools made available by any-agent or agent-factory
-{IMPORTS}
-
-load_dotenv()
-
-# ========== Structured output definition ==========
-{STRUCTURED_OUTPUTS}
-
-# ========== System (Multi-step) Instructions ===========
-{INSTRUCTIONS}
-
-# ========== Tools definition ===========
-
-{TOOLS}
-
-agent = AnyAgent.create(
-    "openai",
-    AgentConfig(
-        model_id="o3",
-        instructions=INSTRUCTIONS,
-        tools=TOOLS,
-        agent_args={"output_type": StructuredOutput},
-        model_args={"tool_choice": "required"},
-    ),
-)
-
-def run_agent({CLI_ARGS}):
-    \"\"\"Agent description\"\"\"
-    input_prompt = f"{PROMPT_TEMPLATE}".format(**kwargs)
-    agent_trace = agent.run(prompt=input_prompt)
-    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
-    return agent_trace.final_output
-
-if __name__ == "__main__":
-    Fire(run_agent)
-
+{AGENT_CODE_TEMPLATE}
+```
 """  # noqa: E501
 
 # Define the template with Jinja2 syntax
@@ -308,12 +341,16 @@ Before generating the code, ensure that you visit the necessary webpages for cor
 For reading URLs, use `visit_webpage` tool. Never use the `read_file` tool for reading web URLs.
 
 **Any-agent Code Generation Instructions**
+
 {{ code_generation_instructions }}
 
-As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `agent_args`:
+As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `agent_args`.
+You also need to specify the correct imports, which have to be consistent with the tools used by the agent:
+
 {{ code_example_with_comments }}
 
 ** Deliverables Instructions**
+
 {{ deliverables_instructions }}
 """  # noqa: E501
 
