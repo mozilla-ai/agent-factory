@@ -12,6 +12,7 @@ from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
 from src.instructions import INSTRUCTIONS
 from src.tools import search_mcp_servers
+from src.prompt import UserPrompt
 
 dotenv.load_dotenv()
 
@@ -139,19 +140,26 @@ def create_agent(mount_config):
     return agent
 
 
-def build_run_instructions(user_prompt):
-    return f"""
-    Generate python code for an agentic workflow using any-agent library to be able to do the
-    following:
-    {user_prompt}
+def build_run_instructions(user_prompt) -> str:
+    """Build the run instructions for the agent based on the user prompt.
+    
+    Build the run instructions for the agent based on the user prompt.
+    If a UserPrompt instance already exists, a task has alredy been assigned to the agent.
+    Thus, we amend the existing prompt with the new user instructions.
+    If no UserPrompt instance exists, we create a new one with the user prompt.
 
-    Use appropriate tools in the agent configuration:
-    - Select relevant tools from `tools/available_tools.md`.
-    - Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools
-      to the configuration.
+    Args:
+        user_prompt (str): The user prompt to build the run instructions from.
 
-    Always use the simplest and most efficient tools available for the task.
+    Returns:
+        str: The run instructions for the agent.
     """
+    if UserPrompt._instance is None:
+        user_prompt_instance = UserPrompt(user_prompt)
+        return user_prompt_instance.get_prompt()
+    else:
+        user_prompt_instance = UserPrompt._instance
+        return user_prompt_instance.amend_prompt(user_prompt)
 
 
 def save_agent_trace(agent_trace, latest_dir):
