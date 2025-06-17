@@ -1,7 +1,15 @@
 <template>
   <div class="evaluation-criteria-form">
     <h3>{{ initialData ? 'Edit' : 'Create' }} Evaluation Criteria</h3>
-
+    <!-- Add this warning before the form actions -->
+    <div class="form-warning">
+      <div class="warning-icon">⚠️</div>
+      <div class="warning-text">
+        <strong>Warning:</strong> Saving criteria will invalidate any existing evaluation results
+        for this workflow. Previous results will be deleted as they would no longer match the
+        updated criteria.
+      </div>
+    </div>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
         <label for="llm-judge">LLM Judge</label>
@@ -78,7 +86,7 @@
 
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
-import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useMutation } from '@tanstack/vue-query'
 import { saveEvaluationCriteria } from '../services/evaluationService'
 import type { EvaluationCriteria } from '../types/evaluation'
 
@@ -91,8 +99,6 @@ const emit = defineEmits<{
   saved: [success: boolean]
   cancel: []
 }>()
-
-const queryClient = useQueryClient()
 
 // Initialize with default empty structure or provided data
 const formData = reactive<EvaluationCriteria>({
@@ -148,7 +154,13 @@ const handleSubmit = () => {
 .evaluation-criteria-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .form-group {
@@ -268,6 +280,28 @@ select:focus {
   background-color: var(--color-background-soft);
 }
 
+/* Add these styles for the warning message */
+.form-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: rgba(243, 156, 18, 0.1);
+  border-left: 4px solid #f39c12;
+  border-radius: 4px;
+}
+
+.warning-icon {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.warning-text {
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -292,8 +326,6 @@ select:focus {
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   border: none;
-  background-color: var(--color-success, #2ecc71);
-  color: #fff;
   font-weight: 600;
   cursor: pointer;
 }

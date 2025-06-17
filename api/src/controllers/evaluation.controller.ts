@@ -224,24 +224,20 @@ export async function saveEvaluationCriteria(
 
     // Basic validation
     if (!criteriaData.llm_judge || !Array.isArray(criteriaData.checkpoints)) {
-      res
-        .status(400)
-        .json({
-          error:
-            'Invalid evaluation criteria format, llm_judge is missing or checkpoints is not an array',
-        })
+      res.status(400).json({
+        error:
+          'Invalid evaluation criteria format, llm_judge is missing or checkpoints is not an array',
+      })
       return
     }
 
     // Ensure all checkpoints have required fields
     for (const checkpoint of criteriaData.checkpoints) {
       if (!checkpoint.criteria || typeof checkpoint.points !== 'number') {
-        res
-          .status(400)
-          .json({
-            error:
-              'Invalid checkpoint format, a checkpoint doesnt have criteria or points is not a number',
-          })
+        res.status(400).json({
+          error:
+            'Invalid checkpoint format, a checkpoint doesnt have criteria or points is not a number',
+        })
         return
       }
     }

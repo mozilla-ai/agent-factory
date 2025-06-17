@@ -1,17 +1,25 @@
 <template>
   <div class="evaluation-criteria-viewer">
+    <!-- Loading state -->
     <div v-if="evaluationCriteriaQuery.isPending.value" class="criteria-loading">
       Loading evaluation criteria...
     </div>
-    <div v-else-if="evaluationCriteriaQuery.isError.value" class="criteria-error">
-      {{
-        evaluationCriteriaQuery.error.value instanceof Error
-          ? evaluationCriteriaQuery.error.value.message
-          : 'Error loading criteria'
-      }}
+
+    <!-- Error state for missing criteria file -->
+    <div v-else-if="hasCriteriaError" class="empty-criteria-container">
+      <div class="empty-criteria-message">
+        <h3>No Evaluation Criteria Found</h3>
+        <p>
+          This workflow doesn't have any evaluation criteria defined yet. Evaluation criteria help
+          you assess the performance of your agent against specific goals.
+        </p>
+      </div>
+      <button @click="startCreatingCriteria" class="create-criteria-button">
+        Create Evaluation Criteria
+      </button>
     </div>
 
-    <!-- Show form when no criteria exist or in edit mode -->
+    <!-- Form for creating/editing -->
     <div
       v-else-if="!evaluationCriteriaQuery.data.value || isEditMode"
       class="criteria-form-container"
@@ -24,19 +32,24 @@
       />
     </div>
 
-    <!-- Show existing criteria when available -->
+    <!-- Show existing criteria -->
     <div v-else class="criteria-content">
       <!-- Header with judge info -->
       <div class="criteria-header">
-        <h3>Evaluation Criteria</h3>
-        <div class="judge-info">
-          <span class="judge-label">LLM Judge:</span>
-          <span class="judge-model">{{ evaluationCriteriaQuery.data.value.llm_judge }}</span>
+        <div class="header-content">
+          <h3>Evaluation Criteria</h3>
+          <div class="judge-info">
+            <span class="judge-label">LLM Judge:</span>
+            <span class="judge-model">{{ evaluationCriteriaQuery.data.value.llm_judge }}</span>
+          </div>
+          <div class="points-summary">
+            <span class="points-label">Total Points Possible:</span>
+            <span class="points-value">{{ totalPossiblePoints }}</span>
+          </div>
         </div>
-        <div class="points-summary">
-          <span class="points-label">Total Points Possible:</span>
-          <span class="points-value">{{ totalPossiblePoints }}</span>
-        </div>
+
+        <!-- Edit button now positioned in the top-right -->
+        <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
       </div>
 
       <!-- Final score (if results available) -->
@@ -97,11 +110,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Edit button -->
-      <div class="criteria-actions">
-        <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
-      </div>
     </div>
   </div>
 </template>
@@ -151,6 +159,7 @@ const onCriteriaSaved = () => {
   // Refetch the criteria to update the view
   queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
   queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
+  queryClient.invalidateQueries({ queryKey: ['evaluation-status'] })
 }
 
 // Fetch evaluation criteria
@@ -238,6 +247,18 @@ const totalScore = computed(() => {
     return sum + (result.result === 'pass' ? points : 0)
   }, 0)
 })
+
+// Add a specific flag for missing criteria
+const hasCriteriaError = computed(
+  () =>
+    evaluationCriteriaQuery.isError.value &&
+    evaluationCriteriaQuery.error.value?.response?.status === 404,
+)
+
+// Function to start creating new criteria
+const startCreatingCriteria = () => {
+  isEditMode.value = true
+}
 </script>
 
 <style scoped>
@@ -267,10 +288,19 @@ const totalScore = computed(() => {
 }
 
 .criteria-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Aligns to the top */
   background-color: var(--color-background-soft);
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative; /* For better positioning control */
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .judge-info {
@@ -436,22 +466,50 @@ const totalScore = computed(() => {
 }
 
 .edit-button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-background);
-  color: var(--color-text);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.edit-button:hover {
-  background-color: var(--color-background-soft);
-  border-color: var(--color-border-hover);
+  align-self: flex-start; /* Ensures it stays at the top */
 }
 
 .criteria-form-container {
   width: 100%;
+}
+
+/* Add styles for the empty state */
+.empty-criteria-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2.5rem;
+  text-align: center;
+  background-color: var(--color-background-soft);
+  border-radius: 8px;
+}
+
+.empty-criteria-message {
+  max-width: 500px;
+}
+
+.empty-criteria-message h3 {
+  margin-bottom: 0.75rem;
+}
+
+.empty-criteria-message p {
+  color: var(--color-text-light);
+  line-height: 1.5;
+}
+
+.create-criteria-button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.create-criteria-button:hover {
+  background-color: var(--color-background-soft);
+  border-color: var(--color-border-hover);
 }
 
 /* Responsive adjustments */
