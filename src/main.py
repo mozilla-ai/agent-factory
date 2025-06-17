@@ -11,8 +11,8 @@ from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
 from src.instructions import INSTRUCTIONS
-from src.tools import search_mcp_servers
 from src.prompt import UserPrompt
+from src.tools import search_mcp_servers
 
 dotenv.load_dotenv()
 
@@ -134,7 +134,7 @@ def create_agent(mount_config):
             model_id="o3",
             instructions=INSTRUCTIONS,
             tools=get_default_tools(mount_config),
-            model_args={"tool_choice": "required"}  # Ensure tool choice is required
+            model_args={"tool_choice": "required"},  # Ensure tool choice is required
         ),
     )
     return agent
@@ -142,7 +142,7 @@ def create_agent(mount_config):
 
 def build_run_instructions(user_prompt) -> str:
     """Build the run instructions for the agent based on the user prompt.
-    
+
     Build the run instructions for the agent based on the user prompt.
     If a UserPrompt instance already exists, a task has alredy been assigned to the agent.
     Thus, we amend the existing prompt with the new user instructions.

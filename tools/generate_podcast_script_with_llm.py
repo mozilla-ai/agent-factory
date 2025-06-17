@@ -20,7 +20,11 @@ def generate_podcast_script_with_llm(document_text: str, num_hosts: int = 2, mod
     if not isinstance(num_hosts, int) or num_hosts <= 0:
         return "Error: Number of hosts must be a positive integer."
 
-    system_prompt = "You are a creative scriptwriter specializing in engaging podcast dialogues. Your task is to convert the provided document into a podcast script."
+    system_prompt = (
+        "You are a creative scriptwriter specializing in engaging podcast dialogues. "
+        "Your task is to convert the provided document into a podcast script."
+    )
+
     user_prompt = (
         f"Generate a podcast script based on the following document. "
         f"The script should feature {num_hosts} distinct hosts. "
