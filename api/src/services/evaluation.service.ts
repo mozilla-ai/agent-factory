@@ -13,9 +13,6 @@ export interface EvaluationCriteria {
   checkpoints: EvaluationCheckpoint[]
 }
 
-// Existing service functions...
-
-// Add new function to save evaluation criteria
 export async function saveEvaluationCriteria(
   workflowPath: string,
   criteriaData: EvaluationCriteria,

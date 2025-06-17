@@ -57,7 +57,6 @@ export const evaluationService = {
   },
 }
 
-// Return to original implementation without manual YAML parsing
 export async function getEvaluationCriteria(workflowPath: string): Promise<EvaluationCriteria> {
   const response = await apiClient.get(
     `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_case.yaml`,
@@ -65,12 +64,10 @@ export async function getEvaluationCriteria(workflowPath: string): Promise<Evalu
   return Yaml.parse(response.data) // Ensure the response is parsed as YAML
 }
 
-// Fix the save endpoint path - it might be different than what we assumed
 export async function saveEvaluationCriteria(
   workflowPath: string,
   criteriaData: EvaluationCriteria,
 ): Promise<SaveCriteriaResponse> {
-  // Fix the endpoint path to match what's expected by the server
   const response = await apiClient.post(
     `/agent-factory/evaluate/save-criteria/${encodeURIComponent(workflowPath)}`,
     criteriaData,
@@ -78,7 +75,6 @@ export async function saveEvaluationCriteria(
   return response.data
 }
 
-// Use consistent endpoint pattern for results
 export async function getEvaluationResults(workflowPath: string) {
   const response = await apiClient.get(
     `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_results.json`,

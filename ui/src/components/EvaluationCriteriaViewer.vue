@@ -48,7 +48,6 @@
           </div>
         </div>
 
-        <!-- Edit button now positioned in the top-right -->
         <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
       </div>
 
@@ -156,7 +155,7 @@ const toggleEditMode = () => {
 // Handle criteria saved event
 const onCriteriaSaved = () => {
   isEditMode.value = false
-  // Refetch the criteria to update the view
+  // Refetch invalidated queries after updating criteria
   queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
   queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
   queryClient.invalidateQueries({ queryKey: ['evaluation-status'] })
@@ -248,14 +247,12 @@ const totalScore = computed(() => {
   }, 0)
 })
 
-// Add a specific flag for missing criteria
 const hasCriteriaError = computed(
   () =>
     evaluationCriteriaQuery.isError.value &&
-    evaluationCriteriaQuery.error.value?.response?.status === 404,
+    (evaluationCriteriaQuery.error.value as any)?.response?.status === 404,
 )
 
-// Function to start creating new criteria
 const startCreatingCriteria = () => {
   isEditMode.value = true
 }
@@ -290,11 +287,11 @@ const startCreatingCriteria = () => {
 .criteria-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; /* Aligns to the top */
+  align-items: flex-start;
   background-color: var(--color-background-soft);
   border-radius: 8px;
   padding: 1.5rem;
-  position: relative; /* For better positioning control */
+  position: relative;
 }
 
 .header-content {
@@ -466,14 +463,13 @@ const startCreatingCriteria = () => {
 }
 
 .edit-button {
-  align-self: flex-start; /* Ensures it stays at the top */
+  align-self: flex-start;
 }
 
 .criteria-form-container {
   width: 100%;
 }
 
-/* Add styles for the empty state */
 .empty-criteria-container {
   display: flex;
   flex-direction: column;

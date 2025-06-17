@@ -1,7 +1,6 @@
 <template>
   <div class="evaluation-criteria-form">
     <h3>{{ initialData ? 'Edit' : 'Create' }} Evaluation Criteria</h3>
-    <!-- Add this warning before the form actions -->
     <div class="form-warning">
       <div class="warning-icon">⚠️</div>
       <div class="warning-text">
@@ -100,7 +99,6 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-// Initialize with default empty structure or provided data
 const formData = reactive<EvaluationCriteria>({
   llm_judge: 'openai/gpt-4.1',
   checkpoints: [
@@ -111,7 +109,6 @@ const formData = reactive<EvaluationCriteria>({
   ],
 })
 
-// Initialize from props if provided
 onMounted(() => {
   if (props.initialData) {
     formData.llm_judge = props.initialData.llm_judge
@@ -130,13 +127,11 @@ const removeCheckpoint = (index: number) => {
   formData.checkpoints.splice(index, 1)
 }
 
-// Use TanStack Query mutation for saving
 const saveMutation = useMutation({
   mutationFn: async () => {
     return await saveEvaluationCriteria(props.workflowPath, formData)
   },
   onSuccess: () => {
-    // Invalidate the criteria query to refresh data
     emit('saved', true)
   },
   onError: (error) => {
