@@ -1,9 +1,14 @@
+[build-system]
+requires = ["setuptools>=48", "setuptools_scm[toml]>=6.3.1"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "agentic-workflow-builder"
-version = "0.1.0"
-description = "Agentic Workflow Builder"
+name = "agent-factory"
+description = "Agent Factory"
+license = {text = "Apache-2.0"}
 readme = "README.md"
 requires-python = ">=3.11"
+dynamic = ["version"]
 dependencies = [
     "any-agent[all]>=0.17.0",
     "jinja2>=3.1.2",
@@ -14,4 +19,44 @@ dependencies = [
     "mcpm>=1.0.3", # installing a newer version of mcpm conflicts with the current version of chainlit (2.5.5)
     "loguru>=0.7.3",
     "pre-commit>=4.2.0",
+]
+
+[project.urls]
+Documentation = "https://mozilla-ai.github.io/agent-factory/"
+Issues = "https://github.com/mozilla-ai/agent-factory/issues"
+Source = "https://github.com/mozilla-ai/agent-factory"
+
+[project.scripts]
+agent-factory = "agent_factory.generation:main"
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests.*"]
+where = ["src"]
+namespaces = false
+
+[tool.setuptools_scm]
+
+[dependency-groups]
+dev = [
+  { include-group = "docs" },
+  { include-group = "lint" },
+  { include-group = "tests" },
+]
+
+docs = [
+  "mkdocs",
+  "mkdocs-material",
+  "mkdocstrings-python",
+]
+
+lint = [
+  "pre-commit==4.2.0",
+]
+
+tests = [
+  "pytest>=8,<9",
+  "pytest-sugar>=0.9.6",
+  "pytest-lazy-fixtures>=1.1.2",
+  "pytest-timeout>=2.4.0",
+  "syrupy>=4.9.1",
 ]

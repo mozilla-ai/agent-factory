@@ -26,13 +26,19 @@ def generate_database_query_with_llm(
     if not natural_language_request.strip():
         return "Error: No natural language request provided."
 
-    system_prompt = f"You are an expert in generating {database_type} queries from natural language. Pay close attention to the provided schema if available."
+    system_prompt = (
+        f"You are an expert in generating {database_type} queries from natural language."
+        " Pay close attention to the provided schema if available."
+    )
 
     schema_info_prompt = ""
     if database_schema and database_schema.strip():
         schema_info_prompt = f"\n\nUse the following database schema as a reference:\n---\n{database_schema}\n---"
     else:
-        schema_info_prompt = "\n\nNo specific database schema was provided. Make reasonable assumptions if necessary, or state if the query cannot be formed without a schema."
+        schema_info_prompt = (
+            "\n\nNo specific database schema was provided. "
+            "Make reasonable assumptions if necessary, or state if the query cannot be formed without a schema."
+        )
 
     user_prompt = (
         f"Generate a {database_type} query for the following natural language request: "

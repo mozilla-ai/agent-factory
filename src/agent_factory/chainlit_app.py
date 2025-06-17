@@ -7,8 +7,8 @@ import chainlit as cl
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from dotenv import load_dotenv
-from src.instructions import INSTRUCTIONS
-from src.main import (
+
+from agent_factory.generation import (
     AgentFactoryOutputs,
     archive_latest_run_artifacts,
     build_run_instructions,
@@ -16,6 +16,7 @@ from src.main import (
     save_agent_parsed_outputs,
     setup_directories,
 )
+from agent_factory.instructions import INSTRUCTIONS
 
 load_dotenv()
 
