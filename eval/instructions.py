@@ -39,7 +39,7 @@ AGENT_SCRIPT_AND_JSON_EXAMPLE = """
 **Agent Script:**
 ```python
 # Example imports for the agent.py file:
-from any_agent import AnyAgent, AgentConfig, AgentFramework, TracingConfig
+from any_agent import AnyAgent, AgentConfig, AgentFramework
 from any_agent.tools import search_tavily, visit_webpage
 from any_agent.config import MCPStdio
 from tools.review_code_with_llm import review_code_with_llm

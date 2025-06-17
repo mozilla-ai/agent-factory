@@ -57,7 +57,7 @@ WEBPAGE_DESCRIPTIONS = {
     # API Reference
     "https://mozilla-ai.github.io/any-agent/api/agent/": ("Reference for the core AnyAgent class API and its methods."),
     "https://mozilla-ai.github.io/any-agent/api/config/": (
-        "Consult for detailed configuration options like AgentConfig, TracingConfig, and MCP integrations."
+        "Consult for detailed configuration options like AgentConfig, and MCP integrations."
         "Provides all parameters needed to properly configure your agent instances."
     ),
     "https://mozilla-ai.github.io/any-agent/api/tools/": (
