@@ -263,7 +263,7 @@ const startCreatingCriteria = () => {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem; /* Top-level spacing between major sections */
+  gap: 1.5rem;
 }
 
 .criteria-content {
@@ -291,7 +291,6 @@ const startCreatingCriteria = () => {
   background-color: var(--color-background-soft);
   border-radius: 8px;
   padding: 1.5rem;
-  position: relative;
 }
 
 .header-content {
@@ -362,6 +361,16 @@ const startCreatingCriteria = () => {
 }
 
 .checkpoint-criteria {
+}
+
+.checkpoint-passed .checkpoint-result {
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.checkpoint-failed .checkpoint-result {
+  background-color: var(--color-error-soft);
+  color: var(--color-error);
 }
 
 .checkpoint-points {
@@ -463,7 +472,16 @@ const startCreatingCriteria = () => {
 }
 
 .edit-button {
-  align-self: flex-start;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background-color: var(--color-background-soft);
+  border-color: var(--color-border-hover);
 }
 
 .criteria-form-container {

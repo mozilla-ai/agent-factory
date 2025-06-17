@@ -52,7 +52,11 @@
                 rows="3"
                 placeholder="Describe what the agent should accomplish"
                 required
+                :class="{ 'input-error': formErrors.checkpoints[index] }"
               ></textarea>
+              <div v-if="formErrors.checkpoints[index]" class="error-message">
+                {{ formErrors.checkpoints[index] }}
+              </div>
             </div>
 
             <div class="form-group">
@@ -62,7 +66,9 @@
                 type="number"
                 v-model.number="checkpoint.points"
                 min="1"
+                max="10"
                 required
+                :class="{ 'input-error': formErrors.checkpoints[index] }"
               />
             </div>
           </div>
@@ -80,12 +86,33 @@
         </button>
       </div>
     </form>
+
+    <!-- Add toast notification -->
+    <div
+      v-if="showToast"
+      class="toast-notification"
+      :class="{ 'toast-success': toastType === 'success', 'toast-error': toastType === 'error' }"
+    >
+      {{ toastMessage }}
+      <button class="toast-close" @click="showToast = false">&times;</button>
+    </div>
+
+    <!-- Add retry mechanism if the save fails -->
+    <div v-if="saveMutation.isError.value" class="save-error-container">
+      <div class="save-error-message">
+        <div class="error-icon">❌</div>
+        <div>{{ saveMutation.error.value?.message || 'Error saving criteria' }}</div>
+      </div>
+      <div class="save-error-actions">
+        <button type="button" class="retry-button" @click="handleSubmit">Retry Saving</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
-import { useMutation } from '@tanstack/vue-query'
+import { reactive, ref, onMounted } from 'vue'
+import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { saveEvaluationCriteria } from '../services/evaluationService'
 import type { EvaluationCriteria } from '../types/evaluation'
 
@@ -109,6 +136,38 @@ const formData = reactive<EvaluationCriteria>({
   ],
 })
 
+// Add validation state
+const formErrors = ref({
+  checkpoints: [] as string[],
+})
+
+// Add validation function
+const validateForm = () => {
+  let isValid = true
+  formErrors.value.checkpoints = []
+
+  // Reset all errors
+  formErrors.value.checkpoints = Array(formData.checkpoints.length).fill('')
+
+  // Validate each checkpoint
+  formData.checkpoints.forEach((checkpoint, index) => {
+    if (!checkpoint.criteria.trim()) {
+      formErrors.value.checkpoints[index] = 'Criteria description is required'
+      isValid = false
+    } else if (checkpoint.criteria.trim().length < 10) {
+      formErrors.value.checkpoints[index] = 'Criteria must be at least 10 characters'
+      isValid = false
+    }
+
+    if (checkpoint.points < 1 || checkpoint.points > 10) {
+      formErrors.value.checkpoints[index] = 'Points must be between 1 and 10'
+      isValid = false
+    }
+  })
+
+  return isValid
+}
+
 onMounted(() => {
   if (props.initialData) {
     formData.llm_judge = props.initialData.llm_judge
@@ -127,20 +186,70 @@ const removeCheckpoint = (index: number) => {
   formData.checkpoints.splice(index, 1)
 }
 
+const queryClient = useQueryClient()
+
+// Add toast notification state
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastType = ref('error') // 'success' or 'error'
+
+// Update mutation with better error handling
 const saveMutation = useMutation({
   mutationFn: async () => {
-    return await saveEvaluationCriteria(props.workflowPath, formData)
+    try {
+      return await saveEvaluationCriteria(props.workflowPath, formData)
+    } catch (error: any) {
+      // Handle specific error types
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to save evaluation criteria')
+      } else if (error.response?.status === 404) {
+        throw new Error('Workflow not found - please check the path and try again')
+      } else if (error.response?.status === 500) {
+        throw new Error('Server error while saving criteria - please try again later')
+      } else {
+        throw new Error(`Failed to save criteria: ${error.message || 'Unknown error'}`)
+      }
+    }
   },
   onSuccess: () => {
+    // Success notification
+    toastMessage.value = 'Evaluation criteria saved successfully!'
+    toastType.value = 'success'
+    showToast.value = true
+
+    // Close toast after 5 seconds
+    setTimeout(() => {
+      showToast.value = false
+    }, 5000)
+
+    // Invalidate the criteria query to refresh data
+    queryClient.invalidateQueries({
+      queryKey: ['evaluationCriteria', props.workflowPath],
+    })
     emit('saved', true)
   },
   onError: (error) => {
     console.error('Failed to save criteria:', error)
+
+    // Error notification
+    toastMessage.value = error.message || 'Failed to save evaluation criteria'
+    toastType.value = 'error'
+    showToast.value = true
+
+    // Close toast after 8 seconds for errors
+    setTimeout(() => {
+      showToast.value = false
+    }, 8000)
+
     emit('saved', false)
   },
 })
 
+// Update the submission handler
 const handleSubmit = () => {
+  if (!validateForm()) {
+    return
+  }
   saveMutation.mutate()
 }
 </script>
@@ -275,15 +384,15 @@ select:focus {
   background-color: var(--color-background-soft);
 }
 
-/* Add these styles for the warning message */
+/* Update warning style to use CSS variables */
 .form-warning {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
-  background-color: rgba(243, 156, 18, 0.1);
-  border-left: 4px solid #f39c12;
+  background-color: var(--color-warning-soft);
+  border-left: 4px solid var(--color-warning);
   border-radius: 4px;
 }
 
@@ -332,5 +441,86 @@ select:focus {
 .save-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Add error styling */
+.input-error {
+  border-color: var(--color-error) !important;
+  background-color: var(--color-error-soft) !important;
+}
+
+.error-message {
+  color: var(--color-error);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* Toast notifications */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.toast-success {
+  background-color: var(--color-success-soft);
+  border-left: 4px solid var(--color-success);
+  color: var(--color-success);
+}
+
+.toast-error {
+  background-color: var(--color-error-soft);
+  border-left: 4px solid var(--color-error);
+  color: var(--color-error);
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* Error display */
+.save-error-container {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: var(--color-error-soft);
+  border-radius: 4px;
+  border-left: 4px solid var(--color-error);
+}
+
+.save-error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.save-error-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.retry-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.retry-button:hover {
+  background-color: var(--color-background-soft);
 }
 </style>
