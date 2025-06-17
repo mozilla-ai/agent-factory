@@ -349,7 +349,7 @@ select:focus {
 }
 
 .delete-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2rem;
@@ -360,12 +360,13 @@ select:focus {
   color: var(--color-text);
   font-size: 1.2rem;
   cursor: pointer;
+  padding: 0;
 }
 
-.delete-button:hover {
-  background-color: rgba(231, 76, 60, 0.15);
-  color: var(--color-error, #e74c3c);
-  border-color: var(--color-error, #e74c3c);
+.delete-button:hover:not(:disabled) {
+  background-color: var(--color-error-soft);
+  color: var(--color-error);
+  border-color: var(--color-error);
 }
 
 .add-checkpoint-button {

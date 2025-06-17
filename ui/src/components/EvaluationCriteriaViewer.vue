@@ -472,16 +472,16 @@ const startCreatingCriteria = () => {
 }
 
 .edit-button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-background);
-  cursor: pointer;
+  /* padding: 0.6rem 1.2rem; */
+  /* border-radius: 6px; */
+  /* border: 1px solid var(--color-border); */
+  /* background-color: var(--color-background); */
+  /* cursor: pointer; */
 }
 
 .edit-button:hover {
-  background-color: var(--color-background-soft);
-  border-color: var(--color-border-hover);
+  /* background-color: var(--color-background-soft); */
+  /* border-color: var(--color-border-hover); */
 }
 
 .criteria-form-container {
