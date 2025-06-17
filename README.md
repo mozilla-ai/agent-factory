@@ -129,7 +129,7 @@ See detailed instructions in [ui/README.md](ui/README.md).
 
 You can interact with the agent-factory using [Chainlit](https://docs.chainlit.io/get-started/overview) for multi-turn conversations:
 
-A sample Chainlit app is provided in `src/chainlit_app.py` for interactive workflow building and testing. It uses any-agent under the hood to generate the agent code.
+A sample Chainlit app is provided in `src/agent_factory/chainlit_app.py` for interactive workflow building and testing. It uses any-agent under the hood to generate the agent code.
 
 To launch the Chainlit UI for your agent workflow, run:
 ```bash
