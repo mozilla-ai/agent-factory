@@ -26,9 +26,9 @@ def test_steps_taken(generated_trace: AgentTrace, max_steps: int, request: pytes
     assert len(generated_trace.spans) < max_steps
 
 
-@pytest.mark.parametrize("max_tokens", range(500, 10000, 1000))
+@pytest.mark.parametrize("max_tokens", range(1000, 50000, 5000))
 def test_tokens_used(generated_trace: AgentTrace, max_tokens: int, request: pytest.FixtureRequest):
     if "url-to-podcast" in request.node.callspec.id:
-        if max_tokens <= 1000:
+        if max_tokens <= 45000:
             pytest.xfail()
-    assert len(generated_trace.spans) < max_tokens
+    assert generated_trace.tokens.total_tokens < max_tokens
