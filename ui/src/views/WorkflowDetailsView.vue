@@ -72,7 +72,7 @@ const workflowPath = computed(() => {
 
 // Setup evaluation status checking
 const evaluationStatusQuery = useQuery({
-  queryKey: ['evaluationStatus', workflowPath],
+  queryKey: ['evaluation-status', workflowPath],
   queryFn: () => workflowService.getEvaluationStatus(workflowPath.value),
   enabled: computed(() => !!workflowPath.value),
   retry: 1,
@@ -91,7 +91,7 @@ const selectedFilePath = computed(() =>
 
 // Configure file content query with caching
 const fileContentQuery = useQuery({
-  queryKey: ['fileContent', workflowPath, selectedFilePath],
+  queryKey: ['file-content', workflowPath, selectedFilePath],
   queryFn: () => {
     // Make sure we have both required parameters as strings
     if (!workflowPath.value || !selectedFilePath.value) {

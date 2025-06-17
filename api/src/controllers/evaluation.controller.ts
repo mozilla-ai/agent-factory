@@ -215,21 +215,48 @@ export async function saveEvaluationCriteria(
     const workflowPath = req.params.workflowPath
     const criteriaData = req.body as EvaluationCriteria
 
+    // const fullPath = resolveWorkflowPath(workflowPath)
+
+    // // Use the same pattern as in generate-cases
+    // const workflowName = workflowPath.startsWith('archive/')
+    //   ? workflowPath
+    //   : 'latest'
+
     // Basic validation
     if (!criteriaData.llm_judge || !Array.isArray(criteriaData.checkpoints)) {
-      res.status(400).json({ error: 'Invalid evaluation criteria format' })
+      res
+        .status(400)
+        .json({
+          error:
+            'Invalid evaluation criteria format, llm_judge is missing or checkpoints is not an array',
+        })
       return
     }
 
     // Ensure all checkpoints have required fields
     for (const checkpoint of criteriaData.checkpoints) {
       if (!checkpoint.criteria || typeof checkpoint.points !== 'number') {
-        res.status(400).json({ error: 'Invalid checkpoint format' })
+        res
+          .status(400)
+          .json({
+            error:
+              'Invalid checkpoint format, a checkpoint doesnt have criteria or points is not a number',
+          })
         return
       }
     }
 
     const result = await saveCriteria(workflowPath, criteriaData)
+    // delete evaluation-results.json if it exists
+    const resultsPath = path.join(
+      resolveWorkflowPath(workflowPath),
+      'evaluation_results.json',
+    )
+    try {
+      await fs.unlink(resultsPath)
+    } catch (error) {
+      console.warn(`Could not delete existing evaluation results: ${error}`)
+    }
 
     res.json({
       success: true,

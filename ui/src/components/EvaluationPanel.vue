@@ -141,7 +141,7 @@ const runAgentMutation = useMutation({
   onSuccess: () => {
     console.log('Agent run successful, invalidating evaluation status query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluationStatus', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowPath],
     })
     emit('evaluation-status-changed', {
       hasAgentTrace: true,
@@ -169,7 +169,7 @@ const genCasesMutation = useMutation({
   onSuccess: () => {
     console.log('Case generation successful, invalidating cases query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluationStatus', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowPath],
     })
     emit('evaluation-status-changed', {
       hasEvalCases: true,
@@ -197,7 +197,7 @@ const runEvalMutation = useMutation({
   onSuccess: () => {
     console.log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluationStatus', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowPath],
     })
     emit('evaluation-status-changed', {
       hasEvalResults: true,

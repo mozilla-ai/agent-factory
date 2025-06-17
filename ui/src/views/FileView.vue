@@ -66,7 +66,7 @@ const fileName = computed(() => {
 })
 
 const fileQuery = useQuery({
-  queryKey: ['fileContent', filePath],
+  queryKey: ['file-content', filePath],
   queryFn: async () => {
     const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath.value}`)
 

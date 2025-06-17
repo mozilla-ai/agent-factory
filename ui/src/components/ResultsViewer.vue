@@ -149,14 +149,14 @@ const router = useRouter()
 
 // Fetch evaluation status using workflowService
 const statusQuery = useQuery({
-  queryKey: ['evaluationStatus', props.workflowPath],
+  queryKey: ['evaluation-status', props.workflowPath],
   queryFn: () => workflowService.getEvaluationStatus(props.workflowPath),
   retry: 1,
 })
 
 // Fetch evaluation results using API client instead of direct fetch
 const resultsQuery = useQuery({
-  queryKey: ['evaluationResults', props.workflowPath],
+  queryKey: ['evaluation-results', props.workflowPath],
   queryFn: () => workflowService.getEvaluationResults(props.workflowPath),
   retry: 1,
 })

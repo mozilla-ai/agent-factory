@@ -17,7 +17,7 @@
       class="criteria-form-container"
     >
       <EvaluationCriteriaForm
-        :workflowId="workflowId"
+        :workflow-path="workflowPath"
         :initialData="evaluationCriteriaQuery.data.value"
         @saved="onCriteriaSaved"
         @cancel="isEditMode = false"
@@ -135,7 +135,6 @@ interface EvaluationResults {
 // Props
 const props = defineProps<{
   workflowPath: string
-  workflowId: string
 }>()
 
 const queryClient = useQueryClient()
@@ -151,6 +150,7 @@ const onCriteriaSaved = () => {
   isEditMode.value = false
   // Refetch the criteria to update the view
   queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
+  queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
 }
 
 // Fetch evaluation criteria

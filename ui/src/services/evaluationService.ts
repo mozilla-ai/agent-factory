@@ -1,5 +1,20 @@
 import { apiClient } from './api'
-import type { EvaluationCriteria, SaveCriteriaResponse } from '../types/evaluation'
+import Yaml from 'yaml'
+export interface EvaluationCheckpoint {
+  criteria: string
+  points: number
+}
+
+export interface EvaluationCriteria {
+  llm_judge: string
+  checkpoints: EvaluationCheckpoint[]
+}
+
+export interface SaveCriteriaResponse {
+  success: boolean
+  message: string
+  path: string
+}
 
 export const evaluationService = {
   async runAgent(workflowPath: string): Promise<ReadableStream> {
@@ -42,22 +57,31 @@ export const evaluationService = {
   },
 }
 
-export async function fetchEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
-  const path = workflowId === 'latest' ? 'latest' : `archive/${workflowId}`
+// Return to original implementation without manual YAML parsing
+export async function getEvaluationCriteria(workflowPath: string): Promise<EvaluationCriteria> {
+  const response = await apiClient.get(
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_case.yaml`,
+  )
+  return Yaml.parse(response.data) // Ensure the response is parsed as YAML
+}
 
-  const response = await apiClient.get(`/agent-factory/workflows/${path}/evaluation_case.yaml`)
+// Fix the save endpoint path - it might be different than what we assumed
+export async function saveEvaluationCriteria(
+  workflowPath: string,
+  criteriaData: EvaluationCriteria,
+): Promise<SaveCriteriaResponse> {
+  // Fix the endpoint path to match what's expected by the server
+  const response = await apiClient.post(
+    `/agent-factory/evaluate/save-criteria/${encodeURIComponent(workflowPath)}`,
+    criteriaData,
+  )
   return response.data
 }
 
-export async function saveEvaluationCriteria(
-  workflowId: string,
-  criteriaData: EvaluationCriteria,
-): Promise<SaveCriteriaResponse> {
-  const path = workflowId === 'latest' ? 'latest' : `archive/${workflowId}`
-
-  const response = await apiClient.post(
-    `/agent-factory/evaluate/save-criteria/${path}`,
-    criteriaData,
+// Use consistent endpoint pattern for results
+export async function getEvaluationResults(workflowPath: string) {
+  const response = await apiClient.get(
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_results.json`,
   )
   return response.data
 }

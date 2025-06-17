@@ -55,7 +55,6 @@
                 type="number"
                 v-model.number="checkpoint.points"
                 min="1"
-                max="10"
                 required
               />
             </div>
@@ -84,7 +83,7 @@ import { saveEvaluationCriteria } from '../services/evaluationService'
 import type { EvaluationCriteria } from '../types/evaluation'
 
 const props = defineProps<{
-  workflowId: string
+  workflowPath: string
   initialData?: EvaluationCriteria | null
 }>()
 
@@ -123,23 +122,15 @@ const addCheckpoint = () => {
 
 const removeCheckpoint = (index: number) => {
   formData.checkpoints.splice(index, 1)
-
-  // Ensure at least one checkpoint exists
-  if (formData.checkpoints.length === 0) {
-    addCheckpoint()
-  }
 }
 
 // Use TanStack Query mutation for saving
 const saveMutation = useMutation({
   mutationFn: async () => {
-    return await saveEvaluationCriteria(props.workflowId, formData)
+    return await saveEvaluationCriteria(props.workflowPath, formData)
   },
   onSuccess: () => {
     // Invalidate the criteria query to refresh data
-    queryClient.invalidateQueries({
-      queryKey: ['evaluationCriteria', props.workflowId],
-    })
     emit('saved', true)
   },
   onError: (error) => {
