@@ -119,9 +119,9 @@ const availableTabs = computed(() => {
     tabs.push({ id: 'agent-trace', label: 'Agent Trace' })
   }
 
-  if (evaluationStatusQuery.data.value?.hasEvalCases) {
-    tabs.push({ id: 'criteria', label: 'Evaluation Criteria' })
-  }
+  // if (evaluationStatusQuery.data.value?.hasEvalCases) {
+  tabs.push({ id: 'criteria', label: 'Evaluation Criteria' })
+  // }
 
   if (
     evaluationStatusQuery.data.value?.hasAgentTrace ||

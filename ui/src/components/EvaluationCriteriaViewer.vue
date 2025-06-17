@@ -10,10 +10,21 @@
           : 'Error loading criteria'
       }}
     </div>
-    <div v-else-if="!evaluationCriteriaQuery.data.value" class="criteria-empty">
-      No evaluation criteria available
+
+    <!-- Show form when no criteria exist or in edit mode -->
+    <div
+      v-else-if="!evaluationCriteriaQuery.data.value || isEditMode"
+      class="criteria-form-container"
+    >
+      <EvaluationCriteriaForm
+        :workflowId="workflowId"
+        :initialData="evaluationCriteriaQuery.data.value"
+        @saved="onCriteriaSaved"
+        @cancel="isEditMode = false"
+      />
     </div>
 
+    <!-- Show existing criteria when available -->
     <div v-else class="criteria-content">
       <!-- Header with judge info -->
       <div class="criteria-header">
@@ -29,7 +40,7 @@
       </div>
 
       <!-- Final score (if results available) -->
-      <div class="final-score">
+      <div v-if="hasResults" class="final-score">
         <h3>Final Score</h3>
         <div class="score-display">
           <div class="score-value">{{ totalScore }} / {{ totalPossiblePoints }}</div>
@@ -86,14 +97,20 @@
           </div>
         </div>
       </div>
+
+      <!-- Edit button -->
+      <div class="criteria-actions">
+        <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import yaml from 'js-yaml'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import EvaluationCriteriaForm from './EvaluationCriteriaForm.vue'
 
 interface Checkpoint {
   criteria: string
@@ -118,7 +135,23 @@ interface EvaluationResults {
 // Props
 const props = defineProps<{
   workflowPath: string
+  workflowId: string
 }>()
+
+const queryClient = useQueryClient()
+const isEditMode = ref(false)
+
+// Toggle edit mode
+const toggleEditMode = () => {
+  isEditMode.value = !isEditMode.value
+}
+
+// Handle criteria saved event
+const onCriteriaSaved = () => {
+  isEditMode.value = false
+  // Refetch the criteria to update the view
+  queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
+}
 
 // Fetch evaluation criteria
 const evaluationCriteriaQuery = useQuery({
@@ -394,6 +427,31 @@ const totalScore = computed(() => {
 
 .score-low {
   background-color: var(--color-error, #e74c3c);
+}
+
+.criteria-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.edit-button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background-color: var(--color-background-soft);
+  border-color: var(--color-border-hover);
+}
+
+.criteria-form-container {
+  width: 100%;
 }
 
 /* Responsive adjustments */

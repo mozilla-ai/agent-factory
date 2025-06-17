@@ -5,6 +5,10 @@ import { runPythonScriptWithStreaming } from '../helpers/agent-factory-helpers.j
 import { setupStreamingResponse } from '../utils/stream.utils.js'
 import { resolveWorkflowPath } from '../utils/path.utils.js'
 import { parseEvaluationOutput } from '../utils/evaluation.utils.js'
+import {
+  saveEvaluationCriteria as saveCriteria,
+  EvaluationCriteria,
+} from '../services/evaluation.service.js'
 
 // 1. Run agent (generates agent_eval_trace.json)
 export async function runAgent(req: Request, res: Response): Promise<void> {
@@ -199,5 +203,44 @@ export async function runEvaluation(
     console.error('Error running agent evaluation:', error)
     const errorMessage = error instanceof Error ? error.message : String(error)
     res.status(500).send(`[Error running agent evaluation]: ${errorMessage}`)
+  }
+}
+
+// Save custom evaluation criteria
+export async function saveEvaluationCriteria(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const criteriaData = req.body as EvaluationCriteria
+
+    // Basic validation
+    if (!criteriaData.llm_judge || !Array.isArray(criteriaData.checkpoints)) {
+      res.status(400).json({ error: 'Invalid evaluation criteria format' })
+      return
+    }
+
+    // Ensure all checkpoints have required fields
+    for (const checkpoint of criteriaData.checkpoints) {
+      if (!checkpoint.criteria || typeof checkpoint.points !== 'number') {
+        res.status(400).json({ error: 'Invalid checkpoint format' })
+        return
+      }
+    }
+
+    const result = await saveCriteria(workflowPath, criteriaData)
+
+    res.json({
+      success: true,
+      message: 'Evaluation criteria saved successfully',
+      path: result.path,
+    })
+  } catch (error: unknown) {
+    console.error('Error saving evaluation criteria:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res
+      .status(500)
+      .json({ error: `Failed to save evaluation criteria: ${errorMessage}` })
   }
 }
