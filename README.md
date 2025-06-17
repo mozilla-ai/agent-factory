@@ -17,9 +17,10 @@ A tool for generating Python code for agentic workflows using `any-agent` librar
 
 
 Activate the virtual environment. All the dependencies are preinstalled for this codespaces demo, but it's recommended to run all commands below to ensure everything it's up to date (and also, to activate the virtual env!)
+
 ```bash
 source .venv/bin/activate
-uv pip install -e .
+uv sync --dev
 ```
 ### Option B: Local installation
 
@@ -28,15 +29,16 @@ uv pip install -e .
 - Docker should be up and running in the background (for filesystem operations)
 
 Install dependencies using your preferred Python package manager:
+
 ```bash
 uv venv
 source .venv/bin/activate
-uv pip install -e .
+uv sync --dev
 ```
 
 Install pre-commit hooks:
+
 ```bash
-uv pip install pre-commit
 pre-commit install
 ```
 
@@ -59,9 +61,10 @@ You will need a Tavily API key to use the `search_tavily` tool. You can get a fr
 > If you do not want to create an API key for web search, you can specify in your workflow definition that you want to use DuckDuckGo as the search tool (e.g., "use DuckDuckGo for web search"). This does not require an API key. However, please note that for complex workflows, you may hit the cap of searches per minute with DuckDuckGo.
 
 ### 1. Generate the workflow
+
 Run the code generator agent with your desired workflow prompt:
 ```bash
-python -m src.main "Summarize text content from a given webpage URL"
+agent-factory "Summarize text content from a given webpage URL"
 ```
 
 This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.  The three files generated are:
@@ -86,13 +89,17 @@ This will generate Python code for an agentic workflow that can summarize text c
 > ```
 
 ### 2. Run the Generated Workflow
+
 Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent as:
+
 ```bash
 python generated_workflows/latest/agent.py arg1
 ```
+
 This will run the agent and save the agent trace as `agent_eval_trace.json` in the `generated_workflows/latest` directory.
 
 ### 3. Generate Evaluation Case YAML
+
 Run the evaluation case generator agent with your desired evaluation case prompt:
 ```bash
 python -m eval.main
@@ -101,7 +108,9 @@ python -m eval.main
 This will generate a YAML file in the `generated_workflows/latest` directory with criteria and points for each evaluation.
 
 ### 4. Run Evaluation Script
+
 Evaluate the agent's execution trace against the generated evaluation case:
+
 ```bash
 python -m eval.run_agent_eval
 ```
@@ -124,9 +133,9 @@ A sample Chainlit app is provided in `src/chainlit_app.py` for interactive workf
 
 To launch the Chainlit UI for your agent workflow, run:
 ```bash
-chainlit run src/chainlit_app.py
+chainlit run src/agent_factory/chainlit_app.py
 # or for interactive mode - to hot reload the app on code changes
-chainlit run src/chainlit_app.py - w
+chainlit run src/agent_factory/chainlit_app.py - w
 ```
 
 This will start a local web server on `http://localhost:8000`. Open the URL in your browser to interact with your agent in a chat-like interface.

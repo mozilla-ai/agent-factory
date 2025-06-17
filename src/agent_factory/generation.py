@@ -10,9 +10,10 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
-from src.instructions import INSTRUCTIONS
-from src.prompt import UserPrompt
-from src.tools import search_mcp_servers
+
+from agent_factory.instructions import INSTRUCTIONS
+from agent_factory.prompt import UserPrompt
+from agent_factory.tools import search_mcp_servers
 
 dotenv.load_dotenv()
 
@@ -176,7 +177,7 @@ def archive_latest_run_artifacts(latest_dir, archive_dir):
             print(f"Skipping directory: {item.name}")
 
 
-def main(user_prompt: str, workflow_dir: Path | None = None):
+def single_turn_generation(user_prompt: str, workflow_dir: Path | None = None):
     """Generate python code for an agentic workflow based on the user prompt."""
     workflow_id = str(uuid.uuid4())
     if workflow_dir is None:
@@ -209,5 +210,9 @@ def main(user_prompt: str, workflow_dir: Path | None = None):
     print(agent_factory_outputs)
 
 
+def main():
+    fire.Fire(single_turn_generation)
+
+
 if __name__ == "__main__":
-    fire.Fire(main)
+    main()
