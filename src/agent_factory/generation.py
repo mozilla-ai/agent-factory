@@ -1,5 +1,4 @@
 import json
-import shutil
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -7,62 +6,20 @@ from pathlib import Path
 import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
-from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
 
 from agent_factory.instructions import INSTRUCTIONS
 from agent_factory.prompt import UserPrompt
-from agent_factory.tools import search_mcp_servers
+from agent_factory.tools import read_file, search_mcp_servers
 
 dotenv.load_dotenv()
-
-repo_root = Path.cwd()
-workflows_root = repo_root / "generated_workflows"
-tools_dir = repo_root / "tools"
 
 
 class AgentFactoryOutputs(BaseModel):
     agent_code: str = Field(..., description="The python script as a string that is runnable as agent.py")
     run_instructions: str = Field(..., description="The run instructions in Markdown format")
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
-
-
-def get_mount_config():
-    return {
-        "host_tools_dir": str(tools_dir),
-        "container_tools_dir": "/app/tools",
-        "file_ops_dir": "/app",
-    }
-
-
-def get_default_tools(mount_config):
-    return [
-        visit_webpage,
-        search_tavily,
-        search_mcp_servers,
-        MCPStdio(
-            command="docker",
-            args=[
-                "run",
-                "-i",
-                "--rm",
-                "--volume",
-                "/app",
-                # Mount tools directory
-                "--mount",
-                f"type=bind,src={mount_config['host_tools_dir']},dst={mount_config['container_tools_dir']}",
-                "mcp/filesystem",
-                mount_config["file_ops_dir"],
-            ],
-            tools=[
-                "read_file",
-                "search_files",
-                "list_allowed_directories",
-                "list_directory",
-            ],
-        ),
-    ]
 
 
 def validate_agent_outputs(str_output: str):
@@ -86,24 +43,11 @@ def remove_markdown_code_block_delimiters(text: str) -> str:
     return text
 
 
-def save_agent_raw_output(output: str, generated_workflows_dir: str = "latest"):
-    """Save the agent_trace.final_output to a file. For debugging in case the output is not parsed correctly"""
-    save_artifacts_dir = workflows_root / generated_workflows_dir
-    Path(save_artifacts_dir).mkdir(exist_ok=True)
-    agent_factory_raw_output_path = Path(f"{save_artifacts_dir}/agent_factory_raw_output.txt")
-    with agent_factory_raw_output_path.open("w", encoding="utf-8") as f:
-        f.write(output)
-    print(f"Raw agent output saved to {agent_factory_raw_output_path}")
-
-
-def save_agent_parsed_outputs(output: AgentFactoryOutputs, generated_workflows_dir: str = "latest"):
+def save_agent_parsed_outputs(output: AgentFactoryOutputs, output_dir: Path):
     """Save all three outputs from AgentFactoryOutputs to separate files."""
-    save_artifacts_dir = workflows_root / generated_workflows_dir
-    Path(save_artifacts_dir).mkdir(exist_ok=True)
-
-    agent_path = Path(f"{save_artifacts_dir}/agent.py")
-    instructions_path = Path(f"{save_artifacts_dir}/INSTRUCTIONS.md")
-    requirements_path = Path(f"{save_artifacts_dir}/requirements.txt")
+    agent_path = Path(f"{output_dir}/agent.py")
+    instructions_path = Path(f"{output_dir}/INSTRUCTIONS.md")
+    requirements_path = Path(f"{output_dir}/requirements.txt")
 
     with agent_path.open("w", encoding="utf-8") as f:
         f.write(remove_markdown_code_block_delimiters(output.agent_code))
@@ -114,27 +58,17 @@ def save_agent_parsed_outputs(output: AgentFactoryOutputs, generated_workflows_d
     with requirements_path.open("w", encoding="utf-8") as f:
         f.write(remove_markdown_code_block_delimiters(output.dependencies))
 
-    print(f"Files saved to {save_artifacts_dir}")
+    print(f"Files saved to {output_dir}")
 
 
-def setup_directories(workflows_root, workflow_dir):
-    workflows_root.mkdir(parents=True, exist_ok=True)
-    workflow_dir.mkdir(parents=True, exist_ok=True)
-    latest_dir = workflows_root / "latest"
-    archive_root = workflows_root / "archive"
-    latest_dir.mkdir(parents=True, exist_ok=True)
-    archive_root.mkdir(parents=True, exist_ok=True)
-    return latest_dir, archive_root
-
-
-def create_agent(mount_config):
+def create_agent():
     framework = AgentFramework.OPENAI
     agent = AnyAgent.create(
         framework,
         AgentConfig(
             model_id="o3",
             instructions=INSTRUCTIONS,
-            tools=get_default_tools(mount_config),
+            tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             model_args={"tool_choice": "required"},  # Ensure tool choice is required
         ),
     )
@@ -163,51 +97,32 @@ def build_run_instructions(user_prompt) -> str:
         return user_prompt_instance.amend_prompt(user_prompt)
 
 
-def save_agent_trace(agent_trace, latest_dir):
-    agent_trace_path_latest = latest_dir / "agent_factory_trace.json"
-    with Path.open(agent_trace_path_latest, "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
-
-
-def archive_latest_run_artifacts(latest_dir, archive_dir):
-    for item in latest_dir.iterdir():
-        if item.is_file():
-            shutil.copy(item, archive_dir / item.name)
-        else:
-            print(f"Skipping directory: {item.name}")
-
-
-def single_turn_generation(user_prompt: str, workflow_dir: Path | None = None):
+def single_turn_generation(
+    user_prompt: str,
+    output_dir: Path | None = None,
+):
     """Generate python code for an agentic workflow based on the user prompt."""
-    workflow_id = str(uuid.uuid4())
-    if workflow_dir is None:
-        workflow_dir = workflows_root / "latest"
-    else:
-        workflow_dir = Path(workflow_dir)
+    if output_dir is None:
+        output_dir = Path.cwd()
+        uid = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + str(uuid.uuid4())[:8]
+        output_dir = output_dir / uid
 
-    latest_dir, archive_root = setup_directories(workflows_root, workflow_dir)
-    timestamp_id = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + workflow_id[:8]
-    archive_dir = archive_root / timestamp_id
-    archive_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    mount_config = get_mount_config()
-    agent = create_agent(mount_config)
+    agent = create_agent()
+
     run_instructions = build_run_instructions(user_prompt)
 
     agent_trace = agent.run(run_instructions, max_turns=30)
-    save_agent_trace(agent_trace, latest_dir)
 
-    # Save structured agent outputs
-    # Save raw agent output for debugging
-    save_agent_raw_output(agent_trace.final_output, latest_dir)
-    # Validate and save parsed agent outputs
+    (output_dir / "agent_factory_trace.json").write_text(agent_trace.model_dump_json(indent=2))
+
+    (output_dir / "agent_factory_raw_output.txt").write_text(agent_trace.final_output)
+
     agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
-    save_agent_parsed_outputs(agent_factory_outputs, latest_dir)
+    save_agent_parsed_outputs(agent_factory_outputs, output_dir)
 
-    archive_latest_run_artifacts(latest_dir, archive_dir)
-
-    print(f"Workflow files saved in: {latest_dir} and archived in {archive_dir}")
-    print(agent_factory_outputs)
+    print(f"Workflow files saved in: {output_dir}")
 
 
 def main():
