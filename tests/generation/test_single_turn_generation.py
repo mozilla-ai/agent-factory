@@ -46,4 +46,4 @@ def test_singe_turn_generation(tmp_path: Path, prompt_id: str, prompt: str, requ
     update_assets = request.config.getoption("--update-assets")
 
     if update_assets:
-        copytree(tmp_path, Path(__file__).parent / "assets" / prompt_id, dirs_exist_ok=True)
+        copytree(tmp_path, Path(__file__).parent.parent / "assets" / prompt_id, dirs_exist_ok=True)

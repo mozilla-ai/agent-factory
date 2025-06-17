@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-ASSETS_PATH = Path(__file__).parent / "assets"
+ASSETS_PATH = Path(__file__).parent.parent / "assets"
 
 
 @pytest.fixture(
