@@ -5,6 +5,18 @@ from mcpm.utils.repository import RepositoryManager
 
 DEFAULT_REGISTRY_URL = "https://mcpm.sh/api/servers.json"
 
+KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "docker_url")
+
+
+def _cleanup_mcp_server_info(server_info):
+    for k in KEYS_TO_DROP:
+        server_info.pop(k)
+
+    for tool in server_info.get("tools", []):
+        tool.pop("inputSchema")
+
+    return server_info
+
 
 def search_mcp_servers(keyword: str, is_official: bool = False) -> list[dict[str, Any]]:
     """Search for available MCP servers based on a single keyword.
@@ -25,8 +37,9 @@ def search_mcp_servers(keyword: str, is_official: bool = False) -> list[dict[str
         is_official: If `True`, only official servers will be returned. Defaults to `False`.
 
     Returns:
-        A list of server names that match the search criteria. If no servers match, returns an empty
-        list. Returns official servers if `is_official` is set to `True`.
+        A list of server descriptions that match the search criteria.
+        If no servers match, returns an empty list.
+        Returns official servers if `is_official` is set to `True`.
     """
     repository_manager = RepositoryManager(repo_url=DEFAULT_REGISTRY_URL)
     servers = repository_manager.search_servers(keyword)
@@ -35,7 +48,7 @@ def search_mcp_servers(keyword: str, is_official: bool = False) -> list[dict[str
         official_servers = filter(lambda server: server.get("is_official", False), servers)
         return list(official_servers)
 
-    return servers
+    return [_cleanup_mcp_server_info(server) for server in servers]
 
 
 def read_file(file_name: str) -> str:
