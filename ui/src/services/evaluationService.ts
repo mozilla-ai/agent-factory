@@ -89,7 +89,7 @@ export async function deleteEvaluationCriteria(
   workflowPath: string,
 ): Promise<{ success: boolean; message: string }> {
   const response = await apiClient.delete(
-    `/agent-factory/workflows/${workflowPath}/evaluation_criteria`,
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_criteria`,
   )
   return response.data
 }
@@ -101,7 +101,7 @@ export async function deleteEvaluationResults(
   workflowPath: string,
 ): Promise<{ success: boolean; message: string }> {
   const response = await apiClient.delete(
-    `/agent-factory/workflows/${workflowPath}/evaluation_results`,
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_results`,
   )
   return response.data
 }
@@ -113,7 +113,7 @@ export async function deleteAgentEvalTrace(
   workflowPath: string,
 ): Promise<{ success: boolean; message: string }> {
   const response = await apiClient.delete(
-    `/agent-factory/workflows/${workflowPath}/agent_eval_trace`,
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/agent_eval_trace`,
   )
   return response.data
 }

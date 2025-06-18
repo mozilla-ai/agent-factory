@@ -52,8 +52,6 @@
           <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
           <button class="delete-button" @click="openDeleteDialog">Delete</button>
         </div>
-
-        <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
       </div>
 
       <!-- Final score (if results available) -->
