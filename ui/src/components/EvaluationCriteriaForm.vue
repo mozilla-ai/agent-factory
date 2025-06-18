@@ -115,6 +115,7 @@ import { reactive, ref, onMounted } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { saveEvaluationCriteria } from '../services/evaluationService'
 import type { EvaluationCriteria } from '../types/evaluation'
+import { useWorkflowsStore } from '@/stores/workflows'
 
 const props = defineProps<{
   workflowPath: string
@@ -187,12 +188,12 @@ const removeCheckpoint = (index: number) => {
 }
 
 const queryClient = useQueryClient()
+const workflowsStore = useWorkflowsStore()
 
 // Add toast notification state
 const showToast = ref(false)
 const toastMessage = ref('')
 const toastType = ref('error') // 'success' or 'error'
-
 // Update mutation with better error handling
 const saveMutation = useMutation({
   mutationFn: async () => {
@@ -224,8 +225,16 @@ const saveMutation = useMutation({
 
     // Invalidate the criteria query to refresh data
     queryClient.invalidateQueries({
-      queryKey: ['evaluationCriteria', props.workflowPath],
+      queryKey: ['evaluation-criteria', props.workflowPath],
     })
+    queryClient.invalidateQueries({
+      queryKey: ['evaluation-status', props.workflowPath],
+    })
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath],
+    })
+    // Refresh the workflow store to update file explorer
+    workflowsStore.loadWorkflows()
     emit('saved', true)
   },
   onError: (error) => {

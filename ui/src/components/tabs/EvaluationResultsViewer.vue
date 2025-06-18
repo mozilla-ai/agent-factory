@@ -154,12 +154,14 @@ import { deleteEvaluationResults } from '../../services/evaluationService'
 import { useRouter } from 'vue-router'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import type { EvaluationCheckpoint } from '@/types'
+import { useWorkflowsStore } from '@/stores/workflows'
 
 // Props
 const props = defineProps<{
   workflowPath: string
 }>()
 
+const workflowsStore = useWorkflowsStore()
 // Setup
 const router = useRouter()
 
@@ -294,6 +296,8 @@ const deleteResultsMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
     queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
     showDeleteDialog.value = false
+    // Refresh the workflow store to update file explorer
+    workflowsStore.loadWorkflows()
     router.push({
       params: { workflowPath: props.workflowPath },
       query: { tab: 'evaluate' },

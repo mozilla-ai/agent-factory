@@ -136,6 +136,7 @@ import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
 import { deleteEvaluationCriteria } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import { useRouter } from 'vue-router'
+import { useWorkflowsStore } from '@/stores/workflows'
 
 interface Checkpoint {
   criteria: string
@@ -171,6 +172,7 @@ const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
 }
 
+const workflowsStore = useWorkflowsStore()
 // Handle criteria saved event
 const onCriteriaSaved = () => {
   isEditMode.value = false
@@ -286,6 +288,8 @@ const deleteCriteriaMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
     queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
     showDeleteDialog.value = false
+    // Refresh the workflow store to update file explorer
+    workflowsStore.loadWorkflows()
     router.push({
       params: { workflowPath: props.workflowPath },
       query: { tab: 'evaluate' },

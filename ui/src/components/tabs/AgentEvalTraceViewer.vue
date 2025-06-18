@@ -148,7 +148,9 @@ import { deleteAgentEvalTrace } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import { workflowService } from '@/services/workflowService'
 import { useRouter } from 'vue-router'
+import { useWorkflowsStore } from '@/stores/workflows'
 
+const workflowsStore = useWorkflowsStore()
 interface TraceMessage {
   role: string
   content: string
@@ -214,6 +216,8 @@ const deleteTraceMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: ['agentEvalTrace', props.workflowPath] })
     queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
     queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
+    // Refresh the workflow store to update file explorer
+    workflowsStore.loadWorkflows()
     showDeleteDialog.value = false
     router.push({
       params: { workflowPath: props.workflowPath },
