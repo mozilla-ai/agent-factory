@@ -1,5 +1,4 @@
 import logging
-import re
 from pathlib import Path
 
 import dotenv
@@ -28,35 +27,6 @@ class JSONEvaluationCase(BaseModel):
     checkpoints: list[CheckpointCriteria] = Field(
         ..., description="The checkpoints criteria to be used for evaluation."
     )
-
-
-def parse_checkpoint_criteria_string(input_string: str) -> dict:
-    """Hacky solution to go from agent_trace.final_output (string) to JSON.
-    TODO: Check with any-agent team to see if this can be fixed in the library's tracing.
-    """
-    result_dict = {"llm_judge": None, "checkpoints": []}
-
-    # 1. Extract llm_judge
-    llm_judge_match = re.search(r"llm_judge='([^']+)'", input_string)
-    if llm_judge_match:
-        result_dict["llm_judge"] = llm_judge_match.group(1)
-
-    # 2. Extract and parse checkpoints
-    checkpoints_str_match = re.search(r"checkpoints=\[(.*)\]", input_string)
-    if checkpoints_str_match:
-        checkpoints_content = checkpoints_str_match.group(1)
-        checkpoint_matches = re.findall(
-            r"CheckpointCriteria\(criteria='((?:[^']|\\')*)', points=(\d+)\)", checkpoints_content
-        )
-        for criteria, points in checkpoint_matches:
-            criteria = criteria.replace("\\'", "'")
-            try:
-                result_dict["checkpoints"].append({"criteria": criteria, "points": int(points)})
-            except ValueError:
-                print(f"Warning: Could not parse points for criteria: '{criteria}', points_str: '{points}'")
-                continue
-
-    return result_dict
 
 
 def main(generated_workflow_dir: str = "generated_workflows/latest"):
@@ -118,18 +88,15 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
     """  # noqa: E501
     agent_trace = agent.run(run_instructions, max_turns=30)
 
-    # Save the agent trace as a YAML file
-    json_output = parse_checkpoint_criteria_string(agent_trace.final_output)
-
     try:
-        json_output = JSONEvaluationCase.model_validate(json_output)
+        json_output = agent_trace.final_output.model_dump()
     except ValidationError as e:
         logger.error("Invalid JSON output: %s", e)
         return
 
     # Save the JSON output as a YAML file
     with (workflows_dir / "evaluation_case.yaml").open("w") as f:
-        yaml.dump(json_output.model_dump(), f, default_flow_style=False, sort_keys=False)
+        yaml.dump(json_output, f, default_flow_style=False, sort_keys=False)
 
 
 if __name__ == "__main__":
