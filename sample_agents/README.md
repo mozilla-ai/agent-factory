@@ -32,13 +32,13 @@ sh sample_agents/translate_markdown.sh
 
 ## The Sample Use Cases
 
-- **gist.sh**  
+- **gist.sh**
   Generates and runs an agent that finds a webpage about a given topic and summarizes the who, what, and when.
 
-- **code_review.sh**  
+- **code_review.sh**
   Generates and runs an agent that reviews code from a provided URL for errors, bugs, and improvements.
 
-- **translate_markdown.sh**  
+- **translate_markdown.sh**
   Generates and runs an agent that reads a markdown file, translates its descriptions to a target language, and saves the result.
 
 ## The `_run_new_agent.sh` Script
@@ -48,4 +48,3 @@ All sample scripts delegate the actual agent execution to `_run_new_agent.sh`. T
 - A new virtual environment is created and activated for isolation.
 - The agent’s dependencies are installed.
 - The agent is run with the arguments provided by the calling script.
-
