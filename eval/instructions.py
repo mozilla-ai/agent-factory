@@ -89,9 +89,7 @@ agent = AnyAgent.create(
                     ],
             ),
         ],
-        agent_args={
-            "output_type": CodeReviewOutput
-        }
+        output_type=CodeReviewOutput,
     ),
 )
 

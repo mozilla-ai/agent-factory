@@ -149,7 +149,7 @@ agent = AnyAgent.create(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        agent_args={"output_type": StructuredOutput},
+        output_type=StructuredOutput,
     ),
 )
 
@@ -235,7 +235,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
 
-#### Structured Output (output_type via agent_args):
+#### Structured Output (output_type):
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the output_type argument correctly to obtain this structured response
 - Refer to the any-agent documentation for more details on structured output
@@ -295,7 +295,7 @@ agent = AnyAgent.create(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        agent_args={"output_type": StructuredOutput},
+        output_type=StructuredOutput,
         model_args={"tool_choice": "required"},
     ),
 )
@@ -336,7 +336,7 @@ For reading URLs, use `visit_webpage` tool. Never use the `read_file` tool for r
 **Any-agent Code Generation Instructions**
 {{ code_generation_instructions }}
 
-As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `agent_args`:
+As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `output_type`:
 {{ code_example_with_comments }}
 
 ** Deliverables Instructions**

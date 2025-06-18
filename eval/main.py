@@ -103,7 +103,7 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
                     ],
                 ),
             ],
-            agent_args={"output_type": JSONEvaluationCase},
+            output_type=JSONEvaluationCase,
         ),
     )
 
