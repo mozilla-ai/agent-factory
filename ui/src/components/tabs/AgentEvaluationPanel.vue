@@ -94,6 +94,7 @@ import { ref, computed, onMounted, defineProps } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
+import { useWorkflowsStore } from '@/stores/workflows'
 
 const props = defineProps({
   workflowPath: {
@@ -113,6 +114,7 @@ const props = defineProps({
 const queryClient = useQueryClient()
 const router = useRouter()
 const output = ref('')
+const workflowsStore = useWorkflowsStore()
 
 // Computed property to check if all evaluation files exist
 const allEvaluationFilesExist = computed(
@@ -142,6 +144,8 @@ const runAgentMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
     })
+    workflowsStore.loadWorkflows()
+
   },
   onError: (error) => {
     console.error('Error running agent:', error)
@@ -167,6 +171,7 @@ const genCasesMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
     })
+    workflowsStore.loadWorkflows()
   },
   onError: (error) => {
     console.error('Error generating cases:', error)
@@ -192,6 +197,7 @@ const runEvalMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
     })
+    workflowsStore.loadWorkflows()
   },
   onError: (error) => {
     console.error('Error running evaluation:', error)
