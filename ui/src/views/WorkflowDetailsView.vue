@@ -41,11 +41,11 @@ import { workflowService } from '@/services/workflowService'
 import { routes } from '@/config'
 
 // Components
-import FileExplorer from '@/components/FileExplorer.vue'
-import EvaluationPanel from '@/components/EvaluationPanel.vue'
-import AgentTraceViewer from '@/components/AgentTraceViewer.vue'
-import EvaluationCriteriaViewer from '@/components/EvaluationCriteriaViewer.vue'
-import ResultsViewer from '@/components/ResultsViewer.vue'
+import FileExplorer from '@/components/tabs/AgentFileExplorer.vue'
+import AgentEvaluationPanel from '@/components/tabs/AgentEvaluationPanel.vue'
+import AgentEvalTraceViewer from '@/components/tabs/AgentEvalTraceViewer.vue'
+import EvaluationCriteriaViewer from '@/components/tabs/EvaluationCriteriaViewer.vue'
+import EvaluationResultsViewer from '@/components/tabs/EvaluationResultsViewer.vue'
 import type { WorkflowFile } from '@/types'
 
 // Setup
@@ -123,11 +123,7 @@ const availableTabs = computed(() => {
   tabs.push({ id: 'criteria', label: 'Evaluation Criteria' })
   // }
 
-  if (
-    evaluationStatusQuery.data.value?.hasAgentTrace ||
-    evaluationStatusQuery.data.value?.hasEvalCases ||
-    evaluationStatusQuery.data.value?.hasEvalResults
-  ) {
+  if (evaluationStatusQuery.data.value?.hasEvalResults) {
     tabs.push({ id: 'results', label: 'Evaluation Results' })
   }
 
@@ -140,13 +136,13 @@ const currentTabComponent = computed(() => {
     case 'files':
       return FileExplorer
     case 'evaluate':
-      return EvaluationPanel
+      return AgentEvaluationPanel
     case 'agent-trace':
-      return AgentTraceViewer
+      return AgentEvalTraceViewer
     case 'criteria':
       return EvaluationCriteriaViewer
     case 'results':
-      return ResultsViewer
+      return EvaluationResultsViewer
     default:
       return FileExplorer
   }

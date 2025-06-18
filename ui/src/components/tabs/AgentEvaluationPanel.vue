@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineProps, defineEmits } from 'vue'
+import { ref, computed, onMounted, defineProps } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
@@ -110,7 +110,6 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['evaluation-status-changed'])
 const queryClient = useQueryClient()
 const router = useRouter()
 const output = ref('')
@@ -143,9 +142,6 @@ const runAgentMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
     })
-    emit('evaluation-status-changed', {
-      hasAgentTrace: true,
-    })
   },
   onError: (error) => {
     console.error('Error running agent:', error)
@@ -171,9 +167,6 @@ const genCasesMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
     })
-    emit('evaluation-status-changed', {
-      hasEvalCases: true,
-    })
   },
   onError: (error) => {
     console.error('Error generating cases:', error)
@@ -198,9 +191,6 @@ const runEvalMutation = useMutation({
     console.log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
-    })
-    emit('evaluation-status-changed', {
-      hasEvalResults: true,
     })
   },
   onError: (error) => {

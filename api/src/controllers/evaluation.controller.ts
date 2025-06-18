@@ -215,7 +215,7 @@ export async function saveEvaluationCriteria(
     const workflowPath = req.params.workflowPath
     const criteriaData = req.body as EvaluationCriteria
 
-    // const fullPath = resolveWorkflowPath(workflowPath)
+    // const fullPath = resolveWorkflowPath(workworkflowPath)
 
     // // Use the same pattern as in generate-cases
     // const workflowName = workflowPath.startsWith('archive/')
@@ -265,5 +265,129 @@ export async function saveEvaluationCriteria(
     res
       .status(500)
       .json({ error: `Failed to save evaluation criteria: ${errorMessage}` })
+  }
+}
+
+// Delete agent evaluation trace file
+export async function deleteAgentEvalTrace(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const fullPath = resolveWorkflowPath(workflowPath)
+    const filePath = path.join(fullPath, 'agent_eval_trace.json')
+
+    try {
+      await fs.access(filePath)
+    } catch {
+      res.status(404).json({
+        success: false,
+        message: 'Agent evaluation trace file not found',
+      })
+      return
+    }
+
+    await fs.unlink(filePath)
+
+    // Also delete results if they exist
+    const resultsPath = path.join(fullPath, 'evaluation_results.json')
+    try {
+      await fs.access(resultsPath)
+      await fs.unlink(resultsPath)
+    } catch {
+      // If results don't exist, ignore
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Agent evaluation trace deleted successfully',
+    })
+  } catch (error: unknown) {
+    console.error('Error deleting agent evaluation trace:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).json({
+      success: false,
+      message: `Failed to delete file: ${errorMessage}`,
+    })
+  }
+}
+
+// Delete evaluation criteria file
+export async function deleteEvaluationCriteria(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const fullPath = resolveWorkflowPath(workflowPath)
+    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+
+    try {
+      await fs.access(criteriaPath)
+    } catch {
+      res
+        .status(404)
+        .json({ success: false, message: 'Evaluation criteria file not found' })
+      return
+    }
+
+    await fs.unlink(criteriaPath)
+
+    // Also delete results if they exist
+    const resultsPath = path.join(fullPath, 'evaluation_results.json')
+    try {
+      await fs.access(resultsPath)
+      await fs.unlink(resultsPath)
+    } catch {
+      // If results don't exist, ignore
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Evaluation criteria deleted successfully',
+    })
+  } catch (error: unknown) {
+    console.error('Error deleting evaluation criteria:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).json({
+      success: false,
+      message: `Failed to delete file: ${errorMessage}`,
+    })
+  }
+}
+
+// Delete evaluation results file
+export async function deleteEvaluationResults(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const fullPath = resolveWorkflowPath(workflowPath)
+    const filePath = path.join(fullPath, 'evaluation_results.json')
+
+    try {
+      await fs.access(filePath)
+    } catch {
+      res
+        .status(404)
+        .json({ success: false, message: 'Evaluation results file not found' })
+      return
+    }
+
+    await fs.unlink(filePath)
+
+    res.status(200).json({
+      success: true,
+      message: 'Evaluation results deleted successfully',
+    })
+  } catch (error: unknown) {
+    console.error('Error deleting evaluation results:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).json({
+      success: false,
+      message: `Failed to delete file: ${errorMessage}`,
+    })
   }
 }

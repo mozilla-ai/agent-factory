@@ -17,6 +17,9 @@ import {
   generateEvaluationCases,
   runEvaluation,
   saveEvaluationCriteria,
+  deleteAgentEvalTrace,
+  deleteEvaluationCriteria,
+  deleteEvaluationResults,
 } from './controllers/evaluation.controller.js'
 import { listWorkflows } from './controllers/workflow.controller.js'
 import { sendInput, stopPythonProcess } from './controllers/input.controller.js'
@@ -77,6 +80,20 @@ app.use(
       }
     },
   }),
+)
+
+// Delete evaluation files endpoints
+app.delete(
+  '/agent-factory/workflows/:workflowPath/agent_eval_trace',
+  deleteAgentEvalTrace,
+)
+app.delete(
+  '/agent-factory/workflows/:workflowPath/evaluation_criteria',
+  deleteEvaluationCriteria,
+)
+app.delete(
+  '/agent-factory/workflows/:workflowPath/evaluation_results',
+  deleteEvaluationResults,
 )
 
 // Global error handler
