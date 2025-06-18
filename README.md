@@ -102,7 +102,7 @@ This will run the agent and save the agent trace as `agent_eval_trace.json` in t
 
 Run the evaluation case generator agent with your desired evaluation case prompt:
 ```bash
-python -m eval.main
+python -m eval.generate_evaluation_case
 ```
 
 This will generate a YAML file in the `generated_workflows/latest` directory with criteria and points for each evaluation.
@@ -112,7 +112,7 @@ This will generate a YAML file in the `generated_workflows/latest` directory wit
 Evaluate the agent's execution trace against the generated evaluation case:
 
 ```bash
-python -m eval.run_agent_eval
+python -m eval.run_generated_agent_evaluation
 ```
 This will display the evaluation criteria and show how the agent performed on each.
 
