@@ -62,6 +62,30 @@
 
   --scrollbar-thumb: #d1d5db;
   --scrollbar-track: #f3f4f6;
+
+  /* Primary & Secondary Colors */
+  --color-primary: #3a8ee6;
+  --color-primary-soft: rgba(58, 142, 230, 0.15);
+  --color-primary-hover: #2c7be5;
+
+  --color-secondary: #6c757d;
+  --color-secondary-soft: rgba(108, 117, 125, 0.15);
+  --color-secondary-hover: #5a6268;
+
+  /* Success colors - green tones */
+  --color-success: #2ecc71;
+  --color-success-soft: rgba(46, 204, 113, 0.15);
+  --color-success-hover: #27ae60;
+
+  /* Error colors - red tones */
+  --color-error: #e74c3c;
+  --color-error-soft: rgba(231, 76, 60, 0.15);
+  --color-error-hover: #c0392b;
+
+  /* Warning colors - yellow/orange tones */
+  --color-warning: #f39c12;
+  --color-warning-soft: rgba(243, 156, 18, 0.15);
+  --color-warning-hover: #e67e22;
 }
 
 .theme-dark {
@@ -102,6 +126,30 @@
 
   --scrollbar-thumb: #374151;
   --scrollbar-track: #232b3a;
+
+  /* Primary & Secondary Colors */
+  --color-primary: #4d96f0;
+  --color-primary-soft: rgba(77, 150, 240, 0.2);
+  --color-primary-hover: #3a8ee6;
+
+  --color-secondary: #adb5bd;
+  --color-secondary-soft: rgba(173, 181, 189, 0.2);
+  --color-secondary-hover: #98a2ac;
+
+  /* Success colors - adjusted for dark mode */
+  --color-success: #4cd137;
+  --color-success-soft: rgba(76, 209, 55, 0.2);
+  --color-success-hover: #44bd32;
+
+  /* Error colors - adjusted for dark mode */
+  --color-error: #ff6b6b;
+  --color-error-soft: rgba(255, 107, 107, 0.2);
+  --color-error-hover: #ee5253;
+
+  /* Warning colors - adjusted for dark mode */
+  --color-warning: #ffa502;
+  --color-warning-soft: rgba(255, 165, 2, 0.2);
+  --color-warning-hover: #ff9f1a;
 }
 
 *,

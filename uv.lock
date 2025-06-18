@@ -19,6 +19,7 @@ dependencies = [
     { name = "jinja2" },
     { name = "loguru" },
     { name = "mcpm" },
+    { name = "pre-commit" },
     { name = "pyyaml" },
 ]
 
@@ -59,6 +60,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.2" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mcpm", specifier = ">=1.0.3" },
+    { name = "pre-commit", specifier = ">=4.2.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 

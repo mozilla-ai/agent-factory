@@ -5,6 +5,10 @@ import { runPythonScriptWithStreaming } from '../helpers/agent-factory-helpers.j
 import { setupStreamingResponse } from '../utils/stream.utils.js'
 import { resolveWorkflowPath } from '../utils/path.utils.js'
 import { parseEvaluationOutput } from '../utils/evaluation.utils.js'
+import {
+  saveEvaluationCriteria as saveCriteria,
+  EvaluationCriteria,
+} from '../services/evaluation.service.js'
 
 // 1. Run agent (generates agent_eval_trace.json)
 export async function runAgent(req: Request, res: Response): Promise<void> {
@@ -199,5 +203,67 @@ export async function runEvaluation(
     console.error('Error running agent evaluation:', error)
     const errorMessage = error instanceof Error ? error.message : String(error)
     res.status(500).send(`[Error running agent evaluation]: ${errorMessage}`)
+  }
+}
+
+// Save custom evaluation criteria
+export async function saveEvaluationCriteria(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const criteriaData = req.body as EvaluationCriteria
+
+    // const fullPath = resolveWorkflowPath(workflowPath)
+
+    // // Use the same pattern as in generate-cases
+    // const workflowName = workflowPath.startsWith('archive/')
+    //   ? workflowPath
+    //   : 'latest'
+
+    // Basic validation
+    if (!criteriaData.llm_judge || !Array.isArray(criteriaData.checkpoints)) {
+      res.status(400).json({
+        error:
+          'Invalid evaluation criteria format, llm_judge is missing or checkpoints is not an array',
+      })
+      return
+    }
+
+    // Ensure all checkpoints have required fields
+    for (const checkpoint of criteriaData.checkpoints) {
+      if (!checkpoint.criteria || typeof checkpoint.points !== 'number') {
+        res.status(400).json({
+          error:
+            'Invalid checkpoint format, a checkpoint doesnt have criteria or points is not a number',
+        })
+        return
+      }
+    }
+
+    const result = await saveCriteria(workflowPath, criteriaData)
+    // delete evaluation-results.json if it exists
+    const resultsPath = path.join(
+      resolveWorkflowPath(workflowPath),
+      'evaluation_results.json',
+    )
+    try {
+      await fs.unlink(resultsPath)
+    } catch (error) {
+      console.warn(`Could not delete existing evaluation results: ${error}`)
+    }
+
+    res.json({
+      success: true,
+      message: 'Evaluation criteria saved successfully',
+      path: result.path,
+    })
+  } catch (error: unknown) {
+    console.error('Error saving evaluation criteria:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res
+      .status(500)
+      .json({ error: `Failed to save evaluation criteria: ${errorMessage}` })
   }
 }
