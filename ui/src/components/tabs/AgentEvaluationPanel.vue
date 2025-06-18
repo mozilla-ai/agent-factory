@@ -144,8 +144,10 @@ const runAgentMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
     })
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'agent_eval_trace.json'],
+    })
     workflowsStore.loadWorkflows()
-
   },
   onError: (error) => {
     console.error('Error running agent:', error)
@@ -170,6 +172,9 @@ const genCasesMutation = useMutation({
     console.log('Case generation successful, invalidating cases query')
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
+    })
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
     })
     workflowsStore.loadWorkflows()
   },
@@ -196,6 +201,9 @@ const runEvalMutation = useMutation({
     console.log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
       queryKey: ['evaluation-status', props.workflowPath],
+    })
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'evaluation_results.json'],
     })
     workflowsStore.loadWorkflows()
   },

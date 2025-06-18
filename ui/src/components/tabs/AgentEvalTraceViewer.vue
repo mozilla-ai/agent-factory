@@ -218,6 +218,9 @@ const deleteTraceMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'agent_eval_trace.json'],
+    })
     showDeleteDialog.value = false
     router.push({
       params: { workflowPath: props.workflowPath },

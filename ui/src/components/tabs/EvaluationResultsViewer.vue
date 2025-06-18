@@ -295,6 +295,9 @@ const deleteResultsMutation = useMutation({
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
     queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'evaluation_results.json'],
+    })
     showDeleteDialog.value = false
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()

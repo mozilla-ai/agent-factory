@@ -287,6 +287,9 @@ const deleteCriteriaMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
     queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
     queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
+    })
     showDeleteDialog.value = false
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()

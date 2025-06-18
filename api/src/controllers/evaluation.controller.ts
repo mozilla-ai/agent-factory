@@ -215,14 +215,6 @@ export async function saveEvaluationCriteria(
     const workflowPath = req.params.workflowPath
     const criteriaData = req.body as EvaluationCriteria
 
-    // const fullPath = resolveWorkflowPath(workworkflowPath)
-
-    // // Use the same pattern as in generate-cases
-    // const workflowName = workflowPath.startsWith('archive/')
-    //   ? workflowPath
-    //   : 'latest'
-
-    // Basic validation
     if (!criteriaData.llm_judge || !Array.isArray(criteriaData.checkpoints)) {
       res.status(400).json({
         error:
