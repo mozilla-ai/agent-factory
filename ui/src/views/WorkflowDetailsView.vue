@@ -41,7 +41,7 @@ import { workflowService } from '@/services/workflowService'
 import { routes } from '@/config'
 
 // Components
-import FileExplorer from '@/components/tabs/AgentFileExplorer.vue'
+import AgentFileExplorer from '@/components/tabs/AgentFileExplorer.vue'
 import AgentEvaluationPanel from '@/components/tabs/AgentEvaluationPanel.vue'
 import AgentEvalTraceViewer from '@/components/tabs/AgentEvalTraceViewer.vue'
 import EvaluationCriteriaViewer from '@/components/tabs/EvaluationCriteriaViewer.vue'
@@ -134,7 +134,7 @@ const availableTabs = computed(() => {
 const currentTabComponent = computed(() => {
   switch (activeTab.value) {
     case 'files':
-      return FileExplorer
+      return AgentFileExplorer
     case 'evaluate':
       return AgentEvaluationPanel
     case 'agent-trace':
@@ -144,7 +144,7 @@ const currentTabComponent = computed(() => {
     case 'results':
       return EvaluationResultsViewer
     default:
-      return FileExplorer
+      return AgentFileExplorer
   }
 })
 
