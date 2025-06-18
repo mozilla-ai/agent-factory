@@ -96,7 +96,21 @@ const handleSendClicked = async () => {
 
       // clear all queries cache
       workflowsStore.loadWorkflows()
-      queryClient.clear()
+      queryClient.invalidateQueries({
+        queryKey: ['evaluation-criteria', 'latest'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['evaluation-status', 'latest'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['evaluation-results', 'latest'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['agentEvalTrace', 'latest'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['file-content', 'latest'],
+      })
     }
 
     isLoading.value = false
