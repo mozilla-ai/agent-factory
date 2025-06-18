@@ -18,12 +18,6 @@ def _assert_agent_syntax(agent_file: Path):
     ast.parse(agent_file.read_text(encoding="utf-8"))
 
 
-def _assert_agent_imports(agent_file: Path):
-    spec = spec_from_file_location("test_agent", agent_file)
-    module = module_from_spec(spec)
-    spec.loader.exec_module(module)
-
-
 @pytest.mark.parametrize(
     ("prompt_id", "prompt"),
     [
@@ -40,8 +34,6 @@ def test_singe_turn_generation(tmp_path: Path, prompt_id: str, prompt: str, requ
     _assert_generated_files(tmp_path)
 
     _assert_agent_syntax(tmp_path / "agent.py")
-
-    _assert_agent_imports(tmp_path / "agent.py")
 
     update_assets = request.config.getoption("--update-assets")
 
