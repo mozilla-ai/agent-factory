@@ -17,7 +17,7 @@
           :key="tab.id"
           class="tab-button"
           :class="{ active: activeTab === tab.id }"
-          @click="setActiveTab(tab.id)"
+          @click="handleTabClicked(tab.id)"
         >
           {{ tab.label }}
         </button>
@@ -81,6 +81,12 @@ const evaluationStatusQuery = useQuery({
 // Setup tabs
 const { activeTab, setActiveTab } = useTabs('files')
 
+const handleTabClicked = (tab: string) => {
+  selectedFile.value = undefined // Reset selected file when changing tabs
+  setActiveTab(tab)
+}
+
+// Update the route query parameter for tab
 // Store the selected file
 const selectedFile = ref<WorkflowFile | undefined>(undefined)
 
