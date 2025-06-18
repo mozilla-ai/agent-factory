@@ -160,7 +160,7 @@ def run_agent(url: str):
     and return structured output.
     \"\"\"
     input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}"
-    agent_trace = agent.run(prompt=input_prompt)
+    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
     return agent_trace.final_output
@@ -303,7 +303,7 @@ agent = AnyAgent.create(
 def run_agent({CLI_ARGS}):
     \"\"\"Agent description\"\"\"
     input_prompt = f"{PROMPT_TEMPLATE}".format(**kwargs)
-    agent_trace = agent.run(prompt=input_prompt)
+    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
     return agent_trace.final_output
