@@ -5,12 +5,12 @@ from mcpm.utils.repository import RepositoryManager
 
 DEFAULT_REGISTRY_URL = "https://mcpm.sh/api/servers.json"
 
-KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "docker_url")
+KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "docker_url", "examples")
 
 
 def _cleanup_mcp_server_info(server_info):
     for k in KEYS_TO_DROP:
-        server_info.pop(k)
+        server_info.pop(k, None)
 
     for tool in server_info.get("tools", []):
         tool.pop("inputSchema")
@@ -45,8 +45,7 @@ def search_mcp_servers(keyword: str, is_official: bool = False) -> list[dict[str
     servers = repository_manager.search_servers(keyword)
 
     if is_official:
-        official_servers = filter(lambda server: server.get("is_official", False), servers)
-        return list(official_servers)
+        servers = filter(lambda server: server.get("is_official", False), servers)
 
     return [_cleanup_mcp_server_info(server) for server in servers]
 

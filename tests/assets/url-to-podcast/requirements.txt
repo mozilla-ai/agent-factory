@@ -1,5 +1,0 @@
-any-agent[all]
-beautifulsoup4
-fire
-python-dotenv
-requests
