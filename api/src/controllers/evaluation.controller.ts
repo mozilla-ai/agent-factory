@@ -169,7 +169,7 @@ export async function runEvaluation(
 
     await runPythonScriptWithStreaming(
       '-m',
-      ['eval.run_generated_agent_evaluation'] as string[],
+      ['eval.run_generated_agent_evaluation', evaluationCasePath, tracePath] as string[],
       outputCallback,
       env,
     )
