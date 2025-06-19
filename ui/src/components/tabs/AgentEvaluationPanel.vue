@@ -90,10 +90,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineProps, defineEmits } from 'vue'
+import { ref, computed, onMounted, defineProps } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
+import { useWorkflowsStore } from '@/stores/workflows'
 
 const props = defineProps({
   workflowPath: {
@@ -110,10 +111,10 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['evaluation-status-changed'])
 const queryClient = useQueryClient()
 const router = useRouter()
 const output = ref('')
+const workflowsStore = useWorkflowsStore()
 
 // Computed property to check if all evaluation files exist
 const allEvaluationFilesExist = computed(
@@ -141,11 +142,12 @@ const runAgentMutation = useMutation({
   onSuccess: () => {
     console.log('Agent run successful, invalidating evaluation status query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluationStatus', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowPath],
     })
-    emit('evaluation-status-changed', {
-      hasAgentTrace: true,
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'agent_eval_trace.json'],
     })
+    workflowsStore.loadWorkflows()
   },
   onError: (error) => {
     console.error('Error running agent:', error)
@@ -169,11 +171,12 @@ const genCasesMutation = useMutation({
   onSuccess: () => {
     console.log('Case generation successful, invalidating cases query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluationStatus', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowPath],
     })
-    emit('evaluation-status-changed', {
-      hasEvalCases: true,
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
     })
+    workflowsStore.loadWorkflows()
   },
   onError: (error) => {
     console.error('Error generating cases:', error)
@@ -197,11 +200,12 @@ const runEvalMutation = useMutation({
   onSuccess: () => {
     console.log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluationStatus', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowPath],
     })
-    emit('evaluation-status-changed', {
-      hasEvalResults: true,
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'evaluation_results.json'],
     })
+    workflowsStore.loadWorkflows()
   },
   onError: (error) => {
     console.error('Error running evaluation:', error)

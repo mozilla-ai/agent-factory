@@ -104,10 +104,17 @@ export function runAgentFactory(
   prompt = 'Summarize text content from a given webpage URL',
 ): ChildProcessWithoutNullStreams {
   // Store the process for later input
-  agentFactoryProcess = spawn(venvPython, ['-m', 'src.main', prompt], {
+  // agent-factory
+  agentFactoryProcess = spawn('agent-factory', [prompt], {
     cwd: agentFactoryPath,
     shell: false,
   })
+
+  // agentFactoryProcess = spawn(venvPython, ['-m', 'src.main', prompt], {
+  //   cwd: agentFactoryPath,
+  //   shell: false,
+  // })
+
   return agentFactoryProcess
 }
 

@@ -26,7 +26,6 @@ uv sync --dev
 
 #### Prerequisites:
 - Python 3.11 or higher
-- Docker should be up and running in the background (for filesystem operations)
 
 Install dependencies using your preferred Python package manager:
 
@@ -62,11 +61,19 @@ You will need a Tavily API key to use the `search_tavily` tool. You can get a fr
 
 ### 1. Generate the workflow
 
-Run the code generator agent with your desired workflow prompt:
+
+Run the agent-factory with your desired workflow prompt:
 
 ```bash
 agent-factory "Summarize text content from a given webpage URL" "generated_workflows/latest"
 ```
+> [!NOTE]
+> The agent-factory has been instructed to set the `max_turns` (the max number of steps that the generated agent can take to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see the generated agent run failing due to `AgentRunError` caused by `MaxTurnsExceeded`).
+
+> Set it as an environment variable:
+> ```bash
+> export ELEVENLABS_API_KEY=sk_...
+> ```
 
 This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.
 The three files generated are:
@@ -76,14 +83,7 @@ The three files generated are:
 3. `requirements.txt`: Python dependencies required to run the agent
 
 > [!NOTE]
-> You might need to install the dependencies created for the agent, you can do it with:
->
-> ```bash
-> uv pip install -r generated_workflows/latest/requirements.txt
-> ```
-
-> [!NOTE]
-> You might also need to add additional api keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
+> You might need to add additional API keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
 
 > Set it as an environment variable:
 > ```bash
@@ -92,10 +92,10 @@ The three files generated are:
 
 ### 2. Run the Generated Workflow
 
-Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent as:
+Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent from the root directory as:
 
 ```bash
-python generated_workflows/latest/agent.py arg1
+uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"
 ```
 
 This will run the agent and save the agent trace as `agent_eval_trace.json` in the `generated_workflows/latest` directory.
