@@ -252,13 +252,6 @@ const failedCheckpoints = computed(() => {
   ).length
 })
 
-// Navigation methods
-// function viewFile(filename: string) {
-//   const basePath = props.workflowPath === 'latest' ? 'latest' : `archive/${props.workflowPath}`
-
-//   router.push(`/workflows/${basePath}/${filename}`)
-// }
-
 function viewAgentTrace() {
   router.push({
     path: router.currentRoute.value.path,

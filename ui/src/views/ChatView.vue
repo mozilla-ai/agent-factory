@@ -28,11 +28,7 @@
       <p v-if="isLoading">Loading...</p>
       <pre v-if="response" class="output">{{ response }}</pre>
 
-      <router-link
-        v-if="generationComplete"
-        :to="{ name: 'workflow-details', params: { id: 'latest' } }"
-        class="view-files-link"
-      >
+      <router-link v-if="generationComplete" :to="{ name: 'workflows' }" class="view-files-link">
         📁 View Generated Workflow
       </router-link>
     </div>
@@ -41,15 +37,13 @@
 
 <script setup lang="ts">
 import { useWorkflowsStore } from '@/stores/workflows'
-import { useQueryClient } from '@tanstack/vue-query'
 import { ref } from 'vue'
 
-const prompt = ref<string>('Summarize text content from a given webpage URL')
+const prompt = ref<string>('Create an agent that can tell the current weather in Berlin')
 const response = ref<string>('')
 const isLoading = ref<boolean>(false)
 const generationComplete = ref<boolean>(false)
 const workflowsStore = useWorkflowsStore()
-const queryClient = useQueryClient()
 
 const handleSendClicked = async () => {
   try {
@@ -96,21 +90,6 @@ const handleSendClicked = async () => {
 
       // clear all queries cache
       workflowsStore.loadWorkflows()
-      queryClient.invalidateQueries({
-        queryKey: ['evaluation-criteria', 'latest'],
-      })
-      queryClient.invalidateQueries({
-        queryKey: ['evaluation-status', 'latest'],
-      })
-      queryClient.invalidateQueries({
-        queryKey: ['evaluation-results', 'latest'],
-      })
-      queryClient.invalidateQueries({
-        queryKey: ['agentEvalTrace', 'latest'],
-      })
-      queryClient.invalidateQueries({
-        queryKey: ['file-content', 'latest'],
-      })
     }
 
     isLoading.value = false
