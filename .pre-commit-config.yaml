@@ -32,14 +32,14 @@ repos:
           - --config
           - ruff.toml
           - --fix
-        exclude: ^(api/|ui/|tests/assets)  # matches paths starting with api/ or ui/
+        exclude: ^(api/|ui/|tests/artifacts)  # matches paths starting with api/ or ui/
 
       # Run the formatter.
       - id: ruff-format
         args:
           - --config
           - ruff.toml
-        exclude: ^(api/|ui/|tests/assets)  # matches paths starting with api/ or ui/
+        exclude: ^(api/|ui/|tests/artifacts)  # matches paths starting with api/ or ui/
 
 
   - repo: https://github.com/astral-sh/uv-pre-commit
