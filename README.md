@@ -63,11 +63,13 @@ You will need a Tavily API key to use the `search_tavily` tool. You can get a fr
 ### 1. Generate the workflow
 
 Run the code generator agent with your desired workflow prompt:
+
 ```bash
-agent-factory "Summarize text content from a given webpage URL"
+agent-factory "Summarize text content from a given webpage URL" "generated_workflows/latest"
 ```
 
-This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.  The three files generated are:
+This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.
+The three files generated are:
 
 1. `agent.py`: The Python code for the agentic workflow
 2. `INSTRUCTIONS.md`: Setup and run instructions for the generated workflow
