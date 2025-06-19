@@ -45,10 +45,11 @@ def run_evaluation(
         print("\n--- Evaluation Results ---")
         print(f"Final score: {eval_result.score}")
 
-        if eval_result.checkpoint_results:
+        if hasattr(eval_result, "checkpoint_results"):
             print("Checkpoint results:")
             obtained_score = 0
             max_score = 0
+            checkpoint_results_list = []
             for i, cp_result in enumerate(eval_result.checkpoint_results):
                 print(f"\tCheckpoint {i + 1}:")
                 print(f"\t\tCriteria: {cp_result.criteria}")
@@ -57,13 +58,13 @@ def run_evaluation(
                 print(f"\t\tReason: {cp_result.reason}")
                 obtained_score += cp_result.points if cp_result.passed else 0
                 max_score += cp_result.points
+                checkpoint_results_list.append(cp_result.model_dump())
 
             # Save evaluation results to a JSON file
-            checkpoint_results = eval_result.model_dump()["checkpoint_results"]
             eval_result_dict = {
                 "obtained_score": obtained_score,
                 "max_score": max_score,
-                "checkpoint_results": checkpoint_results,
+                "checkpoint_results": checkpoint_results_list,
             }
             with Path(save_evaluation_results_path).open("w", encoding="utf-8") as f:
                 f.write(json.dumps(eval_result_dict, indent=2))
