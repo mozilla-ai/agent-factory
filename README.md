@@ -42,6 +42,7 @@ pre-commit install
 ```
 
 ## Getting Started
+
 Follow these steps to generate, run, trace, and evaluate an agentic workflow:
 
 Before running the agent factory, you need to set up your OpenAI API key (required):
@@ -139,6 +140,9 @@ chainlit run src/agent_factory/chainlit_app.py - w
 
 This will start a local web server on `http://localhost:8000`. Open the URL in your browser to interact with your agent in a chat-like interface.
 
+## Sample Agents: Manual End-to-End Regression Tests
+
+The [`sample_agents/`](sample_agents/) folder contains end-to-end example scripts that serve as manual regression tests for the Agent Factory system. Each script demonstrates the full workflow: from generating an agent based on a natural language prompt, to running the generated agent in a clean, isolated environment. See [`sample_agents/README.md`](sample_agents/README.md) for details on their purpose, usage, and how they help ensure the reliability of agent generation and execution.
 
 ## License
 
