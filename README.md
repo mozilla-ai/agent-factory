@@ -26,7 +26,7 @@ uv sync --dev
 
 #### Prerequisites:
 - Python 3.11 or higher
-- Docker should be up and running in the background (for filesystemMCP operations) - download and install [from here](https://www.docker.com/products/docker-desktop)
+- Docker should be up and running in the background (for the filesystem MCP Server) - download and install [from here](https://www.docker.com/products/docker-desktop)
 
 Install dependencies using your preferred Python package manager:
 
