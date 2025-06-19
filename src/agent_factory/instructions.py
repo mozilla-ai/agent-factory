@@ -182,9 +182,8 @@ The final output should be a JSON with the following structure:
 1. agent_code should contain all the code implementation of the agent which will correspond to the runnable agent.py script
 2. run_instructions should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
-    - Setting up the environment via uv (Python version 3.11). The python environment should be created as 'generated_workflows/latest/workflow_venv'
-    - Installing dependencies via requirements.txt
-    - Run instructions for agent.py
+    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11
+      `uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py`
 3. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
     - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code

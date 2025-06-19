@@ -80,17 +80,7 @@ This will generate Python code for an agentic workflow that can summarize text c
 3. `requirements.txt`: Python dependencies required to run the agent
 
 > [!NOTE]
-> You might need to install the dependencies created for the agent, you can do it with:
->
-> ```bash
-> # In a different terminal window
-> uv venv generated_workflows/latest/workflow_venv -p 3.11
-> source generated_workflows/latest/workflow_venv/bin/activate
-> uv pip install -r generated_workflows/latest/requirements.txt
-> ```
-
-> [!NOTE]
-> You might also need to add additional api keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
+> You might need to add additional API keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
 
 > Set it as an environment variable:
 > ```bash
@@ -99,10 +89,10 @@ This will generate Python code for an agentic workflow that can summarize text c
 
 ### 2. Run the Generated Workflow
 
-Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent as:
+Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent from the root directory as:
 
 ```bash
-python generated_workflows/latest/agent.py arg1
+uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"
 ```
 
 This will run the agent and save the agent trace as `agent_eval_trace.json` in the `generated_workflows/latest` directory.
