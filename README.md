@@ -70,11 +70,6 @@ agent-factory "Summarize text content from a given webpage URL" "generated_workf
 > [!NOTE]
 > The agent-factory has been instructed to set the `max_turns` (the max number of steps that the generated agent can take to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see the generated agent run failing due to `AgentRunError` caused by `MaxTurnsExceeded`).
 
-> Set it as an environment variable:
-> ```bash
-> export ELEVENLABS_API_KEY=sk_...
-> ```
-
 This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.
 The three files generated are:
 
