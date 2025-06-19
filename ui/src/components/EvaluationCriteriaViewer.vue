@@ -118,6 +118,7 @@ import { computed, ref } from 'vue'
 import yaml from 'js-yaml'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import EvaluationCriteriaForm from './EvaluationCriteriaForm.vue'
+import { transformResults } from '@/helpers/transform-results'
 
 interface Checkpoint {
   criteria: string
@@ -201,6 +202,7 @@ const evaluationResultsQuery = useQuery({
   enabled: computed(() => !!props.workflowPath),
   // Don't retry too many times for results that might not exist yet
   retry: 1,
+  select: transformResults,
 })
 
 // Prepare evaluation results with proper alignment to criteria

@@ -138,6 +138,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { workflowService } from '@/services/workflowService'
 import { useRouter } from 'vue-router'
 import type { EvaluationCheckpoint } from '@/types'
+import { transformResults } from '@/helpers/transform-results'
 
 // Props
 const props = defineProps<{
@@ -158,7 +159,8 @@ const statusQuery = useQuery({
 const resultsQuery = useQuery({
   queryKey: ['evaluation-results', props.workflowPath],
   queryFn: () => workflowService.getEvaluationResults(props.workflowPath),
-  retry: 1,
+  // Add the selector to transform data
+  select: transformResults,
 })
 
 // Computed properties for evaluation files

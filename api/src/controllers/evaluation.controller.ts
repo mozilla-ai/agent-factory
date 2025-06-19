@@ -4,7 +4,6 @@ import fs from 'node:fs/promises'
 import { runPythonScriptWithStreaming } from '../helpers/agent-factory-helpers.js'
 import { setupStreamingResponse } from '../utils/stream.utils.js'
 import { resolveWorkflowPath } from '../utils/path.utils.js'
-import { parseEvaluationOutput } from '../utils/evaluation.utils.js'
 import {
   saveEvaluationCriteria as saveCriteria,
   EvaluationCriteria,
@@ -109,7 +108,7 @@ export async function generateEvaluationCases(
     const outputCallback = setupStreamingResponse(res)
 
     await runPythonScriptWithStreaming(
-      'eval/main.py',
+      'eval/generate_evaluation_case.py',
       [`generated_workflows/${workflowName}`] as string[],
       outputCallback,
     )
@@ -158,11 +157,11 @@ export async function runEvaluation(
     }
 
     // Collect all stdout for parsing
-    let outputText = ''
+    // let outputText = ''
     const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
       if (source === 'stdout') {
         console.log(`[evaluation stdout]: ${text}`)
-        outputText += text
+        // outputText += text
         res.write(`[stdout]: ${text}`)
       } else if (source === 'stderr') {
         console.log(`[evaluation stderr]: ${text}`)
@@ -178,23 +177,23 @@ export async function runEvaluation(
 
     await runPythonScriptWithStreaming(
       '-m',
-      ['eval.run_agent_eval'] as string[],
+      ['eval.run_generated_agent_evaluation'] as string[],
       outputCallback,
       env,
     )
 
     // Parse the evaluation results from output
-    const evaluationResults = parseEvaluationOutput(outputText)
+    // const evaluationResults = parseEvaluationOutput(outputText)
 
-    // Save the results to a JSON file
-    const resultsPath = path.join(fullPath, 'evaluation_results.json')
-    await fs.writeFile(
-      resultsPath,
-      JSON.stringify(evaluationResults, null, 2),
-      'utf8',
-    )
+    // // Save the results to a JSON file
+    // const resultsPath = path.join(fullPath, 'evaluation_results.json')
+    // await fs.writeFile(
+    //   resultsPath,
+    //   JSON.stringify(evaluationResults, null, 2),
+    //   'utf8',
+    // )
 
-    console.log(`Evaluation results saved to ${resultsPath}`)
+    // console.log(`Evaluation results saved to ${resultsPath}`)
 
     res.end(
       '\n[Agent evaluation completed. Results saved to evaluation_results.json]',
