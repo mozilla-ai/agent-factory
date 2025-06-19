@@ -64,10 +64,7 @@ const workflow = computed(() => workflowsStore.getWorkflowById(workflowId.value)
 // Computed workflow path for API calls
 const workflowPath = computed(() => {
   if (!workflow.value) return ''
-  return (
-    workflow.value.path ||
-    (workflow.value.name === 'latest' ? 'latest' : `archive/${workflow.value.name}`)
-  )
+  return workflow.value.path || workflow.value.name
 })
 
 // Setup evaluation status checking

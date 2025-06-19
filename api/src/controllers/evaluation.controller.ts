@@ -17,9 +17,7 @@ export async function runAgent(req: Request, res: Response): Promise<void> {
     const fullPath = resolveWorkflowPath(workflowPath)
 
     // Use the same pattern as in generate-cases
-    const workflowName = workflowPath.startsWith('archive/')
-      ? workflowPath
-      : 'latest'
+    const workflowName = workflowPath
 
     console.log({
       workflowPath,
@@ -47,16 +45,13 @@ export async function runAgent(req: Request, res: Response): Promise<void> {
       {
         // Cast to NodeJS.ProcessEnv
         ...process.env,
-        AGENT_WORKFLOW_DIR: `${process.cwd()}/generated_workflows/latest`,
       } as NodeJS.ProcessEnv,
     )
 
-    // Check if we need to copy the trace file to a different workflow directory
+    // Copy agent_eval_trace.json to the latest directory
+    // TODO: remove once agent-factory can directly write to the agent directory instead of latest
     if (workflowPath !== 'latest') {
-      const latestWorkflowDir = path.resolve(
-        process.cwd(),
-        'generated_workflows/latest',
-      )
+      const latestWorkflowDir = path.resolve(resolveWorkflowPath(), 'latest')
       const targetWorkflowDir = fullPath
 
       const sourceTracePath = path.join(
@@ -96,9 +91,7 @@ export async function generateEvaluationCases(
     const workflowPath = req.params.workflowPath
     const fullPath = resolveWorkflowPath(workflowPath)
 
-    const workflowName = workflowPath.startsWith('archive/')
-      ? workflowPath
-      : 'latest'
+    const workflowName = workflowPath
 
     console.log({
       workflowPath,
@@ -135,6 +128,7 @@ export async function runEvaluation(
 
     // Check if agent trace exists in the workflow directory
     const tracePath = path.join(fullPath, 'agent_eval_trace.json')
+    const evaluationCasePath = path.join(fullPath, 'evaluation_case.yaml')
 
     try {
       await fs.access(tracePath)
@@ -147,7 +141,7 @@ export async function runEvaluation(
 
     // Check if evaluation cases exist
     try {
-      await fs.access(path.resolve(fullPath, 'evaluation_case.yaml'))
+      await fs.access(evaluationCasePath)
     } catch {
       res
         .status(404)
@@ -178,7 +172,7 @@ export async function runEvaluation(
 
     await runPythonScriptWithStreaming(
       '-m',
-      ['eval.run_agent_eval'] as string[],
+      ['eval.run_agent_eval', evaluationCasePath, tracePath] as string[],
       outputCallback,
       env,
     )
