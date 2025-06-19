@@ -3,11 +3,11 @@ from pathlib import Path
 import pytest
 from any_agent import AgentTrace
 
-ASSETS_PATH = Path(__file__).parent.parent / "assets"
+ARTIFACTS_PATH = Path(__file__).parent.parent / "artifacts"
 
 
 @pytest.fixture(
-    params=list(ASSETS_PATH.rglob("*_trace.json")),
+    params=list(ARTIFACTS_PATH.rglob("*_trace.json")),
     ids=lambda x: x.parent.name,
 )
 def generated_trace(request: pytest.FixtureRequest) -> AgentTrace:

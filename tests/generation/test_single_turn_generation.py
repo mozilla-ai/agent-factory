@@ -30,14 +30,14 @@ def _assert_agent_syntax(agent_file: Path):
         # prompt: the actual prompt to pass for agent generation
     ],
 )
-def test_singe_turn_generation(tmp_path: Path, prompt_id: str, prompt: str, request: pytest.FixtureRequest):
+def test_single_turn_generation(tmp_path: Path, prompt_id: str, prompt: str, request: pytest.FixtureRequest):
     single_turn_generation(user_prompt=prompt, output_dir=tmp_path)
 
     _assert_generated_files(tmp_path)
 
     _assert_agent_syntax(tmp_path / "agent.py")
 
-    update_assets = request.config.getoption("--update-assets")
+    update_artifacts = request.config.getoption("--update-artifacts")
 
-    if update_assets:
-        copytree(tmp_path, Path(__file__).parent.parent / "assets" / prompt_id, dirs_exist_ok=True)
+    if update_artifacts:
+        copytree(tmp_path, Path(__file__).parent.parent / "artifacts" / prompt_id, dirs_exist_ok=True)
