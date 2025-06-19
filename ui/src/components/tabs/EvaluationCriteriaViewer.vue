@@ -48,7 +48,10 @@
           </div>
         </div>
 
-        <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
+        <div class="header-actions">
+          <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
+          <button class="delete-button" @click="openDeleteDialog">Delete</button>
+        </div>
       </div>
 
       <!-- Final score (if results available) -->
@@ -109,6 +112,18 @@
           </div>
         </div>
       </div>
+
+      <!-- Add the confirmation dialog component -->
+      <ConfirmationDialog
+        :isOpen="showDeleteDialog"
+        title="Delete Evaluation Criteria"
+        message="Are you sure you want to delete this evaluation criteria? This will also delete any evaluation results. This action cannot be undone."
+        confirmButtonText="Delete"
+        :isDangerous="true"
+        :isLoading="deleteCriteriaMutation.isPending.value"
+        @confirm="confirmDelete"
+        @cancel="cancelDelete"
+      />
     </div>
   </div>
 </template>
@@ -116,9 +131,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import yaml from 'js-yaml'
-import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import EvaluationCriteriaForm from './EvaluationCriteriaForm.vue'
 import { transformResults } from '@/helpers/transform-results'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
+import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
+import { deleteEvaluationCriteria } from '../../services/evaluationService'
+import ConfirmationDialog from '../ConfirmationDialog.vue'
+import { useRouter } from 'vue-router'
+import { useWorkflowsStore } from '@/stores/workflows'
 
 interface Checkpoint {
   criteria: string
@@ -147,19 +166,21 @@ const props = defineProps<{
 
 const queryClient = useQueryClient()
 const isEditMode = ref(false)
+const showDeleteDialog = ref(false)
 
 // Toggle edit mode
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
 }
 
+const workflowsStore = useWorkflowsStore()
 // Handle criteria saved event
 const onCriteriaSaved = () => {
   isEditMode.value = false
   // Refetch invalidated queries after updating criteria
   queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
   queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
-  queryClient.invalidateQueries({ queryKey: ['evaluation-status'] })
+  queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
 }
 
 // Fetch evaluation criteria
@@ -257,6 +278,41 @@ const hasCriteriaError = computed(
 
 const startCreatingCriteria = () => {
   isEditMode.value = true
+}
+
+const router = useRouter()
+// Add delete mutation
+const deleteCriteriaMutation = useMutation({
+  mutationFn: () => deleteEvaluationCriteria(props.workflowPath),
+  onSuccess: () => {
+    // Invalidate queries to refresh the data
+    queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
+    })
+    showDeleteDialog.value = false
+    // Refresh the workflow store to update file explorer
+    workflowsStore.loadWorkflows()
+    router.push({
+      params: { workflowPath: props.workflowPath },
+      query: { tab: 'evaluate' },
+    })
+  },
+})
+
+// Functions for delete confirmation
+const openDeleteDialog = () => {
+  showDeleteDialog.value = true
+}
+
+const confirmDelete = () => {
+  deleteCriteriaMutation.mutate()
+}
+
+const cancelDelete = () => {
+  showDeleteDialog.value = false
 }
 </script>
 
@@ -526,6 +582,26 @@ const startCreatingCriteria = () => {
 .create-criteria-button:hover {
   background-color: var(--color-background-soft);
   border-color: var(--color-border-hover);
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.delete-button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-error);
+  background-color: var(--color-error-soft);
+  color: var(--color-error);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: var(--color-error);
+  color: white;
 }
 
 /* Responsive adjustments */
