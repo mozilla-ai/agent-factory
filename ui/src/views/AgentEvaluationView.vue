@@ -5,12 +5,7 @@
     <div class="workflow-selector">
       <label for="workflow-path">Select Workflow:</label>
       <select id="workflow-path" v-model="selectedWorkflow">
-        <option value="latest">Latest</option>
-        <option
-          v-for="(workflow, index) in archivedWorkflows"
-          :key="index"
-          :value="'archive/' + workflow"
-        >
+        <option v-for="(workflow, index) in workflows" :key="index" :value="workflow">
           {{ workflow }}
         </option>
       </select>
@@ -56,25 +51,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
-const selectedWorkflow = ref('latest')
-const archivedWorkflows = ref<string[]>([])
+const selectedWorkflow = ref('')
+const workflows = ref<string[]>([])
 const output = ref('')
 const isRunningAgent = ref(false)
 const isGeneratingCases = ref(false)
 const isRunningEval = ref(false)
 const currentOperation = ref('')
 
-// Load archived workflows
 onMounted(async () => {
   try {
     const response = await fetch('http://localhost:3000/agent-factory/workflows')
     if (response.ok) {
-      const workflows = await response.json()
-
-      // Filter for archived workflows (anything not named "latest")
-      archivedWorkflows.value = workflows
-        .filter((w: File) => w.name !== 'latest')
-        .map((w: File) => w.name)
+      workflows.value = await response.json()
     }
   } catch (error) {
     console.error('Failed to load workflows:', error)

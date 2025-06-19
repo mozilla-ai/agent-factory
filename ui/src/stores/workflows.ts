@@ -8,44 +8,13 @@ export const useWorkflowsStore = defineStore('workflows', () => {
   const loading = ref(false)
   const error = ref('')
 
-  // Process raw workflow data
-  function processWorkflowsData(data: WorkflowFile[]): WorkflowFile[] {
-    const result: WorkflowFile[] = []
-
-    for (const item of data) {
-      if (item.name === 'latest') {
-        // Add latest directly with proper path
-        result.push({
-          name: 'latest',
-          isDirectory: true,
-          files: item.files || [],
-          path: 'latest',
-        })
-      } else if (item.name === 'archive' && item.isDirectory && item.files) {
-        // For archive directory, include each sub-workflow as a top-level item
-        for (const archiveWorkflow of item.files) {
-          if (archiveWorkflow.isDirectory) {
-            result.push({
-              name: archiveWorkflow.name,
-              isDirectory: true,
-              files: archiveWorkflow.files || [],
-              path: `archive/${archiveWorkflow.name}`,
-            })
-          }
-        }
-      }
-    }
-
-    return result
-  }
-
   // Fetch workflows
   async function loadWorkflows() {
     try {
       loading.value = true
       error.value = ''
       const data = await workflowService.getWorkflows()
-      workflows.value = processWorkflowsData(data)
+      workflows.value = data
     } catch (err) {
       error.value = err instanceof Error ? err.message : String(err)
       console.error('Error loading workflows:', err)

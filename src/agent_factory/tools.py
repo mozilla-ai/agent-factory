@@ -1,9 +1,7 @@
-import logging
+from pathlib import Path
 from typing import Any
 
 from mcpm.utils.repository import RepositoryManager
-
-logger = logging.getLogger(__name__)
 
 DEFAULT_REGISTRY_URL = "https://mcpm.sh/api/servers.json"
 
@@ -38,3 +36,26 @@ def search_mcp_servers(keyword: str, is_official: bool = False) -> list[dict[str
         return list(official_servers)
 
     return servers
+
+
+def read_file(file_name: str) -> str:
+    """Read the contents of the given `file_name`.
+
+    Args:
+        file_name: The path to the file you want to read.
+
+    Returns:
+        The contents of `file_name`.
+
+    Raises:
+        ValueError: For the following cases:
+            - If the path to the file is not allowed.
+    """
+    file_path = Path(file_name)
+
+    # TODO: this is just a hacky way to restrict file access to
+    # "mimic" the MCP filesystem server.
+    if file_path.parent.name != "tools":
+        raise ValueError(f"`file_name` parent dir must be `tools`. Got {file_path.parent}")
+
+    return file_path.read_text()
