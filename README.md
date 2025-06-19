@@ -26,7 +26,6 @@ uv sync --dev
 
 #### Prerequisites:
 - Python 3.11 or higher
-- Docker should be up and running in the background (for filesystem operations)
 
 Install dependencies using your preferred Python package manager:
 
@@ -43,6 +42,7 @@ pre-commit install
 ```
 
 ## Getting Started
+
 Follow these steps to generate, run, trace, and evaluate an agentic workflow:
 
 Before running the agent factory, you need to set up your OpenAI API key (required):
@@ -62,26 +62,24 @@ You will need a Tavily API key to use the `search_tavily` tool. You can get a fr
 
 ### 1. Generate the workflow
 
-Run the code generator agent with your desired workflow prompt:
-```bash
-agent-factory "Summarize text content from a given webpage URL"
-```
 
-This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.  The three files generated are:
+Run the agent-factory with your desired workflow prompt:
+
+```bash
+agent-factory "Summarize text content from a given webpage URL" "generated_workflows/latest"
+```
+> [!NOTE]
+> The agent-factory has been instructed to set the `max_turns` (the max number of steps that the generated agent can take to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see the generated agent run failing due to `AgentRunError` caused by `MaxTurnsExceeded`).
+
+This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.
+The three files generated are:
 
 1. `agent.py`: The Python code for the agentic workflow
 2. `INSTRUCTIONS.md`: Setup and run instructions for the generated workflow
 3. `requirements.txt`: Python dependencies required to run the agent
 
 > [!NOTE]
-> You might need to install the dependencies created for the agent, you can do it with:
->
-> ```bash
-> uv pip install -r generated_workflows/latest/requirements.txt
-> ```
-
-> [!NOTE]
-> You might also need to add additional api keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
+> You might need to add additional API keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
 
 > Set it as an environment variable:
 > ```bash
@@ -90,10 +88,10 @@ This will generate Python code for an agentic workflow that can summarize text c
 
 ### 2. Run the Generated Workflow
 
-Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent as:
+Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent from the root directory as:
 
 ```bash
-python generated_workflows/latest/agent.py arg1
+uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"
 ```
 
 This will run the agent and save the agent trace as `agent_eval_trace.json` in the `generated_workflows/latest` directory.
@@ -140,6 +138,9 @@ chainlit run src/agent_factory/chainlit_app.py - w
 
 This will start a local web server on `http://localhost:8000`. Open the URL in your browser to interact with your agent in a chat-like interface.
 
+## Sample Agents: Manual End-to-End Regression Tests
+
+The [`sample_agents/`](sample_agents/) folder contains end-to-end example scripts that serve as manual regression tests for the Agent Factory system. Each script demonstrates the full workflow: from generating an agent based on a natural language prompt, to running the generated agent in a clean, isolated environment. See [`sample_agents/README.md`](sample_agents/README.md) for details on their purpose, usage, and how they help ensure the reliability of agent generation and execution.
 
 ## License
 

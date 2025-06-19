@@ -3,8 +3,8 @@ import pytest
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
-        "--update-assets",
+        "--update-artifacts",
         action="store_true",
         default=False,
-        help="Update asset files.",
+        help="Overwrite/Update the output artifacts stored in `tests/artifacts`.",
     )

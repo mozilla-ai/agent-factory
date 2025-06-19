@@ -2,11 +2,11 @@ from pathlib import Path
 
 import pytest
 
-ASSETS_PATH = Path(__file__).parent.parent / "assets"
+ARTIFACTS_PATH = Path(__file__).parent.parent / "artifacts"
 
 
 @pytest.fixture(
-    params=list(ASSETS_PATH.rglob("*agent.py")),
+    params=list(ARTIFACTS_PATH.rglob("*agent.py")),
     ids=lambda x: x.parent.name,
 )
 def generated_agent_code(request: pytest.FixtureRequest) -> str:

@@ -1,6 +1,10 @@
 """Instructions for the agent code generator."""
 
+from importlib.metadata import version
+
 from jinja2 import Template
+
+ANY_AGENT_VERSION = version("any_agent")
 
 TOOLS_REMINDER = """Use appropriate tools in the agent configuration:
 - Select relevant tools from `tools/available_tools.md`.
@@ -53,7 +57,7 @@ WEBPAGE_DESCRIPTIONS = {
     # API Reference
     "https://mozilla-ai.github.io/any-agent/api/agent/": ("Reference for the core AnyAgent class API and its methods."),
     "https://mozilla-ai.github.io/any-agent/api/config/": (
-        "Consult for detailed configuration options like AgentConfig, TracingConfig, and MCP integrations."
+        "Consult for detailed configuration options like AgentConfig, and MCP integrations."
         "Provides all parameters needed to properly configure your agent instances."
     ),
     "https://mozilla-ai.github.io/any-agent/api/tools/": (
@@ -145,7 +149,7 @@ agent = AnyAgent.create(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        agent_args={"output_type": StructuredOutput},
+        output_type=StructuredOutput,
     ),
 )
 
@@ -156,7 +160,7 @@ def run_agent(url: str):
     and return structured output.
     \"\"\"
     input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}"
-    agent_trace = agent.run(prompt=input_prompt)
+    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
     return agent_trace.final_output
@@ -166,23 +170,22 @@ if __name__ == "__main__":
     Fire(run_agent)
 """  # noqa: E501
 
-DELIVERABLES_INSTRUCTIONS = """
+DELIVERABLES_INSTRUCTIONS = f"""
 The final output should be a JSON with the following structure:
 
-{
+{{
     "agent_code": "The python script as a single string that is runnable as agent.py.",
     "run_instructions": "The instructions for setting up the environment in Markdown format.",
     "dependencies": "The list of python dependencies in Markdown format."
-}
+}}
 
 1. agent_code should contain all the code implementation of the agent which will correspond to the runnable agent.py script
 2. run_instructions should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
-    - Setting up the environment via mamba (Python version 3.11)
-    - Installing dependencies via requirements.txt
-    - Run instructions for agent.py
+    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11
+      `uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"`
 3. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
-    - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow
+    - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
     - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
 """  # noqa: E501
 
@@ -227,7 +230,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
 
-#### Structured Output (output_type via agent_args):
+#### Structured Output (output_type):
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the output_type argument correctly to obtain this structured response
 - Refer to the any-agent documentation for more details on structured output
@@ -287,7 +290,7 @@ agent = AnyAgent.create(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        agent_args={"output_type": StructuredOutput},
+        output_type=StructuredOutput,
         model_args={"tool_choice": "required"},
     ),
 )
@@ -295,7 +298,7 @@ agent = AnyAgent.create(
 def run_agent({CLI_ARGS}):
     \"\"\"Agent description\"\"\"
     input_prompt = f"{PROMPT_TEMPLATE}".format(**kwargs)
-    agent_trace = agent.run(prompt=input_prompt)
+    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
     return agent_trace.final_output
@@ -328,7 +331,7 @@ For reading URLs, use `visit_webpage` tool. Never use the `read_file` tool for r
 **Any-agent Code Generation Instructions**
 {{ code_generation_instructions }}
 
-As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `agent_args`:
+As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `output_type`:
 {{ code_example_with_comments }}
 
 ** Deliverables Instructions**

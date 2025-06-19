@@ -10,14 +10,15 @@ readme = "README.md"
 requires-python = ">=3.11"
 dynamic = ["version"]
 dependencies = [
-    "any-agent[all]>=0.17.0",
+    "any-agent[all]==0.20.0",
     "jinja2>=3.1.2",
     "fire>=0.7.0",
     "dotenv>=0.9.9",
     "pyyaml>=6.0.2",
     "chainlit>=2.5.5",
-    "mcpm>=1.0.3",  # installing a newer version of mcpm conflicts with the current version of chainlit (2.5.5)
+    "mcpm>=1.0.3", # installing a newer version of mcpm conflicts with the current version of chainlit (2.5.5)
     "loguru>=0.7.3",
+    "pre-commit>=4.2.0",
 ]
 
 [project.urls]
