@@ -28,11 +28,7 @@
       <p v-if="isLoading">Loading...</p>
       <pre v-if="response" class="output">{{ response }}</pre>
 
-      <router-link
-        v-if="generationComplete"
-        :to="{ name: 'workflow-details', params: { id: 'latest' } }"
-        class="view-files-link"
-      >
+      <router-link v-if="generationComplete" :to="{ name: 'workflows' }" class="view-files-link">
         📁 View Generated Workflow
       </router-link>
     </div>
@@ -40,15 +36,14 @@
 </template>
 
 <script setup lang="ts">
-import { useQueryClient } from '@tanstack/vue-query'
+import { useWorkflowsStore } from '@/stores/workflows'
 import { ref } from 'vue'
 
-const prompt = ref<string>('Summarize text content from a given webpage URL')
+const prompt = ref<string>('Create an agent that can tell the current weather in Berlin')
 const response = ref<string>('')
 const isLoading = ref<boolean>(false)
 const generationComplete = ref<boolean>(false)
-
-const queryClient = useQueryClient()
+const workflowsStore = useWorkflowsStore()
 
 const handleSendClicked = async () => {
   try {
@@ -92,9 +87,9 @@ const handleSendClicked = async () => {
     // Check if generation was successful
     if (response.value.includes('Workflow completed successfully')) {
       generationComplete.value = true
-      queryClient.invalidateQueries({
-        queryKey: ['workflows'],
-      })
+
+      // clear all queries cache
+      workflowsStore.loadWorkflows()
     }
 
     isLoading.value = false

@@ -158,3 +158,8 @@ input:disabled {
   background-color: #f5f5f5;
   cursor: not-allowed;
 }
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  filter: opacity(0.6);
+}

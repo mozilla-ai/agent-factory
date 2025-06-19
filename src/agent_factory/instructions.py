@@ -1,6 +1,32 @@
 """Instructions for the agent code generator."""
 
+from importlib.metadata import version
+
 from jinja2 import Template
+
+ANY_AGENT_VERSION = version("any_agent")
+
+TOOLS_REMINDER = """Use appropriate tools in the agent configuration:
+- Select relevant tools from `tools/available_tools.md`.
+- Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools
+    to the configuration.
+
+Always use the simplest and most efficient tools available for the task.
+"""
+
+USER_PROMPT = """Generate Python code for an agentic workflow using the `any-agent` library
+to do the following:
+{0}
+
+{1}
+"""
+
+AMENDMENT_PROMPT = """
+Amend the Python code you generated for the agentic workflow to do the following:
+{0}
+
+If necessary, {1}
+"""
 
 WEBPAGE_DESCRIPTIONS = {
     # Docs
@@ -31,7 +57,7 @@ WEBPAGE_DESCRIPTIONS = {
     # API Reference
     "https://mozilla-ai.github.io/any-agent/api/agent/": ("Reference for the core AnyAgent class API and its methods."),
     "https://mozilla-ai.github.io/any-agent/api/config/": (
-        "Consult for detailed configuration options like AgentConfig, TracingConfig, and MCP integrations."
+        "Consult for detailed configuration options like AgentConfig, and MCP integrations."
         "Provides all parameters needed to properly configure your agent instances."
     ),
     "https://mozilla-ai.github.io/any-agent/api/tools/": (
@@ -123,7 +149,7 @@ agent = AnyAgent.create(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        agent_args={"output_type": StructuredOutput},
+        output_type=StructuredOutput,
     ),
 )
 
@@ -134,7 +160,7 @@ def run_agent(url: str):
     and return structured output.
     \"\"\"
     input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}"
-    agent_trace = agent.run(prompt=input_prompt)
+    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
     return agent_trace.final_output
@@ -144,12 +170,12 @@ if __name__ == "__main__":
     Fire(run_agent)
 """  # noqa: E501
 
-DELIVERABLES_INSTRUCTIONS = """
+DELIVERABLES_INSTRUCTIONS = f"""
 # Instructions to generate final deliverables
 
 The final expected output is a dictionary with the following structure:
 
-{
+{{
     "agent_instructions": "The instructions passed to the generated agent.",
     "tools": "The python code that defines the tools to be used by the generated agent.",
     "imports": "The python code snippet needed to import the required tools.",
@@ -157,7 +183,7 @@ The final expected output is a dictionary with the following structure:
     "run_agent_code": "The python code for the `run_agent` function, taking input parameters from the user and calling the agent.",
     "run_instructions": "The instructions for setting up the environment in Markdown format.",
     "dependencies": "The list of python dependencies in Markdown format."
-}
+}}
 
 ## Building the dictionary
 
@@ -167,18 +193,18 @@ The parameters required by the function are two, respectively the key and the va
 ## Values to assign to dictionary keys
 
 1. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).
-This string replaces the {agent_instructions} placeholder in the agent code template.
-2. `tools` is python code that assigns the `TOOLS` variable with the list of tools required by the generated agent. This code replaces the {tools} placeholder in the agent code template.
-3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {imports} placeholder in the agent code template.
+This string replaces the {{agent_instructions}} placeholder in the agent code template.
+2. `tools` is python code that assigns the `TOOLS` variable with the list of tools required by the generated agent. This code replaces the {{tools}} placeholder in the agent code template.
+3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {{imports}} placeholder in the agent code template.
 4. `structured_outputs` is python code that defines the class `StructuredOutput(BaseModel)`) defining the agent's output schema as a Pydantic v2 model.
-This code replaces the {structured_outputs} placeholder in the agent code template.
+This code replaces the {{structured_outputs}} placeholder in the agent code template.
 5. `run_agent_code` is a function definition (`def run_agent(...):`). You need to define the argument(s) passed to it, a docstring description of the agent, and a prompt
 template that, together with the input parameters, defines the input prompt passed to the agent. The general structure of the `run_agent` function is the following one:
 
     ```
-    def run_agent({CLI_ARGS}):
+    def run_agent({{CLI_ARGS}}):
         \"\"\"Agent description\"\"\"
-        input_prompt = f"{PROMPT_TEMPLATE}".format(**kwargs)
+        input_prompt = f"{{PROMPT_TEMPLATE}}".format(**kwargs)
         agent_trace = agent.run(prompt=input_prompt)
         with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
             f.write(agent_trace.model_dump_json(indent=2))
@@ -187,11 +213,10 @@ template that, together with the input parameters, defines the input prompt pass
 
 6. `run_instructions` should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
-    - Setting up the environment via mamba (Python version 3.11)
-    - Installing dependencies via requirements.txt
-    - Run instructions for agent.py
-7. `dependencies` should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
-    - the first line should be "any-agent[all]" dependency, since we are using any-agent to run the agent workflow
+    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11
+      `uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"`
+7. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
+    - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
     - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
 
 """  # noqa: E501
@@ -289,7 +314,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
 
-#### Structured Output (output_type via agent_args):
+#### Structured Output (output_type):
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the output_type argument correctly to obtain this structured response
 - Refer to the any-agent documentation for more details on structured output
@@ -344,7 +369,7 @@ For reading URLs, use `visit_webpage` tool. Never use the `read_file` tool for r
 
 {{ code_generation_instructions }}
 
-As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `agent_args`.
+As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `output_type`.
 You also need to specify the correct imports, which have to be consistent with the tools used by the agent:
 
 {{ code_example_with_comments }}

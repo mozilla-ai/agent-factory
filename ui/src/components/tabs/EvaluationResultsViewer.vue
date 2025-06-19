@@ -11,7 +11,10 @@
       <div v-if="hasValidScoreData" class="results-summary">
         <div class="score-card">
           <div class="score-header">
-            Final Score
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              Final Score
+              <button class="delete-button" @click="openDeleteDialog">Delete Results</button>
+            </div>
             <div class="score-description">Based on point values assigned to each checkpoint</div>
           </div>
           <div class="score-value">{{ scoreValue }} / {{ maxScoreValue }}</div>
@@ -129,34 +132,49 @@
         <button class="action-button" @click="goToEvaluateTab">Go to Evaluate</button>
       </div>
     </div>
+
+    <ConfirmationDialog
+      :isOpen="showDeleteDialog"
+      title="Delete Evaluation Results"
+      message="Are you sure you want to delete these evaluation results? This action cannot be undone."
+      confirmButtonText="Delete"
+      :isDangerous="true"
+      :isLoading="deleteResultsMutation.isPending.value"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { computed, ref } from 'vue'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { workflowService } from '@/services/workflowService'
+import { deleteEvaluationResults } from '../../services/evaluationService'
 import { useRouter } from 'vue-router'
+import ConfirmationDialog from '../ConfirmationDialog.vue'
 import type { EvaluationCheckpoint } from '@/types'
+import { useWorkflowsStore } from '@/stores/workflows'
 
 // Props
 const props = defineProps<{
   workflowPath: string
 }>()
 
+const workflowsStore = useWorkflowsStore()
 // Setup
 const router = useRouter()
 
 // Fetch evaluation status using workflowService
 const statusQuery = useQuery({
-  queryKey: ['evaluationStatus', props.workflowPath],
+  queryKey: ['evaluation-status', props.workflowPath],
   queryFn: () => workflowService.getEvaluationStatus(props.workflowPath),
   retry: 1,
 })
 
 // Fetch evaluation results using API client instead of direct fetch
 const resultsQuery = useQuery({
-  queryKey: ['evaluationResults', props.workflowPath],
+  queryKey: ['evaluation-results', props.workflowPath],
   queryFn: () => workflowService.getEvaluationResults(props.workflowPath),
   retry: 1,
 })
@@ -232,13 +250,6 @@ const failedCheckpoints = computed(() => {
   ).length
 })
 
-// Navigation methods
-// function viewFile(filename: string) {
-//   const basePath = props.workflowPath === 'latest' ? 'latest' : `archive/${props.workflowPath}`
-
-//   router.push(`/workflows/${basePath}/${filename}`)
-// }
-
 function viewAgentTrace() {
   router.push({
     path: router.currentRoute.value.path,
@@ -266,6 +277,40 @@ function goToEvaluateTab() {
     path: router.currentRoute.value.path,
     query: { ...router.currentRoute.value.query, tab: 'evaluate' },
   })
+}
+
+// Add these new lines for delete functionality
+const showDeleteDialog = ref(false)
+const queryClient = useQueryClient()
+
+const deleteResultsMutation = useMutation({
+  mutationFn: () => deleteEvaluationResults(props.workflowPath),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'evaluation_results.json'],
+    })
+    showDeleteDialog.value = false
+    // Refresh the workflow store to update file explorer
+    workflowsStore.loadWorkflows()
+    router.push({
+      params: { workflowPath: props.workflowPath },
+      query: { tab: 'evaluate' },
+    })
+  },
+})
+
+const openDeleteDialog = () => {
+  showDeleteDialog.value = true
+}
+
+const confirmDelete = () => {
+  deleteResultsMutation.mutate()
+}
+
+const cancelDelete = () => {
+  showDeleteDialog.value = false
 }
 </script>
 
@@ -546,5 +591,27 @@ function goToEvaluateTab() {
   font-size: 0.75rem;
   color: var(--color-text-light);
   text-align: right;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.delete-button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-error);
+  background-color: var(--color-error-soft);
+  color: var(--color-error);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: var(--color-error);
+  color: white;
 }
 </style>

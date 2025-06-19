@@ -5,6 +5,10 @@ import { runPythonScriptWithStreaming } from '../helpers/agent-factory-helpers.j
 import { setupStreamingResponse } from '../utils/stream.utils.js'
 import { resolveWorkflowPath } from '../utils/path.utils.js'
 import { parseEvaluationOutput } from '../utils/evaluation.utils.js'
+import {
+  saveEvaluationCriteria as saveCriteria,
+  EvaluationCriteria,
+} from '../services/evaluation.service.js'
 
 // 1. Run agent (generates agent_eval_trace.json)
 export async function runAgent(req: Request, res: Response): Promise<void> {
@@ -13,9 +17,7 @@ export async function runAgent(req: Request, res: Response): Promise<void> {
     const fullPath = resolveWorkflowPath(workflowPath)
 
     // Use the same pattern as in generate-cases
-    const workflowName = workflowPath.startsWith('archive/')
-      ? workflowPath
-      : 'latest'
+    const workflowName = workflowPath
 
     console.log({
       workflowPath,
@@ -43,36 +45,31 @@ export async function runAgent(req: Request, res: Response): Promise<void> {
       {
         // Cast to NodeJS.ProcessEnv
         ...process.env,
-        AGENT_WORKFLOW_DIR: `${process.cwd()}/generated_workflows/latest`,
       } as NodeJS.ProcessEnv,
     )
 
-    // Check if we need to copy the trace file to a different workflow directory
-    if (workflowPath !== 'latest') {
-      const latestWorkflowDir = path.resolve(
-        process.cwd(),
-        'generated_workflows/latest',
-      )
-      const targetWorkflowDir = fullPath
+    // Copy agent_eval_trace.json from latest directory to the workflow directory
+    // TODO: remove once agent-factory can directly write to the agent directory instead of latest
+    const latestWorkflowDir = path.resolve(resolveWorkflowPath(), 'latest')
+    const targetWorkflowDir = fullPath
 
-      const sourceTracePath = path.join(
-        latestWorkflowDir,
-        'agent_eval_trace.json',
-      )
-      const targetTracePath = path.join(
-        targetWorkflowDir,
-        'agent_eval_trace.json',
-      )
+    const sourceTracePath = path.join(
+      latestWorkflowDir,
+      'agent_eval_trace.json',
+    )
+    const targetTracePath = path.join(
+      targetWorkflowDir,
+      'agent_eval_trace.json',
+    )
 
-      try {
-        await fs.access(sourceTracePath)
-        await fs.copyFile(sourceTracePath, targetTracePath)
-        console.log(
-          `Copied agent trace from ${sourceTracePath} to ${targetTracePath}`,
-        )
-      } catch (copyError) {
-        console.error('Error copying agent trace file:', copyError)
-      }
+    try {
+      await fs.access(sourceTracePath)
+      await fs.copyFile(sourceTracePath, targetTracePath)
+      console.log(
+        `Copied agent trace from ${sourceTracePath} to ${targetTracePath}`,
+      )
+    } catch (copyError) {
+      console.error('Error copying agent trace file:', copyError)
     }
 
     res.end('\n[Agent run completed. Generated agent_eval_trace.json]')
@@ -92,9 +89,7 @@ export async function generateEvaluationCases(
     const workflowPath = req.params.workflowPath
     const fullPath = resolveWorkflowPath(workflowPath)
 
-    const workflowName = workflowPath.startsWith('archive/')
-      ? workflowPath
-      : 'latest'
+    const workflowName = workflowPath
 
     console.log({
       workflowPath,
@@ -131,6 +126,7 @@ export async function runEvaluation(
 
     // Check if agent trace exists in the workflow directory
     const tracePath = path.join(fullPath, 'agent_eval_trace.json')
+    const evaluationCasePath = path.join(fullPath, 'evaluation_case.yaml')
 
     try {
       await fs.access(tracePath)
@@ -143,7 +139,7 @@ export async function runEvaluation(
 
     // Check if evaluation cases exist
     try {
-      await fs.access(path.resolve(fullPath, 'evaluation_case.yaml'))
+      await fs.access(evaluationCasePath)
     } catch {
       res
         .status(404)
@@ -174,7 +170,7 @@ export async function runEvaluation(
 
     await runPythonScriptWithStreaming(
       '-m',
-      ['eval.run_agent_eval'] as string[],
+      ['eval.run_agent_eval', evaluationCasePath, tracePath] as string[],
       outputCallback,
       env,
     )
@@ -199,5 +195,183 @@ export async function runEvaluation(
     console.error('Error running agent evaluation:', error)
     const errorMessage = error instanceof Error ? error.message : String(error)
     res.status(500).send(`[Error running agent evaluation]: ${errorMessage}`)
+  }
+}
+
+// Save custom evaluation criteria
+export async function saveEvaluationCriteria(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const criteriaData = req.body as EvaluationCriteria
+
+    if (!criteriaData.llm_judge || !Array.isArray(criteriaData.checkpoints)) {
+      res.status(400).json({
+        error:
+          'Invalid evaluation criteria format, llm_judge is missing or checkpoints is not an array',
+      })
+      return
+    }
+
+    // Ensure all checkpoints have required fields
+    for (const checkpoint of criteriaData.checkpoints) {
+      if (!checkpoint.criteria || typeof checkpoint.points !== 'number') {
+        res.status(400).json({
+          error:
+            'Invalid checkpoint format, a checkpoint doesnt have criteria or points is not a number',
+        })
+        return
+      }
+    }
+
+    const result = await saveCriteria(workflowPath, criteriaData)
+    // delete evaluation-results.json if it exists
+    const resultsPath = path.join(
+      resolveWorkflowPath(workflowPath),
+      'evaluation_results.json',
+    )
+    try {
+      await fs.unlink(resultsPath)
+    } catch (error) {
+      console.warn(`Could not delete existing evaluation results: ${error}`)
+    }
+
+    res.json({
+      success: true,
+      message: 'Evaluation criteria saved successfully',
+      path: result.path,
+    })
+  } catch (error: unknown) {
+    console.error('Error saving evaluation criteria:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res
+      .status(500)
+      .json({ error: `Failed to save evaluation criteria: ${errorMessage}` })
+  }
+}
+
+// Delete agent evaluation trace file
+export async function deleteAgentEvalTrace(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const fullPath = resolveWorkflowPath(workflowPath)
+    const filePath = path.join(fullPath, 'agent_eval_trace.json')
+
+    try {
+      await fs.access(filePath)
+    } catch {
+      res.status(404).json({
+        success: false,
+        message: 'Agent evaluation trace file not found',
+      })
+      return
+    }
+
+    await fs.unlink(filePath)
+
+    // Also delete results if they exist
+    const resultsPath = path.join(fullPath, 'evaluation_results.json')
+    try {
+      await fs.access(resultsPath)
+      await fs.unlink(resultsPath)
+    } catch {
+      // If results don't exist, ignore
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Agent evaluation trace deleted successfully',
+    })
+  } catch (error: unknown) {
+    console.error('Error deleting agent evaluation trace:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).json({
+      success: false,
+      message: `Failed to delete file: ${errorMessage}`,
+    })
+  }
+}
+
+// Delete evaluation criteria file
+export async function deleteEvaluationCriteria(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const fullPath = resolveWorkflowPath(workflowPath)
+    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+
+    try {
+      await fs.access(criteriaPath)
+    } catch {
+      res
+        .status(404)
+        .json({ success: false, message: 'Evaluation criteria file not found' })
+      return
+    }
+
+    await fs.unlink(criteriaPath)
+
+    // Also delete results if they exist
+    const resultsPath = path.join(fullPath, 'evaluation_results.json')
+    try {
+      await fs.access(resultsPath)
+      await fs.unlink(resultsPath)
+    } catch {
+      // If results don't exist, ignore
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Evaluation criteria deleted successfully',
+    })
+  } catch (error: unknown) {
+    console.error('Error deleting evaluation criteria:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).json({
+      success: false,
+      message: `Failed to delete file: ${errorMessage}`,
+    })
+  }
+}
+
+// Delete evaluation results file
+export async function deleteEvaluationResults(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const workflowPath = req.params.workflowPath
+    const fullPath = resolveWorkflowPath(workflowPath)
+    const filePath = path.join(fullPath, 'evaluation_results.json')
+
+    try {
+      await fs.access(filePath)
+    } catch {
+      res
+        .status(404)
+        .json({ success: false, message: 'Evaluation results file not found' })
+      return
+    }
+
+    await fs.unlink(filePath)
+
+    res.status(200).json({
+      success: true,
+      message: 'Evaluation results deleted successfully',
+    })
+  } catch (error: unknown) {
+    console.error('Error deleting evaluation results:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    res.status(500).json({
+      success: false,
+      message: `Failed to delete file: ${errorMessage}`,
+    })
   }
 }
