@@ -48,30 +48,28 @@ export async function runAgent(req: Request, res: Response): Promise<void> {
       } as NodeJS.ProcessEnv,
     )
 
-    // Copy agent_eval_trace.json to the latest directory
+    // Copy agent_eval_trace.json from latest directory to the workflow directory
     // TODO: remove once agent-factory can directly write to the agent directory instead of latest
-    if (workflowPath !== 'latest') {
-      const latestWorkflowDir = path.resolve(resolveWorkflowPath(), 'latest')
-      const targetWorkflowDir = fullPath
+    const latestWorkflowDir = path.resolve(resolveWorkflowPath(), 'latest')
+    const targetWorkflowDir = fullPath
 
-      const sourceTracePath = path.join(
-        latestWorkflowDir,
-        'agent_eval_trace.json',
-      )
-      const targetTracePath = path.join(
-        targetWorkflowDir,
-        'agent_eval_trace.json',
-      )
+    const sourceTracePath = path.join(
+      latestWorkflowDir,
+      'agent_eval_trace.json',
+    )
+    const targetTracePath = path.join(
+      targetWorkflowDir,
+      'agent_eval_trace.json',
+    )
 
-      try {
-        await fs.access(sourceTracePath)
-        await fs.copyFile(sourceTracePath, targetTracePath)
-        console.log(
-          `Copied agent trace from ${sourceTracePath} to ${targetTracePath}`,
-        )
-      } catch (copyError) {
-        console.error('Error copying agent trace file:', copyError)
-      }
+    try {
+      await fs.access(sourceTracePath)
+      await fs.copyFile(sourceTracePath, targetTracePath)
+      console.log(
+        `Copied agent trace from ${sourceTracePath} to ${targetTracePath}`,
+      )
+    } catch (copyError) {
+      console.error('Error copying agent trace file:', copyError)
     }
 
     res.end('\n[Agent run completed. Generated agent_eval_trace.json]')
