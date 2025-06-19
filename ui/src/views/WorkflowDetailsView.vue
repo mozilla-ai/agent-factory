@@ -17,7 +17,7 @@
           :key="tab.id"
           class="tab-button"
           :class="{ active: activeTab === tab.id }"
-          @click="setActiveTab(tab.id)"
+          @click="handleTabClicked(tab.id)"
         >
           {{ tab.label }}
         </button>
@@ -41,11 +41,11 @@ import { workflowService } from '@/services/workflowService'
 import { routes } from '@/config'
 
 // Components
-import FileExplorer from '@/components/FileExplorer.vue'
-import EvaluationPanel from '@/components/EvaluationPanel.vue'
-import AgentTraceViewer from '@/components/AgentTraceViewer.vue'
-import EvaluationCriteriaViewer from '@/components/EvaluationCriteriaViewer.vue'
-import ResultsViewer from '@/components/ResultsViewer.vue'
+import AgentFileExplorer from '@/components/tabs/AgentFileExplorer.vue'
+import AgentEvaluationPanel from '@/components/tabs/AgentEvaluationPanel.vue'
+import AgentEvalTraceViewer from '@/components/tabs/AgentEvalTraceViewer.vue'
+import EvaluationCriteriaViewer from '@/components/tabs/EvaluationCriteriaViewer.vue'
+import EvaluationResultsViewer from '@/components/tabs/EvaluationResultsViewer.vue'
 import type { WorkflowFile } from '@/types'
 
 // Setup
@@ -81,6 +81,12 @@ const evaluationStatusQuery = useQuery({
 // Setup tabs
 const { activeTab, setActiveTab } = useTabs('files')
 
+const handleTabClicked = (tab: string) => {
+  selectedFile.value = undefined // Reset selected file when changing tabs
+  setActiveTab(tab)
+}
+
+// Update the route query parameter for tab
 // Store the selected file
 const selectedFile = ref<WorkflowFile | undefined>(undefined)
 
@@ -123,11 +129,7 @@ const availableTabs = computed(() => {
   tabs.push({ id: 'criteria', label: 'Evaluation Criteria' })
   // }
 
-  if (
-    evaluationStatusQuery.data.value?.hasAgentTrace ||
-    evaluationStatusQuery.data.value?.hasEvalCases ||
-    evaluationStatusQuery.data.value?.hasEvalResults
-  ) {
+  if (evaluationStatusQuery.data.value?.hasEvalResults) {
     tabs.push({ id: 'results', label: 'Evaluation Results' })
   }
 
@@ -138,17 +140,17 @@ const availableTabs = computed(() => {
 const currentTabComponent = computed(() => {
   switch (activeTab.value) {
     case 'files':
-      return FileExplorer
+      return AgentFileExplorer
     case 'evaluate':
-      return EvaluationPanel
+      return AgentEvaluationPanel
     case 'agent-trace':
-      return AgentTraceViewer
+      return AgentEvalTraceViewer
     case 'criteria':
       return EvaluationCriteriaViewer
     case 'results':
-      return ResultsViewer
+      return EvaluationResultsViewer
     default:
-      return FileExplorer
+      return AgentFileExplorer
   }
 })
 

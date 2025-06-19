@@ -81,3 +81,39 @@ export async function getEvaluationResults(workflowPath: string) {
   )
   return response.data
 }
+
+/**
+ * Delete evaluation criteria for a workflow
+ */
+export async function deleteEvaluationCriteria(
+  workflowPath: string,
+): Promise<{ success: boolean; message: string }> {
+  const response = await apiClient.delete(
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_criteria`,
+  )
+  return response.data
+}
+
+/**
+ * Delete evaluation results for a workflow
+ */
+export async function deleteEvaluationResults(
+  workflowPath: string,
+): Promise<{ success: boolean; message: string }> {
+  const response = await apiClient.delete(
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_results`,
+  )
+  return response.data
+}
+
+/**
+ * Delete agent evaluation trace for a workflow
+ */
+export async function deleteAgentEvalTrace(
+  workflowPath: string,
+): Promise<{ success: boolean; message: string }> {
+  const response = await apiClient.delete(
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/agent_eval_trace`,
+  )
+  return response.data
+}

@@ -1,14 +1,19 @@
 <template>
-  <div class="agent-trace-viewer">
-    <div v-if="traceQuery.isLoading.value" class="trace-loading">Loading agent trace...</div>
-    <div v-else-if="traceQuery.isError.value" class="trace-error">
-      {{
-        traceQuery.error instanceof Error ? traceQuery.error.message : 'Error loading agent trace'
-      }}
+  <div class="agent-eval-trace-viewer">
+    <div v-if="traceQuery.isPending.value" class="trace-loading">
+      Loading agent evaluation trace...
     </div>
-    <div v-else-if="!traceQuery.data.value" class="trace-empty">No agent trace data available</div>
+
+    <div v-else-if="traceQuery.isError.value" class="trace-error">
+      Failed to load agent evaluation trace
+    </div>
 
     <div v-else class="trace-content">
+      <div class="trace-header">
+        <h3>Agent Evaluation Trace</h3>
+        <button class="delete-button" @click="openDeleteDialog">Delete Trace</button>
+      </div>
+
       <!-- Summary Card -->
       <div class="summary-card">
         <h3>Agent Execution Summary</h3>
@@ -121,22 +126,40 @@
         </div>
       </div>
     </div>
+
+    <!-- Add Confirmation Dialog -->
+    <ConfirmationDialog
+      :isOpen="showDeleteDialog"
+      title="Delete Agent Evaluation Trace"
+      message="Are you sure you want to delete this agent evaluation trace? This will also delete any evaluation results. This action cannot be undone."
+      confirmButtonText="Delete"
+      :isDangerous="true"
+      :isLoading="deleteTraceMutation.isPending.value"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { deleteAgentEvalTrace } from '../../services/evaluationService'
+import ConfirmationDialog from '../ConfirmationDialog.vue'
+import { workflowService } from '@/services/workflowService'
+import { useRouter } from 'vue-router'
+import { useWorkflowsStore } from '@/stores/workflows'
 
+const workflowsStore = useWorkflowsStore()
 interface TraceMessage {
   role: string
   content: string
 }
 
-interface AgentTrace {
-  spans: TraceSpan[]
-  final_output: string
-}
+// interface AgentTrace {
+//   spans: TraceSpan[]
+//   final_output: string
+// }
 
 // Update the TraceSpan interface to properly type the attributes
 interface TraceSpan {
@@ -175,32 +198,35 @@ const props = defineProps<{
 
 // State for UI interactions
 const expandedSpans = ref<Record<number, boolean>>({})
+const showDeleteDialog = ref(false)
+const queryClient = useQueryClient()
 
 // Fetch agent trace data using TanStack Query
 const traceQuery = useQuery({
-  queryKey: ['agent-trace', props.workflowPath],
-  queryFn: async (): Promise<AgentTrace> => {
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/agent_eval_trace.json`,
-    )
+  queryKey: ['agentEvalTrace', props.workflowPath],
+  queryFn: () => workflowService.getAgentTrace(props.workflowPath),
+  retry: 1,
+})
+const router = useRouter()
 
-    if (!response.ok) {
-      throw new Error(`Failed to load agent trace: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    // Auto-expand the invoke_agent span
-    const invokeIndex = data.spans.findIndex(
-      (s: TraceSpan) => s.name === 'invoke_agent [any_agent]',
-    )
-    if (invokeIndex >= 0) {
-      expandedSpans.value[invokeIndex] = true
-    }
-
-    return data
+// Delete mutation
+const deleteTraceMutation = useMutation({
+  mutationFn: () => deleteAgentEvalTrace(props.workflowPath),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['agentEvalTrace', props.workflowPath] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
+    // Refresh the workflow store to update file explorer
+    workflowsStore.loadWorkflows()
+    queryClient.invalidateQueries({
+      queryKey: ['file-content', props.workflowPath, 'agent_eval_trace.json'],
+    })
+    showDeleteDialog.value = false
+    router.push({
+      params: { workflowPath: props.workflowPath },
+      query: { tab: 'evaluate' },
+    })
   },
-  retry: 1, // Retry once on failure
 })
 
 // Toggle span expansion
@@ -322,10 +348,23 @@ const totalTokens = computed(() => {
     return sum + inputTokens + outputTokens
   }, 0)
 })
+
+// Functions for delete confirmation
+const openDeleteDialog = () => {
+  showDeleteDialog.value = true
+}
+
+const confirmDelete = () => {
+  deleteTraceMutation.mutate()
+}
+
+const cancelDelete = () => {
+  showDeleteDialog.value = false
+}
 </script>
 
 <style scoped>
-.agent-trace-viewer {
+.agent-eval-trace-viewer {
   padding: 1rem;
 }
 
@@ -494,6 +533,32 @@ const totalTokens = computed(() => {
 
 .metric-value {
   font-weight: 500;
+}
+
+.agent-eval-trace-viewer {
+  padding: 1rem;
+}
+
+.trace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.delete-button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-error);
+  background-color: var(--color-error-soft);
+  color: var(--color-error);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: var(--color-error);
+  color: white;
 }
 
 /* Responsive adjustments */
