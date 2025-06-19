@@ -123,10 +123,11 @@ export async function runEvaluation(
     const workflowPath = req.params.workflowPath
     const fullPath = resolveWorkflowPath(workflowPath)
 
-    // Check if agent trace exists in the workflow directory
     const tracePath = path.join(fullPath, 'agent_eval_trace.json')
     const evaluationCasePath = path.join(fullPath, 'evaluation_case.yaml')
+    const resultsPath = path.join(fullPath, 'evaluation_results.json')
 
+    // Check if agent trace exists in the workflow directory
     try {
       await fs.access(tracePath)
     } catch {
@@ -152,11 +153,11 @@ export async function runEvaluation(
     // let outputText = ''
     const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
       if (source === 'stdout') {
-        console.log(`[evaluation stdout]: ${text}`)
+        console.log(`${text}`)
         // outputText += text
-        res.write(`[stdout]: ${text}`)
+        res.write(`${text}`)
       } else if (source === 'stderr') {
-        console.log(`[evaluation stderr]: ${text}`)
+        console.log(`${text}`)
         res.write(`[stderr]: ${text}`)
       }
     }
@@ -169,23 +170,15 @@ export async function runEvaluation(
 
     await runPythonScriptWithStreaming(
       '-m',
-      ['eval.run_generated_agent_evaluation', evaluationCasePath, tracePath] as string[],
+      [
+        'eval.run_generated_agent_evaluation',
+        evaluationCasePath,
+        tracePath,
+        resultsPath,
+      ] as string[],
       outputCallback,
       env,
     )
-
-    // Parse the evaluation results from output
-    // const evaluationResults = parseEvaluationOutput(outputText)
-
-    // // Save the results to a JSON file
-    // const resultsPath = path.join(fullPath, 'evaluation_results.json')
-    // await fs.writeFile(
-    //   resultsPath,
-    //   JSON.stringify(evaluationResults, null, 2),
-    //   'utf8',
-    // )
-
-    // console.log(`Evaluation results saved to ${resultsPath}`)
 
     res.end(
       '\n[Agent evaluation completed. Results saved to evaluation_results.json]',

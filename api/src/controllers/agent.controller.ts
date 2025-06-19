@@ -13,11 +13,11 @@ export async function generateAgent(req: Request, res: Response) {
       prompt,
       (source: 'stdout' | 'stderr', text: string) => {
         if (source === 'stdout') {
-          console.log(`[agent-factory stdout]: ${text}`)
-          res.write(`[agent-factory stdout]: ${text}`)
+          console.log(`${text}`)
+          res.write(`${text}`)
         } else if (source === 'stderr') {
-          console.log(`[agent-factory stderr]: ${text}`)
-          res.write(`[agent-factory stderr]: ${text}`)
+          console.log(`${text}`)
+          res.write(`${text}`)
         }
       },
     )
