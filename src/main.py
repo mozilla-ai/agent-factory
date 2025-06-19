@@ -81,7 +81,6 @@ def get_default_tools(mount_config):
 
 
 def validate_agent_outputs():
-    print(OUTPUT_DICTIONARY)
     try:
         agent_factory_outputs = AgentFactoryOutputs.model_validate(OUTPUT_DICTIONARY)
     except Exception as e:
