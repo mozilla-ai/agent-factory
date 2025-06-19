@@ -78,7 +78,7 @@
             <div class="checkpoint-summary">
               <div class="checkpoint-stat">
                 <div class="stat-label">Total Checkpoints</div>
-                <div class="stat-value">{{ resultsQuery.data.value.checkpoints.length }}</div>
+                <div class="stat-value">{{ resultsQuery.data.value?.checkpoints.length || 0 }}</div>
               </div>
 
               <div class="checkpoint-results">
@@ -104,14 +104,15 @@
                   <div
                     class="progress-value"
                     :style="{
-                      width: `${(passedCheckpoints / (resultsQuery.data.value.checkpoints.length || 1)) * 100}%`,
+                      width: `${(passedCheckpoints / (resultsQuery.data.value?.checkpoints.length || 1)) * 100}%`,
                     }"
                   ></div>
                 </div>
                 <div class="progress-label">
                   {{
                     Math.round(
-                      (passedCheckpoints / (resultsQuery.data.value.checkpoints.length || 1)) * 100,
+                      (passedCheckpoints / (resultsQuery.data.value?.checkpoints.length || 1)) *
+                        100,
                     )
                   }}% Pass Rate
                 </div>
@@ -220,7 +221,11 @@ const scorePercentageRaw = computed(() => {
   if (!hasValidScoreData.value) return 0
 
   // Use normalized score if available, otherwise calculate percentage
-  if (resultsQuery.data.value.score >= 0 && resultsQuery.data.value.score <= 1) {
+  if (
+    resultsQuery.data.value &&
+    resultsQuery.data.value.score >= 0 &&
+    resultsQuery.data.value.score <= 1
+  ) {
     return resultsQuery.data.value.score * 100
   }
 

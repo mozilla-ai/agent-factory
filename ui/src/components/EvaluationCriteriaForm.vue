@@ -199,16 +199,17 @@ const saveMutation = useMutation({
   mutationFn: async () => {
     try {
       return await saveEvaluationCriteria(props.workflowPath, formData)
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle specific error types
-      if (error.response?.status === 403) {
+      const err = error as { response?: { status?: number }; message?: string }
+      if (err.response?.status === 403) {
         throw new Error('You do not have permission to save evaluation criteria')
-      } else if (error.response?.status === 404) {
+      } else if (err.response?.status === 404) {
         throw new Error('Workflow not found - please check the path and try again')
-      } else if (error.response?.status === 500) {
+      } else if (err.response?.status === 500) {
         throw new Error('Server error while saving criteria - please try again later')
       } else {
-        throw new Error(`Failed to save criteria: ${error.message || 'Unknown error'}`)
+        throw new Error(`Failed to save criteria: ${err.message || 'Unknown error'}`)
       }
     }
   },

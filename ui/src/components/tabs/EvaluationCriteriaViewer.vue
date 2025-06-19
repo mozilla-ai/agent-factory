@@ -131,7 +131,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import yaml from 'js-yaml'
-import { transformResults } from '@/helpers/transform-results'
+import { transformResults, type OldFormatData } from '@/helpers/transform-results'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
 import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
 import { deleteEvaluationCriteria } from '../../services/evaluationService'
@@ -150,13 +150,10 @@ interface EvaluationCriteria {
 }
 
 interface EvaluationResult {
-  result: 'pass' | 'fail' | null
-  feedback?: string
-  points?: number
-}
-
-interface EvaluationResults {
-  checkpoints: EvaluationResult[]
+  result: 'pass' | 'fail'
+  feedback: string
+  criteria: string
+  points: number
 }
 
 // Props
@@ -206,7 +203,7 @@ const evaluationCriteriaQuery = useQuery({
 // Fetch evaluation results
 const evaluationResultsQuery = useQuery({
   queryKey: ['evaluation-results', props.workflowPath],
-  queryFn: async (): Promise<EvaluationResults> => {
+  queryFn: async (): Promise<OldFormatData> => {
     const response = await fetch(
       `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
     )
@@ -214,16 +211,22 @@ const evaluationResultsQuery = useQuery({
     if (!response.ok) {
       // If no results yet, we don't throw an error
       // This is expected when results haven't been generated
-      return { checkpoints: [] }
+      return {
+        checkpoints: [],
+        totalScore: 0,
+        maxPossibleScore: 0,
+        score: 0,
+        maxScore: 0,
+      }
     }
 
-    return response.json()
+    const data = await response.json()
+    return transformResults(data)
   },
   // No need to wait for criteria to load to fetch results
   enabled: computed(() => !!props.workflowPath),
   // Don't retry too many times for results that might not exist yet
   retry: 1,
-  select: transformResults,
 })
 
 // Prepare evaluation results with proper alignment to criteria
@@ -239,7 +242,7 @@ const evaluationResults = computed(() => {
     // Pad with empty results if needed
     const missing = evaluationCriteriaQuery.data.value.checkpoints.length - results.length
     for (let i = 0; i < missing; i++) {
-      results.push({ result: null })
+      results.push({ result: 'fail', feedback: '', criteria: '', points: 0 })
     }
   }
 
@@ -273,7 +276,8 @@ const totalScore = computed(() => {
 const hasCriteriaError = computed(
   () =>
     evaluationCriteriaQuery.isError.value &&
-    (evaluationCriteriaQuery.error.value as any)?.response?.status === 404,
+    (evaluationCriteriaQuery.error.value as { response?: { status?: number } })?.response
+      ?.status === 404,
 )
 
 const startCreatingCriteria = () => {
