@@ -25,7 +25,9 @@ def _assert_agent_syntax(agent_file: Path):
             "url-to-podcast",
             "Create a workflow that takes an input web URL and creates an audio podcast with multiple speakers.",
         ),
-        # Add new "use cases" here.
+        # Add new "use cases" here, following this format:
+        # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
+        # prompt: the actual prompt to pass for agent generation
     ],
 )
 def test_singe_turn_generation(tmp_path: Path, prompt_id: str, prompt: str, request: pytest.FixtureRequest):
