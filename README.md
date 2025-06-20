@@ -26,6 +26,7 @@ uv sync --dev
 
 #### Prerequisites:
 - Python 3.11 or higher
+- Docker should be up and running in the background (for filesystemMCP operations) - download and install [from here](https://www.docker.com/products/docker-desktop)
 
 Install dependencies using your preferred Python package manager:
 
@@ -68,8 +69,6 @@ Run the agent-factory with your desired workflow prompt:
 ```bash
 agent-factory "Summarize text content from a given webpage URL" "generated_workflows/latest"
 ```
-> [!NOTE]
-> The agent-factory has been instructed to set the `max_turns` (the max number of steps that the generated agent can take to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see the generated agent run failing due to `AgentRunError` caused by `MaxTurnsExceeded`).
 
 This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.
 The three files generated are:
@@ -96,11 +95,14 @@ uv run --with-requirements generated_workflows/latest/requirements.txt --python 
 
 This will run the agent and save the agent trace as `agent_eval_trace.json` in the `generated_workflows/latest` directory.
 
+> [!NOTE]
+> The agent-factory has been instructed to set the `max_turns` (the max number of steps that the generated agent can take to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see the generated agent run failing due to `AgentRunError` caused by `MaxTurnsExceeded`).
+
 ### 3. Generate Evaluation Case YAML
 
 Run the evaluation case generator agent with your desired evaluation case prompt:
 ```bash
-python -m eval.main
+python -m eval.generate_evaluation_case
 ```
 
 This will generate a YAML file in the `generated_workflows/latest` directory with criteria and points for each evaluation.
@@ -110,7 +112,7 @@ This will generate a YAML file in the `generated_workflows/latest` directory wit
 Evaluate the agent's execution trace against the generated evaluation case:
 
 ```bash
-python -m eval.run_agent_eval
+python -m eval.run_generated_agent_evaluation
 ```
 This will display the evaluation criteria and show how the agent performed on each.
 

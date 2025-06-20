@@ -75,6 +75,9 @@ export async function saveEvaluationCriteria(
   return response.data
 }
 
+/**
+ * Get evaluation results for a workflow
+ */
 export async function getEvaluationResults(workflowPath: string) {
   const response = await apiClient.get(
     `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_results.json`,
