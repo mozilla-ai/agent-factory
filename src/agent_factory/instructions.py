@@ -225,11 +225,7 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
     c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,
        giving it a keyword that describes the task you want to accomplish.
-       Then, use the `visit_webpage` tool to visit the MCP server's spec page
-       and verify that it provides the tools you need for the task.
-       To cunstruct the URL for the MCP server's spec page, use the following format:
-       `https://raw.githubusercontent.com/pathintegral-institute/mcpm.sh/refs/heads/main/mcp-registry/servers/<server__name>.json`
-       where `server_name` is the name of the MCP server you found using the `search_mcp_servers` tool.
+       Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
