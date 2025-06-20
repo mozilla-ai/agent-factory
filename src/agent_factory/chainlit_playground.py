@@ -1,40 +1,27 @@
 import json
-import uuid
-from datetime import datetime
 from pathlib import Path
 
 import chainlit as cl
+import dotenv
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
-from dotenv import load_dotenv
+from any_agent.tools import search_tavily, visit_webpage
 
 from agent_factory.generation import (
     AgentFactoryOutputs,
-    archive_latest_run_artifacts,
     build_run_instructions,
-    get_default_tools,
     save_agent_parsed_outputs,
-    setup_directories,
 )
 from agent_factory.instructions import INSTRUCTIONS
+from agent_factory.tools import read_file, search_mcp_servers
 
-load_dotenv()
+dotenv.load_dotenv()
 
 repo_root = Path.cwd()
 workflows_root = repo_root / "generated_workflows"
 tools_dir = repo_root / "tools"
 
 MCP_TOOLS = []
-
-
-def get_mount_config():
-    return {
-        "host_workflows_dir": str(workflows_root),
-        "host_tools_dir": str(tools_dir),
-        "container_workflows_dir": "/app/generated_workflows",
-        "container_tools_dir": "/app/tools",
-        "file_ops_dir": "/app",
-    }
 
 
 def trim_context(conversation_history, max_messages=10):
@@ -92,10 +79,7 @@ async def on_message(message: cl.Message):
         async with cl.Step(name="any-agent to generate your workflow", type="run") as step:
             step.output = "Analyzing your request and preparing the agent..."
 
-            # Get mount config and default tools
-            mount_config = get_mount_config()
-            tools = get_default_tools(mount_config)
-
+            tools = [visit_webpage, search_tavily, search_mcp_servers, read_file]
             # Register existing MCP tools (if any)
             if MCP_TOOLS:
                 for tool in MCP_TOOLS:
@@ -111,6 +95,7 @@ async def on_message(message: cl.Message):
                     model_id="o3",
                     instructions=INSTRUCTIONS,
                     tools=tools,
+                    output_type=AgentFactoryOutputs,
                 ),
             )
 
@@ -123,8 +108,10 @@ async def on_message(message: cl.Message):
 
             step.output = "Running agent with your request..."
 
-            # Run the agent
-            agent_factory_trace = agent_factory.run(task, max_turns=30)
+            # Run the synchronous agent function in a separate thread
+            # This prevents blocking the main asyncio event loop.
+            agent_factory_run = cl.make_async(agent_factory.run)
+            agent_factory_trace = await agent_factory_run(task, max_turns=30)
 
         # Display tool usage information
         if hasattr(agent_factory_trace, "spans"):
@@ -145,7 +132,7 @@ async def on_message(message: cl.Message):
 
         # Send the final response
         if agent_factory_trace.final_output:
-            json_output = json.loads(agent_factory_trace.final_output)
+            json_output = agent_factory_trace.final_output.model_dump()
             output_to_render = (
                 f"## 🤖 Agent Code\n"
                 f"```python\n{json_output.get('agent_code', 'No agent code provided.')}\n```\n"
@@ -171,6 +158,12 @@ async def on_message(message: cl.Message):
             # Add assistant response to history
             message_history.append({"role": "assistant", "content": output_to_render})
 
+        # Handle the case where the agent finishes without providing an output
+        else:
+            await cl.Message(
+                content="The agent finished its run but did not produce a final output.", author="assistant"
+            ).send()
+
         # Update session with new message history
         cl.user_session.set("message_history", message_history)
 
@@ -181,17 +174,14 @@ async def on_message(message: cl.Message):
 @cl.action_callback("export_workflow")
 async def export_workflow_action(action: cl.Action):
     """Handle export workflow button click: validate and save agent outputs."""
-    latest_dir, archive_root = setup_directories(workflows_root, workflows_root / "latest")
-    workflow_id = str(uuid.uuid4())
-    timestamp_id = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + workflow_id[:8]
-    archive_dir = archive_root / timestamp_id
-    archive_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = Path("generated_workflows") / "latest"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     try:
         agent_factory_outputs = AgentFactoryOutputs.model_validate(action.payload)
-        save_agent_parsed_outputs(agent_factory_outputs, "latest")
-        archive_latest_run_artifacts(latest_dir, archive_dir)
+        save_agent_parsed_outputs(agent_factory_outputs, output_dir)
         await cl.Message(
-            content="✅ Workflow exported successfully to the 'generated_workflows/latest' directory.",
+            content="✅ Workflow exported successfully to 'generated_workflows/latest'.",
             author="assistant",
         ).send()
     except Exception as e:
