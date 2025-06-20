@@ -33,6 +33,9 @@ jobs:
         run: |
           uv sync --group tests
 
+      - name: Run Code tests
+        run: pytest -v tests/agent_factory
+
       - name: Run Generated Artifacts tests
         run: pytest -v tests/generated_artifacts
 
