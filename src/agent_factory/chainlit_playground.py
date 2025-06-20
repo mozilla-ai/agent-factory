@@ -95,6 +95,7 @@ async def on_message(message: cl.Message):
                     model_id="o3",
                     instructions=INSTRUCTIONS,
                     tools=tools,
+                    output_type=AgentFactoryOutputs,
                 ),
             )
 
@@ -131,7 +132,7 @@ async def on_message(message: cl.Message):
 
         # Send the final response
         if agent_factory_trace.final_output:
-            json_output = json.loads(agent_factory_trace.final_output)
+            json_output = agent_factory_trace.final_output.model_dump()
             output_to_render = (
                 f"## 🤖 Agent Code\n"
                 f"```python\n{json_output.get('agent_code', 'No agent code provided.')}\n```\n"
