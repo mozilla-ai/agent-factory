@@ -117,8 +117,6 @@ def single_turn_generation(
 
     (output_dir / "agent_factory_trace.json").write_text(agent_trace.model_dump_json(indent=2))
 
-    (output_dir / "agent_factory_raw_output.txt").write_text(agent_trace.final_output.model_dump_json(indent=2))
-
     save_agent_parsed_outputs(agent_trace.final_output, output_dir)
 
     print(f"Workflow files saved in: {output_dir}")
