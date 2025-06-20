@@ -7,38 +7,56 @@ from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
 
-# ---- local / any-agent built-in tools ----
+# === Local / built-in tools ===
 from tools.extract_text_from_url import extract_text_from_url
 from tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm
+# (We will rely on the ElevenLabs MCP server for text-to-speech)
 
 load_dotenv()
 
 # ========== Structured output definition ==========
-class StructuredOutput(BaseModel):
-    url: str = Field(..., description="The original webpage URL supplied by the user.")
-    num_hosts: int = Field(..., description="Number of podcast hosts / speakers requested.")
-    script_text: str = Field(..., description="The full podcast script that was generated.")
-    audio_file_path: str = Field(..., description="Filesystem path (inside ELEVENLABS_OUTPUT_DIR) or URL pointing to the generated multi-speaker podcast MP3 file.")
+class PodcastOutput(BaseModel):
+    url: str = Field(..., description="The original webpage URL.")
+    num_speakers: int = Field(..., description="Number of speakers in the generated podcast.")
+    podcast_script: str = Field(..., description="The full podcast script with speaker labels.")
+    audio_file_path: str = Field(..., description="Filesystem path (or URL) to the generated podcast MP3 audio file.")
 
 
 # ========== System (Multi-step) Instructions ==========
 INSTRUCTIONS = """
-You are an autonomous assistant that turns any public web article into a polished multi-speaker podcast in three clear stages.
+You are an expert media production assistant.  Follow this exact multi-step workflow to turn an input webpage
+into a multi-speaker podcast:
 
-Step-by-step workflow you MUST follow:
-1. CONTENT EXTRACTION — Receive a URL from the user and call the `extract_text_from_url` tool to fetch and clean the main textual content of the page. If extraction fails, stop and return a helpful error.
-2. SCRIPT WRITING — With the extracted text, invoke `generate_podcast_script_with_llm`, passing the user-requested number of hosts so the script alternates dialogue between distinct speakers (labelled **Host 1**, **Host 2**, etc.). Keep the script engaging, conversational and less than ~2,000 words.
-3. AUDIO GENERATION — Send the entire finished script to the `generate_audio_script` tool from the ElevenLabs MCP server. A single call should return a high-quality MP3 that already contains all voices. Use the default voice mapping unless the user provides explicit voice IDs.
+Step 1 ‑ Extract text.
+    • Use the tool `extract_text_from_url` on the provided URL.
+    • Return ONLY the primary readable content (ignore menus, ads, navigation, etc.).
 
-Upon completing these steps, respond ONLY with a JSON object that conforms exactly to the StructuredOutput schema (do NOT add any extra keys). Ensure `audio_file_path` is whatever location or URL the ElevenLabs server returns for the generated file.
+Step 2 ‑ Write a podcast script.
+    • Use `generate_podcast_script_with_llm`.
+    • The number of hosts MUST equal the `num_speakers` value supplied by the user (default 2).
+    • Clearly label each host line (e.g. Host 1:, Host 2: …).
+    • The script should be lively, conversational and cover all key points from the article.
+
+Step 3 ‑ Generate audio with multiple voices.
+    • Call the ElevenLabs MCP tool `generate_audio_script`.
+    • Pass the full script in plain text. The tool will automatically allocate different voices for each labelled host.
+    • Wait until the audio job finishes and obtain the final MP3 file path returned by the tool.
+
+Step 4 ‑ Produce final structured result.
+    • Return a JSON object conforming to the PodcastOutput schema containing:
+         – url (original URL)
+         – num_speakers (integer)
+         – podcast_script (full script)
+         – audio_file_path (path/URL from Step 3)
+    • Do NOT output anything that does not belong in the JSON schema.
 """
 
 # ========== Tools definition ==========
 TOOLS = [
-    # local Python utility tools
+    # Local python-function tools
     extract_text_from_url,
     generate_podcast_script_with_llm,
-    # ElevenLabs MCP (text-to-speech)
+    # MCP server for ElevenLabs TTS
     MCPStdio(
         command="docker",
         args=[
@@ -50,42 +68,39 @@ TOOLS = [
             "mcp/elevenlabs",
         ],
         env={
-            "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),  # required
-            # Optional overrides – read from environment if present
-            "ELEVENLABS_VOICE_ID": os.getenv("ELEVENLABS_VOICE_ID", ""),
-            "ELEVENLABS_MODEL_ID": os.getenv("ELEVENLABS_MODEL_ID", ""),
-            "ELEVENLABS_OUTPUT_DIR": os.getenv("ELEVENLABS_OUTPUT_DIR", "output"),
+            "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
         },
-        # use the minimum necessary ElevenLabs tool
         tools=[
-            "generate_audio_script",
+            "generate_audio_script",  # only tool we need from this MCP server
         ],
     ),
 ]
 
-# Build the agent
+# ========== Agent instance ==========
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        agent_args={"output_type": StructuredOutput},
+        output_type=PodcastOutput,
         model_args={"tool_choice": "required"},
     ),
 )
 
+# ========== CLI entry-point ==========
 
-def run_agent(url: str, num_hosts: int = 2):
-    """Create a multi-speaker podcast from the given webpage URL."""
+def run_agent(url: str, num_speakers: int = 2):
+    """Generate a multi-speaker podcast from a webpage URL."""
+    # Compose the user prompt that kicks off the workflow
     input_prompt = (
-        f"Create an audio podcast with {num_hosts} hosts from this webpage: {url}\n"
-        "Return only structured JSON per specification."
+        "Create a podcast with {n} speakers from this webpage URL: {u}. "
+        "Return the final result using the required JSON schema.".format(n=num_speakers, u=url)
     )
-    # pass num_hosts via prompt so the agent uses it when calling tools
-    agent_trace = agent.run(prompt=input_prompt)
 
-    # Persist the full execution trace for evaluation/debugging
+    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
+
+    # Persist the full trace for evaluation
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
 
