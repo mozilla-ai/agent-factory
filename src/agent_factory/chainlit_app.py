@@ -109,8 +109,10 @@ async def on_message(message: cl.Message):
 
             step.output = "Running agent with your request..."
 
-            # Run the agent
-            agent_factory_trace = agent_factory.run(task, max_turns=30)
+            # Run the synchronous agent function in a separate thread
+            # This prevents blocking the main asyncio event loop.
+            agent_factory_run = cl.make_async(agent_factory.run)
+            agent_factory_trace = await agent_factory_run(task, max_turns=30)
 
         # Display tool usage information
         if hasattr(agent_factory_trace, "spans"):
@@ -156,6 +158,12 @@ async def on_message(message: cl.Message):
 
             # Add assistant response to history
             message_history.append({"role": "assistant", "content": output_to_render})
+
+        # Handle the case where the agent finishes without providing an output
+        else:
+            await cl.Message(
+                content="The agent finished its run but did not produce a final output.", author="assistant"
+            ).send()
 
         # Update session with new message history
         cl.user_session.set("message_history", message_history)
