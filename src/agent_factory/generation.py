@@ -14,8 +14,6 @@ from agent_factory.tools import read_file, search_mcp_servers
 
 dotenv.load_dotenv()
 
-OUTPUT_DICTIONARY = {}
-
 
 class AgentFactoryOutputs(BaseModel):
     agent_instructions: str = Field(..., description="The instructions passed to the generated agent.")
@@ -25,27 +23,6 @@ class AgentFactoryOutputs(BaseModel):
     run_agent_code: str = Field(..., description="The main function in agent.py.")
     run_instructions: str = Field(..., description="The run instructions in Markdown format")
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
-
-
-def save_to_dictionary(key: str, value: str) -> None:
-    """Saves key/value pairs into the output dictionary.
-
-    Parameters:
-    - key: the dictionary key under which we want to save the value
-    - value: the value that is saved under the provided key name
-    """
-    print(f"[i] Adding the following to the dictionary:\n  - key: {key}\n  - value: {value}")
-    OUTPUT_DICTIONARY[key] = value
-
-
-def validate_agent_outputs():
-    try:
-        agent_factory_outputs = AgentFactoryOutputs.model_validate(OUTPUT_DICTIONARY)
-    except Exception as e:
-        raise ValueError(
-            f"Invalid format received for agent outputs: {e}. Could not parse the output as AgentFactoryOutputs."
-        ) from e
-    return agent_factory_outputs
 
 
 def remove_markdown_code_block_delimiters(text: str) -> str:
@@ -64,7 +41,7 @@ def save_agent_parsed_outputs(output: AgentFactoryOutputs, output_dir: Path):
     requirements_path = Path(f"{output_dir}/requirements.txt")
 
     # build agent code from dict keys + template
-    agent_code = AGENT_CODE_TEMPLATE.format(**OUTPUT_DICTIONARY)
+    agent_code = AGENT_CODE_TEMPLATE.format(**output.model_dump())
 
     # save the agent code
     with agent_path.open("w", encoding="utf-8") as f:
@@ -86,7 +63,8 @@ def create_agent():
         AgentConfig(
             model_id="o3",
             instructions=INSTRUCTIONS,
-            tools=[visit_webpage, search_tavily, search_mcp_servers, read_file, save_to_dictionary],
+            tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
+            output_type=AgentFactoryOutputs,
             model_args={"tool_choice": "required"},  # Ensure tool choice is required
         ),
     )
@@ -139,10 +117,9 @@ def single_turn_generation(
 
     (output_dir / "agent_factory_trace.json").write_text(agent_trace.model_dump_json(indent=2))
 
-    (output_dir / "agent_factory_raw_output.txt").write_text(agent_trace.final_output)
+    (output_dir / "agent_factory_raw_output.txt").write_text(agent_trace.final_output.model_dump_json(indent=2))
 
-    agent_factory_outputs = validate_agent_outputs()
-    save_agent_parsed_outputs(agent_factory_outputs, output_dir)
+    save_agent_parsed_outputs(agent_trace.final_output, output_dir)
 
     print(f"Workflow files saved in: {output_dir}")
 

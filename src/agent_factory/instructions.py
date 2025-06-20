@@ -185,11 +185,6 @@ The final expected output is a dictionary with the following structure:
     "dependencies": "The list of python dependencies in Markdown format."
 }}
 
-## Building the dictionary
-
-To build the output dictionary, you will add each individual key by calling the available tool `save_to_dictionary` with the proper parameters.
-The parameters required by the function are two, respectively the key and the value of the dictionary element.
-
 ## Values to assign to dictionary keys
 
 1. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).
