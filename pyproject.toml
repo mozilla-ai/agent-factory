@@ -27,7 +27,7 @@ Issues = "https://github.com/mozilla-ai/agent-factory/issues"
 Source = "https://github.com/mozilla-ai/agent-factory"
 
 [project.scripts]
-agent-factory = "agent_factory.generation:main"
+agent-factory = "agent_factory.__main__:main"
 
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]

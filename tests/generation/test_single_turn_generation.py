@@ -5,7 +5,7 @@ from shutil import copytree
 
 import pytest
 
-from agent_factory.generation import single_turn_generation
+from agent_factory.__main__ import single_turn_generation
 
 
 def _assert_generated_files(workflow_dir: Path):

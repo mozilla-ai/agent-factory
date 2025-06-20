@@ -8,7 +8,7 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from dotenv import load_dotenv
 
-from agent_factory.generation import (
+from agent_factory.__main__ import (
     AgentFactoryOutputs,
     archive_latest_run_artifacts,
     build_run_instructions,
