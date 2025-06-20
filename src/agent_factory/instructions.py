@@ -28,52 +28,6 @@ Amend the Python code you generated for the agentic workflow to do the following
 If necessary, {1}
 """
 
-WEBPAGE_DESCRIPTIONS = {
-    # Docs
-    "https://mozilla-ai.github.io/any-agent/agents/": (
-        "Primary reference whenever you are defining single or multi-agent systems with any-agent."
-        "This page provides essential setup patterns and configuration examples for creating agents."
-    ),
-    "https://mozilla-ai.github.io/any-agent/agents/frameworks/openai/": (
-        "Reference whenever you are implementing OpenAI-based agents in any-agent."
-        "This page details the default agent types, model configurations, "
-        "and run arguments specific to the OpenAI Agents SDK."
-    ),
-    "https://mozilla-ai.github.io/any-agent/agents/tools/": (
-        "Visit when adding tools to your agent's capabilities."
-        "This page explains how to use both callable tools"
-        "and MCP (Model Context Protocol) tools in your agent configurations."
-    ),
-    "https://mozilla-ai.github.io/any-agent/tracing/": (
-        "Useful for debugging and monitoring agent behavior with OpenTelemetry traces."
-        "This page shows how to capture, visualize, "
-        "and analyze agent execution traces for better insights."
-    ),
-    "https://mozilla-ai.github.io/any-agent/evaluation/": (
-        "Consult when implementing evaluation for your agent systems."
-        "This page provides a trace-first approach to evaluate"
-        "agent performance against custom criteria using LLM-as-a-judge techniques."
-    ),
-    # API Reference
-    "https://mozilla-ai.github.io/any-agent/api/agent/": ("Reference for the core AnyAgent class API and its methods."),
-    "https://mozilla-ai.github.io/any-agent/api/config/": (
-        "Consult for detailed configuration options like AgentConfig, and MCP integrations."
-        "Provides all parameters needed to properly configure your agent instances."
-    ),
-    "https://mozilla-ai.github.io/any-agent/api/tools/": (
-        "Reference for either built-in tools provided by any-agent like "
-        "search_web, search_tavily, visit_webpage or custom-defined tools as python functions."
-    ),
-    "https://mozilla-ai.github.io/any-agent/api/tracing/": (
-        "Use when working with AgentTrace and AgentSpan objects returned by agent.run()."
-        "Helps access and analyze the execution trace data for debugging or evaluation."
-    ),
-    "https://mozilla-ai.github.io/any-agent/api/logging/": (
-        "Reference for configuring the any-agent logging system."
-        "Provides functions to set up custom loggers with different verbosity levels and output formats."
-    ),
-}
-
 CODE_EXAMPLE_WITH_COMMENTS = """
 # agent.py
 
@@ -319,15 +273,6 @@ Any-agent library enables you to:
 - Leverage built-in tools like web search and webpage visiting as well as MCP servers
 - Implement comprehensive tracing and evaluation capabilities
 
-You may access the following webpages using the `visit_webpage` tool to further understand the any-agent library and its syntax.
-Before generating the code, ensure that you visit the necessary webpages for correct usage of any-agent library.
-
-{% for url, description in webpage_descriptions.items() %}
-- {{ url }}: {{ description }}
-{% endfor %}
-
-For reading URLs, use `visit_webpage` tool. Never use the `read_file` tool for reading web URLs.
-
 **Any-agent Code Generation Instructions**
 {{ code_generation_instructions }}
 
@@ -341,7 +286,6 @@ As input to the AgentConfig, you are required to provide the parameters `model_i
 # Render the template with the WEBPAGE_DESCRIPTIONS dictionary
 template = Template(INSTRUCTIONS_TEMPLATE)
 INSTRUCTIONS = template.render(
-    webpage_descriptions=WEBPAGE_DESCRIPTIONS,
     code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
     code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
     deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
