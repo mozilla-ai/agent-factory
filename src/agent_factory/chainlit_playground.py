@@ -1,6 +1,4 @@
 import json
-import uuid
-from datetime import datetime
 from pathlib import Path
 
 import chainlit as cl
@@ -175,17 +173,14 @@ async def on_message(message: cl.Message):
 @cl.action_callback("export_workflow")
 async def export_workflow_action(action: cl.Action):
     """Handle export workflow button click: validate and save agent outputs."""
-    workflow_id = str(uuid.uuid4())
-    timestamp_id = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    folder_name = f"chainlit/{timestamp_id}_{workflow_id[:8]}"
-    output_dir = Path("generated_workflows") / folder_name
+    output_dir = Path("generated_workflows") / "latest"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         agent_factory_outputs = AgentFactoryOutputs.model_validate(action.payload)
         save_agent_parsed_outputs(agent_factory_outputs, output_dir)
         await cl.Message(
-            content=f"✅ Workflow exported successfully to 'generated_workflows/{folder_name}'.",
+            content="✅ Workflow exported successfully to 'generated_workflows/latest'.",
             author="assistant",
         ).send()
     except Exception as e:
