@@ -1,8 +1,14 @@
-from litellm import completion
-
+try:
+    from litellm import completion
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 def summarize_text_with_llm(text: str, summary_length: str = "a concise paragraph", model: str = "gpt-4o-mini") -> str:
     """Summarizes a given text using an LLM.
+
+    Dependencies:
+        - litellm
 
     Args:
         text: The text to be summarized.

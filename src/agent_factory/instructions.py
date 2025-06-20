@@ -7,7 +7,7 @@ from jinja2 import Template
 ANY_AGENT_VERSION = version("any_agent")
 
 TOOLS_REMINDER = """Use appropriate tools in the agent configuration:
-- Select relevant tools from `tools/available_tools.md`.
+- Select relevant tools from the built-in tools.
 - Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools
     to the configuration.
 
@@ -219,9 +219,9 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 #### Tools (tools):
 - Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).
   Try to use only the minimum subset of tools that are necessary for the solving the task at hand.
-- You must choose tools from the following 3 options:
-    a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
-       Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
+- You must choose tools from the following 2 options:
+    a. Built-in tools: 
+
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
     c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,
        giving it a keyword that describes the task you want to accomplish.

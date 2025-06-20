@@ -1,8 +1,15 @@
-from litellm import completion
+try:
+    from litellm import completion
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 
 def generate_recipe_from_ingredients(ingredients: list[str], model: str = "gpt-4o-mini") -> str:
     """Generates a recipe using a list of provided ingredients via an LLM.
+
+    Dependencies:
+        - litellm
 
     Args:
         ingredients: A list of strings, where each string is an ingredient

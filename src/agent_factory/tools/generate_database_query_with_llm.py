@@ -1,4 +1,8 @@
-from litellm import completion
+try:
+    from litellm import completion
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 
 def generate_database_query_with_llm(
@@ -8,6 +12,9 @@ def generate_database_query_with_llm(
     model: str = "gpt-4o-mini",
 ) -> str:
     """Constructs database queries (e.g., SQL) based on natural language requests using an LLM.
+
+    Dependencies:
+        - litellm
 
     Args:
         natural_language_request: The user's request in natural language

@@ -1,8 +1,14 @@
-from litellm import completion
-
+try:
+    from litellm import completion
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 def review_code_with_llm(code: str, language: str, model: str = "gpt-4o-mini") -> str:
     """Reviews a given piece of code for errors, bugs, security issues, and style violations using an LLM.
+
+    Dependencies:
+        - litellm
 
     Args:
         code: The source code string to be reviewed.

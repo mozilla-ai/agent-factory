@@ -1,8 +1,14 @@
-from litellm import completion
-
+try:
+    from litellm import completion
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 def translate_text_with_llm(text: str, source_language: str, target_language: str, model: str = "gpt-4o-mini") -> str:
     """Translates text from a source language to a target language using an LLM.
+
+    Dependencies:
+        - litellm
 
     Args:
         text: The text to be translated.

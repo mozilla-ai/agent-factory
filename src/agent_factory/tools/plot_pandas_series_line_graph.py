@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 import uuid
 from pathlib import Path
 
-import matplotlib
-import pandas as pd
+try:
+    import matplotlib
+    import pandas as pd
 
-matplotlib.use("Agg")  # Use Agg backend for non-interactive environments
-import matplotlib.pyplot as plt
+    matplotlib.use("Agg")  # Use Agg backend for non-interactive environments
+    import matplotlib.pyplot as plt
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 
 def plot_pandas_series_line_graph(
@@ -13,8 +19,9 @@ def plot_pandas_series_line_graph(
 ) -> str:
     """Plots a line graph from a pandas Series and saves it as an image file.
 
-    The function generates a line plot, saves it to the specified directory
-    with a unique filename, and returns the absolute path to the saved image.
+    Dependencies:
+        - matplotlib
+        - pandas
 
     Args:
         series: A pandas Series containing the data to plot.

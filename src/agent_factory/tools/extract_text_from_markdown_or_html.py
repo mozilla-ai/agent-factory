@@ -1,9 +1,17 @@
-from bs4 import BeautifulSoup
-from markdown import markdown as md_parser
+try:
+    from bs4 import BeautifulSoup
+    from markdown import markdown as md_parser
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 
 def extract_text_from_markdown_or_html(content: str, content_type: str) -> str:
     """Preprocesses raw input content (Markdown or HTML) to extract plain text.
+
+    Dependencies:
+        - bs4
+        - markdown
 
     Args:
         content: A string containing the raw Markdown or HTML content.
@@ -14,6 +22,9 @@ def extract_text_from_markdown_or_html(content: str, content_type: str) -> str:
         A string containing the extracted plain text.
         Returns an error message string if the content type is unsupported or an error occurs.
     """
+    if not imports_available:
+        raise ImportError("You need to `pip install bs4 markdown` to use this tool.")
+
     try:
         content_type_lower = content_type.lower()
         if content_type_lower == "html":

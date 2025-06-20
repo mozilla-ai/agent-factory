@@ -1,9 +1,15 @@
-from litellm import completion
+try:
+    from litellm import completion
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 
 def generate_podcast_script_with_llm(document_text: str, num_hosts: int = 2, model: str = "gpt-4o-mini") -> str:
     """Writes a podcast script from a given text document using an LLM.
-    The number of hosts/speakers in the podcast can be specified.
+
+    Dependencies:
+        - litellm
 
     Args:
         document_text: The text content to be transformed into a podcast script.

@@ -1,12 +1,17 @@
-import requests
-from bs4 import BeautifulSoup
+try:
+    import requests
+    from bs4 import BeautifulSoup
+    imports_available = True
+except ImportError:
+    imports_available = False
 
 
 def extract_text_from_url(url: str) -> str:
     """Extracts all text content from a given URL.
 
-    This function fetches the HTML content of the URL and uses BeautifulSoup
-    to parse and extract all human-readable text.
+    Dependencies:
+        - bs4
+        - requests
 
     Args:
         url: The URL from which to extract text (e.g., "https://example.com").
