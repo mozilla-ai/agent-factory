@@ -187,8 +187,8 @@ The final expected output is a dictionary with the following structure:
 
 ## Building the dictionary
 
-To build the output dictionary, you will add each individual key by calling the available tool `save_to_dictionary` with the proper parameters.
-The parameters required by the function are two, respectively the key and the value of the dictionary element.
+To build the output dictionary, you will use the available tool `save_to_dictionary` properly matching its parameters
+with the respective dictionary keys.
 
 ## Values to assign to dictionary keys
 
@@ -283,9 +283,6 @@ using Mozilla's any-agent library. The implementation should:
 
 ## Required Components
 
-### Agent Configuration
-Refer to the any-agent documentation for valid parameters for AgentConfig.
-
 #### Model (model_id):
 - Use o3 as the model_id
 
@@ -317,7 +314,6 @@ Refer to the any-agent documentation for valid parameters for AgentConfig.
 #### Structured Output (output_type):
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the output_type argument correctly to obtain this structured response
-- Refer to the any-agent documentation for more details on structured output
 
 #### Agent Trace (agent_trace):
 The code implementation should include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()
@@ -333,8 +329,6 @@ The code implementation should include the agent trace being saved into a JSON f
 - Include proper import statements and dependency management
 - Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:
     - Use Python dotenv library to load the environment variables and access them using os.getenv()
-
-Refer to the any-agent documentation URLs for implementation details and best practices.
 
 ### Agent code template
 
@@ -355,15 +349,6 @@ Any-agent library enables you to:
 - Create both single-agent and multi-agent systems with consistent patterns
 - Leverage built-in tools like web search and webpage visiting as well as MCP servers
 - Implement comprehensive tracing and evaluation capabilities
-
-You may access the following webpages using the `visit_webpage` tool to further understand the any-agent library and its syntax.
-Before generating the code, ensure that you visit the necessary webpages for correct usage of any-agent library.
-
-{% for url, description in webpage_descriptions.items() %}
-- {{ url }}: {{ description }}
-{% endfor %}
-
-For reading URLs, use `visit_webpage` tool. Never use the `read_file` tool for reading web URLs.
 
 **Any-agent Code Generation Instructions**
 

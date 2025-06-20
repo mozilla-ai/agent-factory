@@ -27,15 +27,35 @@ class AgentFactoryOutputs(BaseModel):
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
 
 
-def save_to_dictionary(key: str, value: str) -> None:
+def save_to_dictionary(
+    agent_instructions: str,
+    tools: str,
+    imports: str,
+    structured_outputs: str,
+    run_agent_code: str,
+    run_instructions: str,
+    dependencies: str,
+) -> None:
     """Saves key/value pairs into the output dictionary.
 
     Parameters:
-    - key: the dictionary key under which we want to save the value
-    - value: the value that is saved under the provided key name
+    - agent_instructions: The instructions passed to the generated agent
+    - tools: The python code that defines the tools to be used by the generated agent
+    - imports: The python code snippet needed to import the required tools
+    - structured_outputs: The Pydantic v2 models used to structure the agent's final output
+    - run_agent_code: The python code for the `run_agent` function, taking input parameters from
+      the user and calling the agent
+    - run_instructions: The instructions for setting up the environment in Markdown format
+    - dependencies: The list of python dependencies in Markdown format
     """
-    print(f"[i] Adding the following to the dictionary:\n  - key: {key}\n  - value: {value}")
-    OUTPUT_DICTIONARY[key] = value
+    print("[i] Storing data into the dictionary")
+    OUTPUT_DICTIONARY["agent_instructions"] = agent_instructions
+    OUTPUT_DICTIONARY["tools"] = tools
+    OUTPUT_DICTIONARY["imports"] = imports
+    OUTPUT_DICTIONARY["structured_outputs"] = structured_outputs
+    OUTPUT_DICTIONARY["run_agent_code"] = run_agent_code
+    OUTPUT_DICTIONARY["run_instructions"] = run_instructions
+    OUTPUT_DICTIONARY["dependencies"] = dependencies
 
 
 def validate_agent_outputs():
