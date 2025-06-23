@@ -2,10 +2,10 @@ import json
 from pathlib import Path
 
 import fire
-from loguru import logger
 from any_agent.evaluation.evaluate import evaluate
 from any_agent.evaluation.evaluation_case import EvaluationCase
 from any_agent.tracing.agent_trace import AgentTrace
+from loguru import logger
 
 
 def run_evaluation(

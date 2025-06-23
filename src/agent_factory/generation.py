@@ -5,9 +5,9 @@ from pathlib import Path
 
 import dotenv
 import fire
-from loguru import logger
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.tools import search_tavily, visit_webpage
+from loguru import logger
 from pydantic import BaseModel, Field
 
 from agent_factory.instructions import INSTRUCTIONS
