@@ -5,4 +5,3 @@ fire
 requests
 beautifulsoup4
 litellm
-pydantic

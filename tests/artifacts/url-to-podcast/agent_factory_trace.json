@@ -4,8 +4,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -14,15 +14,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750676403388374000,
-      "end_time": 1750676409351036000,
+      "start_time": 1750681770041211000,
+      "end_time": 1750681776425978000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 11618183851711880619,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 14549599902180351295,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -56,8 +56,8 @@
       "name": "execute_tool read_file",
       "kind": "internal",
       "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -66,15 +66,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750676409357768000,
-      "end_time": 1750676409359254000,
+      "start_time": 1750681776433072000,
+      "end_time": 1750681776433914000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 6128159353727476441,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 17690704622361526148,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -106,8 +106,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -116,15 +116,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750676409364450000,
-      "end_time": 1750676415231886000,
+      "start_time": 1750681776439362000,
+      "end_time": 1750681783226345000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 18134313371581664319,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 3409836568295212593,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -136,212 +136,10 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "o3",
-        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/generate_podcast_script_with_llm.py\\\"}\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"search_mcp_servers\", \"tool.args\": \"{\\\"keyword\\\":\\\"tts\\\", \\\"is_official\\\":false}\"}]",
         "gen_ai.output.type": "json",
         "gen_ai.usage.input_tokens": 3814,
-        "gen_ai.usage.output_tokens": 97
-      },
-      "links": [],
-      "events": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.31.1",
-          "service.name": "unknown_service"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "execute_tool read_file",
-      "kind": "internal",
-      "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "start_time": 1750676415235749000,
-      "end_time": 1750676415237263000,
-      "status": {
-        "status_code": "ok",
-        "description": null
-      },
-      "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 8038869682139889131,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "attributes": {
-        "gen_ai.operation.name": "execute_tool",
-        "gen_ai.tool.name": "read_file",
-        "gen_ai.tool.args": "{\"file_name\":\"tools/generate_podcast_script_with_llm.py\"}",
-        "gen_ai.output": "from litellm import completion\n\n\ndef generate_podcast_script_with_llm(document_text: str, num_hosts: int = 2, model: str = \"gpt-4o-mini\") -> str:\n    \"\"\"Writes a podcast script from a given text document using an LLM.\n    The number of hosts/speakers in the podcast can be specified.\n\n    Args:\n        document_text: The text content to be transformed into a podcast script.\n        num_hosts: The number of hosts/speakers for the podcast script (e.g., 1, 2, 3).\n                   Defaults to 2.\n        model: The LLM model to use for script generation (default: \"gpt-4o-mini\").\n\n    Returns:\n        A string containing the generated podcast script.\n        Returns an error message string if an error occurs.\n    \"\"\"\n    if not document_text.strip():\n        return \"Error: No document text provided for script generation.\"\n    if not isinstance(num_hosts, int) or num_hosts <= 0:\n        return \"Error: Number of hosts must be a positive integer.\"\n\n    system_prompt = (\n        \"You are a creative scriptwriter specializing in engaging podcast dialogues. \"\n        \"Your task is to convert the provided document into a podcast script.\"\n    )\n\n    user_prompt = (\n        f\"Generate a podcast script based on the following document. \"\n        f\"The script should feature {num_hosts} distinct hosts. \"\n        f\"Clearly label each host's lines (e.g., Host 1:, Host 2:, etc., or Speaker A:, Speaker B:). \"\n        f\"Make the conversation natural, engaging, and informative, covering the key points of the document. \"\n        f\"Include an introduction and an outro if appropriate.\\n\\n\"\n        f\"Document:\\n---\\n{document_text}\\n---\"\n    )\n\n    try:\n        response = completion(\n            model=model,\n            messages=[{\"role\": \"system\", \"content\": system_prompt}, {\"role\": \"user\", \"content\": user_prompt}],\n        )\n        return response.choices[0].message.content\n    except Exception as e:\n        return f\"Error calling LLM for podcast script generation: {e}\"\n",
-        "gen_ai.output.type": "text"
-      },
-      "links": [],
-      "events": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.31.1",
-          "service.name": "unknown_service"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "call_llm o3",
-      "kind": "internal",
-      "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "start_time": 1750676415248916000,
-      "end_time": 1750676416563545000,
-      "status": {
-        "status_code": "ok",
-        "description": null
-      },
-      "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 526202844884035598,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "attributes": {
-        "gen_ai.operation.name": "call_llm",
-        "gen_ai.request.model": "o3",
-        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/combine_mp3_files_for_podcast.py\\\"}\"}]",
-        "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 4307,
-        "gen_ai.usage.output_tokens": 27
-      },
-      "links": [],
-      "events": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.31.1",
-          "service.name": "unknown_service"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "execute_tool read_file",
-      "kind": "internal",
-      "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "start_time": 1750676416565290000,
-      "end_time": 1750676416566429000,
-      "status": {
-        "status_code": "ok",
-        "description": null
-      },
-      "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 9801569805645646185,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "attributes": {
-        "gen_ai.operation.name": "execute_tool",
-        "gen_ai.tool.name": "read_file",
-        "gen_ai.tool.args": "{\"file_name\":\"tools/combine_mp3_files_for_podcast.py\"}",
-        "gen_ai.output": "import subprocess\nimport uuid\nfrom pathlib import Path\n\n\ndef combine_mp3_files_for_podcast(\n    mp3_files: list[str], output_filename: str = \"podcast.mp3\", output_dir: str = \"podcasts\"\n) -> str:\n    \"\"\"Combines a list of MP3 audio files into a single MP3 podcast file using ffmpeg.\n\n    This function requires ffmpeg to be installed and accessible in the system's PATH.\n    It creates a temporary file list for ffmpeg's concat demuxer.\n\n    Args:\n        mp3_files: A list of absolute or relative paths to the MP3 files to be combined.\n                   The order in the list determines the order in the output file.\n        output_filename: The name for the combined output MP3 file.\n                         Defaults to \"podcast.mp3\".\n        output_dir: The directory where the combined podcast file will be saved.\n                    Defaults to \"podcasts\". Created if it doesn't exist.\n\n    Returns:\n        The absolute path to the combined podcast MP3 file if successful.\n        Returns an error message string if ffmpeg fails or an error occurs.\n    \"\"\"\n    if not mp3_files:\n        return \"Error: No MP3 files provided for combination.\"\n\n    for f_path in mp3_files:\n        if not Path(f_path).exists():\n            return f\"Error: Input file not found: {f_path}\"\n\n    Path(output_dir).mkdir(parents=True, exist_ok=True)\n    output_filepath = Path(output_dir) / output_filename\n\n    # Create a temporary file list for ffmpeg\n    list_filename = f\"ffmpeg_list_{uuid.uuid4().hex}.txt\"\n    try:\n        with Path(list_filename).open(\"w\", encoding=\"utf-8\") as f:\n            for mp3_file in mp3_files:\n                # ffmpeg's concat demuxer requires 'file' directive and paths to be escaped or simple.\n                # Using absolute paths and -safe 0 is generally more robust.\n                abs_mp3_file = Path(mp3_file).resolve()\n                f.write(f\"file '{abs_mp3_file}'\\n\")\n\n        # Construct and run the ffmpeg command\n        # -y: overwrite output without asking\n        # -f concat: use the concat demuxer\n        # -safe 0: allow unsafe file paths (needed for absolute paths in list file)\n        # -c copy: copy audio stream without re-encoding (fast, preserves quality)\n        command = [\n            \"ffmpeg\",\n            \"-y\",\n            \"-f\",\n            \"concat\",\n            \"-safe\",\n            \"0\",\n            \"-i\",\n            list_filename,\n            \"-c\",\n            \"copy\",\n            str(Path(output_filepath).resolve()),\n        ]\n\n        process = subprocess.run(command, capture_output=True, text=True, check=False)\n\n        if process.returncode != 0:\n            return f\"Error combining MP3 files with ffmpeg: {process.stderr}\"\n\n        return str(Path(output_filepath).resolve())\n\n    except FileNotFoundError:\n        return \"Error: ffmpeg command not found. Please ensure ffmpeg is installed and in your PATH.\"\n    except Exception as e:\n        return f\"An unexpected error occurred during MP3 combination: {e}\"\n    finally:\n        # Clean up the temporary list file\n        if Path(list_filename).exists():\n            Path(list_filename).unlink()\n",
-        "gen_ai.output.type": "text"
-      },
-      "links": [],
-      "events": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.31.1",
-          "service.name": "unknown_service"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "call_llm o3",
-      "kind": "internal",
-      "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "start_time": 1750676416572807000,
-      "end_time": 1750676421795146000,
-      "status": {
-        "status_code": "ok",
-        "description": null
-      },
-      "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 13475610097869408165,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "attributes": {
-        "gen_ai.operation.name": "call_llm",
-        "gen_ai.request.model": "o3",
-        "gen_ai.output": "[{\"tool.name\": \"search_mcp_servers\", \"tool.args\": \"{\\\"keyword\\\":\\\"text to speech\\\",\\\"is_official\\\":false}\"}]",
-        "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 5037,
-        "gen_ai.usage.output_tokens": 161
+        "gen_ai.usage.output_tokens": 224
       },
       "links": [],
       "events": [],
@@ -359,8 +157,8 @@
       "name": "execute_tool search_mcp_servers",
       "kind": "internal",
       "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -369,15 +167,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750676421800041000,
-      "end_time": 1750676421824638000,
+      "start_time": 1750681783230716000,
+      "end_time": 1750681783725457000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 11221377711735446202,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 15353818264452793220,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -389,108 +187,7 @@
       "attributes": {
         "gen_ai.operation.name": "execute_tool",
         "gen_ai.tool.name": "search_mcp_servers",
-        "gen_ai.tool.args": "{\"keyword\":\"text to speech\",\"is_official\":false}",
-        "gen_ai.output": "[]",
-        "gen_ai.output.type": "json"
-      },
-      "links": [],
-      "events": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.31.1",
-          "service.name": "unknown_service"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "call_llm o3",
-      "kind": "internal",
-      "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "start_time": 1750676421826355000,
-      "end_time": 1750676425343007000,
-      "status": {
-        "status_code": "ok",
-        "description": null
-      },
-      "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 10684222959966875157,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "attributes": {
-        "gen_ai.operation.name": "call_llm",
-        "gen_ai.request.model": "o3",
-        "gen_ai.output": "[{\"tool.name\": \"search_mcp_servers\", \"tool.args\": \"{\\\"keyword\\\":\\\"tts\\\",\\\"is_official\\\":false}\"}]",
-        "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 5078,
-        "gen_ai.usage.output_tokens": 95
-      },
-      "links": [],
-      "events": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.31.1",
-          "service.name": "unknown_service"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "execute_tool search_mcp_servers",
-      "kind": "internal",
-      "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "start_time": 1750676425348527000,
-      "end_time": 1750676425371511000,
-      "status": {
-        "status_code": "ok",
-        "description": null
-      },
-      "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1431955184147622420,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "attributes": {
-        "gen_ai.operation.name": "execute_tool",
-        "gen_ai.tool.name": "search_mcp_servers",
-        "gen_ai.tool.args": "{\"keyword\":\"tts\",\"is_official\":false}",
+        "gen_ai.tool.args": "{\"keyword\":\"tts\", \"is_official\":false}",
         "gen_ai.output": "[{\"name\": \"elevenlabs\", \"description\": \"A server that integrates with ElevenLabs text-to-speech API capable of generating full voiceovers with multiple voices.\", \"license\": \"MIT\", \"installations\": {\"uvx\": {\"type\": \"uvx\", \"command\": \"uvx\", \"args\": [\"elevenlabs-mcp-server\"], \"env\": {\"ELEVENLABS_API_KEY\": \"${ELEVENLABS_API_KEY}\", \"ELEVENLABS_VOICE_ID\": \"${ELEVENLABS_VOICE_ID}\", \"ELEVENLABS_MODEL_ID\": \"${ELEVENLABS_MODEL_ID}\", \"ELEVENLABS_STABILITY\": \"${ELEVENLABS_STABILITY}\", \"ELEVENLABS_SIMILARITY_BOOST\": \"${ELEVENLABS_SIMILARITY_BOOST}\", \"ELEVENLABS_STYLE\": \"${ELEVENLABS_STYLE}\", \"ELEVENLABS_OUTPUT_DIR\": \"${ELEVENLABS_OUTPUT_DIR}\"}}, \"docker\": {\"type\": \"docker\", \"command\": \"docker\", \"args\": [\"run\", \"-i\", \"--rm\", \"-e\", \"ELEVENLABS_API_KEY\", \"mcp/elevenlabs\"], \"env\": {\"ELEVENLABS_API_KEY\": \"${ELEVENLABS_API_KEY}\"}}}, \"arguments\": {\"ELEVENLABS_API_KEY\": {\"description\": \"Your API key for ElevenLabs to access the text-to-speech services.\", \"required\": true, \"example\": \"sk-12345abcd\"}, \"ELEVENLABS_VOICE_ID\": {\"description\": \"The ID of the voice you want to use for synthesis.\", \"required\": true, \"example\": \"voice-12345\"}, \"ELEVENLABS_MODEL_ID\": {\"description\": \"The model ID to be used, indicating the version of the ElevenLabs API to utilize.\", \"required\": false, \"example\": \"eleven_flash_v2\"}, \"ELEVENLABS_STABILITY\": {\"description\": \"Stability of the voice generation; controls variations in the output voice.\", \"required\": false, \"example\": \"0.5\"}, \"ELEVENLABS_SIMILARITY_BOOST\": {\"description\": \"Boosting similarity for the voices; affects how closely the output mimics the selected voice.\", \"required\": false, \"example\": \"0.75\"}, \"ELEVENLABS_STYLE\": {\"description\": \"Style parameter to adjust the expression in the generated speech.\", \"required\": false, \"example\": \"0.1\"}, \"ELEVENLABS_OUTPUT_DIR\": {\"description\": \"Directory path where the generated audio files will be saved.\", \"required\": false, \"example\": \"output\"}}, \"tools\": [{\"name\": \"generate_audio_simple\", \"description\": \"Generate audio from plain text using default voice settings\"}, {\"name\": \"generate_audio_script\", \"description\": \"Generate audio from a structured script with multiple voices and actors. \\n                    Accepts either:\\n                    1. Plain text string\\n                    2. JSON string with format: {\\n                        \\\"script\\\": [\\n                            {\\n                                \\\"text\\\": \\\"Text to speak\\\",\\n                                \\\"voice_id\\\": \\\"optional-voice-id\\\",\\n                                \\\"actor\\\": \\\"optional-actor-name\\\"\\n                            },\\n                            ...\\n                        ]\\n                    }\"}, {\"name\": \"delete_job\", \"description\": \"Delete a voiceover job and its associated files\"}, {\"name\": \"get_audio_file\", \"description\": \"Get the audio file content for a specific job\"}, {\"name\": \"list_voices\", \"description\": \"Get a list of all available ElevenLabs voices with metadata\"}, {\"name\": \"get_voiceover_history\", \"description\": \"Get voiceover job history. Optionally specify a job ID for a specific job.\"}]}]",
         "gen_ai.output.type": "json"
       },
@@ -510,8 +207,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -520,15 +217,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750676425378773000,
-      "end_time": 1750676445839708000,
+      "start_time": 1750681783730057000,
+      "end_time": 1750681793127676000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 5399109414931871966,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 9414447864244970227,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -542,8 +239,8 @@
         "gen_ai.request.model": "o3",
         "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/extract_text_from_url.py\\\"}\"}]",
         "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 5903,
-        "gen_ai.usage.output_tokens": 798
+        "gen_ai.usage.input_tokens": 4639,
+        "gen_ai.usage.output_tokens": 414
       },
       "links": [],
       "events": [],
@@ -561,8 +258,8 @@
       "name": "execute_tool read_file",
       "kind": "internal",
       "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -571,15 +268,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750676445844738000,
-      "end_time": 1750676445846579000,
+      "start_time": 1750681793131957000,
+      "end_time": 1750681793133962000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 11424450485897818619,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 8900057224211511946,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -611,8 +308,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -621,15 +318,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750676445854533000,
-      "end_time": 1750676557608808000,
+      "start_time": 1750681793142588000,
+      "end_time": 1750681795029561000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 17588524279033628198,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 922636341843557609,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -641,10 +338,212 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "o3",
-        "gen_ai.output": "{\n  \"agent_code\": \"# agent.py\\n\\nimport os\\nimport json\\nfrom pathlib import Path\\n\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent, AgentRunError\\nfrom any_agent.config import MCPStdio\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ==== Local (python) tools ====\\nfrom tools.extract_text_from_url import extract_text_from_url\\nfrom tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm\\nfrom tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast\\n\\n# NOTE: the ElevenLabs MCP server supplies the text-to-speech tool we need\\n\\nload_dotenv()\\n\\n# =============================================================\\n#                 Structured output definition\\n# =============================================================\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"The original webpage URL that was converted into a podcast.\\\")\\n    podcast_path: str = Field(..., description=\\\"Absolute path of the generated podcast MP3 file.\\\")\\n    num_hosts: int = Field(..., description=\\\"Number of distinct hosts / speakers used in the podcast audio.\\\")\\n    script_excerpt: str = Field(..., description=\\\"First 500 characters of the generated podcast script – useful for quick review.\\\")\\n\\n# =============================================================\\n#                 Multi-step system instructions\\n# =============================================================\\nINSTRUCTIONS = \\\"\\\"\\\"\\nYou are an autonomous agent that transforms the content of a web page into an engaging multi-speaker audio podcast.\\nFollow these steps precisely and ONLY use the provided callable tools to accomplish each step:\\n\\n1. Receive the user-supplied webpage URL (variable {url}) and the desired number of podcast hosts (variable {num_hosts}).\\n2. Call `extract_text_from_url` to pull the main readable text from the page.  If an error string is returned, stop and report failure.\\n3. Condense / adapt that text into an interesting podcast script by calling `generate_podcast_script_with_llm`.  Ensure the script clearly labels each host line as “Host 1: …”, “Host 2: …”, etc.  Keep the dialogue natural and informative.\\n4. For EACH line in the script:\\n   a. Pass the plain text line to the ElevenLabs MCP tool `generate_audio_simple` to create an MP3 segment.\\n   b. Capture the returned file path (or job identifier that resolves to a file path) and maintain the original script order when storing these paths.\\n5. After all lines have been voiced, call `combine_mp3_files_for_podcast` with the ordered list of MP3 segment paths to merge them into a single podcast MP3.\\n6. Return a StructuredOutput JSON object containing:\\n   • url – the original page URL\\n   • podcast_path – absolute path to the combined podcast file\\n   • num_hosts – how many distinct host voices were used\\n   • script_excerpt – the first 500 characters of the generated script (for quick review)\\n\\nDO NOT include any other keys or free-text outside the structured JSON response.\\n\\\"\\\"\\\"\\n\\n# =============================================================\\n#                        Tools list\\n# =============================================================\\nTOOLS = [\\n    # Local python tools\\n    extract_text_from_url,\\n    generate_podcast_script_with_llm,\\n    combine_mp3_files_for_podcast,\\n    # MCP server providing ElevenLabs TTS capability\\n    MCPStdio(\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"ELEVENLABS_API_KEY\\\",\\n            \\\"mcp/elevenlabs\\\",\\n        ],\\n        env={\\n            \\\"ELEVENLABS_API_KEY\\\": os.getenv(\\\"ELEVENLABS_API_KEY\\\"),\\n        },\\n        tools=[\\n            \\\"generate_audio_simple\\\",  # simplest text-to-speech endpoint\\n        ],\\n    ),\\n]\\n\\n# =============================================================\\n#                       Agent creation\\n# =============================================================\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n        model_args={\\\"tool_choice\\\": \\\"required\\\"},\\n    ),\\n)\\n\\n# =============================================================\\n#                 CLI wrapper around the agent\\n# =============================================================\\nPROMPT_TEMPLATE = (\\n    \\\"Create a multi-speaker podcast with {num_hosts} hosts from the contents of this webpage: {url}. \\\"\\n    \\\"Follow the step-by-step workflow you have been given.\\\"\\n)\\n\\n\\ndef run_agent(url: str, num_hosts: int = 2):\\n    \\\"\\\"\\\"Generate an audio podcast (MP3) from a webpage URL.\\\"\\\"\\\"\\n\\n    # Ensure the output directory for traces exists\\n    Path(\\\"generated_workflows/latest\\\").mkdir(parents=True, exist_ok=True)\\n\\n    input_prompt = PROMPT_TEMPLATE.format(url=url, num_hosts=num_hosts)\\n\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=30)\\n    except AgentRunError as e:\\n        agent_trace = e.trace  # capture partial trace for debugging\\n        print(f\\\"Agent execution failed: {str(e)}\\\")\\n        print(\\\"Retrieved partial agent trace…\\\")\\n\\n    # Save the trace for inspection / evaluation\\n    with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n\\n    # Return the final structured result\\n    return agent_trace.final_output\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\",\n  \"run_instructions\": \"### Setup instructions\\n\\n1. **Clone / download the project** and ensure you have Python **3.11** installed.\\n\\n2. **Create a `.env` file** in the project root with the following variables (obtain keys from your ElevenLabs dashboard):\\n\\n```\\nOPENAI_API_KEY=your_openai_key_here\\nELEVENLABS_API_KEY=your_elevenlabs_api_key_here\\n```\\n\\n3. **Install dependencies and run the agent** (Linux / macOS example):\\n\\n```bash\\nuv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \\\\\\n    python generated_workflows/latest/agent.py --url \\\"https://example.com/some-article\\\" --num_hosts 2\\n```\\n\\n> **Note**: `ffmpeg` must be installed and available in your system `PATH` for audio concatenation.\\n\",\n  \"dependencies\": \"any-agent[all]==0.21.0\\nuv\\npython-dotenv\\nfire\\nrequests\\nbeautifulsoup4\\nlitellm\\npydantic\\n\"}\n",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/generate_podcast_script_with_llm.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 4925,
+        "gen_ai.usage.output_tokens": 27
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750681795034976000,
+      "end_time": 1750681795036929000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13101874116940724819,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"file_name\":\"tools/generate_podcast_script_with_llm.py\"}",
+        "gen_ai.output": "from litellm import completion\n\n\ndef generate_podcast_script_with_llm(document_text: str, num_hosts: int = 2, model: str = \"gpt-4o-mini\") -> str:\n    \"\"\"Writes a podcast script from a given text document using an LLM.\n    The number of hosts/speakers in the podcast can be specified.\n\n    Args:\n        document_text: The text content to be transformed into a podcast script.\n        num_hosts: The number of hosts/speakers for the podcast script (e.g., 1, 2, 3).\n                   Defaults to 2.\n        model: The LLM model to use for script generation (default: \"gpt-4o-mini\").\n\n    Returns:\n        A string containing the generated podcast script.\n        Returns an error message string if an error occurs.\n    \"\"\"\n    if not document_text.strip():\n        return \"Error: No document text provided for script generation.\"\n    if not isinstance(num_hosts, int) or num_hosts <= 0:\n        return \"Error: Number of hosts must be a positive integer.\"\n\n    system_prompt = (\n        \"You are a creative scriptwriter specializing in engaging podcast dialogues. \"\n        \"Your task is to convert the provided document into a podcast script.\"\n    )\n\n    user_prompt = (\n        f\"Generate a podcast script based on the following document. \"\n        f\"The script should feature {num_hosts} distinct hosts. \"\n        f\"Clearly label each host's lines (e.g., Host 1:, Host 2:, etc., or Speaker A:, Speaker B:). \"\n        f\"Make the conversation natural, engaging, and informative, covering the key points of the document. \"\n        f\"Include an introduction and an outro if appropriate.\\n\\n\"\n        f\"Document:\\n---\\n{document_text}\\n---\"\n    )\n\n    try:\n        response = completion(\n            model=model,\n            messages=[{\"role\": \"system\", \"content\": system_prompt}, {\"role\": \"user\", \"content\": user_prompt}],\n        )\n        return response.choices[0].message.content\n    except Exception as e:\n        return f\"Error calling LLM for podcast script generation: {e}\"\n",
+        "gen_ai.output.type": "text"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750681795047095000,
+      "end_time": 1750681797300889000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 11097532680289660163,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/combine_mp3_files_for_podcast.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 5418,
+        "gen_ai.usage.output_tokens": 27
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750681797305168000,
+      "end_time": 1750681797306284000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 8433325080140135245,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"file_name\":\"tools/combine_mp3_files_for_podcast.py\"}",
+        "gen_ai.output": "import subprocess\nimport uuid\nfrom pathlib import Path\n\n\ndef combine_mp3_files_for_podcast(\n    mp3_files: list[str], output_filename: str = \"podcast.mp3\", output_dir: str = \"podcasts\"\n) -> str:\n    \"\"\"Combines a list of MP3 audio files into a single MP3 podcast file using ffmpeg.\n\n    This function requires ffmpeg to be installed and accessible in the system's PATH.\n    It creates a temporary file list for ffmpeg's concat demuxer.\n\n    Args:\n        mp3_files: A list of absolute or relative paths to the MP3 files to be combined.\n                   The order in the list determines the order in the output file.\n        output_filename: The name for the combined output MP3 file.\n                         Defaults to \"podcast.mp3\".\n        output_dir: The directory where the combined podcast file will be saved.\n                    Defaults to \"podcasts\". Created if it doesn't exist.\n\n    Returns:\n        The absolute path to the combined podcast MP3 file if successful.\n        Returns an error message string if ffmpeg fails or an error occurs.\n    \"\"\"\n    if not mp3_files:\n        return \"Error: No MP3 files provided for combination.\"\n\n    for f_path in mp3_files:\n        if not Path(f_path).exists():\n            return f\"Error: Input file not found: {f_path}\"\n\n    Path(output_dir).mkdir(parents=True, exist_ok=True)\n    output_filepath = Path(output_dir) / output_filename\n\n    # Create a temporary file list for ffmpeg\n    list_filename = f\"ffmpeg_list_{uuid.uuid4().hex}.txt\"\n    try:\n        with Path(list_filename).open(\"w\", encoding=\"utf-8\") as f:\n            for mp3_file in mp3_files:\n                # ffmpeg's concat demuxer requires 'file' directive and paths to be escaped or simple.\n                # Using absolute paths and -safe 0 is generally more robust.\n                abs_mp3_file = Path(mp3_file).resolve()\n                f.write(f\"file '{abs_mp3_file}'\\n\")\n\n        # Construct and run the ffmpeg command\n        # -y: overwrite output without asking\n        # -f concat: use the concat demuxer\n        # -safe 0: allow unsafe file paths (needed for absolute paths in list file)\n        # -c copy: copy audio stream without re-encoding (fast, preserves quality)\n        command = [\n            \"ffmpeg\",\n            \"-y\",\n            \"-f\",\n            \"concat\",\n            \"-safe\",\n            \"0\",\n            \"-i\",\n            list_filename,\n            \"-c\",\n            \"copy\",\n            str(Path(output_filepath).resolve()),\n        ]\n\n        process = subprocess.run(command, capture_output=True, text=True, check=False)\n\n        if process.returncode != 0:\n            return f\"Error combining MP3 files with ffmpeg: {process.stderr}\"\n\n        return str(Path(output_filepath).resolve())\n\n    except FileNotFoundError:\n        return \"Error: ffmpeg command not found. Please ensure ffmpeg is installed and in your PATH.\"\n    except Exception as e:\n        return f\"An unexpected error occurred during MP3 combination: {e}\"\n    finally:\n        # Clean up the temporary list file\n        if Path(list_filename).exists():\n            Path(list_filename).unlink()\n",
+        "gen_ai.output.type": "text"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750681797319370000,
+      "end_time": 1750681844407187000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 11894010902086344240,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "{\n  \"agent_code\": \"# agent.py\\n\\nimport os\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent, AgentRunError\\nfrom any_agent.config import MCPStdio\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ------------- Local (callable) tools -------------\\nfrom tools.extract_text_from_url import extract_text_from_url\\nfrom tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm\\n\\n# ------------- Load env vars -------------\\nload_dotenv()\\n\\n# ========== Structured output definition ==========\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"Original webpage URL that inspired the podcast\\\")\\n    script_text: str = Field(..., description=\\\"Full podcast script that was generated for multiple speakers\\\")\\n    audio_file_path: str = Field(..., description=\\\"Filesystem path (or URL) to the final generated MP3 podcast audio\\\")\\n\\n# ========== System (Multi-step) Instructions ==========\\nINSTRUCTIONS = \\\"\\\"\\\"\\nYou are an autonomous podcast-production agent that must follow this 4-step workflow and use the provided tools only:\\nSTEP 1 ― Fetch & Extract\\n    • Use extract_text_from_url(url) to pull all readable text from the user-supplied webpage.\\n    • If extraction fails or the content is empty, stop and raise an error.\\nSTEP 2 ― Draft Script\\n    • Summarise or reorganise the extracted text into an engaging podcast script.\\n    • Call generate_podcast_script_with_llm(document_text, num_hosts=n) where n is provided by the user (default 2).\\n    • Make sure each speaker turn is clearly labelled (e.g. \\\"Host 1:\\\", \\\"Host 2:\\\").\\nSTEP 3 ― Text-to-Speech\\n    • Send the entire script text to the ElevenLabs MCP tool generate_audio_script.\\n    • Provide it the raw script (plain text). Let the server choose voices automatically unless the user supplies voice IDs.\\n    • The tool returns a path/URL to a single MP3 file that contains all speakers.\\nSTEP 4 ― Respond\\n    • Return a JSON object that matches the StructuredOutput schema (url, script_text, audio_file_path).\\n    • Do not include anything else in the final answer.\\nGeneral Rules:\\n    • ALWAYS call tools; never attempt tasks manually when a tool exists.\\n    • Keep conversations concise and use no more than 15 total tool calls.\\n    • Reply ONLY with valid JSON matching the output schema.\\n\\\"\\\"\\\"\\n\\n# ========== Tools definition ===========\\nTOOLS = [\\n    extract_text_from_url,\\n    generate_podcast_script_with_llm,\\n    # ElevenLabs Text-to-Speech MCP server (Docker installation variant)\\n    MCPStdio(\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"ELEVENLABS_API_KEY\\\",\\n            \\\"mcp/elevenlabs\\\",\\n        ],\\n        env={\\n            \\\"ELEVENLABS_API_KEY\\\": os.getenv(\\\"ELEVENLABS_API_KEY\\\"),\\n        },\\n        tools=[\\n            \\\"generate_audio_script\\\",  # only tool we need for this workflow\\n        ],\\n    ),\\n]\\n\\n# ========== Create the agent ===========\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n        model_args={\\\"tool_choice\\\": \\\"required\\\"},\\n    ),\\n)\\n\\n# ========== CLI entrypoint =============\\n\\ndef run_agent(url: str, num_hosts: int = 2):\\n    \\\"\\\"\\\"Generate a multi-speaker podcast (audio + script) from a webpage URL.\\\"\\\"\\\"\\n    # Compose prompt — the agent will break tasks into steps internally\\n    prompt_template = (\\n        \\\"Create an engaging {num_hosts}-speaker audio podcast based on the content of this webpage: {url}\\\\n\\\"\\n        \\\"Return the final result following the steps in your system instructions.\\\"\\n    )\\n    input_prompt = prompt_template.format(url=url, num_hosts=num_hosts)\\n\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    except AgentRunError as e:\\n        agent_trace = e.trace\\n        print(f\\\"Agent execution failed: {e}\\\")\\n        print(\\\"Partial trace retrieved …\\\")\\n\\n    # Persist the trace for evaluation/inspection\\n    os.makedirs(\\\"generated_workflows/latest\\\", exist_ok=True)\\n    with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n\\n    return agent_trace.final_output\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\",\n  \"run_instructions\": \"### Environment setup\\n1. Ensure you have Python 3.11 installed.\\n2. Create a `.env` file in the project root with the following variables:\\n   ```env\\n   OPENAI_API_KEY=YOUR_OPENAI_API_KEY\\n   ELEVENLABS_API_KEY=YOUR_ELEVENLABS_API_KEY  # for text-to-speech\\n   ```\\n   Optional ElevenLabs settings (only if you need custom voices or model):\\n   ```env\\n   ELEVENLABS_VOICE_ID=voice-12345\\n   ELEVENLABS_MODEL_ID=eleven_multilingual_v2\\n   ELEVENLABS_OUTPUT_DIR=output\\n   ```\\n3. Make sure Docker is installed and running (needed for the ElevenLabs MCP container).\\n4. Run the agent with `uv`:\\n   ```bash\\n   uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \\\\\\n       python generated_workflows/latest/agent.py --url \\\"https://example.com/article\\\" --num_hosts 2\\n   ```\\n   The agent will save an execution trace at `generated_workflows/latest/agent_eval_trace.json` and print the final JSON-structured result to stdout.\\n\",\n  \"dependencies\": \"any-agent[all]==0.21.0\\nuv\\npython-dotenv\\nfire\\nrequests\\nbeautifulsoup4\\nlitellm\\n\"\n}\n",
         "gen_ai.output.type": "text",
-        "gen_ai.usage.input_tokens": 6189,
-        "gen_ai.usage.output_tokens": 2862
+        "gen_ai.usage.input_tokens": 6148,
+        "gen_ai.usage.output_tokens": 2322
       },
       "links": [],
       "events": [],
@@ -672,15 +571,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750676403387869000,
-      "end_time": 1750676557629068000,
+      "start_time": 1750681770040722000,
+      "end_time": 1750681844422537000,
       "status": {
         "status_code": "unset",
         "description": null
       },
       "context": {
-        "trace_id": 266844647794331185001658953782643694262,
-        "span_id": 1061447516232791663,
+        "trace_id": 168054110691356147645969618391997699800,
+        "span_id": 13465330231745987761,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -708,5 +607,5 @@
       }
     }
   ],
-  "final_output": "{\n  \"agent_code\": \"# agent.py\\n\\nimport os\\nimport json\\nfrom pathlib import Path\\n\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent, AgentRunError\\nfrom any_agent.config import MCPStdio\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ==== Local (python) tools ====\\nfrom tools.extract_text_from_url import extract_text_from_url\\nfrom tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm\\nfrom tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast\\n\\n# NOTE: the ElevenLabs MCP server supplies the text-to-speech tool we need\\n\\nload_dotenv()\\n\\n# =============================================================\\n#                 Structured output definition\\n# =============================================================\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"The original webpage URL that was converted into a podcast.\\\")\\n    podcast_path: str = Field(..., description=\\\"Absolute path of the generated podcast MP3 file.\\\")\\n    num_hosts: int = Field(..., description=\\\"Number of distinct hosts / speakers used in the podcast audio.\\\")\\n    script_excerpt: str = Field(..., description=\\\"First 500 characters of the generated podcast script – useful for quick review.\\\")\\n\\n# =============================================================\\n#                 Multi-step system instructions\\n# =============================================================\\nINSTRUCTIONS = \\\"\\\"\\\"\\nYou are an autonomous agent that transforms the content of a web page into an engaging multi-speaker audio podcast.\\nFollow these steps precisely and ONLY use the provided callable tools to accomplish each step:\\n\\n1. Receive the user-supplied webpage URL (variable {url}) and the desired number of podcast hosts (variable {num_hosts}).\\n2. Call `extract_text_from_url` to pull the main readable text from the page.  If an error string is returned, stop and report failure.\\n3. Condense / adapt that text into an interesting podcast script by calling `generate_podcast_script_with_llm`.  Ensure the script clearly labels each host line as “Host 1: …”, “Host 2: …”, etc.  Keep the dialogue natural and informative.\\n4. For EACH line in the script:\\n   a. Pass the plain text line to the ElevenLabs MCP tool `generate_audio_simple` to create an MP3 segment.\\n   b. Capture the returned file path (or job identifier that resolves to a file path) and maintain the original script order when storing these paths.\\n5. After all lines have been voiced, call `combine_mp3_files_for_podcast` with the ordered list of MP3 segment paths to merge them into a single podcast MP3.\\n6. Return a StructuredOutput JSON object containing:\\n   • url – the original page URL\\n   • podcast_path – absolute path to the combined podcast file\\n   • num_hosts – how many distinct host voices were used\\n   • script_excerpt – the first 500 characters of the generated script (for quick review)\\n\\nDO NOT include any other keys or free-text outside the structured JSON response.\\n\\\"\\\"\\\"\\n\\n# =============================================================\\n#                        Tools list\\n# =============================================================\\nTOOLS = [\\n    # Local python tools\\n    extract_text_from_url,\\n    generate_podcast_script_with_llm,\\n    combine_mp3_files_for_podcast,\\n    # MCP server providing ElevenLabs TTS capability\\n    MCPStdio(\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"ELEVENLABS_API_KEY\\\",\\n            \\\"mcp/elevenlabs\\\",\\n        ],\\n        env={\\n            \\\"ELEVENLABS_API_KEY\\\": os.getenv(\\\"ELEVENLABS_API_KEY\\\"),\\n        },\\n        tools=[\\n            \\\"generate_audio_simple\\\",  # simplest text-to-speech endpoint\\n        ],\\n    ),\\n]\\n\\n# =============================================================\\n#                       Agent creation\\n# =============================================================\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n        model_args={\\\"tool_choice\\\": \\\"required\\\"},\\n    ),\\n)\\n\\n# =============================================================\\n#                 CLI wrapper around the agent\\n# =============================================================\\nPROMPT_TEMPLATE = (\\n    \\\"Create a multi-speaker podcast with {num_hosts} hosts from the contents of this webpage: {url}. \\\"\\n    \\\"Follow the step-by-step workflow you have been given.\\\"\\n)\\n\\n\\ndef run_agent(url: str, num_hosts: int = 2):\\n    \\\"\\\"\\\"Generate an audio podcast (MP3) from a webpage URL.\\\"\\\"\\\"\\n\\n    # Ensure the output directory for traces exists\\n    Path(\\\"generated_workflows/latest\\\").mkdir(parents=True, exist_ok=True)\\n\\n    input_prompt = PROMPT_TEMPLATE.format(url=url, num_hosts=num_hosts)\\n\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=30)\\n    except AgentRunError as e:\\n        agent_trace = e.trace  # capture partial trace for debugging\\n        print(f\\\"Agent execution failed: {str(e)}\\\")\\n        print(\\\"Retrieved partial agent trace…\\\")\\n\\n    # Save the trace for inspection / evaluation\\n    with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n\\n    # Return the final structured result\\n    return agent_trace.final_output\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\",\n  \"run_instructions\": \"### Setup instructions\\n\\n1. **Clone / download the project** and ensure you have Python **3.11** installed.\\n\\n2. **Create a `.env` file** in the project root with the following variables (obtain keys from your ElevenLabs dashboard):\\n\\n```\\nOPENAI_API_KEY=your_openai_key_here\\nELEVENLABS_API_KEY=your_elevenlabs_api_key_here\\n```\\n\\n3. **Install dependencies and run the agent** (Linux / macOS example):\\n\\n```bash\\nuv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \\\\\\n    python generated_workflows/latest/agent.py --url \\\"https://example.com/some-article\\\" --num_hosts 2\\n```\\n\\n> **Note**: `ffmpeg` must be installed and available in your system `PATH` for audio concatenation.\\n\",\n  \"dependencies\": \"any-agent[all]==0.21.0\\nuv\\npython-dotenv\\nfire\\nrequests\\nbeautifulsoup4\\nlitellm\\npydantic\\n\"}\n"
+  "final_output": "{\n  \"agent_code\": \"# agent.py\\n\\nimport os\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent, AgentRunError\\nfrom any_agent.config import MCPStdio\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ------------- Local (callable) tools -------------\\nfrom tools.extract_text_from_url import extract_text_from_url\\nfrom tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm\\n\\n# ------------- Load env vars -------------\\nload_dotenv()\\n\\n# ========== Structured output definition ==========\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"Original webpage URL that inspired the podcast\\\")\\n    script_text: str = Field(..., description=\\\"Full podcast script that was generated for multiple speakers\\\")\\n    audio_file_path: str = Field(..., description=\\\"Filesystem path (or URL) to the final generated MP3 podcast audio\\\")\\n\\n# ========== System (Multi-step) Instructions ==========\\nINSTRUCTIONS = \\\"\\\"\\\"\\nYou are an autonomous podcast-production agent that must follow this 4-step workflow and use the provided tools only:\\nSTEP 1 ― Fetch & Extract\\n    • Use extract_text_from_url(url) to pull all readable text from the user-supplied webpage.\\n    • If extraction fails or the content is empty, stop and raise an error.\\nSTEP 2 ― Draft Script\\n    • Summarise or reorganise the extracted text into an engaging podcast script.\\n    • Call generate_podcast_script_with_llm(document_text, num_hosts=n) where n is provided by the user (default 2).\\n    • Make sure each speaker turn is clearly labelled (e.g. \\\"Host 1:\\\", \\\"Host 2:\\\").\\nSTEP 3 ― Text-to-Speech\\n    • Send the entire script text to the ElevenLabs MCP tool generate_audio_script.\\n    • Provide it the raw script (plain text). Let the server choose voices automatically unless the user supplies voice IDs.\\n    • The tool returns a path/URL to a single MP3 file that contains all speakers.\\nSTEP 4 ― Respond\\n    • Return a JSON object that matches the StructuredOutput schema (url, script_text, audio_file_path).\\n    • Do not include anything else in the final answer.\\nGeneral Rules:\\n    • ALWAYS call tools; never attempt tasks manually when a tool exists.\\n    • Keep conversations concise and use no more than 15 total tool calls.\\n    • Reply ONLY with valid JSON matching the output schema.\\n\\\"\\\"\\\"\\n\\n# ========== Tools definition ===========\\nTOOLS = [\\n    extract_text_from_url,\\n    generate_podcast_script_with_llm,\\n    # ElevenLabs Text-to-Speech MCP server (Docker installation variant)\\n    MCPStdio(\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"ELEVENLABS_API_KEY\\\",\\n            \\\"mcp/elevenlabs\\\",\\n        ],\\n        env={\\n            \\\"ELEVENLABS_API_KEY\\\": os.getenv(\\\"ELEVENLABS_API_KEY\\\"),\\n        },\\n        tools=[\\n            \\\"generate_audio_script\\\",  # only tool we need for this workflow\\n        ],\\n    ),\\n]\\n\\n# ========== Create the agent ===========\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n        model_args={\\\"tool_choice\\\": \\\"required\\\"},\\n    ),\\n)\\n\\n# ========== CLI entrypoint =============\\n\\ndef run_agent(url: str, num_hosts: int = 2):\\n    \\\"\\\"\\\"Generate a multi-speaker podcast (audio + script) from a webpage URL.\\\"\\\"\\\"\\n    # Compose prompt — the agent will break tasks into steps internally\\n    prompt_template = (\\n        \\\"Create an engaging {num_hosts}-speaker audio podcast based on the content of this webpage: {url}\\\\n\\\"\\n        \\\"Return the final result following the steps in your system instructions.\\\"\\n    )\\n    input_prompt = prompt_template.format(url=url, num_hosts=num_hosts)\\n\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    except AgentRunError as e:\\n        agent_trace = e.trace\\n        print(f\\\"Agent execution failed: {e}\\\")\\n        print(\\\"Partial trace retrieved …\\\")\\n\\n    # Persist the trace for evaluation/inspection\\n    os.makedirs(\\\"generated_workflows/latest\\\", exist_ok=True)\\n    with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n\\n    return agent_trace.final_output\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\",\n  \"run_instructions\": \"### Environment setup\\n1. Ensure you have Python 3.11 installed.\\n2. Create a `.env` file in the project root with the following variables:\\n   ```env\\n   OPENAI_API_KEY=YOUR_OPENAI_API_KEY\\n   ELEVENLABS_API_KEY=YOUR_ELEVENLABS_API_KEY  # for text-to-speech\\n   ```\\n   Optional ElevenLabs settings (only if you need custom voices or model):\\n   ```env\\n   ELEVENLABS_VOICE_ID=voice-12345\\n   ELEVENLABS_MODEL_ID=eleven_multilingual_v2\\n   ELEVENLABS_OUTPUT_DIR=output\\n   ```\\n3. Make sure Docker is installed and running (needed for the ElevenLabs MCP container).\\n4. Run the agent with `uv`:\\n   ```bash\\n   uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \\\\\\n       python generated_workflows/latest/agent.py --url \\\"https://example.com/article\\\" --num_hosts 2\\n   ```\\n   The agent will save an execution trace at `generated_workflows/latest/agent_eval_trace.json` and print the final JSON-structured result to stdout.\\n\",\n  \"dependencies\": \"any-agent[all]==0.21.0\\nuv\\npython-dotenv\\nfire\\nrequests\\nbeautifulsoup4\\nlitellm\\n\"\n}\n"
 }
