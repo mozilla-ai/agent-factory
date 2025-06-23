@@ -97,7 +97,7 @@ import { evaluationService } from '@/services/evaluationService'
 import { useWorkflowsStore } from '@/stores/workflows'
 
 const props = defineProps({
-  workflowPath: {
+  workflowId: {
     type: String,
     required: true,
   },
@@ -127,10 +127,10 @@ const allEvaluationFilesExist = computed(
 // Mutations for evaluation steps
 const runAgentMutation = useMutation({
   mutationFn: async () => {
-    output.value = `Running agent for workflow: ${props.workflowPath}...\n`
+    output.value = `Running agent for workflow: ${props.workflowId}...\n`
 
     try {
-      const stream = await evaluationService.runAgent(props.workflowPath)
+      const stream = await evaluationService.runAgent(props.workflowId)
       await processStream(stream)
       return true
     } catch (error) {
@@ -142,10 +142,10 @@ const runAgentMutation = useMutation({
   onSuccess: () => {
     console.log('Agent run successful, invalidating evaluation status query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowId],
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'agent_eval_trace.json'],
+      queryKey: ['file-content', props.workflowId, 'agent_eval_trace.json'],
     })
     workflowsStore.loadWorkflows()
   },
@@ -159,7 +159,7 @@ const genCasesMutation = useMutation({
     output.value = 'Generating evaluation cases...\n'
 
     try {
-      const stream = await evaluationService.generateEvaluationCases(props.workflowPath)
+      const stream = await evaluationService.generateEvaluationCases(props.workflowId)
       await processStream(stream)
       return true
     } catch (error) {
@@ -171,10 +171,10 @@ const genCasesMutation = useMutation({
   onSuccess: () => {
     console.log('Case generation successful, invalidating cases query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowId],
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
+      queryKey: ['file-content', props.workflowId, 'evaluation_case.yaml'],
     })
     workflowsStore.loadWorkflows()
   },
@@ -185,10 +185,10 @@ const genCasesMutation = useMutation({
 
 const runEvalMutation = useMutation({
   mutationFn: async () => {
-    output.value = `Running evaluation for workflow: ${props.workflowPath}...\n`
+    output.value = `Running evaluation for workflow: ${props.workflowId}...\n`
 
     try {
-      const stream = await evaluationService.runEvaluation(props.workflowPath)
+      const stream = await evaluationService.runEvaluation(props.workflowId)
       await processStream(stream)
       return true
     } catch (error) {
@@ -200,10 +200,10 @@ const runEvalMutation = useMutation({
   onSuccess: () => {
     console.log('Evaluation successful, invalidating results query')
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowId],
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_results.json'],
+      queryKey: ['file-content', props.workflowId, 'evaluation_results.json'],
     })
     workflowsStore.loadWorkflows()
   },
@@ -232,7 +232,7 @@ function viewResults() {
 }
 
 onMounted(() => {
-  console.log('Component mounted with workflow path:', props.workflowPath)
+  console.log('Component mounted with workflow path:', props.workflowId)
 })
 </script>
 

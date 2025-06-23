@@ -6,7 +6,7 @@
     </div>
 
     <!-- Error state for missing criteria file -->
-    <div v-else-if="hasCriteriaError" class="empty-criteria-container">
+    <div v-else-if="hasCriteriaError && !isEditMode" class="empty-criteria-container">
       <div class="empty-criteria-message">
         <h3>No Evaluation Criteria Found</h3>
         <p>
@@ -25,7 +25,7 @@
       class="criteria-form-container"
     >
       <EvaluationCriteriaForm
-        :workflow-path="workflowPath"
+        :workflowId="workflowId"
         :initialData="evaluationCriteriaQuery.data.value"
         @saved="onCriteriaSaved"
         @cancel="isEditMode = false"
@@ -130,11 +130,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import yaml from 'js-yaml'
 import { transformResults, type OldFormatData } from '@/helpers/transform-results'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
 import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
-import { deleteEvaluationCriteria } from '../../services/evaluationService'
+import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import { useRouter } from 'vue-router'
 import { useWorkflowsStore } from '@/stores/workflows'
@@ -158,7 +157,7 @@ interface EvaluationResult {
 
 // Props
 const props = defineProps<{
-  workflowPath: string
+  workflowId: string
 }>()
 
 const queryClient = useQueryClient()
@@ -175,42 +174,28 @@ const workflowsStore = useWorkflowsStore()
 const onCriteriaSaved = () => {
   isEditMode.value = false
   // Refetch invalidated queries after updating criteria
-  queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
-  queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
-  queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+  queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowId] })
+  queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowId] })
+  queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowId] })
 }
 
 // Fetch evaluation criteria
 const evaluationCriteriaQuery = useQuery({
-  queryKey: ['evaluation-criteria', props.workflowPath],
+  queryKey: ['evaluation-criteria', props.workflowId],
   queryFn: async (): Promise<EvaluationCriteria> => {
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_case.yaml`,
-    )
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to load evaluation criteria: ${response.status} ${response.statusText}`,
-      )
-    }
-
-    const criteriaText = await response.text()
-    return yaml.load(criteriaText) as EvaluationCriteria
+    return evaluationService.getEvaluationCriteria(props.workflowId)
   },
   retry: 1, // Retry once on failure
 })
 
 // Fetch evaluation results
 const evaluationResultsQuery = useQuery({
-  queryKey: ['evaluation-results', props.workflowPath],
+  queryKey: ['evaluation-results', props.workflowId],
   queryFn: async (): Promise<OldFormatData> => {
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
-    )
-
-    if (!response.ok) {
-      // If no results yet, we don't throw an error
-      // This is expected when results haven't been generated
+    try {
+      const data = await evaluationService.getEvaluationResults(props.workflowId)
+      return transformResults(data)
+    } catch {
       return {
         checkpoints: [],
         totalScore: 0,
@@ -219,12 +204,9 @@ const evaluationResultsQuery = useQuery({
         maxScore: 0,
       }
     }
-
-    const data = await response.json()
-    return transformResults(data)
   },
   // No need to wait for criteria to load to fetch results
-  enabled: computed(() => !!props.workflowPath),
+  enabled: computed(() => !!props.workflowId),
   // Don't retry too many times for results that might not exist yet
   retry: 1,
 })
@@ -287,20 +269,20 @@ const startCreatingCriteria = () => {
 const router = useRouter()
 // Add delete mutation
 const deleteCriteriaMutation = useMutation({
-  mutationFn: () => deleteEvaluationCriteria(props.workflowPath),
+  mutationFn: () => evaluationService.deleteEvaluationCriteria(props.workflowId),
   onSuccess: () => {
     // Invalidate queries to refresh the data
-    queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowId] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowId] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowId] })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
+      queryKey: ['file-content', props.workflowId, 'evaluation_case.yaml'],
     })
     showDeleteDialog.value = false
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()
     router.push({
-      params: { workflowPath: props.workflowPath },
+      params: { worokflowPath: props.workflowId },
       query: { tab: 'evaluate' },
     })
   },

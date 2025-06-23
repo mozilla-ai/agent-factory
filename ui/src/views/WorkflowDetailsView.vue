@@ -38,7 +38,6 @@ import { useWorkflowsStore } from '@/stores/workflows'
 import { useQuery } from '@tanstack/vue-query'
 import { useTabs } from '@/composables/useTabs'
 import { workflowService } from '@/services/workflowService'
-import { routes } from '@/config'
 
 // Components
 import AgentFileExplorer from '@/components/tabs/AgentFileExplorer.vue'
@@ -62,16 +61,16 @@ const workflowId = computed(() => route.params.id as string)
 const workflow = computed(() => workflowsStore.getWorkflowById(workflowId.value))
 
 // Computed workflow path for API calls
-const workflowPath = computed(() => {
-  if (!workflow.value) return ''
-  return workflow.value.path || workflow.value.name
-})
+// const workflowId = computed(() => {
+//   if (!workflow.value) return ''
+//   return workflow.value.path || workflow.value.name
+// })
 
 // Setup evaluation status checking
 const evaluationStatusQuery = useQuery({
-  queryKey: ['evaluation-status', workflowPath],
-  queryFn: () => workflowService.getEvaluationStatus(workflowPath.value),
-  enabled: computed(() => !!workflowPath.value),
+  queryKey: ['evaluation-status', workflowId],
+  queryFn: () => workflowService.getEvaluationStatus(workflowId.value),
+  enabled: computed(() => !!workflowId.value),
   retry: 1,
 })
 
@@ -94,15 +93,15 @@ const selectedFilePath = computed(() =>
 
 // Configure file content query with caching
 const fileContentQuery = useQuery({
-  queryKey: ['file-content', workflowPath, selectedFilePath],
+  queryKey: ['file-content', workflowId, selectedFilePath],
   queryFn: () => {
     // Make sure we have both required parameters as strings
-    if (!workflowPath.value || !selectedFilePath.value) {
+    if (!workflowId.value || !selectedFilePath.value) {
       return Promise.resolve('') // Return empty string if path is missing
     }
-    return workflowService.getFileContent(workflowPath.value, selectedFilePath.value)
+    return workflowService.getFileContent(workflowId.value, selectedFilePath.value)
   },
-  enabled: computed(() => !!workflowPath.value && !!selectedFilePath.value),
+  enabled: computed(() => !!workflowId.value && !!selectedFilePath.value),
   retry: 1,
 })
 
@@ -154,7 +153,7 @@ const currentTabComponent = computed(() => {
 // Props to pass to the current tab component
 const tabProps = computed(() => {
   const baseProps = {
-    workflowPath: workflowPath.value,
+    workflowId: workflowId.value,
   }
 
   // Add tab-specific props
@@ -188,7 +187,7 @@ function handleEvaluationStatusChange() {
 
 // Navigation
 function navigateBack() {
-  router.push(routes.workflowList)
+  router.push('/workflows')
 }
 
 // Load data when the component mounts

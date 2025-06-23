@@ -113,12 +113,12 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
-import { saveEvaluationCriteria } from '../services/evaluationService'
 import type { EvaluationCriteria } from '../types/evaluation'
 import { useWorkflowsStore } from '@/stores/workflows'
+import { evaluationService } from '@/services/evaluationService'
 
 const props = defineProps<{
-  workflowPath: string
+  workflowId: string
   initialData?: EvaluationCriteria | null
 }>()
 
@@ -198,7 +198,7 @@ const toastType = ref('error') // 'success' or 'error'
 const saveMutation = useMutation({
   mutationFn: async () => {
     try {
-      return await saveEvaluationCriteria(props.workflowPath, formData)
+      return await evaluationService.saveEvaluationCriteria(props.workflowId, formData)
     } catch (error: unknown) {
       // Handle specific error types
       const err = error as { response?: { status?: number }; message?: string }
@@ -226,16 +226,16 @@ const saveMutation = useMutation({
 
     // Invalidate the criteria query to refresh data
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-criteria', props.workflowPath],
+      queryKey: ['evaluation-criteria', props.workflowId],
     })
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowPath],
+      queryKey: ['evaluation-status', props.workflowId],
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath],
+      queryKey: ['file-content', props.workflowId],
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
+      queryKey: ['file-content', props.workflowId, 'evaluation_case.yaml'],
     })
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()

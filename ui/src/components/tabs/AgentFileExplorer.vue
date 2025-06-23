@@ -93,7 +93,7 @@ interface File {
 
 // Props definition
 const props = defineProps({
-  workflowPath: {
+  workflowId: {
     type: String,
     required: true,
   },
@@ -139,7 +139,7 @@ const downloadUrl = computed(() => {
     filePath = props.selectedFile.path
   }
 
-  return `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/${filePath}`
+  return `http://localhost:3000/agent-factory/workflows/${props.workflowId}/${filePath}`
 })
 </script>
 

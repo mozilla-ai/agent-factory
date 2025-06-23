@@ -36,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+import { workflowService } from '@/services/workflowService'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { ref } from 'vue'
 
@@ -51,20 +52,8 @@ const handleSendClicked = async () => {
     isLoading.value = true
     generationComplete.value = false
 
-    const res = await fetch(
-      `http://localhost:3000/agent-factory?prompt=${encodeURIComponent(prompt.value)}`,
-      {
-        method: 'GET',
-      },
-    )
-
-    if (!res.ok) {
-      response.value = `Error: ${res.status} ${res.statusText}`
-      isLoading.value = false
-      return
-    }
-
-    const reader = res.body?.getReader()
+    const body = await workflowService.generateAgent(prompt.value)
+    const reader = body?.getReader()
     if (!reader) {
       response.value = 'Error: No response body'
       isLoading.value = false
@@ -94,9 +83,10 @@ const handleSendClicked = async () => {
 
     isLoading.value = false
   } catch (error: unknown) {
-    isLoading.value = false
     const errorMessage = error instanceof Error ? error.message : String(error)
-    response.value += '\n\nError occurred: ' + errorMessage
+
+    response.value = `Error: ${errorMessage}`
+    isLoading.value = false
   }
 }
 </script>

@@ -144,7 +144,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
-import { deleteAgentEvalTrace } from '../../services/evaluationService'
+import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import { workflowService } from '@/services/workflowService'
 import { useRouter } from 'vue-router'
@@ -193,7 +193,7 @@ interface TraceSpan {
 
 // Props
 const props = defineProps<{
-  workflowPath: string
+  workflowId: string
 }>()
 
 // State for UI interactions
@@ -203,27 +203,27 @@ const queryClient = useQueryClient()
 
 // Fetch agent trace data using TanStack Query
 const traceQuery = useQuery({
-  queryKey: ['agentEvalTrace', props.workflowPath],
-  queryFn: () => workflowService.getAgentTrace(props.workflowPath),
+  queryKey: ['agentEvalTrace', props.workflowId],
+  queryFn: () => workflowService.getAgentTrace(props.workflowId),
   retry: 1,
 })
 const router = useRouter()
 
 // Delete mutation
 const deleteTraceMutation = useMutation({
-  mutationFn: () => deleteAgentEvalTrace(props.workflowPath),
+  mutationFn: () => evaluationService.deleteAgentEvalTrace(props.workflowId),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['agentEvalTrace', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
+    queryClient.invalidateQueries({ queryKey: ['agentEvalTrace', props.workflowId] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowId] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowId] })
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'agent_eval_trace.json'],
+      queryKey: ['file-content', props.workflowId, 'agent_eval_trace.json'],
     })
     showDeleteDialog.value = false
     router.push({
-      params: { workflowPath: props.workflowPath },
+      params: { workflowId: props.workflowId },
       query: { tab: 'evaluate' },
     })
   },

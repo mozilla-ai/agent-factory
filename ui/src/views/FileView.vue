@@ -31,6 +31,7 @@
 import { computed, defineProps, defineEmits } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
+import { workflowService } from '@/services/workflowService'
 
 const props = defineProps({
   // When used as an embedded component
@@ -68,24 +69,13 @@ const fileName = computed(() => {
 const fileQuery = useQuery({
   queryKey: ['file-content', filePath],
   queryFn: async () => {
-    const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath.value}`)
-
-    if (!response.ok) {
-      throw new Error(`Failed to load file: ${response.status} ${response.statusText}`)
+    try {
+      const data = await workflowService.getFileContent(route.params.id as string, filePath.value)
+      return data
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      throw new Error(`Failed to load file: ${errorMessage}`)
     }
-
-    // Handle binary files - return a message instead of binary content
-    const contentType = response.headers.get('content-type') || ''
-    if (
-      contentType.includes('image/') ||
-      contentType.includes('audio/') ||
-      contentType.includes('video/') ||
-      contentType.includes('application/octet-stream')
-    ) {
-      return `[This is a binary file (${contentType}) and cannot be displayed inline]\n\nYou can download it at: http://localhost:3000/agent-factory/workflows/${filePath.value}`
-    }
-
-    return response.text()
   },
   enabled: computed(() => !!filePath.value),
   retry: 1,

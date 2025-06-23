@@ -151,7 +151,7 @@
 import { computed, ref } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { workflowService } from '@/services/workflowService'
-import { deleteEvaluationResults } from '../../services/evaluationService'
+import { evaluationService } from '../../services/evaluationService'
 import { useRouter } from 'vue-router'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import type { EvaluationCheckpoint } from '@/types'
@@ -160,7 +160,7 @@ import { useWorkflowsStore } from '@/stores/workflows'
 
 // Props
 const props = defineProps<{
-  workflowPath: string
+  workflowId: string
 }>()
 
 const workflowsStore = useWorkflowsStore()
@@ -169,15 +169,15 @@ const router = useRouter()
 
 // Fetch evaluation status using workflowService
 const statusQuery = useQuery({
-  queryKey: ['evaluation-status', props.workflowPath],
-  queryFn: () => workflowService.getEvaluationStatus(props.workflowPath),
+  queryKey: ['evaluation-status', props.workflowId],
+  queryFn: () => workflowService.getEvaluationStatus(props.workflowId),
   retry: 1,
 })
 
 // Fetch evaluation results using API client instead of direct fetch
 const resultsQuery = useQuery({
-  queryKey: ['evaluation-results', props.workflowPath],
-  queryFn: () => workflowService.getEvaluationResults(props.workflowPath),
+  queryKey: ['evaluation-results', props.workflowId],
+  queryFn: () => workflowService.getEvaluationResults(props.workflowId),
   // Add the selector to transform data
   select: transformResults,
 })
@@ -291,18 +291,18 @@ const showDeleteDialog = ref(false)
 const queryClient = useQueryClient()
 
 const deleteResultsMutation = useMutation({
-  mutationFn: () => deleteEvaluationResults(props.workflowPath),
+  mutationFn: () => evaluationService.deleteEvaluationResults(props.workflowId),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowId] })
+    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowId] })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_results.json'],
+      queryKey: ['file-content', props.workflowId, 'evaluation_results.json'],
     })
     showDeleteDialog.value = false
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()
     router.push({
-      params: { workflowPath: props.workflowPath },
+      params: { workflowId: props.workflowId },
       query: { tab: 'evaluate' },
     })
   },
