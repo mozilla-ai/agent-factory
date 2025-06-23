@@ -41,6 +41,7 @@
             :is-expanded="!!expandedSpans[index]"
             :is-l-l-m-call="span.name.startsWith('call_llm')"
             :is-tool-call="span.name.startsWith('execute_tool')"
+            :is-agent-execution="span.name.startsWith('invoke_agent')"
             @toggle="toggleSpan(index)"
           >
             <TraceSection v-if="span.attributes['gen_ai.input.messages']" title="Input">

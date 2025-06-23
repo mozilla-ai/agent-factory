@@ -89,8 +89,8 @@
             </div>
 
             <ProgressBar
-              :percentage="scorePercentage"
-              :label="`${Math.round(scorePercentage)}% Pass Rate`"
+              :percentage="passRate"
+              :label="`${passRate}% Pass Rate`"
               :show-label="true"
               color-threshold="auto"
             />
@@ -208,7 +208,7 @@ const scoreValue = computed(() => {
 const maxScoreValue = computed(() => resultsQuery.data.value?.maxScore ?? 1)
 
 // Use evaluation scores composable for consistent calculations
-const { passedCheckpoints, failedCheckpoints, scorePercentage } = useEvaluationScores(
+const { passedCheckpoints, failedCheckpoints, scorePercentage, passRate } = useEvaluationScores(
   computed(() => undefined), // No criteria needed for results viewer
   resultsQuery.data,
 )

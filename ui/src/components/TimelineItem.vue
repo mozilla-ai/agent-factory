@@ -4,6 +4,7 @@
     :class="{
       'timeline-item-llm': isLLMCall,
       'timeline-item-tool': isToolCall,
+      'timeline-item-agent': isAgentExecution,
     }"
   >
     <div class="timeline-header" @click="$emit('toggle')">
@@ -35,11 +36,13 @@ interface Props {
   isExpanded: boolean
   isLLMCall?: boolean
   isToolCall?: boolean
+  isAgentExecution?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   isLLMCall: false,
   isToolCall: false,
+  isAgentExecution: false,
 })
 
 defineEmits<{
@@ -61,6 +64,10 @@ defineEmits<{
 }
 
 .timeline-item-tool {
+  border-left: 4px solid var(--color-success, #27ae60);
+}
+
+.timeline-item-agent {
   border-left: 4px solid var(--color-warning, #f39c12);
 }
 
