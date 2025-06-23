@@ -7,6 +7,7 @@ import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
 from any_agent.tools import search_tavily, visit_webpage
+from any_agent.tracing.agent_trace import AgentTrace
 from pydantic import BaseModel, Field
 
 from agent_factory.instructions import INSTRUCTIONS
@@ -97,11 +98,7 @@ def build_run_instructions(user_prompt) -> str:
         return user_prompt_instance.amend_prompt(user_prompt)
 
 
-def single_turn_generation(
-    user_prompt: str,
-    output_dir: Path | None = None,
-):
-    """Generate python code for an agentic workflow based on the user prompt."""
+def setup_output_directory(output_dir: Path | None = None) -> Path:
     if output_dir is None:
         output_dir = Path.cwd()
         uid = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + str(uuid.uuid4())[:8]
@@ -112,39 +109,66 @@ def single_turn_generation(
         output_dir = Path(output_dir)
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
+
+
+def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTrace:
+    try:
+        return agent.run(user_prompt, max_turns=max_turns)
+    except AgentRunError as e:
+        print(f"Agent execution failed: {str(e)}")
+        print("Retrieved partial agent trace...")
+        if not hasattr(e, "trace") or not e.trace:
+            raise RuntimeError("No trace available from AgentRunError") from e
+        return e.trace
+    except Exception as e:
+        print(f"Unexpected error during agent execution: {str(e)}")
+        print("Attempting to retrieve partial trace...")
+        if hasattr(agent, "get_trace"):
+            trace = agent.get_trace()
+            if trace:
+                return trace
+        raise RuntimeError(f"Failed to get agent trace: {str(e)}") from e
+
+
+def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
+    # Save the full trace
+    trace_path = output_dir / "agent_factory_trace.json"
+    trace_path.write_text(agent_trace.model_dump_json(indent=2))
+
+    # Validate and save structured outputs from agent_trace.final_output
+    if not hasattr(agent_trace, "final_output") or not agent_trace.final_output:
+        raise RuntimeError("No final_output available in agent trace")
+
+    try:
+        agent_outputs = validate_agent_outputs(agent_trace.final_output)
+        save_agent_parsed_outputs(agent_outputs, output_dir)
+    except Exception as e:
+        print(f"Warning: Failed to parse agent's structured outputs: {str(e)}")
+
+
+def single_turn_generation(
+    user_prompt: str,
+    output_dir: Path | None = None,
+) -> None:
+    """Generate python code for an agentic workflow based on the user prompt.
+
+    Args:
+        user_prompt: The user's prompt describing the desired agent behavior.
+        output_dir: Optional directory to save outputs to. If None, creates a unique directory.
+    """
+    output_dir = setup_output_directory(output_dir)
 
     agent = create_agent()
-
     run_instructions = build_run_instructions(user_prompt)
 
     try:
-        agent_trace = agent.run(run_instructions, max_turns=30)
-    except AgentRunError as e:
-        # To retrieve the partial trace, use the trace from the exception
-        agent_trace = e.trace
-        print(f"Agent execution failed: {str(e)}")
-        print("Retrieved partial agent trace ...")
+        agent_trace = run_agent(agent, run_instructions)
+        save_agent_outputs(agent_trace, output_dir)
+        print(f"Workflow files saved in: {output_dir}")
     except Exception as e:
-        # For any other exceptions, try to get the trace directly from the agent
-        agent_trace = agent.get_trace() if hasattr(agent, "get_trace") else None
-        print(f"Unexpected error during agent execution: {str(e)}")
-        print("Attempting to save partial agent trace...")
-
-    if not agent_trace:
-        raise RuntimeError("Failed to get agent trace after execution error")
-
-    (output_dir / "agent_factory_trace.json").write_text(agent_trace.model_dump_json(indent=2))
-
-    if not hasattr(agent_trace, "final_output") or not agent_trace.final_output:
-        raise RuntimeError("Failed to retrieve final_output from agent_trace after execution error")
-
-    try:
-        agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
-        save_agent_parsed_outputs(agent_factory_outputs, output_dir)
-    except Exception as e:
-        print(f"Failed to parse agent's structured outputs: {str(e)}")
-
-    print(f"Workflow files saved in: {output_dir}")
+        print(f"Error during agent generation: {str(e)}")
+        raise
 
 
 def main():
