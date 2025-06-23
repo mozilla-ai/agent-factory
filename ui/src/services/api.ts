@@ -1,11 +1,10 @@
 // Base API configuration and helpers
 import axios from 'axios'
-
-// Read from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+import { API_CONFIG } from '@/config/api.config'
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_CONFIG.baseURL,
+  timeout: API_CONFIG.timeout,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -16,13 +15,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Global error handling (logging, notifications)
-    // console.error('API Error:', error)
     return Promise.reject(error)
   },
 )
 
-export function getWorkflowUrl(workflowId: string, filePath?: string): string {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
-  const endpoint = `/agent-factory/workflows/${workflowId}`
-  return filePath ? `${baseUrl}${endpoint}/${filePath}` : `${baseUrl}${endpoint}`
-}
+// getWorkflowUrl removed - file endpoints handled directly by workflowService

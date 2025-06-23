@@ -41,14 +41,13 @@
       </button>
     </div>
 
-    <div class="evaluation-output">
-      <h3>Output</h3>
-      <div v-if="isRunningAgent || isGeneratingCases || isRunningEval" class="loading">
-        {{ currentOperation }} in progress...
-      </div>
-
-      <pre v-if="output" class="output-content">{{ output }}</pre>
-    </div>
+    <StreamingOutput
+      title="Output"
+      :content="output"
+      :is-loading="isRunningAgent || isGeneratingCases || isRunningEval"
+      :loading-text="`${currentOperation} in progress...`"
+      max-height="400px"
+    />
   </div>
 </template>
 
@@ -56,6 +55,7 @@
 import { ref, onMounted } from 'vue'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { evaluationService } from '@/services/evaluationService'
+import StreamingOutput from '@/components/StreamingOutput.vue'
 
 const selectedWorkflow = ref('')
 const output = ref('')
@@ -66,7 +66,6 @@ const currentOperation = ref('')
 const workflowStore = useWorkflowsStore()
 
 onMounted(() => {
-  console.log('AgentEvaluationView mounted')
   workflowStore.loadWorkflows()
 })
 
@@ -200,31 +199,5 @@ async function runEvaluation() {
 .eval-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.evaluation-output {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.output-content {
-  display: flex;
-  flex-direction: column;
-  background: var(--color-background-soft);
-  padding: 1rem;
-  border-radius: 4px;
-  font-family: monospace;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.loading {
-  display: flex;
-  padding: 1rem;
-  font-style: italic;
-  color: var(--color-text-light);
 }
 </style>

@@ -163,7 +163,10 @@ const tabProps = computed(() => {
         ...baseProps,
         files: workflow.value?.files || [],
         selectedFile: selectedFile.value,
-        content: fileContentQuery.data.value || '',
+        content:
+          typeof fileContentQuery.data.value === 'string'
+            ? fileContentQuery.data.value
+            : JSON.stringify(fileContentQuery.data.value, null, 2) || '',
         loading: fileContentQuery.isLoading.value,
         error: fileContentQuery.error.value?.message || '',
         onSelect: handleFileSelect,

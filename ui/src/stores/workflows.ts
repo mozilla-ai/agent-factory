@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { workflowService } from '@/services/workflowService'
+import { getErrorMessage } from '@/helpers/error.helpers'
 import type { WorkflowFile } from '@/types'
 
 export const useWorkflowsStore = defineStore('workflows', () => {
@@ -16,7 +17,7 @@ export const useWorkflowsStore = defineStore('workflows', () => {
       const data = await workflowService.getWorkflows()
       workflows.value = data
     } catch (err) {
-      error.value = err instanceof Error ? err.message : String(err)
+      error.value = getErrorMessage(err)
       console.error('Error loading workflows:', err)
     } finally {
       loading.value = false

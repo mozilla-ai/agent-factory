@@ -14,9 +14,9 @@
           you assess the performance of your agent against specific goals.
         </p>
       </div>
-      <button @click="startCreatingCriteria" class="create-criteria-button">
+      <BaseButton variant="primary" @click="startCreatingCriteria">
         Create Evaluation Criteria
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Form for creating/editing -->
@@ -49,8 +49,8 @@
         </div>
 
         <div class="header-actions">
-          <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
-          <button class="delete-button" @click="openDeleteDialog">Delete</button>
+          <BaseButton variant="secondary" @click="toggleEditMode">Edit Criteria</BaseButton>
+          <BaseButton variant="danger" @click="handleDeleteClick">Delete</BaseButton>
         </div>
       </div>
 
@@ -59,19 +59,16 @@
         <h3>Final Score</h3>
         <div class="score-display">
           <div class="score-value">{{ totalScore }} / {{ totalPossiblePoints }}</div>
-          <div class="score-percentage">
-            {{ Math.round((totalScore / totalPossiblePoints) * 100) }}%
-          </div>
+          <div class="score-percentage">{{ Math.round(scorePercentage) }}%</div>
         </div>
         <div class="score-bar">
           <div
             class="score-progress"
-            :style="{ width: `${(totalScore / totalPossiblePoints) * 100}%` }"
+            :style="{ width: `${scorePercentage}%` }"
             :class="{
-              'score-high': totalScore / totalPossiblePoints >= 0.8,
-              'score-medium':
-                totalScore / totalPossiblePoints >= 0.5 && totalScore / totalPossiblePoints < 0.8,
-              'score-low': totalScore / totalPossiblePoints < 0.5,
+              'score-high': scorePercentage >= 80,
+              'score-medium': scorePercentage >= 50 && scorePercentage < 80,
+              'score-low': scorePercentage < 50,
             }"
           ></div>
         </div>
@@ -79,50 +76,28 @@
 
       <!-- Criteria checklist -->
       <div class="criteria-checklist">
-        <div
+        <CheckpointItem
           v-for="(checkpoint, index) in evaluationCriteriaQuery.data.value.checkpoints"
           :key="index"
-          class="checkpoint-item"
-        >
-          <div class="checkpoint-header">
-            <div class="checkpoint-number">{{ index + 1 }}</div>
-            <div class="checkpoint-content">
-              <div class="checkpoint-criteria">{{ checkpoint.criteria }}</div>
-              <div class="checkpoint-points">
-                {{ checkpoint.points }} {{ checkpoint.points === 1 ? 'point' : 'points' }}
-              </div>
-            </div>
-          </div>
-
-          <div v-if="hasResults" class="checkpoint-result">
-            <div
-              class="result-indicator"
-              :class="{
-                'result-pass': evaluationResults[index]?.result === 'pass',
-                'result-fail': evaluationResults[index]?.result === 'fail',
-              }"
-            >
-              <span v-if="evaluationResults[index]?.result === 'pass'">✓</span>
-              <span v-else-if="evaluationResults[index]?.result === 'fail'">✗</span>
-              <span v-else>N/A</span>
-            </div>
-            <div v-if="evaluationResults[index]?.feedback" class="result-feedback">
-              {{ evaluationResults[index]?.feedback }}
-            </div>
-          </div>
-        </div>
+          :number="index + 1"
+          :criteria="checkpoint.criteria"
+          :points="checkpoint.points"
+          :result="hasResults ? evaluationResults[index] : undefined"
+        />
       </div>
 
       <!-- Add the confirmation dialog component -->
       <ConfirmationDialog
         :isOpen="showDeleteDialog"
-        title="Delete Evaluation Criteria"
-        message="Are you sure you want to delete this evaluation criteria? This will also delete any evaluation results. This action cannot be undone."
-        confirmButtonText="Delete"
+        :title="deleteOptions?.title || 'Delete Evaluation Criteria'"
+        :message="
+          deleteOptions?.message || 'Are you sure you want to delete this evaluation criteria?'
+        "
+        :confirmButtonText="deleteOptions?.confirmButtonText || 'Delete'"
         :isDangerous="true"
         :isLoading="deleteCriteriaMutation.isPending.value"
         @confirm="confirmDelete"
-        @cancel="cancelDelete"
+        @cancel="closeDeleteDialog"
       />
     </div>
   </div>
@@ -135,8 +110,12 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
 import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
 import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
+import CheckpointItem from '../CheckpointItem.vue'
+import BaseButton from '../BaseButton.vue'
 import { useRouter } from 'vue-router'
 import { useWorkflowsStore } from '@/stores/workflows'
+import { useEvaluationScores } from '@/composables/useEvaluationScores'
+import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 
 interface Checkpoint {
   criteria: string
@@ -148,13 +127,6 @@ interface EvaluationCriteria {
   checkpoints: Checkpoint[]
 }
 
-interface EvaluationResult {
-  result: 'pass' | 'fail'
-  feedback: string
-  criteria: string
-  points: number
-}
-
 // Props
 const props = defineProps<{
   workflowId: string
@@ -162,7 +134,10 @@ const props = defineProps<{
 
 const queryClient = useQueryClient()
 const isEditMode = ref(false)
-const showDeleteDialog = ref(false)
+
+// Use delete confirmation composable
+const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
+  useDeleteConfirmation()
 
 // Toggle edit mode
 const toggleEditMode = () => {
@@ -194,7 +169,9 @@ const evaluationResultsQuery = useQuery({
   queryFn: async (): Promise<OldFormatData> => {
     try {
       const data = await evaluationService.getEvaluationResults(props.workflowId)
-      return transformResults(data)
+      // Handle case where data might already be parsed or is an object
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data
+      return transformResults(parsedData)
     } catch {
       return {
         checkpoints: [],
@@ -236,24 +213,11 @@ const hasResults = computed(() => {
   return (evaluationResultsQuery.data.value?.checkpoints?.length || 0) > 0
 })
 
-// Calculate total possible points
-const totalPossiblePoints = computed(() => {
-  if (!evaluationCriteriaQuery.data.value || !evaluationCriteriaQuery.data.value.checkpoints)
-    return 0
-  return evaluationCriteriaQuery.data.value.checkpoints.reduce(
-    (sum: number, checkpoint: Checkpoint) => sum + checkpoint.points,
-    0,
-  )
-})
-
-// Calculate total score from results
-const totalScore = computed(() => {
-  if (!hasResults.value) return 0
-  return evaluationResults.value.reduce((sum: number, result: EvaluationResult, index: number) => {
-    const points = evaluationCriteriaQuery.data.value?.checkpoints[index]?.points || 0
-    return sum + (result.result === 'pass' ? points : 0)
-  }, 0)
-})
+// Use evaluation scores composable for consistent calculations
+const { totalPossiblePoints, totalScore, scorePercentage } = useEvaluationScores(
+  evaluationCriteriaQuery.data,
+  evaluationResultsQuery.data,
+)
 
 const hasCriteriaError = computed(
   () =>
@@ -278,7 +242,7 @@ const deleteCriteriaMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['file-content', props.workflowId, 'evaluation_case.yaml'],
     })
-    showDeleteDialog.value = false
+    closeDeleteDialog()
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()
     router.push({
@@ -289,16 +253,17 @@ const deleteCriteriaMutation = useMutation({
 })
 
 // Functions for delete confirmation
-const openDeleteDialog = () => {
-  showDeleteDialog.value = true
+const handleDeleteClick = () => {
+  openDeleteDialog({
+    title: 'Delete Evaluation Criteria',
+    message:
+      'Are you sure you want to delete this evaluation criteria? This will also delete any evaluation results. This action cannot be undone.',
+    confirmButtonText: 'Delete',
+  })
 }
 
 const confirmDelete = () => {
   deleteCriteriaMutation.mutate()
-}
-
-const cancelDelete = () => {
-  showDeleteDialog.value = false
 }
 </script>
 
@@ -368,94 +333,6 @@ const cancelDelete = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.checkpoint-item {
-  background-color: var(--color-background-soft);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.checkpoint-header {
-  display: flex;
-  padding: 1rem;
-  background-color: var(--color-background-soft);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.checkpoint-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  background-color: var(--color-background);
-  border-radius: 50%;
-  font-weight: bold;
-  margin-right: 1rem;
-  border: 1px solid var(--color-border);
-}
-
-.checkpoint-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.checkpoint-criteria {
-}
-
-.checkpoint-passed .checkpoint-result {
-  background-color: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-.checkpoint-failed .checkpoint-result {
-  background-color: var(--color-error-soft);
-  color: var(--color-error);
-}
-
-.checkpoint-points {
-  font-size: 0.9rem;
-  color: var(--color-text-light, var(--color-text-secondary));
-  font-weight: 500;
-}
-
-.checkpoint-result {
-  display: flex;
-  padding: 1rem;
-  background-color: var(--color-background);
-  border-top: 1px solid var(--color-border);
-}
-
-.result-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  font-weight: bold;
-  margin-right: 1rem;
-  font-size: 1.2rem;
-}
-
-.result-pass {
-  background-color: rgba(46, 204, 113, 0.15);
-  color: var(--color-success, #2ecc71);
-  border: 1px solid var(--color-success, #2ecc71);
-}
-
-.result-fail {
-  background-color: rgba(231, 76, 60, 0.15);
-  color: var(--color-error, #e74c3c);
-  border: 1px solid var(--color-error, #e74c3c);
-}
-
-.result-feedback {
-  flex: 1;
 }
 
 .final-score {
@@ -556,38 +433,9 @@ const cancelDelete = () => {
   line-height: 1.5;
 }
 
-.create-criteria-button {
-  padding: 0.75rem 1.5rem;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.create-criteria-button:hover {
-  background-color: var(--color-background-soft);
-  border-color: var(--color-border-hover);
-}
-
 .header-actions {
   display: flex;
   gap: 0.75rem;
-}
-
-.delete-button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-error);
-  background-color: var(--color-error-soft);
-  color: var(--color-error);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.delete-button:hover {
-  background-color: var(--color-error);
-  color: white;
 }
 
 /* Responsive adjustments */

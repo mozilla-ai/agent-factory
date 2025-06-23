@@ -1,162 +1,148 @@
 <template>
   <div class="results-viewer">
-    <div v-if="statusQuery.isLoading.value || resultsQuery.isLoading.value" class="loading-results">
-      Loading evaluation results...
-    </div>
-    <div v-else-if="statusQuery.isError.value || resultsQuery.isError.value" class="error-results">
-      {{ statusQuery.error.value || resultsQuery.error.value }}
-    </div>
+    <StatusMessage
+      v-if="statusQuery.isLoading.value || resultsQuery.isLoading.value"
+      variant="loading"
+      message="Loading evaluation results..."
+    />
+
+    <StatusMessage
+      v-else-if="statusQuery.isError.value || resultsQuery.isError.value"
+      variant="error"
+      :message="
+        statusQuery.error.value?.message ||
+        resultsQuery.error.value?.message ||
+        'An error occurred loading evaluation results'
+      "
+    />
+
     <div v-else class="results-content">
       <!-- Summary stats if results available -->
       <div v-if="hasValidScoreData" class="results-summary">
-        <div class="score-card">
-          <div class="score-header">
-            <div style="display: flex; justify-content: space-between; align-items: center">
-              Final Score
-              <button class="delete-button" @click="openDeleteDialog">Delete Results</button>
-            </div>
-            <div class="score-description">Based on point values assigned to each checkpoint</div>
-          </div>
-          <div class="score-value">{{ scoreValue }} / {{ maxScoreValue }}</div>
-          <div class="score-percentage">{{ scorePercentage }}%</div>
-          <div class="score-bar">
-            <div
-              class="score-progress"
-              :style="{ width: `${scorePercentageRaw}%` }"
-              :class="scoreColorClass"
-            ></div>
-          </div>
-        </div>
+        <ScoreCard
+          title="Final Score"
+          description="Based on point values assigned to each checkpoint"
+          :score="scoreValue"
+          :max-score="maxScoreValue"
+          color-threshold="auto"
+        >
+          <template #actions>
+            <BaseButton variant="danger" @click="handleDeleteClick">Delete Results</BaseButton>
+          </template>
+        </ScoreCard>
       </div>
 
       <!-- Evaluation files grid -->
       <div class="eval-files-grid">
         <!-- Agent trace card -->
-        <div v-if="hasAgentTrace" class="eval-file-card">
-          <div class="card-header">
-            <h4>Agent Trace</h4>
-          </div>
-          <div class="card-content">
-            <p>
-              Contains detailed logs of the agent's execution, including LLM calls, tool usage, and
-              the final output.
-            </p>
-          </div>
-          <div class="card-actions">
-            <!-- Replace tab navigation with direct file links -->
-            <button class="view-button" @click="viewAgentTrace">View Agent Trace</button>
-          </div>
-        </div>
+        <EvaluationCard
+          v-if="hasAgentTrace"
+          title="Agent Trace"
+          description="Contains detailed logs of the agent's execution, including LLM calls, tool usage, and the final output."
+          action-label="View Agent Trace"
+          :show-actions="true"
+          @action="viewAgentTrace"
+        />
 
         <!-- Evaluation criteria card -->
-        <div v-if="hasEvalCases" class="eval-file-card">
-          <div class="card-header">
-            <h4>Evaluation Criteria</h4>
-          </div>
-          <div class="card-content">
-            <p>
-              The test cases used to evaluate the agent's performance, including criteria, point
-              values, and expected behaviors.
-            </p>
-          </div>
-          <div class="card-actions">
-            <button class="view-button" @click="viewCriteria">View Evaluation Criteria</button>
-          </div>
-        </div>
+        <EvaluationCard
+          v-if="hasEvalCases"
+          title="Evaluation Criteria"
+          description="The test cases used to evaluate the agent's performance, including criteria, point values, and expected behaviors."
+          action-label="View Evaluation Criteria"
+          :show-actions="true"
+          @action="viewCriteria"
+        />
 
         <!-- Evaluation results card -->
-        <div v-if="hasEvaluationResults" class="eval-file-card">
-          <div class="card-header">
-            <h4>Evaluation Results</h4>
-          </div>
-          <div class="card-content">
-            <p>
-              The agent's scored performance against each evaluation criterion, with pass/fail
-              status and detailed feedback.
-            </p>
+        <EvaluationCard
+          v-if="hasEvaluationResults"
+          title="Evaluation Results"
+          description="The agent's scored performance against each evaluation criterion, with pass/fail status and detailed feedback."
+          action-label="View Detailed Results"
+          :show-actions="true"
+          @action="viewResults"
+        >
+          <div class="checkpoint-summary">
+            <MetricDisplay
+              variant="metric"
+              label="Total Checkpoints"
+              :value="resultsQuery.data.value?.checkpoints.length || 0"
+            />
 
-            <div class="checkpoint-summary">
-              <div class="checkpoint-stat">
-                <div class="stat-label">Total Checkpoints</div>
-                <div class="stat-value">{{ resultsQuery.data.value?.checkpoints.length || 0 }}</div>
-              </div>
-
-              <div class="checkpoint-results">
-                <div class="checkpoint-result passed">
-                  <div class="result-indicator"></div>
-                  <div class="result-details">
-                    <div class="result-count">{{ passedCheckpoints }}</div>
-                    <div class="result-label">Passed</div>
-                  </div>
-                </div>
-
-                <div class="checkpoint-result failed">
-                  <div class="result-indicator"></div>
-                  <div class="result-details">
-                    <div class="result-count">{{ failedCheckpoints }}</div>
-                    <div class="result-label">Failed</div>
-                  </div>
+            <div class="checkpoint-results">
+              <div class="checkpoint-result passed">
+                <div class="result-indicator"></div>
+                <div class="result-details">
+                  <div class="result-count">{{ passedCheckpoints }}</div>
+                  <div class="result-label">Passed</div>
                 </div>
               </div>
 
-              <div class="checkpoint-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-value"
-                    :style="{
-                      width: `${(passedCheckpoints / (resultsQuery.data.value?.checkpoints.length || 1)) * 100}%`,
-                    }"
-                  ></div>
-                </div>
-                <div class="progress-label">
-                  {{
-                    Math.round(
-                      (passedCheckpoints / (resultsQuery.data.value?.checkpoints.length || 1)) *
-                        100,
-                    )
-                  }}% Pass Rate
+              <div class="checkpoint-result failed">
+                <div class="result-indicator"></div>
+                <div class="result-details">
+                  <div class="result-count">{{ failedCheckpoints }}</div>
+                  <div class="result-label">Failed</div>
                 </div>
               </div>
             </div>
+
+            <ProgressBar
+              :percentage="scorePercentage"
+              :label="`${Math.round(scorePercentage)}% Pass Rate`"
+              :show-label="true"
+              color-threshold="auto"
+            />
           </div>
-          <div class="card-actions">
-            <button class="view-button" @click="viewResults">View Detailed Results</button>
-          </div>
-        </div>
+        </EvaluationCard>
       </div>
 
       <!-- No results message -->
-      <div v-if="!hasAgentTrace && !hasEvalCases && !hasEvaluationResults" class="no-results">
-        <div class="no-results-icon">📊</div>
-        <h3>No evaluation data available</h3>
-        <p>Run the agent and generate evaluation cases to see results here.</p>
-        <button class="action-button" @click="goToEvaluateTab">Go to Evaluate</button>
-      </div>
+      <StatusMessage
+        v-if="!hasAgentTrace && !hasEvalCases && !hasEvaluationResults"
+        variant="empty"
+        icon="📊"
+        title="No evaluation data available"
+        message="Run the agent and generate evaluation cases to see results here."
+      >
+        <template #actions>
+          <BaseButton variant="primary" @click="goToEvaluateTab">Go to Evaluate</BaseButton>
+        </template>
+      </StatusMessage>
     </div>
 
     <ConfirmationDialog
       :isOpen="showDeleteDialog"
-      title="Delete Evaluation Results"
-      message="Are you sure you want to delete these evaluation results? This action cannot be undone."
-      confirmButtonText="Delete"
-      :isDangerous="true"
+      :title="deleteOptions.title"
+      :message="deleteOptions.message"
+      :confirmButtonText="deleteOptions.confirmButtonText"
+      :isDangerous="deleteOptions.isDangerous"
       :isLoading="deleteResultsMutation.isPending.value"
       @confirm="confirmDelete"
-      @cancel="cancelDelete"
+      @cancel="closeDeleteDialog"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { workflowService } from '@/services/workflowService'
 import { evaluationService } from '../../services/evaluationService'
 import { useRouter } from 'vue-router'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
-import type { EvaluationCheckpoint } from '@/types'
+
 import { transformResults } from '@/helpers/transform-results'
 import { useWorkflowsStore } from '@/stores/workflows'
+import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import { useEvaluationScores } from '@/composables/useEvaluationScores'
+import StatusMessage from '../StatusMessage.vue'
+import ScoreCard from '../ScoreCard.vue'
+import EvaluationCard from '../EvaluationCard.vue'
+import ProgressBar from '../ProgressBar.vue'
+import MetricDisplay from '../MetricDisplay.vue'
+import BaseButton from '../BaseButton.vue'
 
 // Props
 const props = defineProps<{
@@ -177,9 +163,13 @@ const statusQuery = useQuery({
 // Fetch evaluation results using API client instead of direct fetch
 const resultsQuery = useQuery({
   queryKey: ['evaluation-results', props.workflowId],
-  queryFn: () => workflowService.getEvaluationResults(props.workflowId),
-  // Add the selector to transform data
-  select: transformResults,
+  queryFn: async () => {
+    const data = await evaluationService.getEvaluationResults(props.workflowId)
+    // Handle case where data might already be parsed or is an object
+    const parsedData = typeof data === 'string' ? JSON.parse(data) : data
+    return transformResults(parsedData)
+  },
+  retry: 1,
 })
 
 // Computed properties for evaluation files
@@ -216,46 +206,11 @@ const scoreValue = computed(() => {
 
 const maxScoreValue = computed(() => resultsQuery.data.value?.maxScore ?? 1)
 
-// Calculate percentage correctly
-const scorePercentageRaw = computed(() => {
-  if (!hasValidScoreData.value) return 0
-
-  // Use normalized score if available, otherwise calculate percentage
-  if (
-    resultsQuery.data.value &&
-    resultsQuery.data.value.score >= 0 &&
-    resultsQuery.data.value.score <= 1
-  ) {
-    return resultsQuery.data.value.score * 100
-  }
-
-  return (scoreValue.value / maxScoreValue.value) * 100
-})
-
-// Format to whole number percentage
-const scorePercentage = computed(() => Math.round(scorePercentageRaw.value))
-
-// Score color based on percentage
-const scoreColorClass = computed(() => {
-  if (scorePercentage.value >= 80) return 'score-excellent'
-  if (scorePercentage.value >= 50) return 'score-good'
-  return 'score-poor'
-})
-
-// Add the missing computed properties for checkpoint counts
-const passedCheckpoints = computed(() => {
-  if (!resultsQuery.data.value?.checkpoints) return 0
-  return resultsQuery.data.value.checkpoints.filter(
-    (c: EvaluationCheckpoint) => c.result === 'pass',
-  ).length
-})
-
-const failedCheckpoints = computed(() => {
-  if (!resultsQuery.data.value?.checkpoints) return 0
-  return resultsQuery.data.value.checkpoints.filter(
-    (c: EvaluationCheckpoint) => c.result === 'fail',
-  ).length
-})
+// Use evaluation scores composable for consistent calculations
+const { passedCheckpoints, failedCheckpoints, scorePercentage } = useEvaluationScores(
+  computed(() => undefined), // No criteria needed for results viewer
+  resultsQuery.data,
+)
 
 function viewAgentTrace() {
   router.push({
@@ -286,8 +241,9 @@ function goToEvaluateTab() {
   })
 }
 
-// Add these new lines for delete functionality
-const showDeleteDialog = ref(false)
+// Use delete confirmation composable
+const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
+  useDeleteConfirmation()
 const queryClient = useQueryClient()
 
 const deleteResultsMutation = useMutation({
@@ -298,7 +254,7 @@ const deleteResultsMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: ['file-content', props.workflowId, 'evaluation_results.json'],
     })
-    showDeleteDialog.value = false
+    closeDeleteDialog()
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()
     router.push({
@@ -308,16 +264,17 @@ const deleteResultsMutation = useMutation({
   },
 })
 
-const openDeleteDialog = () => {
-  showDeleteDialog.value = true
+function handleDeleteClick() {
+  openDeleteDialog({
+    title: 'Delete Evaluation Results',
+    message:
+      'Are you sure you want to delete these evaluation results? This action cannot be undone.',
+    confirmButtonText: 'Delete',
+  })
 }
 
-const confirmDelete = () => {
+function confirmDelete() {
   deleteResultsMutation.mutate()
-}
-
-const cancelDelete = () => {
-  showDeleteDialog.value = false
 }
 </script>
 
@@ -462,25 +419,6 @@ const cancelDelete = () => {
   margin-bottom: 1rem;
 }
 
-.action-button {
-  background: var(--button-background-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.625rem 1.25rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-
-.action-button:hover {
-  background: var(--button-hover-color);
-}
-
-.action-button:active {
-  background: var(--button-active-color);
-}
-
 /* Score color classes that maintain theme compatibility */
 .score-excellent {
   background: var(--color-success, #4caf50);
@@ -605,20 +543,5 @@ const cancelDelete = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-}
-
-.delete-button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-error);
-  background-color: var(--color-error-soft);
-  color: var(--color-error);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.delete-button:hover {
-  background-color: var(--color-error);
-  color: white;
 }
 </style>

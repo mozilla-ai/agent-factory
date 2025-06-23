@@ -1,85 +1,46 @@
 import { apiClient } from './api'
 import Yaml from 'yaml'
-export interface EvaluationCheckpoint {
-  criteria: string
-  points: number
-}
-
-export interface EvaluationCriteria {
-  llm_judge: string
-  checkpoints: EvaluationCheckpoint[]
-}
-
-export interface SaveCriteriaResponse {
-  success: boolean
-  message: string
-  path: string
-}
+import { workflowService } from './workflowService'
+import { ENDPOINTS } from '@/config/endpoints'
+import { fetchStream } from '@/helpers/api.helpers'
+import { handleApiError } from '@/helpers/error.helpers'
+import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/evaluation'
 
 export const evaluationService = {
   async runAgent(workflowId: string): Promise<ReadableStream> {
-    const response = await fetch(
-      `${apiClient.defaults.baseURL}/agent-factory/evaluate/run-agent/${encodeURIComponent(workflowId)}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}: ${response.statusText}`)
-    }
-
-    return response.body as ReadableStream
+    return fetchStream(ENDPOINTS.runAgent(workflowId), 'running agent')
   },
 
   async generateEvaluationCases(workflowId: string): Promise<ReadableStream> {
-    const response = await fetch(
-      `${apiClient.defaults.baseURL}/agent-factory/evaluate/generate-cases/${encodeURIComponent(workflowId)}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}: ${response.statusText}`)
-    }
-
-    return response.body as ReadableStream
+    return fetchStream(ENDPOINTS.generateCases(workflowId), 'generating evaluation cases')
   },
 
   async runEvaluation(workflowId: string): Promise<ReadableStream> {
-    const response = await fetch(
-      `${apiClient.defaults.baseURL}/agent-factory/evaluate/run-evaluation/${encodeURIComponent(workflowId)}`,
-      { method: 'POST' },
-    )
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}: ${response.statusText}`)
-    }
-
-    return response.body as ReadableStream
+    return fetchStream(ENDPOINTS.runEvaluation(workflowId), 'running evaluation')
   },
+
   async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/evaluation_case.yaml`,
-    )
-    return Yaml.parse(response.data) // Ensure the response is parsed as YAML
+    const content = await workflowService.getFileContent(workflowId, 'evaluation_case.yaml')
+    return Yaml.parse(content)
   },
+
   async saveEvaluationCriteria(
     workflowId: string,
     criteriaData: EvaluationCriteria,
   ): Promise<SaveCriteriaResponse> {
-    const response = await apiClient.post(
-      `/agent-factory/evaluate/save-criteria/${encodeURIComponent(workflowId)}`,
-      criteriaData,
-    )
-    return response.data
+    try {
+      const response = await apiClient.post(ENDPOINTS.saveCriteria(workflowId), criteriaData)
+      return response.data
+    } catch (error) {
+      handleApiError(error, 'saving evaluation criteria')
+    }
   },
 
   /**
    * Get evaluation results for a workflow
    */
-  async getEvaluationResults(workflowId: string) {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/evaluation_results.json`,
-    )
-    return response.data
+  async getEvaluationResults(workflowId: string): Promise<string> {
+    return await workflowService.getFileContent(workflowId, 'evaluation_results.json')
   },
 
   /**
@@ -88,9 +49,7 @@ export const evaluationService = {
   async deleteEvaluationCriteria(
     workflowId: string,
   ): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.delete(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/evaluation_criteria`,
-    )
+    const response = await apiClient.delete(ENDPOINTS.deleteEvaluationCriteria(workflowId))
     return response.data
   },
 
@@ -100,9 +59,7 @@ export const evaluationService = {
   async deleteEvaluationResults(
     workflowId: string,
   ): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.delete(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/evaluation_results`,
-    )
+    const response = await apiClient.delete(ENDPOINTS.deleteEvaluationResults(workflowId))
     return response.data
   },
 
@@ -110,9 +67,7 @@ export const evaluationService = {
    * Delete agent evaluation trace for a workflow
    */
   async deleteAgentEvalTrace(workflowId: string): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.delete(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/agent_eval_trace`,
-    )
+    const response = await apiClient.delete(ENDPOINTS.deleteAgentTrace(workflowId))
     return response.data
   },
 }

@@ -1,14 +1,15 @@
 import { apiClient } from './api'
-import type { WorkflowFile, EvaluationStatus } from '@/types'
+import { ENDPOINTS } from '@/config/endpoints'
+import type { WorkflowFile, EvaluationStatus, AgentTrace } from '@/types'
 
 export const workflowService = {
   async getWorkflows(): Promise<WorkflowFile[]> {
-    const response = await apiClient.get('/agent-factory/workflows')
+    const response = await apiClient.get(ENDPOINTS.workflows)
     return response.data
   },
   async generateAgent(prompt: string): Promise<ReadableStream> {
     const response = await fetch(
-      `${apiClient.defaults.baseURL}/agent-factory/generate-agent?prompt=${encodeURIComponent(prompt)}`,
+      `${apiClient.defaults.baseURL}/${ENDPOINTS.generateAgent(prompt)}`,
       {
         method: 'GET',
       },
@@ -19,15 +20,13 @@ export const workflowService = {
     return response.body as ReadableStream
   },
   async getFileContent(workflowId: string, filePath: string): Promise<string> {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/${filePath}`,
-    )
+    const response = await apiClient.get(ENDPOINTS.workflowFile(workflowId, filePath))
     return response.data
   },
 
   async checkFileExists(workflowId: string, filePath: string): Promise<boolean> {
     try {
-      await apiClient.head(`/agent-factory/workflows/${encodeURIComponent(workflowId)}/${filePath}`)
+      await apiClient.head(ENDPOINTS.workflowFile(workflowId, filePath))
       return true
     } catch {
       return false
@@ -45,24 +44,16 @@ export const workflowService = {
     return { hasAgentTrace, hasEvalCases, hasEvalResults }
   },
 
-  async getEvaluationResults(workflowId: string) {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/evaluation_results.json`,
-    )
-    return response.data
+  async getEvaluationResults(workflowId: string): Promise<string> {
+    return this.getFileContent(workflowId, 'evaluation_results.json')
   },
 
-  async getAgentTrace(workflowId: string) {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/agent_eval_trace.json`,
-    )
-    return response.data
+  async getAgentTrace(workflowId: string): Promise<AgentTrace> {
+    const content = await this.getFileContent(workflowId, 'agent_eval_trace.json')
+    return content as unknown as AgentTrace
   },
 
-  async getEvaluationCriteria(workflowId: string) {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${encodeURIComponent(workflowId)}/evaluation_case.yaml`,
-    )
-    return response.data
+  async getEvaluationCriteria(workflowId: string): Promise<string> {
+    return this.getFileContent(workflowId, 'evaluation_case.yaml')
   },
 }
