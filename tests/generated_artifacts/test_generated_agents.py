@@ -18,3 +18,10 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
         # TODO: more elaborated asserts based on actually importing the code and checking the variables
         assert "extract_text_from_url" in generated_agent_code
         assert "generate_podcast_script_with_llm" in generated_agent_code
+
+
+def test_partial_trace_handling(generated_agent_code: str):
+    """Test that the generated agent includes proper partial trace handling."""
+    assert "except AgentRunError as e:" in generated_agent_code
+    assert "agent_trace = e.trace" in generated_agent_code
+    assert "Retrieved partial agent trace" in generated_agent_code
