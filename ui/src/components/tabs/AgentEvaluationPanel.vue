@@ -92,6 +92,7 @@ import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { useStreamProcessor } from '@/composables/useStreamProcessor'
+import { queryKeys } from '@/helpers/queryKeys'
 import EvaluationStepButton from '../EvaluationStepButton.vue'
 import BaseButton from '../BaseButton.vue'
 
@@ -132,10 +133,10 @@ const runAgentMutation = useMutation({
   },
   onSuccess: () => {
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowId],
+      queryKey: queryKeys.evaluationStatus(props.workflowId),
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowId, 'agent_eval_trace.json'],
+      queryKey: queryKeys.fileContent(props.workflowId, 'agent_eval_trace.json'),
     })
     workflowsStore.loadWorkflows()
   },
@@ -149,10 +150,10 @@ const genCasesMutation = useMutation({
   },
   onSuccess: () => {
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowId],
+      queryKey: queryKeys.evaluationStatus(props.workflowId),
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowId, 'evaluation_case.yaml'],
+      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
     })
     workflowsStore.loadWorkflows()
   },
@@ -166,10 +167,10 @@ const runEvalMutation = useMutation({
   },
   onSuccess: () => {
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowId],
+      queryKey: queryKeys.evaluationStatus(props.workflowId),
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowId, 'evaluation_results.json'],
+      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
     })
     workflowsStore.loadWorkflows()
   },

@@ -137,6 +137,7 @@ import { transformResults } from '@/helpers/transform-results'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useEvaluationScores } from '@/composables/useEvaluationScores'
+import { queryKeys } from '@/helpers/queryKeys'
 import StatusMessage from '../StatusMessage.vue'
 import ScoreCard from '../ScoreCard.vue'
 import EvaluationCard from '../EvaluationCard.vue'
@@ -155,14 +156,14 @@ const router = useRouter()
 
 // Fetch evaluation status using workflowService
 const statusQuery = useQuery({
-  queryKey: ['evaluation-status', props.workflowId],
+  queryKey: queryKeys.evaluationStatus(props.workflowId),
   queryFn: () => workflowService.getEvaluationStatus(props.workflowId),
   retry: 1,
 })
 
 // Fetch evaluation results using API client instead of direct fetch
 const resultsQuery = useQuery({
-  queryKey: ['evaluation-results', props.workflowId],
+  queryKey: queryKeys.evaluationResults(props.workflowId),
   queryFn: async () => {
     const data = await evaluationService.getEvaluationResults(props.workflowId)
     // Handle case where data might already be parsed or is an object
@@ -249,10 +250,10 @@ const queryClient = useQueryClient()
 const deleteResultsMutation = useMutation({
   mutationFn: () => evaluationService.deleteEvaluationResults(props.workflowId),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowId] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowId] })
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowId, 'evaluation_results.json'],
+      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
     })
     closeDeleteDialog()
     // Refresh the workflow store to update file explorer

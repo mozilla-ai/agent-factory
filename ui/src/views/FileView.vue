@@ -1,7 +1,7 @@
 <template>
   <div class="file-view">
     <!-- Only show back button when used as a standalone page -->
-    <div v-if="!workflowName" class="file-nav">
+    <div v-if="!workflowId" class="file-nav">
       <button class="back-button" @click="goBack"><span class="back-icon">←</span> Back</button>
     </div>
 
@@ -32,6 +32,7 @@ import { computed, defineProps, defineEmits } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { workflowService } from '@/services/workflowService'
+import { queryKeys } from '@/helpers/queryKeys'
 
 const props = defineProps({
   // When used as an embedded component
@@ -39,7 +40,7 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  workflowName: {
+  workflowId: {
     type: String,
     default: '',
   },
@@ -67,7 +68,7 @@ const fileName = computed(() => {
 })
 
 const fileQuery = useQuery({
-  queryKey: ['file-content', filePath],
+  queryKey: computed(() => queryKeys.fileContent(props.workflowId, filePath.value)),
   queryFn: async () => {
     try {
       const data = await workflowService.getFileContent(route.params.id as string, filePath.value)
@@ -83,7 +84,7 @@ const fileQuery = useQuery({
 
 // Navigation function - only used in standalone mode
 const goBack = () => {
-  // If we have a workflowName, go back to that workflow
+  // If we have a workflowId, go back to that workflow
   router.back()
 }
 </script>

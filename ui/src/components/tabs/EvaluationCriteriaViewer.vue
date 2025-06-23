@@ -116,6 +116,7 @@ import { useRouter } from 'vue-router'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { useEvaluationScores } from '@/composables/useEvaluationScores'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import { queryKeys } from '@/helpers/queryKeys'
 
 interface Checkpoint {
   criteria: string
@@ -149,14 +150,14 @@ const workflowsStore = useWorkflowsStore()
 const onCriteriaSaved = () => {
   isEditMode.value = false
   // Refetch invalidated queries after updating criteria
-  queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowId] })
-  queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowId] })
-  queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowId] })
+  queryClient.invalidateQueries({ queryKey: queryKeys.evaluationCriteria(props.workflowId) })
+  queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
+  queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
 }
 
 // Fetch evaluation criteria
 const evaluationCriteriaQuery = useQuery({
-  queryKey: ['evaluation-criteria', props.workflowId],
+  queryKey: queryKeys.evaluationCriteria(props.workflowId),
   queryFn: async (): Promise<EvaluationCriteria> => {
     return evaluationService.getEvaluationCriteria(props.workflowId)
   },
@@ -165,7 +166,7 @@ const evaluationCriteriaQuery = useQuery({
 
 // Fetch evaluation results
 const evaluationResultsQuery = useQuery({
-  queryKey: ['evaluation-results', props.workflowId],
+  queryKey: queryKeys.evaluationResults(props.workflowId),
   queryFn: async (): Promise<OldFormatData> => {
     try {
       const data = await evaluationService.getEvaluationResults(props.workflowId)
@@ -236,11 +237,11 @@ const deleteCriteriaMutation = useMutation({
   mutationFn: () => evaluationService.deleteEvaluationCriteria(props.workflowId),
   onSuccess: () => {
     // Invalidate queries to refresh the data
-    queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowId] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowId] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowId] })
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationCriteria(props.workflowId) })
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowId, 'evaluation_case.yaml'],
+      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
     })
     closeDeleteDialog()
     // Refresh the workflow store to update file explorer

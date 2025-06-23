@@ -37,6 +37,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { useQuery } from '@tanstack/vue-query'
 import { useTabs } from '@/composables/useTabs'
+import { queryKeys } from '@/helpers/queryKeys'
 import { workflowService } from '@/services/workflowService'
 
 // Components
@@ -68,7 +69,7 @@ const workflow = computed(() => workflowsStore.getWorkflowById(workflowId.value)
 
 // Setup evaluation status checking
 const evaluationStatusQuery = useQuery({
-  queryKey: ['evaluation-status', workflowId],
+  queryKey: computed(() => queryKeys.evaluationStatus(workflowId.value)),
   queryFn: () => workflowService.getEvaluationStatus(workflowId.value),
   enabled: computed(() => !!workflowId.value),
   retry: 1,
@@ -93,7 +94,7 @@ const selectedFilePath = computed(() =>
 
 // Configure file content query with caching
 const fileContentQuery = useQuery({
-  queryKey: ['file-content', workflowId, selectedFilePath],
+  queryKey: computed(() => queryKeys.fileContent(workflowId.value, selectedFilePath.value || '')),
   queryFn: () => {
     // Make sure we have both required parameters as strings
     if (!workflowId.value || !selectedFilePath.value) {

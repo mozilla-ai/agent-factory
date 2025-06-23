@@ -104,6 +104,7 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import type { EvaluationCriteria } from '../types/evaluation'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { evaluationService } from '@/services/evaluationService'
+import { queryKeys } from '@/helpers/queryKeys'
 import { handleHttpError } from '@/helpers/error.helpers'
 import FormField from './FormField.vue'
 
@@ -192,16 +193,16 @@ const saveMutation = useMutation({
   onSuccess: () => {
     // Invalidate the criteria query to refresh data
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-criteria', props.workflowId],
+      queryKey: queryKeys.evaluationCriteria(props.workflowId),
     })
     queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowId],
+      queryKey: queryKeys.evaluationStatus(props.workflowId),
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowId],
+      queryKey: queryKeys.fileContent(props.workflowId, ''),
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowId, 'evaluation_case.yaml'],
+      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
     })
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()

@@ -120,6 +120,8 @@ import { workflowService } from '@/services/workflowService'
 import { useRouter } from 'vue-router'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import { useTraceMetrics } from '@/composables/useTraceMetrics'
+import { queryKeys } from '@/helpers/queryKeys'
 import MetricDisplay from '../MetricDisplay.vue'
 import TraceSection from '../TraceSection.vue'
 import CodeBlock from '../CodeBlock.vue'
@@ -178,23 +180,35 @@ const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
 
 // Fetch agent trace data using TanStack Query
 const traceQuery = useQuery({
-  queryKey: ['agentEvalTrace', props.workflowId],
+  queryKey: queryKeys.agentTrace(props.workflowId),
   queryFn: () => workflowService.getAgentTrace(props.workflowId),
   retry: 1,
 })
 const router = useRouter()
 
+// Use trace metrics composable for calculations
+const {
+  executionDuration,
+  totalCost,
+  totalTokens,
+  formatDuration,
+  formatTime,
+  formatSpanTitle,
+  hasTokenInfo,
+  hasStandardAttributes,
+} = useTraceMetrics(traceQuery.data)
+
 // Delete mutation
 const deleteTraceMutation = useMutation({
   mutationFn: () => evaluationService.deleteAgentEvalTrace(props.workflowId),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['agentEvalTrace', props.workflowId] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowId] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowId] })
+    queryClient.invalidateQueries({ queryKey: queryKeys.agentTrace(props.workflowId) })
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowId, 'agent_eval_trace.json'],
+      queryKey: queryKeys.fileContent(props.workflowId, 'agent_eval_trace.json'),
     })
     closeDeleteDialog()
     router.push({
@@ -212,45 +226,6 @@ function toggleSpan(index: number): void {
   }
 }
 
-// Format span title for display
-function formatSpanTitle(name: string): string {
-  return name
-    .replace('call_llm ', 'LLM Call: ')
-    .replace('execute_tool ', 'Tool: ')
-    .replace('invoke_agent', 'Agent Execution')
-}
-
-// Format duration for display
-function formatDuration(nanoseconds: number): string {
-  return (nanoseconds / 1_000_000_000).toFixed(2)
-}
-
-// Format time for display
-function formatTime(start: number, end: number): string {
-  const durationMs = (end - start) / 1_000_000
-  return `${durationMs.toFixed(0)}ms`
-}
-
-// Check if span has token info
-function hasTokenInfo(span: TraceSpan): boolean {
-  return !!(
-    span.attributes['gen_ai.usage.input_tokens'] ||
-    span.attributes['gen_ai.usage.output_tokens'] ||
-    span.attributes['gen_ai.usage.input_cost'] ||
-    span.attributes['gen_ai.usage.output_cost']
-  )
-}
-
-// Check if span has standard attributes that we specifically handle
-function hasStandardAttributes(span: TraceSpan): boolean {
-  return !!(
-    span.attributes['gen_ai.input.messages'] ||
-    span.attributes['gen_ai.output'] ||
-    span.attributes['gen_ai.tool.args'] ||
-    hasTokenInfo(span)
-  )
-}
-
 // Safely format JSON or return as-is if it's not valid JSON
 function safeJsonFormat(value: unknown): string {
   if (!value) return ''
@@ -266,47 +241,6 @@ function safeJsonFormat(value: unknown): string {
     return stringValue
   }
 }
-
-// Calculate execution duration
-const executionDuration = computed(() => {
-  if (!traceQuery.data.value?.spans) return 0
-
-  const firstSpan = traceQuery.data.value.spans.reduce(
-    (earliest: TraceSpan | null, span: TraceSpan) =>
-      !earliest || span.start_time < earliest.start_time ? span : earliest,
-    null,
-  )
-
-  const lastSpan = traceQuery.data.value.spans.reduce(
-    (latest: TraceSpan | null, span: TraceSpan) =>
-      !latest || span.end_time > latest.end_time ? span : latest,
-    null,
-  )
-
-  return firstSpan && lastSpan ? lastSpan.end_time - firstSpan.start_time : 0
-})
-
-// Calculate total cost
-const totalCost = computed(() => {
-  if (!traceQuery.data.value?.spans) return 0
-
-  return traceQuery.data.value.spans.reduce((sum: number, span: TraceSpan) => {
-    const inputCost = Number(span.attributes['gen_ai.usage.input_cost']) || 0
-    const outputCost = Number(span.attributes['gen_ai.usage.output_cost']) || 0
-    return sum + inputCost + outputCost
-  }, 0)
-})
-
-// Calculate total tokens
-const totalTokens = computed(() => {
-  if (!traceQuery.data.value?.spans) return 0
-
-  return traceQuery.data.value.spans.reduce((sum: number, span: TraceSpan) => {
-    const inputTokens = Number(span.attributes['gen_ai.usage.input_tokens']) || 0
-    const outputTokens = Number(span.attributes['gen_ai.usage.output_tokens']) || 0
-    return sum + inputTokens + outputTokens
-  }, 0)
-})
 
 // Functions for delete confirmation
 const handleDeleteClick = () => {
