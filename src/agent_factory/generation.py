@@ -116,19 +116,11 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
     try:
         return agent.run(user_prompt, max_turns=max_turns)
     except AgentRunError as e:
-        print(f"Agent execution failed: {str(e)}")
+        print(f"Agent execution failed: {e}")
         print("Retrieved partial agent trace...")
-        if not hasattr(e, "trace") or not e.trace:
-            raise RuntimeError("No trace available from AgentRunError") from e
         return e.trace
     except Exception as e:
-        print(f"Unexpected error during agent execution: {str(e)}")
-        print("Attempting to retrieve partial trace...")
-        if hasattr(agent, "get_trace"):
-            trace = agent.get_trace()
-            if trace:
-                return trace
-        raise RuntimeError(f"Failed to get agent trace: {str(e)}") from e
+        raise RuntimeError(f"Unexpected error during agent execution. Failed to get agent trace: {e}") from e
 
 
 def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
