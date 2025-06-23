@@ -150,6 +150,7 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
 def single_turn_generation(
     user_prompt: str,
     output_dir: Path | None = None,
+    max_turns: int = 30,
 ) -> None:
     """Generate python code for an agentic workflow based on the user prompt.
 
@@ -163,7 +164,7 @@ def single_turn_generation(
     run_instructions = build_run_instructions(user_prompt)
 
     try:
-        agent_trace = run_agent(agent, run_instructions)
+        agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
         save_agent_outputs(agent_trace, output_dir)
         print(f"Workflow files saved in: {output_dir}")
     except Exception as e:
