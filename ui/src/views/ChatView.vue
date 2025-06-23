@@ -29,6 +29,7 @@
         :is-loading="isLoading"
         loading-text="Loading..."
         max-height="600px"
+        :center-header="true"
       >
         <template #footer>
           <router-link

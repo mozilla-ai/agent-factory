@@ -1,6 +1,6 @@
 <template>
   <div class="streaming-output">
-    <div class="output-header">
+    <div class="output-header" :class="{ centered: centerHeader }">
       <h3>{{ title }}</h3>
       <slot name="actions" />
     </div>
@@ -43,6 +43,7 @@ interface Props {
   loadingText?: string
   emptyMessage?: string
   maxHeight?: string
+  centerHeader?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -50,6 +51,7 @@ withDefaults(defineProps<Props>(), {
   loadingText: 'Processing...',
   emptyMessage: 'This is where the output will be displayed.',
   maxHeight: '400px',
+  centerHeader: false,
 })
 </script>
 
@@ -64,6 +66,10 @@ withDefaults(defineProps<Props>(), {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.output-header.centered {
+  justify-content: center;
 }
 
 .output-header h3 {

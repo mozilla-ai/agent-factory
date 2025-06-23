@@ -13,7 +13,7 @@
     </div>
 
     <div class="evaluation-steps">
-      <WorkflowStepButton
+      <EvaluationStepButton
         :step-number="1"
         title="Run Agent"
         description="Execute the agent to generate a trace file"
@@ -27,7 +27,7 @@
         @click="runAgentMutation.mutate()"
       />
 
-      <WorkflowStepButton
+      <EvaluationStepButton
         :step-number="2"
         title="Generate Evaluation Cases"
         description="Create test cases to evaluate the agent"
@@ -41,7 +41,7 @@
         @click="genCasesMutation.mutate()"
       />
 
-      <WorkflowStepButton
+      <EvaluationStepButton
         :step-number="3"
         title="Run Evaluation"
         description="Evaluate the agent against test cases"
@@ -92,7 +92,7 @@ import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
 import { useWorkflowsStore } from '@/stores/workflows'
 import { useStreamProcessor } from '@/composables/useStreamProcessor'
-import WorkflowStepButton from '../WorkflowStepButton.vue'
+import EvaluationStepButton from '../EvaluationStepButton.vue'
 import BaseButton from '../BaseButton.vue'
 
 const props = defineProps({
