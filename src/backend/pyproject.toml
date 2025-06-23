@@ -12,9 +12,18 @@ dynamic = ["version"]
 dependencies = [
     "fastapi[standard]>=0.115.0",
     "pydantic>=2.11.0",
+    "pydantic-settings==2.10.0",
     "uvicorn[standard]>=0.34.0",
     "dotenv>=0.9.9",
+    "sqlalchemy[asyncio]==2.0.41",
+    "alembic>=1.16.2",
+    "a2a-sdk==0.2.8",
+    "loguru>=0.7.3",
 ]
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests.*"]
+namespaces = false
 
 [project.urls]
 Documentation = "https://mozilla-ai.github.io/agent-factory/"

@@ -186,3 +186,7 @@ generated_workflows
 node_modules/
 # test results
 test_results
+
+# database
+*.db
+**/*.db
