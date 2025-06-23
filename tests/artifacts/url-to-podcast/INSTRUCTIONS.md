@@ -1,29 +1,19 @@
-## Setup & Run Instructions
+### Setup instructions
 
-1. **Create a virtual environment (optional but recommended)**
+1. **Clone / download the project** and ensure you have Python **3.11** installed.
 
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
+2. **Create a `.env` file** in the project root with the following variables (obtain keys from your ElevenLabs dashboard):
+
+```
+OPENAI_API_KEY=your_openai_key_here
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 ```
 
-2. **Create a `.env` file** in the project root and add the following keys:
-
-```env
-# OpenAI / Azure-OpenAI key for any-agent to call the LLM
-OPENAI_API_KEY=YOUR_OPENAI_KEY_HERE
-
-# ElevenLabs key for text-to-speech
-ELEVENLABS_API_KEY=YOUR_ELEVENLABS_KEY_HERE
-```
-
-3. **Install dependencies & run** using `uv` (ensures deterministic builds):
+3. **Install dependencies and run the agent** (Linux / macOS example):
 
 ```bash
 uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \
-  python generated_workflows/latest/agent.py --url "https://example.com" --num_speakers 3
+    python generated_workflows/latest/agent.py --url "https://example.com/some-article" --num_hosts 2
 ```
 
-Replace the URL with any article you want converted into a podcast.
-
-
+> **Note**: `ffmpeg` must be installed and available in your system `PATH` for audio concatenation.
