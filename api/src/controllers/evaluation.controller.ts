@@ -1,6 +1,11 @@
 import { Request, Response } from 'express'
 import { evaluationService } from '../services/evaluation.service.js'
 import { MESSAGES } from '../constants/index.js'
+import {
+  handleStreamingError,
+  setupStreamingResponse,
+  completeStreamingResponse,
+} from '../utils/streaming.utils.js'
 
 export class EvaluationController {
   // Run agent for evaluation
@@ -8,9 +13,7 @@ export class EvaluationController {
     const { workflowPath } = req.params
 
     try {
-      res.setHeader('Content-Type', 'text/plain')
-      res.setHeader('Cache-Control', 'no-cache')
-      res.setHeader('Connection', 'keep-alive')
+      setupStreamingResponse(res)
 
       const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
         const prefix = source === 'stderr' ? '[ERROR] ' : ''
@@ -18,20 +21,9 @@ export class EvaluationController {
       }
 
       await evaluationService.runAgent(workflowPath, outputCallback)
-      res.write(`\n${MESSAGES.SUCCESS.AGENT_RUN_COMPLETED}\n`)
-      res.end()
+      completeStreamingResponse(res, MESSAGES.SUCCESS.AGENT_RUN_COMPLETED)
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-
-      if (!res.headersSent) {
-        // Stream hasn't started, send proper HTTP error
-        res.status(500).send(`Failed to run agent: ${errorMessage}`)
-      } else {
-        // Stream is active, write error to stream and end
-        res.write(`\n[FATAL ERROR] Failed to run agent: ${errorMessage}\n`)
-        res.end()
-      }
+      handleStreamingError(res, error, 'Failed to run agent')
     }
   }
 
@@ -40,9 +32,7 @@ export class EvaluationController {
     const { workflowPath } = req.params
 
     try {
-      res.setHeader('Content-Type', 'text/plain')
-      res.setHeader('Cache-Control', 'no-cache')
-      res.setHeader('Connection', 'keep-alive')
+      setupStreamingResponse(res)
 
       const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
         const prefix = source === 'stderr' ? '[ERROR] ' : ''
@@ -53,24 +43,12 @@ export class EvaluationController {
         workflowPath,
         outputCallback,
       )
-      res.write(`\n${MESSAGES.SUCCESS.EVALUATION_CASES_COMPLETED}\n`)
-      res.end()
+      completeStreamingResponse(
+        res,
+        MESSAGES.SUCCESS.EVALUATION_CASES_COMPLETED,
+      )
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-
-      if (!res.headersSent) {
-        // Stream hasn't started, send proper HTTP error
-        res
-          .status(500)
-          .send(`Failed to generate evaluation cases: ${errorMessage}`)
-      } else {
-        // Stream is active, write error to stream and end
-        res.write(
-          `\n[FATAL ERROR] Failed to generate evaluation cases: ${errorMessage}\n`,
-        )
-        res.end()
-      }
+      handleStreamingError(res, error, 'Failed to generate evaluation cases')
     }
   }
 
@@ -79,9 +57,7 @@ export class EvaluationController {
     const { workflowPath } = req.params
 
     try {
-      res.setHeader('Content-Type', 'text/plain')
-      res.setHeader('Cache-Control', 'no-cache')
-      res.setHeader('Connection', 'keep-alive')
+      setupStreamingResponse(res)
 
       const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
         const prefix = source === 'stderr' ? '[ERROR] ' : ''
@@ -89,20 +65,9 @@ export class EvaluationController {
       }
 
       await evaluationService.runEvaluation(workflowPath, outputCallback)
-      res.write(`\n${MESSAGES.SUCCESS.EVALUATION_COMPLETED}\n`)
-      res.end()
+      completeStreamingResponse(res, MESSAGES.SUCCESS.EVALUATION_COMPLETED)
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-
-      if (!res.headersSent) {
-        // Stream hasn't started, send proper HTTP error
-        res.status(500).send(`Failed to run evaluation: ${errorMessage}`)
-      } else {
-        // Stream is active, write error to stream and end
-        res.write(`\n[FATAL ERROR] Failed to run evaluation: ${errorMessage}\n`)
-        res.end()
-      }
+      handleStreamingError(res, error, 'Failed to run evaluation')
     }
   }
 

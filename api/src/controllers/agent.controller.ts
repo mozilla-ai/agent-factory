@@ -1,6 +1,11 @@
 import { Request, Response } from 'express'
 import { processService } from '../services/process.service.js'
 import { PROCESS_IDS, MESSAGES, DEFAULTS } from '../constants/index.js'
+import {
+  handleStreamingError,
+  setupStreamingResponse,
+  completeStreamingResponse,
+} from '../utils/streaming.utils.js'
 
 export class AgentController {
   // Generate agent
@@ -8,9 +13,7 @@ export class AgentController {
     const { prompt = DEFAULTS.AGENT_PROMPT } = req.body
 
     try {
-      res.setHeader('Content-Type', 'text/plain')
-      res.setHeader('Cache-Control', 'no-cache')
-      res.setHeader('Connection', 'keep-alive')
+      setupStreamingResponse(res)
 
       const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
         const prefix = source === 'stderr' ? '[ERROR] ' : ''
@@ -18,20 +21,9 @@ export class AgentController {
       }
 
       await processService.runAgentFactory(prompt, outputCallback)
-      res.write(`\n${MESSAGES.SUCCESS.AGENT_COMPLETED}\n`)
-      res.end()
+      completeStreamingResponse(res, MESSAGES.SUCCESS.AGENT_COMPLETED)
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-
-      if (!res.headersSent) {
-        // Stream hasn't started, send proper HTTP error
-        res.status(500).send(`[agent-factory] Workflow failed: ${errorMessage}`)
-      } else {
-        // Stream is active, write error to stream and end
-        res.write(`\n[FATAL ERROR] ${errorMessage}\n`)
-        res.end()
-      }
+      handleStreamingError(res, error, '[agent-factory] Workflow failed')
     }
   }
 

@@ -131,53 +131,15 @@ export class ProcessService {
       throw new ProcessError('Agent factory process is already running')
     }
 
-    const process = spawn(config.agentFactoryExecutable, [prompt], {
-      cwd: config.rootDir,
-      shell: false,
-    })
-
-    this.processes.set(processId, {
-      process,
-      workflowPath: prompt,
-    })
-
-    return new Promise((resolve, reject) => {
-      process.stdout.on('data', (data) => {
-        const output = data.toString()
-        console.log(`[Agent Factory] ${output.trim()}`)
-        outputCallback('stdout', output)
-      })
-
-      process.stderr.on('data', (data) => {
-        const output = data.toString()
-        console.error(`[Agent Factory ERROR] ${output.trim()}`)
-        outputCallback('stderr', output)
-      })
-
-      process.on('error', (error) => {
-        this.processes.delete(processId)
-        reject(
-          new ProcessError('Agent factory process failed', {
-            error: error.message,
-          }),
-        )
-      })
-
-      process.on('exit', (code) => {
-        this.processes.delete(processId)
-        if (code === 0) {
-          console.log('[Agent Factory] Process completed successfully')
-          resolve()
-        } else {
-          console.error(`[Agent Factory] Process failed with exit code ${code}`)
-          reject(
-            new ProcessError(`Agent factory process failed with code ${code}`, {
-              exitCode: code,
-            }),
-          )
-        }
-      })
-    })
+    // Agent factory is just a Python executable, so use runPythonScript with custom process ID
+    return this.runPythonScriptWithProcessId(
+      config.agentFactoryExecutable,
+      [prompt],
+      outputCallback,
+      processId,
+      'Agent Factory',
+      prompt, // workflowPath
+    )
   }
 
   // Run Python script with streaming
@@ -189,62 +151,70 @@ export class ProcessService {
   ): Promise<void> {
     const processId = `python-${Date.now()}`
 
-    console.log(
-      `Running Python script: ${config.pythonExecutable} ${scriptPath} ${args.join(' ')}`,
-    )
-
-    const pythonProcess = spawn(
+    return this.runPythonScriptWithProcessId(
       config.pythonExecutable,
       [scriptPath, ...args],
-      {
-        cwd: config.rootDir,
-        env: env || process.env,
-      },
+      outputCallback,
+      processId,
+      'Python',
+      scriptPath,
+      env,
     )
+  }
+
+  // Internal method to run any executable with custom process ID
+  private async runPythonScriptWithProcessId(
+    executable: string,
+    args: string[],
+    outputCallback: OutputCallback,
+    processId: string,
+    logPrefix: string,
+    workflowPath: string,
+    env: NodeJS.ProcessEnv | null = null,
+  ): Promise<void> {
+    console.log(`Running ${logPrefix}: ${executable} ${args.join(' ')}`)
+
+    const childProcess = spawn(executable, args, {
+      cwd: config.rootDir,
+      env: env || process.env,
+    })
 
     this.processes.set(processId, {
-      process: pythonProcess,
-      workflowPath: scriptPath,
+      process: childProcess,
+      workflowPath,
     })
 
     return new Promise((resolve, reject) => {
-      pythonProcess.stdout.on('data', (data: Buffer) => {
-        const output = data.toString('utf-8')
-        console.log(`[Python] ${output.trim()}`)
+      childProcess.stdout?.on('data', (data) => {
+        const output = data.toString()
+        console.log(`[${logPrefix}] ${output.trim()}`)
         outputCallback('stdout', output)
       })
 
-      pythonProcess.stderr.on('data', (data: Buffer) => {
-        const output = data.toString('utf-8')
-        console.error(`[Python ERROR] ${output.trim()}`)
+      childProcess.stderr?.on('data', (data) => {
+        const output = data.toString()
+        console.error(`[${logPrefix} ERROR] ${output.trim()}`)
         outputCallback('stderr', output)
       })
 
-      pythonProcess.on('error', (error: Error) => {
+      childProcess.on('error', (error) => {
         this.processes.delete(processId)
-        console.error(`[Python] Process error: ${error.message}`)
         reject(
-          new ProcessError('Python script failed', {
-            scriptPath,
-            args,
+          new ProcessError(`${logPrefix} process failed`, {
             error: error.message,
           }),
         )
       })
 
-      pythonProcess.on('close', (code: number | null) => {
+      childProcess.on('exit', (code) => {
         this.processes.delete(processId)
         if (code === 0) {
-          console.log(`[Python] Script completed: ${scriptPath}`)
+          console.log(`[${logPrefix}] Process completed: ${workflowPath}`)
           resolve()
         } else {
-          console.error(
-            `[Python] Script failed with code ${code}: ${scriptPath}`,
-          )
+          console.error(`[${logPrefix}] Process failed with exit code ${code}`)
           reject(
-            new ProcessError(`Python script failed with code ${code}`, {
-              scriptPath,
-              args,
+            new ProcessError(`${logPrefix} process failed with code ${code}`, {
               exitCode: code,
             }),
           )
