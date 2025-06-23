@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=48", "setuptools_scm[toml]>=6.3.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backend"
+description = "Agent Factory Backend"
+license = {text = "Apache-2.0"}
+readme = "README.md"
+requires-python = ">=3.13"
+dynamic = ["version"]
+dependencies = [
+    "fastapi[standard]>=0.115.0",
+    "pydantic>=2.11.0",
+    "uvicorn[standard]>=0.34.0",
+    "dotenv>=0.9.9",
+]
+
+[project.urls]
+Documentation = "https://mozilla-ai.github.io/agent-factory/"
+Issues = "https://github.com/mozilla-ai/agent-factory/issues"
+Source = "https://github.com/mozilla-ai/agent-factory"
