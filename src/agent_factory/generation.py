@@ -135,9 +135,6 @@ def single_turn_generation(
 
     (output_dir / "agent_factory_trace.json").write_text(agent_trace.model_dump_json(indent=2))
 
-    # TODO: remove saving raw output
-    # (output_dir / "agent_factory_raw_output.txt").write_text(agent_trace.final_output)
-
     if not hasattr(agent_trace, "final_output") or not agent_trace.final_output:
         raise RuntimeError("Failed to retrieve final_output from agent_trace after execution error")
 
