@@ -1,5 +1,6 @@
 import { apiClient } from './api'
 import { ENDPOINTS } from '@/config/endpoints'
+import { API_CONFIG } from '@/config/api.config'
 import type { WorkflowFile, EvaluationStatus, AgentTrace } from '@/types'
 
 export const workflowService = {
@@ -8,12 +9,13 @@ export const workflowService = {
     return response.data
   },
   async generateAgent(prompt: string): Promise<ReadableStream> {
-    const response = await fetch(
-      `${apiClient.defaults.baseURL}/${ENDPOINTS.generateAgent(prompt)}`,
-      {
-        method: 'GET',
+    const response = await fetch(`${API_CONFIG.baseURL}/${ENDPOINTS.generateAgent}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+      body: JSON.stringify({ prompt }),
+    })
     if (!response.ok) {
       throw new Error(`Failed to generate agent: ${response.status} ${response.statusText}`)
     }

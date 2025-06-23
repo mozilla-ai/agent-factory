@@ -208,7 +208,7 @@ const scoreValue = computed(() => {
 const maxScoreValue = computed(() => resultsQuery.data.value?.maxScore ?? 1)
 
 // Use evaluation scores composable for consistent calculations
-const { passedCheckpoints, failedCheckpoints, scorePercentage, passRate } = useEvaluationScores(
+const { passedCheckpoints, failedCheckpoints, passRate } = useEvaluationScores(
   computed(() => undefined), // No criteria needed for results viewer
   resultsQuery.data,
 )

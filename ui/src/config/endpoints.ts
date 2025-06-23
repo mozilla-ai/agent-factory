@@ -3,29 +3,37 @@
  */
 
 export const ENDPOINTS = {
+  // Health check
+  health: 'health',
+
   // Workflows
-  workflows: 'agent-factory/workflows',
+  workflows: 'api/workflows',
+  workflowDetails: (workflowId: string) => `api/workflows/${encodeURIComponent(workflowId)}`,
   workflowFile: (workflowId: string, filePath: string) =>
-    `agent-factory/workflows/${encodeURIComponent(workflowId)}/${filePath}`,
+    `workflows/${encodeURIComponent(workflowId)}/${filePath}`,
+  workflowCriteria: (workflowId: string) =>
+    `api/workflows/${encodeURIComponent(workflowId)}/criteria`,
+  workflowResults: (workflowId: string) =>
+    `api/workflows/${encodeURIComponent(workflowId)}/results`,
 
-  // Agent generation
-  generateAgent: (prompt: string) => `agent-factory?prompt=${encodeURIComponent(prompt)}`,
+  // Agent generation and management
+  generateAgent: 'api/agent/generate',
+  sendInput: 'api/agent/input',
+  stopAgent: 'api/agent/stop',
 
-  // Evaluation
-  runAgent: (workflowId: string) =>
-    `agent-factory/evaluate/run-agent/${encodeURIComponent(workflowId)}`,
+  // Evaluation operations
+  runAgent: (workflowId: string) => `api/evaluation/${encodeURIComponent(workflowId)}/run-agent`,
   generateCases: (workflowId: string) =>
-    `agent-factory/evaluate/generate-cases/${encodeURIComponent(workflowId)}`,
+    `api/evaluation/${encodeURIComponent(workflowId)}/generate-cases`,
   runEvaluation: (workflowId: string) =>
-    `agent-factory/evaluate/run-evaluation/${encodeURIComponent(workflowId)}`,
-  saveCriteria: (workflowId: string) =>
-    `agent-factory/evaluate/save-criteria/${encodeURIComponent(workflowId)}`,
+    `api/evaluation/${encodeURIComponent(workflowId)}/run-evaluation`,
+  saveCriteria: (workflowId: string) => `api/evaluation/${encodeURIComponent(workflowId)}/criteria`,
 
   // Delete operations
-  deleteEvaluationCriteria: (workflowId: string) =>
-    `agent-factory/workflows/${encodeURIComponent(workflowId)}/evaluation_criteria`,
-  deleteEvaluationResults: (workflowId: string) =>
-    `agent-factory/workflows/${encodeURIComponent(workflowId)}/evaluation_results`,
   deleteAgentTrace: (workflowId: string) =>
-    `agent-factory/workflows/${encodeURIComponent(workflowId)}/agent_eval_trace`,
+    `api/evaluation/${encodeURIComponent(workflowId)}/trace`,
+  deleteEvaluationCriteria: (workflowId: string) =>
+    `api/evaluation/${encodeURIComponent(workflowId)}/criteria`,
+  deleteEvaluationResults: (workflowId: string) =>
+    `api/evaluation/${encodeURIComponent(workflowId)}/results`,
 }
