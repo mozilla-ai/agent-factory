@@ -5,7 +5,7 @@ from pathlib import Path
 
 import dotenv
 import fire
-from any_agent import AgentConfig, AgentFramework, AnyAgent
+from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
 
@@ -117,14 +117,35 @@ def single_turn_generation(
 
     run_instructions = build_run_instructions(user_prompt)
 
-    agent_trace = agent.run(run_instructions, max_turns=30)
+    try:
+        agent_trace = agent.run(run_instructions, max_turns=30)
+    except AgentRunError as e:
+        # To retrieve the partial trace, use the trace from the exception
+        agent_trace = e.trace
+        print(f"Agent execution failed: {str(e)}")
+        print("Retrieved partial agent trace ...")
+    except Exception as e:
+        # For any other exceptions, try to get the trace directly from the agent
+        agent_trace = agent.get_trace() if hasattr(agent, "get_trace") else None
+        print(f"Unexpected error during agent execution: {str(e)}")
+        print("Attempting to save partial agent trace...")
+
+    if not agent_trace:
+        raise RuntimeError("Failed to get agent trace after execution error")
 
     (output_dir / "agent_factory_trace.json").write_text(agent_trace.model_dump_json(indent=2))
 
-    (output_dir / "agent_factory_raw_output.txt").write_text(agent_trace.final_output)
+    # TODO: remove saving raw output
+    # (output_dir / "agent_factory_raw_output.txt").write_text(agent_trace.final_output)
 
-    agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
-    save_agent_parsed_outputs(agent_factory_outputs, output_dir)
+    if not hasattr(agent_trace, "final_output") or not agent_trace.final_output:
+        raise RuntimeError("Failed to retrieve final_output from agent_trace after execution error")
+
+    try:
+        agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
+        save_agent_parsed_outputs(agent_factory_outputs, output_dir)
+    except Exception as e:
+        print(f"Failed to parse agent's structured outputs: {str(e)}")
 
     print(f"Workflow files saved in: {output_dir}")
 
