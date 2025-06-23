@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import fire
+from loguru import logger
 from any_agent.evaluation.evaluate import evaluate
 from any_agent.evaluation.evaluation_case import EvaluationCase
 from any_agent.tracing.agent_trace import AgentTrace
@@ -27,13 +28,13 @@ def run_evaluation(
     try:
         # Load evaluation case from the specified YAML file
         evaluation_case = EvaluationCase.from_yaml(evaluation_case_yaml_file)
-        print(f"Successfully loaded evaluation case from: {evaluation_case_yaml_file}")
+        logger.info(f"Successfully loaded evaluation case from: {evaluation_case_yaml_file}")
 
         # Load agent trace from the specified JSON file
         with Path(agent_trace_json_file).open(encoding="utf-8") as f:
             agent_trace_data = f.read()
             agent_trace = AgentTrace.model_validate_json(agent_trace_data)
-        print(f"Successfully loaded agent trace from: {agent_trace_json_file}")
+        logger.info(f"Successfully loaded agent trace from: {agent_trace_json_file}")
 
         # Perform the evaluation
         eval_result = evaluate(
@@ -42,20 +43,20 @@ def run_evaluation(
         )
 
         # Print the results
-        print("\n--- Evaluation Results ---")
-        print(f"Final score: {eval_result.score}")
+        logger.info("\n--- Evaluation Results ---")
+        logger.info(f"Final score: {eval_result.score}")
 
         if hasattr(eval_result, "checkpoint_results"):
-            print("Checkpoint results:")
+            logger.info("Checkpoint results:")
             obtained_score = 0
             max_score = 0
             checkpoint_results_list = []
             for i, cp_result in enumerate(eval_result.checkpoint_results):
-                print(f"\tCheckpoint {i + 1}:")
-                print(f"\t\tCriteria: {cp_result.criteria}")
-                print(f"\t\tCriteria Points: {cp_result.points}")
-                print(f"\t\tPassed: {cp_result.passed}")
-                print(f"\t\tReason: {cp_result.reason}")
+                logger.info(f"\tCheckpoint {i + 1}:")
+                logger.info(f"\t\tCriteria: {cp_result.criteria}")
+                logger.info(f"\t\tCriteria Points: {cp_result.points}")
+                logger.info(f"\t\tPassed: {cp_result.passed}")
+                logger.info(f"\t\tReason: {cp_result.reason}")
                 obtained_score += cp_result.points if cp_result.passed else 0
                 max_score += cp_result.points
                 checkpoint_results_list.append(cp_result.model_dump())
@@ -68,24 +69,24 @@ def run_evaluation(
             }
             with Path(save_evaluation_results_path).open("w", encoding="utf-8") as f:
                 f.write(json.dumps(eval_result_dict, indent=2))
-                print(f"Successfully saved evaluation results to: {save_evaluation_results_path}")
+                logger.info(f"Successfully saved evaluation results to: {save_evaluation_results_path}")
 
         else:
-            print("No checkpoint results available.")
+            logger.info("No checkpoint results available.")
 
     except FileNotFoundError as e:
-        print(f"Error: File not found - {e.filename}")
-        print("Please ensure the specified file paths are correct.")
+        logger.error(f"Error: File not found - {e.filename}")
+        logger.error("Please ensure the specified file paths are correct.")
     except AttributeError as e:
-        print(
+        logger.error(
             "Error: An attribute was not found in the evaluation result objects. "
             f"This might indicate an unexpected structure for eval_result itself. Details: {e}"
         )
     except ValueError as e:
-        print(f"Error: Invalid evaluation result format. Details: {e}")
+        logger.error(f"Error: Invalid evaluation result format. Details: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        print("Evaluation could not be completed.")
+        logger.error(f"An unexpected error occurred: {e}")
+        logger.error("Evaluation could not be completed.")
 
 
 if __name__ == "__main__":

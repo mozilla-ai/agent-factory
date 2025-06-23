@@ -5,6 +5,7 @@ from pathlib import Path
 
 import dotenv
 import fire
+from loguru import logger
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
@@ -58,7 +59,7 @@ def save_agent_parsed_outputs(output: AgentFactoryOutputs, output_dir: Path):
     with requirements_path.open("w", encoding="utf-8") as f:
         f.write(remove_markdown_code_block_delimiters(output.dependencies))
 
-    print(f"Files saved to {output_dir}")
+    logger.info(f"Files saved to {output_dir}")
 
 
 def create_agent():
@@ -126,7 +127,7 @@ def single_turn_generation(
     agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
     save_agent_parsed_outputs(agent_factory_outputs, output_dir)
 
-    print(f"Workflow files saved in: {output_dir}")
+    logger.info(f"Workflow files saved in: {output_dir}")
 
 
 def main():

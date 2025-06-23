@@ -1,7 +1,7 @@
-import logging
 from pathlib import Path
 
 import dotenv
+from loguru import logger
 import fire
 import yaml
 from any_agent import AgentConfig, AgentFramework, AnyAgent
@@ -12,10 +12,6 @@ from pydantic import BaseModel, Field, ValidationError
 from eval.instructions import INSTRUCTIONS
 
 dotenv.load_dotenv()
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-logger = logging.getLogger(__name__)
 
 
 class CheckpointCriteria(BaseModel):
