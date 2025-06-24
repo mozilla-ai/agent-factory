@@ -12,7 +12,7 @@ from agent_factory.utils.trace_utils import load_agent_trace
 
 def _assert_generated_files(workflow_dir: Path):
     existing_files = [f.name for f in workflow_dir.iterdir()]
-    for expected_file in ["agent.py", "INSTRUCTIONS.md", "requirements.txt"]:
+    for expected_file in ["agent.py", "INSTRUCTIONS.md", "requirements.txt", "agent_factory_trace.json"]:
         assert expected_file in existing_files, f"{expected_file} was not generated."
 
 
