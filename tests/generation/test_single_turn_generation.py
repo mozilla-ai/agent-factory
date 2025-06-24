@@ -34,6 +34,19 @@ def _assert_execution_time_within_limit(agent_trace: AgentTrace, expected_execut
     )
 
 
+def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: int) -> None:
+    """Assert that the agent execution time is within the expected threshold.
+
+    Args:
+        agent_trace: The agent trace object
+        expected_num_turns: Maximum allowed number of turns
+    """
+    num_turns = len(agent_trace.spans)
+    assert num_turns < expected_num_turns, (
+        f"Agent executed {num_turns} turns exceeded expected threshold of {expected_num_turns}"
+    )
+
+
 @pytest.mark.parametrize(
     ("prompt_id", "prompt", "expected_num_turns", "expected_execution_time"),
     [
@@ -66,6 +79,7 @@ def test_single_turn_generation(
 
     agent_trace = load_agent_trace(tmp_path / "agent_factory_trace.json")
     _assert_execution_time_within_limit(agent_trace, expected_execution_time)
+    _assert_num_turns_within_limit(agent_trace, expected_num_turns)
 
     update_artifacts = request.config.getoption("--update-artifacts")
 
