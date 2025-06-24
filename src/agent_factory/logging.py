@@ -1,3 +1,9 @@
+"""Logging configuration taken from any-agent:
+https://github.com/mozilla-ai/any-agent/blob/main/src/any_agent/logging.py
+
+For changes made here, consider contributing to any-agent repo as well.
+"""
+
 import logging
 from typing import Any
 
