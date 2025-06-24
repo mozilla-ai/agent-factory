@@ -2,6 +2,7 @@ import ast
 import re
 import subprocess
 import tempfile
+from importlib.metadata import version
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from shutil import copytree
@@ -27,16 +28,18 @@ def _assert_requirements_format(requirements_path: Path):
     lines = content.split("\n")
 
     if not lines:
-        raise AssertionError("requirements.txt is empty")
+        raise AssertionError(f"requirements.txt is empty\n\nFull requirements.txt content:\n{content}")
 
     first_line = lines[0].strip()
 
-    # Pattern to match any-agent[all]==X.Y.Z format
-    pattern = r"^any-agent\[all\]==\d+\.\d+\.\d+.*$"
+    # Get the expected version from the installed any-agent package
+    expected_version = version("any-agent")
+    expected_first_line = f"any-agent[all]=={expected_version}"
 
-    if not re.match(pattern, first_line):
+    if first_line != expected_first_line:
         raise AssertionError(
-            f"First line of requirements.txt should match 'any-agent[all]==VERSION' format. Found: '{first_line}'"
+            f"First line must be 'any-agent[all]=={expected_version}'. "
+            f"Found: '{first_line}'\n\nFull requirements.txt content:\n{content}"
         )
 
 
@@ -47,6 +50,7 @@ def _assert_requirements_installable(requirements_path: Path, timeout: int = 180
         requirements_path: Path to the requirements.txt file
         timeout: Maximum time in seconds to wait for installation
     """
+    requirements_content = requirements_path.read_text(encoding="utf-8")
     with tempfile.TemporaryDirectory() as temp_dir:
         env_dir = Path(temp_dir) / ".venv"
 
@@ -71,13 +75,18 @@ def _assert_requirements_installable(requirements_path: Path, timeout: int = 180
             )
 
             assert result.returncode == 0, (
-                f"Failed to install requirements:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}"
+                f"Failed to install requirements:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}\n\n"
+                f"Full requirements.txt content:\n{requirements_content}"
             )
         except subprocess.TimeoutExpired:
-            raise AssertionError(f"Requirements installation timed out after {timeout} seconds") from None
+            raise AssertionError(
+                f"Requirements installation timed out after {timeout} seconds\n\n"
+                f"Full requirements.txt content:\n{requirements_content}"
+            ) from None
         except subprocess.CalledProcessError as e:
             raise AssertionError(
-                f"Failed to create virtual environment:\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}"
+                f"Failed to create virtual environment:\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}\n\n"
+                f"Full requirements.txt content:\n{requirements_content}"
             ) from e
 
 
