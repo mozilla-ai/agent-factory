@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import { workflowService } from '@/services/workflowService'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { ref } from 'vue'
 import StreamingOutput from '@/components/StreamingOutput.vue'
 
@@ -55,7 +55,7 @@ const prompt = ref<string>('Create an agent that can tell the current weather in
 const response = ref<string>('')
 const isLoading = ref<boolean>(false)
 const generationComplete = ref<boolean>(false)
-const workflowsStore = useWorkflowsStore()
+const { invalidateWorkflows } = useWorkflows()
 
 const handleSendClicked = async () => {
   try {
@@ -89,7 +89,7 @@ const handleSendClicked = async () => {
       generationComplete.value = true
 
       // clear all queries cache
-      workflowsStore.loadWorkflows()
+      invalidateWorkflows()
     }
 
     isLoading.value = false

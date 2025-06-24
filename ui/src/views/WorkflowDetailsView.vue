@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { useQuery } from '@tanstack/vue-query'
 import { useTabs } from '@/composables/useTabs'
 import { queryKeys } from '@/helpers/queryKeys'
@@ -48,10 +48,9 @@ import EvaluationCriteriaViewer from '@/components/tabs/EvaluationCriteriaViewer
 import EvaluationResultsViewer from '@/components/tabs/EvaluationResultsViewer.vue'
 import type { WorkflowFile } from '@/types'
 
-// Setup
 const route = useRoute()
 const router = useRouter()
-const workflowsStore = useWorkflowsStore()
+const { getWorkflowById } = useWorkflows()
 const loading = ref(false)
 const error = ref('')
 
@@ -59,7 +58,7 @@ const error = ref('')
 const workflowId = computed(() => route.params.id as string)
 
 // Get the workflow from store
-const workflow = computed(() => workflowsStore.getWorkflowById(workflowId.value))
+const workflow = computed(() => getWorkflowById(workflowId.value))
 
 // Computed workflow path for API calls
 // const workflowId = computed(() => {
@@ -67,7 +66,6 @@ const workflow = computed(() => workflowsStore.getWorkflowById(workflowId.value)
 //   return workflow.value.path || workflow.value.name
 // })
 
-// Setup evaluation status checking
 const evaluationStatusQuery = useQuery({
   queryKey: computed(() => queryKeys.evaluationStatus(workflowId.value)),
   queryFn: () => workflowService.getEvaluationStatus(workflowId.value),
@@ -75,7 +73,6 @@ const evaluationStatusQuery = useQuery({
   retry: 1,
 })
 
-// Setup tabs
 const { activeTab, setActiveTab } = useTabs('files')
 
 const handleTabClicked = (tab: string) => {
@@ -200,7 +197,7 @@ onMounted(async () => {
   if (!workflow.value) {
     loading.value = true
     try {
-      await workflowsStore.loadWorkflows()
+      // TanStack Query automatically loads workflows
       if (!workflow.value) {
         error.value = `Workflow "${workflowId.value}" not found`
       }

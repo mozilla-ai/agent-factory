@@ -6,7 +6,7 @@
       <label for="workflow-id">Select Workflow:</label>
       <select id="workflow-id" v-model="selectedWorkflow">
         <option
-          v-for="(workflow, index) in workflowStore.workflows.map((w) => w.name)"
+          v-for="(workflow, index) in workflows.map((w) => w.name)"
           :key="index"
           :value="workflow"
         >
@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { evaluationService } from '@/services/evaluationService'
 import StreamingOutput from '@/components/StreamingOutput.vue'
 
@@ -63,10 +63,10 @@ const isRunningAgent = ref(false)
 const isGeneratingCases = ref(false)
 const isRunningEval = ref(false)
 const currentOperation = ref('')
-const workflowStore = useWorkflowsStore()
+const { workflows } = useWorkflows()
 
 onMounted(() => {
-  workflowStore.loadWorkflows()
+  // TanStack Query automatically loads workflows - no manual loading needed!
 })
 
 // Helper function to handle streaming response

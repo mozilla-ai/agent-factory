@@ -90,7 +90,7 @@ import { computed, defineProps } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { useStreamProcessor } from '@/composables/useStreamProcessor'
 import { queryKeys } from '@/helpers/queryKeys'
 import EvaluationStepButton from '../EvaluationStepButton.vue'
@@ -113,7 +113,7 @@ const props = defineProps({
 
 const router = useRouter()
 const queryClient = useQueryClient()
-const workflowsStore = useWorkflowsStore()
+const { invalidateWorkflows } = useWorkflows()
 const { output, clearOutput, processStream, isProcessing } = useStreamProcessor()
 
 // Computed property to check if all evaluation files exist
@@ -138,7 +138,7 @@ const runAgentMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: queryKeys.fileContent(props.workflowId, 'agent_eval_trace.json'),
     })
-    workflowsStore.loadWorkflows()
+    invalidateWorkflows()
   },
 })
 
@@ -155,7 +155,7 @@ const genCasesMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
     })
-    workflowsStore.loadWorkflows()
+    invalidateWorkflows()
   },
 })
 
@@ -172,7 +172,7 @@ const runEvalMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
     })
-    workflowsStore.loadWorkflows()
+    invalidateWorkflows()
   },
 })
 

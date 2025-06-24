@@ -113,7 +113,7 @@ import ConfirmationDialog from '../ConfirmationDialog.vue'
 import CheckpointItem from '../CheckpointItem.vue'
 import BaseButton from '../BaseButton.vue'
 import { useRouter } from 'vue-router'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { useEvaluationScores } from '@/composables/useEvaluationScores'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { queryKeys } from '@/helpers/queryKeys'
@@ -140,12 +140,11 @@ const isEditMode = ref(false)
 const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
   useDeleteConfirmation()
 
-// Toggle edit mode
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
 }
 
-const workflowsStore = useWorkflowsStore()
+const { invalidateWorkflows } = useWorkflows()
 // Handle criteria saved event
 const onCriteriaSaved = () => {
   isEditMode.value = false
@@ -232,20 +231,20 @@ const startCreatingCriteria = () => {
 }
 
 const router = useRouter()
-// Add delete mutation
 const deleteCriteriaMutation = useMutation({
   mutationFn: () => evaluationService.deleteEvaluationCriteria(props.workflowId),
   onSuccess: () => {
-    // Invalidate queries to refresh the data
     queryClient.invalidateQueries({ queryKey: queryKeys.evaluationCriteria(props.workflowId) })
     queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
     queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
     queryClient.invalidateQueries({
       queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
     })
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
+    })
+    invalidateWorkflows()
     closeDeleteDialog()
-    // Refresh the workflow store to update file explorer
-    workflowsStore.loadWorkflows()
     router.push({
       params: { worokflowPath: props.workflowId },
       query: { tab: 'evaluate' },

@@ -134,7 +134,7 @@ import { useRouter } from 'vue-router'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 
 import { transformResults } from '@/helpers/transform-results'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useEvaluationScores } from '@/composables/useEvaluationScores'
 import { queryKeys } from '@/helpers/queryKeys'
@@ -150,7 +150,7 @@ const props = defineProps<{
   workflowId: string
 }>()
 
-const workflowsStore = useWorkflowsStore()
+const { invalidateWorkflows } = useWorkflows()
 // Setup
 const router = useRouter()
 
@@ -256,8 +256,7 @@ const deleteResultsMutation = useMutation({
       queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
     })
     closeDeleteDialog()
-    // Refresh the workflow store to update file explorer
-    workflowsStore.loadWorkflows()
+    invalidateWorkflows()
     router.push({
       params: { workflowId: props.workflowId },
       query: { tab: 'evaluate' },

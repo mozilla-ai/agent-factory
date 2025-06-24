@@ -119,7 +119,7 @@ import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import { workflowService } from '@/services/workflowService'
 import { useRouter } from 'vue-router'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useTraceMetrics } from '@/composables/useTraceMetrics'
 import { queryKeys } from '@/helpers/queryKeys'
@@ -129,7 +129,7 @@ import CodeBlock from '../CodeBlock.vue'
 import TimelineItem from '../TimelineItem.vue'
 import BaseButton from '../BaseButton.vue'
 
-const workflowsStore = useWorkflowsStore()
+const { invalidateWorkflows } = useWorkflows()
 
 // Props
 const props = defineProps<{
@@ -169,13 +169,15 @@ const deleteTraceMutation = useMutation({
   mutationFn: () => evaluationService.deleteAgentEvalTrace(props.workflowId),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.agentTrace(props.workflowId) })
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
     queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
-    // Refresh the workflow store to update file explorer
-    workflowsStore.loadWorkflows()
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
     queryClient.invalidateQueries({
       queryKey: queryKeys.fileContent(props.workflowId, 'agent_eval_trace.json'),
     })
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
+    })
+    invalidateWorkflows()
     closeDeleteDialog()
     router.push({
       params: { workflowId: props.workflowId },
@@ -184,7 +186,6 @@ const deleteTraceMutation = useMutation({
   },
 })
 
-// Toggle span expansion
 function toggleSpan(index: number): void {
   expandedSpans.value = {
     ...expandedSpans.value,

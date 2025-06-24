@@ -102,7 +102,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import type { EvaluationCriteria } from '../types/evaluation'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { evaluationService } from '@/services/evaluationService'
 import { queryKeys } from '@/helpers/queryKeys'
 import { handleHttpError } from '@/helpers/error.helpers'
@@ -128,20 +128,16 @@ const formData = reactive<EvaluationCriteria>({
   ],
 })
 
-// Add validation state
 const formErrors = ref({
   checkpoints: [] as string[],
 })
 
-// Add validation function
 const validateForm = () => {
   let isValid = true
   formErrors.value.checkpoints = []
 
-  // Reset all errors
   formErrors.value.checkpoints = Array(formData.checkpoints.length).fill('')
 
-  // Validate each checkpoint
   formData.checkpoints.forEach((checkpoint, index) => {
     if (!checkpoint.criteria.trim()) {
       formErrors.value.checkpoints[index] = 'Criteria description is required'
@@ -179,7 +175,7 @@ const removeCheckpoint = (index: number) => {
 }
 
 const queryClient = useQueryClient()
-const workflowsStore = useWorkflowsStore()
+const { invalidateWorkflows } = useWorkflows()
 
 // Update mutation with better error handling
 const saveMutation = useMutation({
@@ -204,8 +200,7 @@ const saveMutation = useMutation({
     queryClient.invalidateQueries({
       queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
     })
-    // Refresh the workflow store to update file explorer
-    workflowsStore.loadWorkflows()
+    invalidateWorkflows()
     emit('saved', true)
   },
   onError: (error) => {
@@ -214,7 +209,6 @@ const saveMutation = useMutation({
   },
 })
 
-// Update the submission handler
 const handleSubmit = () => {
   if (!validateForm()) {
     return

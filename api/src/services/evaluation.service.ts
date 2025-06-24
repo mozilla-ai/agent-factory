@@ -7,7 +7,6 @@ import { MESSAGES, FILE_NAMES } from '../constants/index.js'
 import type { EvaluationCriteria, OutputCallback } from '../types/index.js'
 
 export class EvaluationService {
-  // Run agent and generate trace
   async runAgent(
     workflowPath: string,
     outputCallback: OutputCallback,
@@ -22,14 +21,12 @@ export class EvaluationService {
       )
     }
 
-    // Run the agent
     await processService.runPythonScript(agentPath, [], outputCallback)
 
     // Copy trace file from latest to workflow directory if needed
     await this.copyTraceFileIfNeeded(workflowPath)
   }
 
-  // Generate evaluation cases
   async generateEvaluationCases(
     workflowPath: string,
     outputCallback: OutputCallback,
@@ -48,7 +45,6 @@ export class EvaluationService {
     )
   }
 
-  // Run evaluation
   async runEvaluation(
     workflowPath: string,
     outputCallback: OutputCallback,
@@ -73,7 +69,6 @@ export class EvaluationService {
       throw new NotFoundError(MESSAGES.ERROR.EVALUATION_CASES_NOT_FOUND)
     }
 
-    // Set environment for evaluation script
     const env = {
       ...process.env,
       AGENT_PATH: workflowDir,
@@ -92,7 +87,6 @@ export class EvaluationService {
     )
   }
 
-  // Save evaluation criteria
   async saveEvaluationCriteria(
     workflowPath: string,
     criteria: EvaluationCriteria,
@@ -100,7 +94,6 @@ export class EvaluationService {
     return fileService.saveEvaluationCriteria(workflowPath, criteria)
   }
 
-  // Delete evaluation files
   async deleteAgentTrace(workflowPath: string): Promise<boolean> {
     return fileService.deleteAgentTrace(workflowPath)
   }
