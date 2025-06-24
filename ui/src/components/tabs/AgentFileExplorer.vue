@@ -139,7 +139,7 @@ const downloadUrl = computed(() => {
     filePath = props.selectedFile.path
   }
 
-  return `http://localhost:3000/agent-factory/workflows/${props.workflowId}/${filePath}`
+  return `http://localhost:3000/workflows/${props.workflowId}/${filePath}`
 })
 </script>
 

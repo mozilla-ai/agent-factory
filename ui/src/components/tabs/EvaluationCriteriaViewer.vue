@@ -26,7 +26,7 @@
     >
       <EvaluationCriteriaForm
         :workflowId="workflowId"
-        :initialData="evaluationCriteriaQuery.data.value"
+        :initialData="isEditMode ? evaluationCriteriaQuery.data.value : null"
         @saved="onCriteriaSaved"
         @cancel="isEditMode = false"
       />
