@@ -5,7 +5,8 @@ import fire
 from any_agent.evaluation.evaluate import evaluate
 from any_agent.evaluation.evaluation_case import EvaluationCase
 from any_agent.tracing.agent_trace import AgentTrace
-from loguru import logger
+
+from agent_factory.logging import logger
 
 
 def run_evaluation(

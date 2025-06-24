@@ -6,9 +6,9 @@ import yaml
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
-from loguru import logger
 from pydantic import BaseModel, Field, ValidationError
 
+from agent_factory.logging import logger
 from eval.instructions import INSTRUCTIONS
 
 dotenv.load_dotenv()

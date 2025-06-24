@@ -8,10 +8,10 @@ import fire
 from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
 from any_agent.tools import search_tavily, visit_webpage
 from any_agent.tracing.agent_trace import AgentTrace
-from loguru import logger
 from pydantic import BaseModel, Field
 
 from agent_factory.instructions import INSTRUCTIONS
+from agent_factory.logging import logger
 from agent_factory.prompt import UserPrompt
 from agent_factory.tools import read_file, search_mcp_servers
 
