@@ -2,21 +2,21 @@ import { apiClient } from './api'
 import Yaml from 'yaml'
 import { workflowService } from './workflowService'
 import { ENDPOINTS } from '@/config/endpoints'
-import { fetchStream } from '@/helpers/api.helpers'
-import { handleApiError } from '@/helpers/error.helpers'
+import { getErrorMessage } from '@/helpers/error.helpers'
+import { fetchStream } from '@/helpers/stream.helpers'
 import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/evaluation'
 
 export const evaluationService = {
   async runAgent(workflowId: string): Promise<ReadableStream> {
-    return fetchStream(ENDPOINTS.runAgent(workflowId), 'running agent')
+    return fetchStream(ENDPOINTS.runAgent(workflowId), 'run agent')
   },
 
   async generateEvaluationCases(workflowId: string): Promise<ReadableStream> {
-    return fetchStream(ENDPOINTS.generateCases(workflowId), 'generating evaluation cases')
+    return fetchStream(ENDPOINTS.generateCases(workflowId), 'generate evaluation cases')
   },
 
   async runEvaluation(workflowId: string): Promise<ReadableStream> {
-    return fetchStream(ENDPOINTS.runEvaluation(workflowId), 'running evaluation')
+    return fetchStream(ENDPOINTS.runEvaluation(workflowId), 'run evaluation')
   },
 
   async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
@@ -32,7 +32,9 @@ export const evaluationService = {
       const response = await apiClient.post(ENDPOINTS.saveCriteria(workflowId), criteriaData)
       return response.data
     } catch (error) {
-      handleApiError(error, 'saving evaluation criteria')
+      const message = getErrorMessage(error)
+      console.error('API Error in saving evaluation criteria:', error)
+      throw new Error(message)
     }
   },
 

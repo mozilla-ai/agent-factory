@@ -1,4 +1,5 @@
 import { getErrorMessage } from './error.helpers'
+import { API_CONFIG } from '@/config/api.config'
 
 export interface StreamProcessorCallbacks {
   onChunk: (chunk: string) => void
@@ -65,4 +66,23 @@ export async function processStreamToString(
   })
 
   return output
+}
+
+/**
+ * Reusable helper for fetching streaming endpoints
+ * Eliminates duplicate fetch patterns across services
+ */
+export async function fetchStream(endpoint: string, context?: string): Promise<ReadableStream> {
+  const response = await fetch(`${API_CONFIG.baseURL}/${endpoint}`, {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    const errorMsg = context
+      ? `Failed to ${context}: ${response.status} ${response.statusText}`
+      : `HTTP error ${response.status}: ${response.statusText}`
+    throw new Error(errorMsg)
+  }
+
+  return response.body as ReadableStream
 }

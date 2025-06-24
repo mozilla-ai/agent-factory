@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { ZodError } from 'zod'
 import type { ApiResponse } from '../types/index.js'
-import { isProduction } from '../config/index.js'
+import { config } from '../config/index.js'
 
 export class AppError extends Error {
   public readonly status: number
@@ -58,7 +58,7 @@ function formatErrorResponse(error: AppError): ApiResponse {
   }
 
   // Include additional details in development
-  if (!isProduction()) {
+  if (config.environment !== 'production') {
     response.details = {
       code: error.code,
       stack: error.stack,
@@ -110,10 +110,10 @@ export function errorHandler(
 
   // Handle unexpected errors
   const unexpectedError = new AppError(
-    isProduction() ? 'Internal server error' : err.message,
+    config.environment === 'production' ? 'Internal server error' : err.message,
     500,
     'INTERNAL_ERROR',
-    !isProduction()
+    config.environment !== 'production'
       ? { originalError: err.message, stack: err.stack }
       : undefined,
   )

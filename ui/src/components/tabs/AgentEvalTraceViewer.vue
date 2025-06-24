@@ -131,11 +131,6 @@ import BaseButton from '../BaseButton.vue'
 
 const workflowsStore = useWorkflowsStore()
 
-// interface AgentTrace {
-//   spans: TraceSpan[]
-//   final_output: string
-// }
-
 // Props
 const props = defineProps<{
   workflowId: string

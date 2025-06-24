@@ -27,21 +27,6 @@ export function getErrorMessage(error: unknown): string {
   return String(error)
 }
 
-export function createErrorHandler(context: string) {
-  return (error: unknown) => {
-    const message = getErrorMessage(error)
-    console.error(`Error in ${context}:`, error)
-    return message
-  }
-}
-
-export function handleApiError(error: unknown, context?: string): never {
-  const message = getErrorMessage(error)
-  const contextMsg = context ? ` in ${context}` : ''
-  console.error(`API Error${contextMsg}:`, error)
-  throw new Error(message)
-}
-
 /**
  * Enhanced error handler for HTTP responses with status-specific messages
  */

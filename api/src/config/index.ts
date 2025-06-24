@@ -39,15 +39,3 @@ export const config: ApiConfig = {
 export function getWorkflowPath(workflowPath: string = ''): string {
   return path.join(config.workflowsDir, workflowPath)
 }
-
-export function isProduction(): boolean {
-  return config.environment === 'production'
-}
-
-export function isDevelopment(): boolean {
-  return config.environment === 'development'
-}
-
-export function isTest(): boolean {
-  return config.environment === 'test'
-}
