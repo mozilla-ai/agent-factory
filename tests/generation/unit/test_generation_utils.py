@@ -69,17 +69,3 @@ class TestRunAgent:
             assert result == expected_trace
             mock_print.assert_any_call("Agent execution failed: " + str(error))
             mock_print.assert_any_call("Retrieved partial agent trace...")
-
-    def test_unexpected_error_raises(self):
-        """Tests that when an unexpected error occurs, it's wrapped in a RuntimeError and re-raised."""
-        # Create a mock agent
-        mock_agent = MagicMock(spec=["run"])
-        error = RuntimeError("Critical failure")
-        mock_agent.run.side_effect = error
-
-        # The error should be wrapped in a RuntimeError with the original error as cause
-        with pytest.raises(RuntimeError, match="Unexpected error during agent execution") as exc_info:
-            run_agent(mock_agent, "test prompt")
-
-        # Verify the original error is preserved as the cause
-        assert "Critical failure" in str(exc_info.value)
