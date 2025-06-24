@@ -112,10 +112,10 @@ import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import CheckpointItem from '../CheckpointItem.vue'
 import BaseButton from '../BaseButton.vue'
-import { useRouter } from 'vue-router'
 import { useEvaluationScores } from '@/composables/useEvaluationScores'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
+import { useNavigation } from '@/composables/useNavigation'
 import { queryKeys } from '@/helpers/queryKeys'
 
 interface Checkpoint {
@@ -136,6 +136,7 @@ const props = defineProps<{
 const isEditMode = ref(false)
 const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
   useQueryInvalidation()
+const { navigateToEvaluate } = useNavigation()
 
 // Use delete confirmation composable
 const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
@@ -225,8 +226,6 @@ const hasCriteriaError = computed(
 const startCreatingCriteria = () => {
   isEditMode.value = true
 }
-
-const router = useRouter()
 const deleteCriteriaMutation = useMutation({
   mutationFn: () => evaluationService.deleteEvaluationCriteria(props.workflowId),
   onSuccess: () => {
@@ -234,10 +233,7 @@ const deleteCriteriaMutation = useMutation({
     invalidateFileQueries(props.workflowId, 'evaluation_case.yaml', 'evaluation_results.json')
     invalidateWorkflows()
     closeDeleteDialog()
-    router.push({
-      params: { worokflowPath: props.workflowId },
-      query: { tab: 'evaluate' },
-    })
+    navigateToEvaluate(props.workflowId)
   },
 })
 

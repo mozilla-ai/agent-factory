@@ -118,10 +118,11 @@ import { useQuery, useMutation } from '@tanstack/vue-query'
 import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import { workflowService } from '@/services/workflowService'
-import { useRouter } from 'vue-router'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useTraceMetrics } from '@/composables/useTraceMetrics'
 import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
+import { useNavigation } from '@/composables/useNavigation'
+import { queryKeys } from '@/helpers/queryKeys'
 import MetricDisplay from '../MetricDisplay.vue'
 import TraceSection from '../TraceSection.vue'
 import CodeBlock from '../CodeBlock.vue'
@@ -134,6 +135,7 @@ const {
   invalidateFileQueries,
   invalidateWorkflows,
 } = useQueryInvalidation()
+const { navigateToEvaluate } = useNavigation()
 
 // Props
 const props = defineProps<{
@@ -153,7 +155,6 @@ const traceQuery = useQuery({
   queryFn: () => workflowService.getAgentTrace(props.workflowId),
   retry: 1,
 })
-const router = useRouter()
 
 // Use trace metrics composable for calculations
 const {
@@ -176,10 +177,7 @@ const deleteTraceMutation = useMutation({
     invalidateFileQueries(props.workflowId, 'agent_eval_trace.json', 'evaluation_results.json')
     invalidateWorkflows()
     closeDeleteDialog()
-    router.push({
-      params: { workflowId: props.workflowId },
-      query: { tab: 'evaluate' },
-    })
+    navigateToEvaluate(props.workflowId)
   },
 })
 

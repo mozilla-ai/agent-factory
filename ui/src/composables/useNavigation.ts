@@ -8,7 +8,7 @@ export function useNavigation() {
     const currentQuery = router.currentRoute.value.query
 
     router.push({
-      path: workflowId ? `/workflows/${workflowId}` : currentPath,
+      path: currentPath, // Always stay on current path
       query: { ...currentQuery, tab },
     })
   }
@@ -24,20 +24,20 @@ export function useNavigation() {
     router.push('/workflows')
   }
 
-  const navigateToEvaluate = (workflowId: string) => {
-    navigateToTab('evaluate', workflowId)
+  const navigateToEvaluate = (workflowId?: string) => {
+    navigateToTab('evaluate')
   }
 
-  const navigateToTrace = (workflowId: string) => {
-    navigateToTab('agent-trace', workflowId)
+  const navigateToTrace = (workflowId?: string) => {
+    navigateToTab('agent-trace')
   }
 
-  const navigateToCriteria = (workflowId: string) => {
-    navigateToTab('criteria', workflowId)
+  const navigateToCriteria = (workflowId?: string) => {
+    navigateToTab('criteria')
   }
 
-  const navigateToResults = (workflowId: string) => {
-    navigateToTab('results', workflowId)
+  const navigateToResults = (workflowId?: string) => {
+    navigateToTab('results')
   }
 
   return {

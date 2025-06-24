@@ -50,15 +50,30 @@ import type { WorkflowFile } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
-const { getWorkflowById } = useWorkflows()
-const loading = ref(false)
-const error = ref('')
+const {
+  workflows,
+  loading: workflowsLoading,
+  error: workflowsError,
+  getWorkflowById,
+} = useWorkflows()
 
 // Extract the workflow id from the route
 const workflowId = computed(() => route.params.id as string)
 
 // Get the workflow from store
 const workflow = computed(() => getWorkflowById(workflowId.value))
+
+// Combined loading state: loading if workflows are loading
+const loading = computed(() => workflowsLoading.value)
+
+// Combined error state: error if workflows failed to load or workflow not found
+const error = computed(() => {
+  if (workflowsError.value) return workflowsError.value
+  if (!workflowsLoading.value && workflows.value.length > 0 && !workflow.value) {
+    return `Workflow "${workflowId.value}" not found`
+  }
+  return ''
+})
 
 const evaluationStatusQuery = useQuery({
   queryKey: computed(() => queryKeys.evaluationStatus(workflowId.value)),
@@ -181,24 +196,8 @@ function navigateBack() {
   router.push('/workflows')
 }
 
-// Load data when the component mounts
-onMounted(async () => {
-  // Load the workflow if not already in store
-  if (!workflow.value) {
-    loading.value = true
-    try {
-      // TanStack Query automatically loads workflows
-      if (!workflow.value) {
-        error.value = `Workflow "${workflowId.value}" not found`
-      }
-    } catch (err: unknown) {
-      error.value = err instanceof Error ? err.message : String(err)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  // Set tab from query parameter if present
+// Set tab from query parameter when component mounts
+onMounted(() => {
   if (route.query.tab) {
     setActiveTab(route.query.tab.toString())
   }

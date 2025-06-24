@@ -102,6 +102,7 @@ export class EvaluationController {
 
     try {
       const deleted = await evaluationService.deleteAgentTrace(workflowPath)
+      await evaluationService.deleteEvaluationResults(workflowPath)
       res.json({
         success: deleted,
         message: deleted
@@ -125,6 +126,7 @@ export class EvaluationController {
     try {
       const deleted =
         await evaluationService.deleteEvaluationCriteria(workflowPath)
+      await evaluationService.deleteEvaluationResults(workflowPath)
       res.json({
         success: deleted,
         message: deleted

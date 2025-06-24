@@ -88,10 +88,10 @@
 <script setup lang="ts">
 import { computed, defineProps } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
-import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
 import { useStreamProcessor } from '@/composables/useStreamProcessor'
 import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
+import { useNavigation } from '@/composables/useNavigation'
 import EvaluationStepButton from '../EvaluationStepButton.vue'
 import BaseButton from '../BaseButton.vue'
 
@@ -110,9 +110,9 @@ const props = defineProps({
   },
 })
 
-const router = useRouter()
 const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
   useQueryInvalidation()
+const { navigateToResults } = useNavigation()
 const { output, clearOutput, processStream, isProcessing } = useStreamProcessor()
 
 // Computed property to check if all evaluation files exist
@@ -164,10 +164,7 @@ const runEvalMutation = useMutation({
 })
 
 function viewResults() {
-  router.push({
-    path: router.currentRoute.value.path,
-    query: { ...router.currentRoute.value.query, tab: 'results' },
-  })
+  navigateToResults(props.workflowId)
 }
 </script>
 
