@@ -119,16 +119,12 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
         print(f"Agent execution failed: {e}")
         print("Retrieved partial agent trace...")
         return e.trace
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error during agent execution. Failed to get agent trace: {e}") from e
 
 
 def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
-    # Save the full trace
     trace_path = output_dir / "agent_factory_trace.json"
     trace_path.write_text(agent_trace.model_dump_json(indent=2))
 
-    # Validate and save structured outputs from agent_trace.final_output
     if not hasattr(agent_trace, "final_output") or not agent_trace.final_output:
         raise RuntimeError("No final_output available in agent trace")
 
@@ -155,13 +151,9 @@ def single_turn_generation(
     agent = create_agent()
     run_instructions = build_run_instructions(user_prompt)
 
-    try:
-        agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
-        save_agent_outputs(agent_trace, output_dir)
-        print(f"Workflow files saved in: {output_dir}")
-    except Exception as e:
-        print(f"Error during agent generation: {str(e)}")
-        raise
+    agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
+    save_agent_outputs(agent_trace, output_dir)
+    print(f"Workflow files saved in: {output_dir}")
 
 
 def main():
