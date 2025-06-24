@@ -267,7 +267,7 @@ import os
 
 # ALWAYS used
 from dotenv import load_dotenv
-from any_agent import AgentConfig, AnyAgent
+from any_agent import AgentConfig, AnyAgent, AgentRunError
 from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
@@ -301,7 +301,13 @@ agent = AnyAgent.create(
 def run_agent({CLI_ARGS}):
     \"\"\"Agent description\"\"\"
     input_prompt = f"{PROMPT_TEMPLATE}".format(**kwargs)
-    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
+    try:
+        agent_trace = agent.run(prompt=input_prompt, max_turns=20)
+    except AgentRunError as e:
+        agent_trace = e.trace
+        print(f"Agent execution failed: {str(e)}")
+        print("Retrieved partial agent trace...")
+
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
     return agent_trace.final_output

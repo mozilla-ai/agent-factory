@@ -5,8 +5,9 @@ from pathlib import Path
 
 import dotenv
 import fire
-from any_agent import AgentConfig, AgentFramework, AnyAgent
+from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
 from any_agent.tools import search_tavily, visit_webpage
+from any_agent.tracing.agent_trace import AgentTrace
 from pydantic import BaseModel, Field
 
 from agent_factory.instructions import INSTRUCTIONS
@@ -97,11 +98,7 @@ def build_run_instructions(user_prompt) -> str:
         return user_prompt_instance.amend_prompt(user_prompt)
 
 
-def single_turn_generation(
-    user_prompt: str,
-    output_dir: Path | None = None,
-):
-    """Generate python code for an agentic workflow based on the user prompt."""
+def setup_output_directory(output_dir: Path | None = None) -> Path:
     if output_dir is None:
         output_dir = Path.cwd()
         uid = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + str(uuid.uuid4())[:8]
@@ -112,20 +109,50 @@ def single_turn_generation(
         output_dir = Path(output_dir)
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
+
+
+def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTrace:
+    try:
+        return agent.run(user_prompt, max_turns=max_turns)
+    except AgentRunError as e:
+        print(f"Agent execution failed: {e}")
+        print("Retrieved partial agent trace...")
+        return e.trace
+
+
+def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
+    trace_path = output_dir / "agent_factory_trace.json"
+    trace_path.write_text(agent_trace.model_dump_json(indent=2))
+
+    if not hasattr(agent_trace, "final_output") or not agent_trace.final_output:
+        raise RuntimeError("No final_output available in agent trace")
+
+    try:
+        agent_outputs = validate_agent_outputs(agent_trace.final_output)
+        save_agent_parsed_outputs(agent_outputs, output_dir)
+    except Exception as e:
+        print(f"Warning: Failed to parse agent's structured outputs: {str(e)}")
+
+
+def single_turn_generation(
+    user_prompt: str,
+    output_dir: Path | None = None,
+    max_turns: int = 30,
+) -> None:
+    """Generate python code for an agentic workflow based on the user prompt.
+
+    Args:
+        user_prompt: The user's prompt describing the desired agent behavior.
+        output_dir: Optional directory to save outputs to. If None, creates a unique directory.
+    """
+    output_dir = setup_output_directory(output_dir)
 
     agent = create_agent()
-
     run_instructions = build_run_instructions(user_prompt)
 
-    agent_trace = agent.run(run_instructions, max_turns=30)
-
-    (output_dir / "agent_factory_trace.json").write_text(agent_trace.model_dump_json(indent=2))
-
-    (output_dir / "agent_factory_raw_output.txt").write_text(agent_trace.final_output)
-
-    agent_factory_outputs = validate_agent_outputs(agent_trace.final_output)
-    save_agent_parsed_outputs(agent_factory_outputs, output_dir)
-
+    agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
+    save_agent_outputs(agent_trace, output_dir)
     print(f"Workflow files saved in: {output_dir}")
 
 

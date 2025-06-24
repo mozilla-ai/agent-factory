@@ -1,29 +1,22 @@
 ## Setup & Run Instructions
 
-1. **Create a virtual environment (optional but recommended)**
+1. **Clone your project and ensure Python 3.11 is installed.**
 
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
+2. **Create a `.env` file in the project root with the following variables:**
+
+```
+# OpenAI key for the o3 model
+OPENAI_API_KEY="your-openai-key"
+
+# ElevenLabs text-to-speech key
+ELEVENLABS_API_KEY="your-elevenlabs-key"
 ```
 
-2. **Create a `.env` file** in the project root and add the following keys:
-
-```env
-# OpenAI / Azure-OpenAI key for any-agent to call the LLM
-OPENAI_API_KEY=YOUR_OPENAI_KEY_HERE
-
-# ElevenLabs key for text-to-speech
-ELEVENLABS_API_KEY=YOUR_ELEVENLABS_KEY_HERE
-```
-
-3. **Install dependencies & run** using `uv` (ensures deterministic builds):
+3. **Install dependencies and execute the agent (replace `<URL>` with the target webpage):**
 
 ```bash
 uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \
-  python generated_workflows/latest/agent.py --url "https://example.com" --num_speakers 3
+  python generated_workflows/latest/agent.py --url "<URL>" --num_hosts 3
 ```
 
-Replace the URL with any article you want converted into a podcast.
-
-
+The script will output a JSON object containing the podcast script and the path/URL to the generated MP3 file. The full agent trace is stored at `generated_workflows/latest/agent_eval_trace.json` for later inspection.
