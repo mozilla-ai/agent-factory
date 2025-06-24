@@ -100,12 +100,11 @@
 
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
-import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useMutation } from '@tanstack/vue-query'
 import type { EvaluationCriteria } from '../types/evaluation'
-import { useWorkflows } from '@/composables/useWorkflows'
 import { evaluationService } from '@/services/evaluationService'
-import { queryKeys } from '@/helpers/queryKeys'
 import { handleHttpError } from '@/helpers/error.helpers'
+import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
 import FormField from './FormField.vue'
 
 const props = defineProps<{
@@ -174,8 +173,8 @@ const removeCheckpoint = (index: number) => {
   formData.checkpoints.splice(index, 1)
 }
 
-const queryClient = useQueryClient()
-const { invalidateWorkflows } = useWorkflows()
+const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
+  useQueryInvalidation()
 
 // Update mutation with better error handling
 const saveMutation = useMutation({
@@ -187,19 +186,8 @@ const saveMutation = useMutation({
     }
   },
   onSuccess: () => {
-    // Invalidate the criteria query to refresh data
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.evaluationCriteria(props.workflowId),
-    })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.evaluationStatus(props.workflowId),
-    })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, ''),
-    })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
-    })
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, '', 'evaluation_case.yaml')
     invalidateWorkflows()
     emit('saved', true)
   },

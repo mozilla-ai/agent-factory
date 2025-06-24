@@ -114,22 +114,26 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useQuery, useMutation } from '@tanstack/vue-query'
 import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import { workflowService } from '@/services/workflowService'
 import { useRouter } from 'vue-router'
-import { useWorkflows } from '@/composables/useWorkflows'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useTraceMetrics } from '@/composables/useTraceMetrics'
-import { queryKeys } from '@/helpers/queryKeys'
+import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
 import MetricDisplay from '../MetricDisplay.vue'
 import TraceSection from '../TraceSection.vue'
 import CodeBlock from '../CodeBlock.vue'
 import TimelineItem from '../TimelineItem.vue'
 import BaseButton from '../BaseButton.vue'
 
-const { invalidateWorkflows } = useWorkflows()
+const {
+  invalidateEvaluationQueries,
+  invalidateAgentTrace,
+  invalidateFileQueries,
+  invalidateWorkflows,
+} = useQueryInvalidation()
 
 // Props
 const props = defineProps<{
@@ -138,7 +142,6 @@ const props = defineProps<{
 
 // State for UI interactions
 const expandedSpans = ref<Record<number, boolean>>({})
-const queryClient = useQueryClient()
 
 // Use delete confirmation composable
 const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
@@ -168,15 +171,9 @@ const {
 const deleteTraceMutation = useMutation({
   mutationFn: () => evaluationService.deleteAgentEvalTrace(props.workflowId),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.agentTrace(props.workflowId) })
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'agent_eval_trace.json'),
-    })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
-    })
+    invalidateAgentTrace(props.workflowId)
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, 'agent_eval_trace.json', 'evaluation_results.json')
     invalidateWorkflows()
     closeDeleteDialog()
     router.push({

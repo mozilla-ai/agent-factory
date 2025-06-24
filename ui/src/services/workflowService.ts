@@ -52,7 +52,11 @@ export const workflowService = {
 
   async getAgentTrace(workflowId: string): Promise<AgentTrace> {
     const content = await this.getFileContent(workflowId, 'agent_eval_trace.json')
-    return content as unknown as AgentTrace
+    try {
+      return typeof content === 'string' ? JSON.parse(content) : content
+    } catch (error) {
+      throw new Error(`Failed to parse agent trace: ${error}`)
+    }
   },
 
   async getEvaluationCriteria(workflowId: string): Promise<string> {

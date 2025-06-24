@@ -87,12 +87,11 @@
 
 <script setup lang="ts">
 import { computed, defineProps } from 'vue'
-import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useMutation } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { evaluationService } from '@/services/evaluationService'
-import { useWorkflows } from '@/composables/useWorkflows'
 import { useStreamProcessor } from '@/composables/useStreamProcessor'
-import { queryKeys } from '@/helpers/queryKeys'
+import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
 import EvaluationStepButton from '../EvaluationStepButton.vue'
 import BaseButton from '../BaseButton.vue'
 
@@ -112,8 +111,8 @@ const props = defineProps({
 })
 
 const router = useRouter()
-const queryClient = useQueryClient()
-const { invalidateWorkflows } = useWorkflows()
+const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
+  useQueryInvalidation()
 const { output, clearOutput, processStream, isProcessing } = useStreamProcessor()
 
 // Computed property to check if all evaluation files exist
@@ -132,12 +131,8 @@ const runAgentMutation = useMutation({
     await processStream(stream)
   },
   onSuccess: () => {
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.evaluationStatus(props.workflowId),
-    })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'agent_eval_trace.json'),
-    })
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, 'agent_eval_trace.json')
     invalidateWorkflows()
   },
 })
@@ -149,12 +144,8 @@ const genCasesMutation = useMutation({
     await processStream(stream)
   },
   onSuccess: () => {
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.evaluationStatus(props.workflowId),
-    })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
-    })
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, 'evaluation_case.yaml')
     invalidateWorkflows()
   },
 })
@@ -166,12 +157,8 @@ const runEvalMutation = useMutation({
     await processStream(stream)
   },
   onSuccess: () => {
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.evaluationStatus(props.workflowId),
-    })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
-    })
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, 'evaluation_results.json')
     invalidateWorkflows()
   },
 })

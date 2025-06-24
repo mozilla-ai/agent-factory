@@ -106,16 +106,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { transformResults, type OldFormatData } from '@/helpers/transform-results'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
+import { useQuery, useMutation } from '@tanstack/vue-query'
 import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
 import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import CheckpointItem from '../CheckpointItem.vue'
 import BaseButton from '../BaseButton.vue'
 import { useRouter } from 'vue-router'
-import { useWorkflows } from '@/composables/useWorkflows'
 import { useEvaluationScores } from '@/composables/useEvaluationScores'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
 import { queryKeys } from '@/helpers/queryKeys'
 
 interface Checkpoint {
@@ -133,8 +133,9 @@ const props = defineProps<{
   workflowId: string
 }>()
 
-const queryClient = useQueryClient()
 const isEditMode = ref(false)
+const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
+  useQueryInvalidation()
 
 // Use delete confirmation composable
 const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
@@ -143,15 +144,10 @@ const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
 }
-
-const { invalidateWorkflows } = useWorkflows()
 // Handle criteria saved event
 const onCriteriaSaved = () => {
   isEditMode.value = false
-  // Refetch invalidated queries after updating criteria
-  queryClient.invalidateQueries({ queryKey: queryKeys.evaluationCriteria(props.workflowId) })
-  queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
-  queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
+  invalidateEvaluationQueries(props.workflowId)
 }
 
 // Fetch evaluation criteria
@@ -234,15 +230,8 @@ const router = useRouter()
 const deleteCriteriaMutation = useMutation({
   mutationFn: () => evaluationService.deleteEvaluationCriteria(props.workflowId),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationCriteria(props.workflowId) })
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_case.yaml'),
-    })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
-    })
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, 'evaluation_case.yaml', 'evaluation_results.json')
     invalidateWorkflows()
     closeDeleteDialog()
     router.push({

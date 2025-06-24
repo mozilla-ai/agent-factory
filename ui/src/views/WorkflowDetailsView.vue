@@ -60,12 +60,6 @@ const workflowId = computed(() => route.params.id as string)
 // Get the workflow from store
 const workflow = computed(() => getWorkflowById(workflowId.value))
 
-// Computed workflow path for API calls
-// const workflowId = computed(() => {
-//   if (!workflow.value) return ''
-//   return workflow.value.path || workflow.value.name
-// })
-
 const evaluationStatusQuery = useQuery({
   queryKey: computed(() => queryKeys.evaluationStatus(workflowId.value)),
   queryFn: () => workflowService.getEvaluationStatus(workflowId.value),
@@ -80,8 +74,6 @@ const handleTabClicked = (tab: string) => {
   setActiveTab(tab)
 }
 
-// Update the route query parameter for tab
-// Store the selected file
 const selectedFile = ref<WorkflowFile | undefined>(undefined)
 
 // Computed property for selected file path
@@ -119,9 +111,7 @@ const availableTabs = computed(() => {
     tabs.push({ id: 'agent-trace', label: 'Agent Trace' })
   }
 
-  // if (evaluationStatusQuery.data.value?.hasEvalCases) {
   tabs.push({ id: 'criteria', label: 'Evaluation Criteria' })
-  // }
 
   if (evaluationStatusQuery.data.value?.hasEvalResults) {
     tabs.push({ id: 'results', label: 'Evaluation Results' })

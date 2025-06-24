@@ -127,16 +127,16 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useMutation, useQuery } from '@tanstack/vue-query'
 import { workflowService } from '@/services/workflowService'
 import { evaluationService } from '../../services/evaluationService'
-import { useRouter } from 'vue-router'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 
 import { transformResults } from '@/helpers/transform-results'
-import { useWorkflows } from '@/composables/useWorkflows'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useEvaluationScores } from '@/composables/useEvaluationScores'
+import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
+import { useNavigation } from '@/composables/useNavigation'
 import { queryKeys } from '@/helpers/queryKeys'
 import StatusMessage from '../StatusMessage.vue'
 import ScoreCard from '../ScoreCard.vue'
@@ -150,9 +150,9 @@ const props = defineProps<{
   workflowId: string
 }>()
 
-const { invalidateWorkflows } = useWorkflows()
-// Setup
-const router = useRouter()
+const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
+  useQueryInvalidation()
+const { navigateToTrace, navigateToCriteria, navigateToEvaluate } = useNavigation()
 
 // Fetch evaluation status using workflowService
 const statusQuery = useQuery({
@@ -214,53 +214,33 @@ const { passedCheckpoints, failedCheckpoints, passRate } = useEvaluationScores(
 )
 
 function viewAgentTrace() {
-  router.push({
-    path: router.currentRoute.value.path,
-    query: { ...router.currentRoute.value.query, tab: 'agent-trace' },
-  })
+  navigateToTrace(props.workflowId)
 }
 
 function viewCriteria() {
-  router.push({
-    path: router.currentRoute.value.path,
-    query: { ...router.currentRoute.value.query, tab: 'criteria' },
-  })
+  navigateToCriteria(props.workflowId)
 }
 
 function viewResults() {
-  // Navigate to the criteria tab to show detailed results
-  router.push({
-    path: router.currentRoute.value.path,
-    query: { ...router.currentRoute.value.query, tab: 'criteria' },
-  })
+  navigateToCriteria(props.workflowId)
 }
 
 function goToEvaluateTab() {
-  router.push({
-    path: router.currentRoute.value.path,
-    query: { ...router.currentRoute.value.query, tab: 'evaluate' },
-  })
+  navigateToEvaluate(props.workflowId)
 }
 
 // Use delete confirmation composable
 const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
   useDeleteConfirmation()
-const queryClient = useQueryClient()
 
 const deleteResultsMutation = useMutation({
   mutationFn: () => evaluationService.deleteEvaluationResults(props.workflowId),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationResults(props.workflowId) })
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluationStatus(props.workflowId) })
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.fileContent(props.workflowId, 'evaluation_results.json'),
-    })
-    closeDeleteDialog()
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, 'evaluation_results.json')
     invalidateWorkflows()
-    router.push({
-      params: { workflowId: props.workflowId },
-      query: { tab: 'evaluate' },
-    })
+    closeDeleteDialog()
+    navigateToEvaluate(props.workflowId)
   },
 })
 
