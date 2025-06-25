@@ -283,7 +283,7 @@ As input to the AgentConfig, you are required to provide the parameters `model_i
 {{ deliverables_instructions }}
 """  # noqa: E501
 
-# Render the template with the WEBPAGE_DESCRIPTIONS dictionary
+# Render the template
 template = Template(INSTRUCTIONS_TEMPLATE)
 INSTRUCTIONS = template.render(
     code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
