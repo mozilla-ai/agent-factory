@@ -34,7 +34,7 @@
       :id="fieldId"
       :type="type"
       :value="modelValue"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      @input="handleInput"
       :placeholder="placeholder"
       :required="required"
       :disabled="disabled"
@@ -84,7 +84,22 @@ const props = withDefaults(defineProps<Props>(), {
 
 const hasError = computed(() => !!props.error)
 
-defineEmits<{
+// Handle input with proper type conversion
+const handleInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const value = target.value
+
+  if (props.type === 'number') {
+    // Convert to number for number inputs
+    const numValue = value === '' ? 0 : Number(value)
+    emit('update:modelValue', numValue)
+  } else {
+    // Keep as string for other input types
+    emit('update:modelValue', value)
+  }
+}
+
+const emit = defineEmits<{
   'update:modelValue': [value: string | number]
 }>()
 

@@ -152,12 +152,25 @@ const props = defineProps<{
 
 const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
   useQueryInvalidation()
-const { navigateToTrace, navigateToCriteria, navigateToEvaluate, navigateToResults } = useNavigation()
+const { navigateToTrace, navigateToCriteria, navigateToEvaluate } = useNavigation()
 
 // Fetch evaluation status using workflowService
 const statusQuery = useQuery({
   queryKey: queryKeys.evaluationStatus(props.workflowId),
   queryFn: () => workflowService.getEvaluationStatus(props.workflowId),
+  retry: 1,
+})
+
+// Fetch evaluation criteria for consistent score calculations
+const criteriaQuery = useQuery({
+  queryKey: queryKeys.evaluationCriteria(props.workflowId),
+  queryFn: async () => {
+    try {
+      return await evaluationService.getEvaluationCriteria(props.workflowId)
+    } catch {
+      return undefined
+    }
+  },
   retry: 1,
 })
 
@@ -182,36 +195,19 @@ const hasEvaluationResults = computed(() => statusQuery.data.value?.hasEvalResul
 const hasValidScoreData = computed(() => {
   return (
     resultsQuery.data.value &&
+    criteriaQuery.data.value &&
     typeof resultsQuery.data.value.score === 'number' &&
-    typeof resultsQuery.data.value.maxScore === 'number' &&
-    resultsQuery.data.value.maxScore > 0
+    resultsQuery.data.value.checkpoints?.length > 0
   )
 })
 
+// Use evaluation scores composable for consistent calculations with criteria data
+const { totalScore, totalPossiblePoints, passedCheckpoints, failedCheckpoints, passRate } =
+  useEvaluationScores(criteriaQuery.data, resultsQuery.data)
+
 // Convert normalized score to raw points if needed
-const scoreValue = computed(() => {
-  if (!resultsQuery.data.value) return 0
-
-  const score = resultsQuery.data.value.score
-  const maxScore = resultsQuery.data.value.maxScore || 1
-
-  // Check if score is likely a normalized value (between 0 and 1)
-  if (score >= 0 && score <= 1) {
-    // Convert from normalized value to raw points
-    return Math.round(score * maxScore)
-  }
-
-  // Already in raw points
-  return score
-})
-
-const maxScoreValue = computed(() => resultsQuery.data.value?.maxScore ?? 1)
-
-// Use evaluation scores composable for consistent calculations
-const { passedCheckpoints, failedCheckpoints, passRate } = useEvaluationScores(
-  computed(() => undefined), // No criteria needed for results viewer
-  resultsQuery.data,
-)
+const scoreValue = computed(() => totalScore.value)
+const maxScoreValue = computed(() => totalPossiblePoints.value)
 
 function viewAgentTrace() {
   navigateToTrace(props.workflowId)

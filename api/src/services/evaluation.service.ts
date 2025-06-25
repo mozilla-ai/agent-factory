@@ -18,6 +18,17 @@ export class EvaluationService {
       throw new Error(`Agent not found at path: ${workflowPath}/agent.py`)
     }
 
+    // Delete existing evaluation results since agent run invalidates them
+    const resultsPath = path.join(workflowDir, 'evaluation_results.json')
+    if (await fileService.fileExists(resultsPath)) {
+      try {
+        await fileService.deleteFile(resultsPath)
+        console.log(`Deleted stale evaluation results: ${resultsPath}`)
+      } catch (error) {
+        console.warn(`Failed to delete stale evaluation results: ${error}`)
+      }
+    }
+
     await processService.runPythonScript(agentPath, [], outputCallback)
 
     // Copy trace file from latest to workflow directory if needed
@@ -33,6 +44,17 @@ export class EvaluationService {
     // Ensure workflow directory exists
     if (!(await fileService.fileExists(workflowDir))) {
       throw new Error(`Workflow not found: ${workflowPath}`)
+    }
+
+    // Delete existing evaluation results since new criteria invalidate them
+    const resultsPath = path.join(workflowDir, 'evaluation_results.json')
+    if (await fileService.fileExists(resultsPath)) {
+      try {
+        await fileService.deleteFile(resultsPath)
+        console.log(`Deleted stale evaluation results: ${resultsPath}`)
+      } catch (error) {
+        console.warn(`Failed to delete stale evaluation results: ${error}`)
+      }
     }
 
     await processService.runPythonScript(
@@ -88,7 +110,34 @@ export class EvaluationService {
     workflowPath: string,
     criteria: EvaluationCriteria,
   ): Promise<string> {
-    return fileService.saveEvaluationCriteria(workflowPath, criteria)
+    const workflowDir = getWorkflowPath(workflowPath)
+
+    // Ensure points are numbers (in case frontend sends strings)
+    const normalizedCriteria: EvaluationCriteria = {
+      ...criteria,
+      checkpoints: criteria.checkpoints.map((checkpoint) => ({
+        ...checkpoint,
+        points:
+          typeof checkpoint.points === 'string'
+            ? Number(checkpoint.points)
+            : checkpoint.points,
+      })),
+    }
+
+    // Delete existing evaluation results since criteria changes invalidate them
+    const resultsPath = path.join(workflowDir, 'evaluation_results.json')
+    if (await fileService.fileExists(resultsPath)) {
+      try {
+        await fileService.deleteFile(resultsPath)
+        console.log(
+          `Deleted stale evaluation results due to criteria update: ${resultsPath}`,
+        )
+      } catch (error) {
+        console.warn(`Failed to delete stale evaluation results: ${error}`)
+      }
+    }
+
+    return fileService.saveEvaluationCriteria(workflowPath, normalizedCriteria)
   }
 
   async deleteAgentTrace(workflowPath: string): Promise<boolean> {

@@ -93,7 +93,7 @@ export class EvaluationController {
       const { workflowPath } = req.params
       const criteria = req.body
 
-      const filePath = await fileService.saveEvaluationCriteria(
+      const filePath = await evaluationService.saveEvaluationCriteria(
         workflowPath,
         criteria,
       )
