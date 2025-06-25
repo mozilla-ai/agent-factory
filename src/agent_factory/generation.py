@@ -168,7 +168,7 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         raise RuntimeError("No final_output available in agent trace")
 
     try:
-        agent_outputs = validate_agent_outputs(agent_trace.final_output)
+        agent_outputs = validate_agent_outputs()
         save_agent_parsed_outputs(agent_outputs, output_dir)
     except Exception as e:
         print(f"Warning: Failed to parse agent's structured outputs: {str(e)}")
