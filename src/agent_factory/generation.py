@@ -27,15 +27,6 @@ class AgentFactoryOutputs(BaseModel):
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
 
 
-def remove_markdown_code_block_delimiters(text: str) -> str:
-    """Remove backticks from the start and end of markdown output."""
-    text = text.strip()
-    if text.startswith("```") and text.endswith("```"):
-        lines = text.splitlines()
-        return "\n".join(lines[1:-1])
-    return text
-
-
 def create_agent():
     framework = AgentFramework.OPENAI
     agent = AnyAgent.create(
@@ -97,6 +88,7 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
 
 
 def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
+    # First save the agent trace
     trace_path = output_dir / "agent_factory_trace.json"
     trace_path.write_text(agent_trace.model_dump_json(indent=2))
 
@@ -110,13 +102,13 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         agent_code = AGENT_CODE_TEMPLATE.format(**agent_trace.final_output.model_dump())
 
         with agent_path.open("w", encoding="utf-8") as f:
-            f.write(remove_markdown_code_block_delimiters(agent_code))
+            f.write(agent_code)
 
         with instructions_path.open("w", encoding="utf-8") as f:
             f.write(agent_trace.final_output.run_instructions)
 
         with requirements_path.open("w", encoding="utf-8") as f:
-            f.write(remove_markdown_code_block_delimiters(agent_trace.final_output.dependencies))
+            f.write(agent_trace.final_output.dependencies)
 
         logger.info(f"Agent files saved to {output_dir}")
 
