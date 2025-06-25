@@ -61,7 +61,7 @@ export class ProcessService {
     args: string[],
     processId: string,
   ): Promise<void> {
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve, reject) => {
       let stdoutBuffer = ''
       let stderrBuffer = ''
 
@@ -75,9 +75,9 @@ export class ProcessService {
         stderrBuffer += data.toString()
       })
 
-      process.on('error', (_error) => {
-        console.error(`Error in ${processId}:`, _error)
-        throw new Error(`Failed to run ${processId}`)
+      process.on('error', (error) => {
+        console.error(`Error in ${processId}:`, error)
+        reject(new Error(`Failed to run ${processId}`))
       })
 
       process.on('exit', (code) => {
@@ -91,7 +91,7 @@ export class ProcessService {
           console.error(`❌ ${processId} failed with code ${code}`)
           console.error(`stdout: ${stdoutBuffer}`)
           console.error(`stderr: ${stderrBuffer}`)
-          throw new Error(`${processId} failed with code ${code}`)
+          reject(new Error(`${processId} failed with code ${code}`))
         }
       })
     })
