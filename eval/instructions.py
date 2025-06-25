@@ -25,15 +25,6 @@ EVALUATION_CATEGORIES = """
 5. **Output Quality**: Evaluate answer completeness and accuracy
 """
 
-SCORING_GUIDELINES = """
-- **Total points**: 8-15 points across all criteria
-- **Tool calls**: 1-2 points per essential tool usage
-- **Data processing**: 1-2 points for calculations/combinations
-- **Final output**: 1-2 points for answer quality
-
-Note: Do not penalize the agent for not using fallback tools if the primary method succeeds.
-"""
-
 AGENT_SCRIPT_AND_JSON_EXAMPLE = """
 
 **Agent Script:**
@@ -102,43 +93,16 @@ agent.run(prompt=user_input)
 **Generated JSON:**
 ```json
 {
-  "llm_judge": "openai/gpt-4.1",
-  "checkpoints": [
-    {
-      "points": 2,
-      "criteria": "Ensure that the agent called search_tavily or another search tool to find relevant information about code review best practices or specific technologies mentioned in the code"
-    },
-    {
-      "points": 2,
-      "criteria": "Ensure that the agent called review_code_with_llm to perform the actual code analysis and review"
-    },
-    {
-      "points": 1,
-      "criteria": "Verify that the agent correctly identified the programming language and framework/libraries used in the provided code"
-    },
-    {
-      "points": 2,
-      "criteria": "Check that the agent's review covers multiple aspects such as code quality, security, performance, and best practices"
-    },
-    {
-      "points": 1,
-      "criteria": "Ensure that the agent searched for current standards or documentation related to the specific technologies or patterns found in the code"
-    },
-    {
-      "points": 2,
-      "criteria": "Verify that the agent's output follows the required CodeReviewOutput structure with both 'code' and 'review' fields properly populated"
-    },
-    {
-      "points": 1,
-      "criteria": "Check that the review includes specific, actionable recommendations for code improvement"
-    },
-    {
-      "points": 1,
-      "criteria": "Ensure that the agent appropriately utilized the available MCP tools (brave_web_search) when additional context or verification was needed"
-    },
-    {
-      "points": 1,
-      "criteria": "Verify that the final review demonstrates understanding of the code's purpose and provides contextually relevant feedback"
+  "criteria": [
+      "Ensure that the agent called search_tavily or another search tool to find relevant information about code review best practices or specific technologies mentioned in the code",
+      "Ensure that the agent called review_code_with_llm to perform the actual code analysis and review",
+      "Verify that the agent correctly identified the programming language and framework/libraries used in the provided code",
+      "Check that the agent's review covers multiple aspects such as code quality, security, performance, and best practices",
+      "Ensure that the agent searched for current standards or documentation related to the specific technologies or patterns found in the code",
+      "Verify that the agent's output follows the required CodeReviewOutput structure with both 'code' and 'review' fields properly populated",
+      "Check that the review includes specific, actionable recommendations for code improvement",
+      "Ensure that the agent appropriately utilized the available MCP tools (brave_web_search) when additional context or verification was needed",
+      "Verify that the final review demonstrates understanding of the code's purpose and provides contextually relevant feedback"
     }
   ]
 }
@@ -158,9 +122,6 @@ Analyze the agent's task, tools, and expected workflow to create thorough evalua
 ## Evaluation Categories to Cover
 {{ evaluation_categories }}
 
-## Scoring Guidelines
-{{ scoring_guidelines }}
-
 You may access to the following webpages using `visit_webpage` tool:
 
 {% for url, description in webpage_descriptions.items() %}
@@ -171,8 +132,6 @@ You may access to the following webpages using `visit_webpage` tool:
 
 {{ agent_script_and_json_example }}
 
-You must always assign the "llm_judge" to "openai/gpt-4.1".
-
 """  # noqa: E501
 
 # Render the template with the WEBPAGE_DESCRIPTIONS dictionary
@@ -180,6 +139,5 @@ template = Template(INSTRUCTIONS_TEMPLATE)
 INSTRUCTIONS = template.render(
     webpage_descriptions=WEBPAGE_DESCRIPTIONS,
     evaluation_categories=EVALUATION_CATEGORIES,
-    scoring_guidelines=SCORING_GUIDELINES,
     agent_script_and_json_example=AGENT_SCRIPT_AND_JSON_EXAMPLE,
 )

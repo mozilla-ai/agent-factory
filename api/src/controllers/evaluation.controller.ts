@@ -105,7 +105,7 @@ export async function generateEvaluationCases(
     )
 
     res.end(
-      '\n[Evaluation cases generation completed. Saved to evaluation_case.yaml]',
+      '\n[Evaluation cases generation completed. Saved to evaluation_case.json]',
     )
   } catch (error: unknown) {
     console.error('Error generating evaluation cases:', error)
@@ -124,7 +124,7 @@ export async function runEvaluation(
     const fullPath = resolveWorkflowPath(workflowPath)
 
     const tracePath = path.join(fullPath, 'agent_eval_trace.json')
-    const evaluationCasePath = path.join(fullPath, 'evaluation_case.yaml')
+    const evaluationCasePath = path.join(fullPath, 'evaluation_case.json')
     const resultsPath = path.join(fullPath, 'evaluation_results.json')
 
     // Check if agent trace exists in the workflow directory
@@ -297,7 +297,7 @@ export async function deleteEvaluationCriteria(
   try {
     const workflowPath = req.params.workflowPath
     const fullPath = resolveWorkflowPath(workflowPath)
-    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaPath = path.join(fullPath, 'evaluation_case.json')
 
     try {
       await fs.access(criteriaPath)

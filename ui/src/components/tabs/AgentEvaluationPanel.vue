@@ -174,7 +174,7 @@ const genCasesMutation = useMutation({
       queryKey: ['evaluation-status', props.workflowPath],
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
+      queryKey: ['file-content', props.workflowPath, 'evaluation_case.json'],
     })
     workflowsStore.loadWorkflows()
   },

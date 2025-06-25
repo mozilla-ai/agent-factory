@@ -23,7 +23,7 @@ export async function saveEvaluationCriteria(
   const yamlContent = YAML.stringify(criteriaData)
 
   // Create file path
-  const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
+  const criteriaFilePath = path.join(fullPath, 'evaluation_case.json')
 
   // Write to file
   await fs.writeFile(criteriaFilePath, yamlContent, 'utf8')

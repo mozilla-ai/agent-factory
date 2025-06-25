@@ -185,7 +185,7 @@ const evaluationCriteriaQuery = useQuery({
   queryKey: ['evaluation-criteria', props.workflowPath],
   queryFn: async (): Promise<EvaluationCriteria> => {
     const response = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_case.yaml`,
+      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_case.json`,
     )
 
     if (!response.ok) {
@@ -294,7 +294,7 @@ const deleteCriteriaMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
     queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
+      queryKey: ['file-content', props.workflowPath, 'evaluation_case.json'],
     })
     showDeleteDialog.value = false
     // Refresh the workflow store to update file explorer

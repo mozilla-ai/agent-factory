@@ -5,7 +5,7 @@ from eval.run_generated_agent_evaluation import run_evaluation
 
 def test_evaluation_runs_with_valid_inputs(tmpdir, sample_evaluation_case_yaml, sample_agent_eval_trace_json):
     """Tests that the evaluation script runs successfully with mock data."""
-    evaluation_case_path = tmpdir.join("evaluation_case.yaml")
+    evaluation_case_path = tmpdir.join("evaluation_case.json")
     evaluation_case_path.write(sample_evaluation_case_yaml)
 
     agent_trace_path = tmpdir.join("agent_eval_trace.json")

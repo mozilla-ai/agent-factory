@@ -10,12 +10,12 @@ readme = "README.md"
 requires-python = ">=3.11"
 dynamic = ["version"]
 dependencies = [
-    "any-agent[all]==0.20.0",
+    "any-agent[all]==0.22.0",
     "jinja2>=3.1.2",
     "fire>=0.7.0",
     "dotenv>=0.9.9",
     "pyyaml>=6.0.2",
-    "chainlit>=2.5.5",
+    "chainlit", # chainlit bug https://github.com/Chainlit/chainlit/pull/2238 has bad starlette restrictions
     "mcpm>=1.0.3", # installing a newer version of mcpm conflicts with the current version of chainlit (2.5.5)
     "pre-commit>=4.2.0",
     "rich>=14.0.0",

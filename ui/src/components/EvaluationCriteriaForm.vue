@@ -235,7 +235,7 @@ const saveMutation = useMutation({
       queryKey: ['file-content', props.workflowPath],
     })
     queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
+      queryKey: ['file-content', props.workflowPath, 'evaluation_case.json'],
     })
     // Refresh the workflow store to update file explorer
     workflowsStore.loadWorkflows()

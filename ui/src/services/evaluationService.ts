@@ -59,7 +59,7 @@ export const evaluationService = {
 
 export async function getEvaluationCriteria(workflowPath: string): Promise<EvaluationCriteria> {
   const response = await apiClient.get(
-    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_case.yaml`,
+    `/agent-factory/workflows/${encodeURIComponent(workflowPath)}/evaluation_case.json`,
   )
   return Yaml.parse(response.data) // Ensure the response is parsed as YAML
 }

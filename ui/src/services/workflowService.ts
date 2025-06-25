@@ -27,7 +27,7 @@ export const workflowService = {
     // Implement file checks for evaluation status
     const [hasAgentTrace, hasEvalCases, hasEvalResults] = await Promise.all([
       this.checkFileExists(workflowPath, 'agent_eval_trace.json'),
-      this.checkFileExists(workflowPath, 'evaluation_case.yaml'),
+      this.checkFileExists(workflowPath, 'evaluation_case.json'),
       this.checkFileExists(workflowPath, 'evaluation_results.json'),
     ])
 
@@ -50,7 +50,7 @@ export const workflowService = {
 
   async getEvaluationCriteria(workflowPath: string) {
     const response = await apiClient.get(
-      `/agent-factory/workflows/${workflowPath}/evaluation_case.yaml`,
+      `/agent-factory/workflows/${workflowPath}/evaluation_case.json`,
     )
     return response.data
   },
