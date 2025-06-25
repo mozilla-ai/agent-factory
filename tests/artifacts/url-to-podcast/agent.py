@@ -1,58 +1,53 @@
 # agent.py
 
 import os
-from typing import List
-
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
 from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
 
-# ---- Local python-function tools ----
+# ---- Local tool imports ----
 from tools.extract_text_from_url import extract_text_from_url
 from tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm
 
-# ---- Load environment variables ----
+# Load .env file
 load_dotenv()
 
 # ========== Structured output definition ==========
-class StructuredOutput(BaseModel):
-    url: str = Field(..., description="The original webpage URL used as source material.")
-    script: str = Field(..., description="The complete podcast script with speaker labels.")
-    audio_file: str = Field(..., description="Filesystem path or URL to the generated podcast MP3 file.")
+class PodcastOutput(BaseModel):
+    url: str = Field(..., description="Original webpage URL supplied by the user.")
+    extracted_text: str = Field(..., description="Plain text extracted from the webpage, trimmed if very long.")
+    podcast_script: str = Field(..., description="Dialogue-style podcast script with multiple speakers.")
+    audio_file_path: str = Field(..., description="Filesystem path (or URL) to the final combined podcast audio file.")
 
-# ========= System (Multi-step) Instructions =========
+# ========== System (Multi-step) Instructions ==========
 INSTRUCTIONS = """
-You are an assistant that converts webpage content into a narrated multi-speaker podcast.  
-Follow this strict 3-step workflow and ONLY use the designated tools to accomplish each step.
+You are an autonomous agent that converts an online article into an engaging multi-speaker podcast.
+Work through the following steps. ALWAYS execute a step only after the previous one is fully complete.
+Return your final answer strictly via the structured output model.
 
-STEP 1 – Extract Source Text  
-• Use the `extract_text_from_url` tool to fetch and extract the primary textual content from the provided `url`.  
-• Strip boiler-plate (menus, navigation, ads) wherever possible. Store the result as **page_text**.
-
-STEP 2 – Write Podcast Script  
-• Invoke `generate_podcast_script_with_llm` giving it **page_text** and the requested `num_hosts`.  
-• The script MUST clearly label each host/speaker (e.g., "Host 1:", "Host 2:").  
-• Ensure the dialogue covers the important points in an engaging conversational style. Save as **podcast_script**.
-
-STEP 3 – Produce Audio  
-• Pass **podcast_script** to the `generate_audio_script` tool (from the ElevenLabs MCP server).  
-• A single MP3 file containing the full conversation should be generated. Capture the returned file path or URL as **audio_path**.
-
-FINAL RESPONSE  
-Return a JSON object using the provided `StructuredOutput` schema with:  
-• url – the original webpage URL  
-• script – the full **podcast_script**  
-• audio_file – **audio_path** returned by the TTS tool
+Step-by-step workflow:
+1. Identify: Extract the variables `target_url` and `num_hosts` from the user prompt.
+2. Extraction: Call `extract_text_from_url` on `target_url` to obtain the main human-readable text.
+   • If extraction fails or returns <500 characters, stop and report an error.
+   • Limit the stored text to the first 8 000 characters to keep context size reasonable.
+3. Script Writing: Invoke `generate_podcast_script_with_llm`, passing the extracted text and `num_hosts`.
+   • Ensure the script clearly labels each host (e.g., Host 1:, Host 2: …).
+   • The script should include an intro, main discussion, and outro.
+4. Audio Generation: Use `generate_audio_script` from the ElevenLabs MCP server to turn the script into narrated audio.
+   • Pass the full script string; let the server select default voices if none specified.
+   • Capture the returned file path (or URL) of the generated MP3.
+5. Produce the final structured JSON object with keys: url, extracted_text, podcast_script, audio_file_path.
+   • Truncate `extracted_text` to 1 500 characters if it exceeds that length.
+   • Do NOT include any supplementary commentary outside the JSON model.
 """
 
-# ========= Tools definition =========
+# ========== Tools definition ==========
 TOOLS = [
-    # Local Python-function tools
     extract_text_from_url,
     generate_podcast_script_with_llm,
-    # ElevenLabs MCP server – we only need the generate_audio_script tool
+    # ElevenLabs MCP server for text-to-speech
     MCPStdio(
         command="docker",
         args=[
@@ -67,46 +62,47 @@ TOOLS = [
             "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
         },
         tools=[
-            "generate_audio_script",
+            "generate_audio_script",  # minimal tool needed for this task
         ],
     ),
-    combine_mp3_files_for_podcast,
 ]
 
+# ========== Agent creation ==========
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        output_type=StructuredOutput,
+        output_type=PodcastOutput,
         model_args={"tool_choice": "required"},
     ),
 )
 
-# ========================= Runner =========================
+# ========== CLI Runner ==========
+PROMPT_TEMPLATE = (
+    """Create a {num_hosts}-host podcast from this article URL.\n"""
+    "URL: {url}"
+)
 
 def run_agent(url: str, num_hosts: int = 2):
-    """Create a multi-speaker audio podcast from the content of the given webpage URL."""
-    input_prompt = (
-        "Create an audio podcast from the webpage at {url}. "
-        "The podcast should feature {num_hosts} distinct hosts.".format(url=url, num_hosts=num_hosts)
-    )
+    """Generate a multi-speaker podcast from a webpage URL."""
+    input_prompt = PROMPT_TEMPLATE.format(url=url, num_hosts=num_hosts)
 
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
+        # Capture partial trace if the agent fails mid-run
         agent_trace = e.trace
-        print(f"Agent execution failed: {str(e)}")
+        print(f"Agent execution failed: {e}")
         print("Retrieved partial agent trace…")
 
-    # Persist trace for later evaluation
+    # Save trace for evaluation
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
 
-    # Return the structured final output
+    # Return structured final output only
     return agent_trace.final_output
-
 
 if __name__ == "__main__":
     Fire(run_agent)

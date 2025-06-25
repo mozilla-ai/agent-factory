@@ -1,24 +1,25 @@
 ## Setup & Run Instructions
 
-1. **Clone your project and ensure Python 3.11 is installed.**
+1. Clone or download the project repository.
+2. Ensure you have **Python 3.11** installed.
+3. Create a `.env` file in the project root containing the following (replace the values with your own keys):
 
-2. **Create a `.env` file in the project root with the following variables:**
-
-```
-# OpenAI key for the o3 model
-OPENAI_API_KEY="your-openai-key"
-
-# ElevenLabs text-to-speech key
-ELEVENLABS_API_KEY="your-elevenlabs-key"
+```env
+OPENAI_API_KEY="your-openai-api-key"
+ELEVENLABS_API_KEY="your-elevenlabs-api-key"
 ```
 
-*(If you prefer specific ElevenLabs voices, pass them via the CLI when running the agent.)*
-
-3. **Install dependencies and execute the agent (replace `<URL>` with the target webpage):**
+4. Install dependencies and run the agent using **uv**:
 
 ```bash
 uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \
-  python generated_workflows/latest/agent.py --url "<URL>" --num_hosts 3
+  python generated_workflows/latest/agent.py --url "https://example.com" --num_hosts 3
 ```
 
-The script will output a JSON object containing the podcast script and the path/URL to the generated MP3 file. The full agent trace is stored at `generated_workflows/latest/agent_eval_trace.json` for later inspection.
+The agent will:
+1. Fetch the article text from the given URL.
+2. Generate a podcast script featuring the specified number of hosts.
+3. Produce an MP3 file narrated with multiple voices using ElevenLabs.
+4. Save an execution trace to `generated_workflows/latest/agent_eval_trace.json` and print the structured JSON result containing the audio file path.
+
+**Note:** ffmpeg must be installed and accessible via your system `PATH` if you plan on extending the workflow to combine audio files, though the current implementation does not require it.
