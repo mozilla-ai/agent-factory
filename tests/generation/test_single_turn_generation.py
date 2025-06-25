@@ -21,9 +21,15 @@ def _assert_agent_syntax(agent_file: Path):
 @pytest.mark.parametrize(
     ("prompt_id", "prompt"),
     [
+        # Agent with no MCP tools needed
+        (
+            "summarize-url-content",
+            "Create a workflow that takes an input web URL and returns a summary of the content. Do not use MCP servers for tools.",
+        ),
+        # Agent with MCP tools such as ElevenLabs
         (
             "url-to-podcast",
-            "Create a workflow that takes an input web URL and creates an audio podcast with multiple speakers.",
+            "Create a workflow that takes an input web URL and creates an audio podcast with multiple speakers. Use ElevenLabs for text-to-speech.",
         ),
         # Add new "use cases" here, following this format:
         # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
