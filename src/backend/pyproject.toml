@@ -11,6 +11,7 @@ requires-python = ">=3.13"
 dynamic = ["version"]
 dependencies = [
     "fastapi[standard]>=0.115.0",
+    "openai>=1.91.0",
     "pydantic>=2.11.0",
     "pydantic-settings==2.10.0",
     "uvicorn[standard]>=0.34.0",

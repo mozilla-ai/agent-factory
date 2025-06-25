@@ -1,6 +1,7 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
+from fastapi.responses import FileResponse
 
 from backend.api.deps import AgentServiceDep
 from backend.schemas import AgentConfig, AgentCreateRequest, AgentSummary
@@ -35,9 +36,9 @@ def get_agents(
 def download_agent(
     service: AgentServiceDep,
     agent_id: UUID,
-):
-    # TODO: Implement the logic to download the agent.
-    # Return 501 Not Implemented response
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Download functionality not implemented yet."
-    )
+) -> FileResponse:
+    file_path = service.download_agent(agent_id)
+    try:
+        return FileResponse(path=file_path, filename=f"{agent_id}.zip", media_type="application/octet-stream")
+    except Exception as e:
+        raise FileNotFoundError(f"File not found for agent {agent_id}: {e}") from e
