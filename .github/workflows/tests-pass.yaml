@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'src/**'
+      - 'eval/**'
+      - 'tests/**'
+  pull_request:
+    paths-ignore:
+      - 'src/**'
+      - 'eval/**'
+      - 'tests/**'
+  workflow_dispatch:
+
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pass - No test files changed
+        run: echo "No test-related files changed, skipping tests"
