@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'eval/**'
       - 'tests/**'
   pull_request:
     paths:
       - 'src/**'
+      - 'eval/**'
       - 'tests/**'
   workflow_dispatch:
 
@@ -31,6 +33,9 @@ jobs:
         run: |
           uv sync --group tests
 
+      - name: Run Code tests
+        run: pytest -v tests/agent_factory
+
       - name: Run Generated Artifacts tests
         run: pytest -v tests/generated_artifacts
 
@@ -39,3 +44,9 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pytest -v tests/generation
+
+      - name: Run Generated Agent Evaluation tests
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: pytest -v tests/generated_agent_evaluation

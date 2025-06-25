@@ -8,6 +8,10 @@ const __dirname = path.dirname(__filename) // get current directory of this file
 const agentFactoryPath = path.resolve(__dirname, '../../../')
 const venvPython = path.resolve(agentFactoryPath, '.venv/bin/python')
 const venvUv = path.resolve(agentFactoryPath, '.venv/bin/uv')
+const venvAgentFactory = path.resolve(
+  agentFactoryPath,
+  '.venv/bin/agent-factory',
+)
 
 let agentFactoryProcess: ChildProcessWithoutNullStreams | undefined
 
@@ -105,15 +109,10 @@ export function runAgentFactory(
 ): ChildProcessWithoutNullStreams {
   // Store the process for later input
   // agent-factory
-  agentFactoryProcess = spawn('agent-factory', [prompt], {
+  agentFactoryProcess = spawn(venvAgentFactory, [prompt], {
     cwd: agentFactoryPath,
     shell: false,
   })
-
-  // agentFactoryProcess = spawn(venvPython, ['-m', 'src.main', prompt], {
-  //   cwd: agentFactoryPath,
-  //   shell: false,
-  // })
 
   return agentFactoryProcess
 }
