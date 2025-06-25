@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 
 import dotenv
@@ -9,13 +8,10 @@ from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field, ValidationError
 
+from agent_factory.logging import logger
 from eval.instructions import INSTRUCTIONS
 
 dotenv.load_dotenv()
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-logger = logging.getLogger(__name__)
 
 
 class CheckpointCriteria(BaseModel):
