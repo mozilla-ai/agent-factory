@@ -36,28 +36,6 @@ def remove_markdown_code_block_delimiters(text: str) -> str:
     return text
 
 
-def save_agent_parsed_outputs(output: AgentFactoryOutputs, output_dir: Path):
-    """Save outputs from AgentFactoryOutputs to separate files."""
-    agent_path = Path(f"{output_dir}/agent.py")
-    instructions_path = Path(f"{output_dir}/INSTRUCTIONS.md")
-    requirements_path = Path(f"{output_dir}/requirements.txt")
-
-    # build agent code from dict keys + template
-    agent_code = AGENT_CODE_TEMPLATE.format(**output.model_dump())
-
-    # save the agent code
-    with agent_path.open("w", encoding="utf-8") as f:
-        f.write(remove_markdown_code_block_delimiters(agent_code))
-
-    with instructions_path.open("w", encoding="utf-8") as f:
-        f.write(output.run_instructions)
-
-    with requirements_path.open("w", encoding="utf-8") as f:
-        f.write(remove_markdown_code_block_delimiters(output.dependencies))
-
-    logger.info(f"Files saved to {output_dir}")
-
-
 def create_agent():
     framework = AgentFramework.OPENAI
     agent = AnyAgent.create(
@@ -126,9 +104,24 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         raise RuntimeError("No final_output available in agent trace")
 
     try:
-        save_agent_parsed_outputs(agent_trace.final_output, output_dir)
+        agent_path = output_dir / "agent.py"
+        instructions_path = output_dir / "INSTRUCTIONS.md"
+        requirements_path = output_dir / "requirements.txt"
+        agent_code = AGENT_CODE_TEMPLATE.format(**agent_trace.final_output.model_dump())
+
+        with agent_path.open("w", encoding="utf-8") as f:
+            f.write(remove_markdown_code_block_delimiters(agent_code))
+
+        with instructions_path.open("w", encoding="utf-8") as f:
+            f.write(agent_trace.final_output.run_instructions)
+
+        with requirements_path.open("w", encoding="utf-8") as f:
+            f.write(remove_markdown_code_block_delimiters(agent_trace.final_output.dependencies))
+
+        logger.info(f"Agent files saved to {output_dir}")
+
     except Exception as e:
-        print(f"Warning: Failed to parse agent's structured outputs: {str(e)}")
+        print(f"Warning: Failed to parse and save agent outputs: {str(e)}")
 
 
 def single_turn_generation(
