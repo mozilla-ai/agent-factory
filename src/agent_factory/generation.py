@@ -24,7 +24,11 @@ class AgentFactoryOutputs(BaseModel):
     tools: str = Field(..., description="The python code that defines the tools to be used by the generated agent.")
     imports: str = Field(..., description="The python code snippet used to import the required tools.")
     structured_outputs: str = Field(..., description="The Pydantic v2 models used to structure the agent's output.")
-    run_agent_code: str = Field(..., description="The main function in agent.py.")
+    cli_args: str = Field(..., description="The arguments to be provided to the agent from the command line.")
+    agent_description: str = Field(..., description="The description of the agent and what it does.")
+    prompt_template: str = Field(
+        ..., description="A prompt template that, completed with cli_args, defines the agent's input prompt."
+    )
     run_instructions: str = Field(..., description="The run instructions in Markdown format")
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
 
@@ -34,7 +38,9 @@ def save_to_dictionary(
     tools: str,
     imports: str,
     structured_outputs: str,
-    run_agent_code: str,
+    cli_args: str,
+    agent_description: str,
+    prompt_template: str,
     run_instructions: str,
     dependencies: str,
 ) -> None:
@@ -55,7 +61,9 @@ def save_to_dictionary(
     OUTPUT_DICTIONARY["tools"] = tools
     OUTPUT_DICTIONARY["imports"] = imports
     OUTPUT_DICTIONARY["structured_outputs"] = structured_outputs
-    OUTPUT_DICTIONARY["run_agent_code"] = run_agent_code
+    OUTPUT_DICTIONARY["cli_args"] = cli_args
+    OUTPUT_DICTIONARY["agent_description"] = agent_description
+    OUTPUT_DICTIONARY["prompt_template"] = prompt_template
     OUTPUT_DICTIONARY["run_instructions"] = run_instructions
     OUTPUT_DICTIONARY["dependencies"] = dependencies
 

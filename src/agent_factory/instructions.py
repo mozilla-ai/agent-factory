@@ -113,8 +113,13 @@ def run_agent(url: str):
     Given a webpage URL, translate its main English content to Italian,
     and return structured output.
     \"\"\"
-    input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}"
-    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
+    input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}".format(**kwargs)
+    try:
+        agent_trace = agent.run(prompt=input_prompt, max_turns=20)
+    except AgentRunError as e:
+        agent_trace = e.trace
+        print(f"Agent execution failed: {{str(e)}}")
+        print("Retrieved partial agent trace...")
     with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
     return agent_trace.final_output
@@ -134,7 +139,9 @@ The final expected output is a dictionary with the following structure:
     "tools": "The python code that defines the tools to be used by the generated agent.",
     "imports": "The python code snippet needed to import the required tools.",
     "structured_outputs": "The Pydantic v2 models used to structure the agent's final output.",
-    "run_agent_code": "The python code for the `run_agent` function, taking input parameters from the user and calling the agent.",
+    "cli_args": "The arguments to be provided to the agent from the command line.",
+    "agent_description": "The description of the agent and what it does.",
+    "prompt_template": "A prompt template that, completed with cli_args, defines the agent's input prompt.",
     "run_instructions": "The instructions for setting up the environment in Markdown format.",
     "dependencies": "The list of python dependencies in Markdown format."
 }}
@@ -152,24 +159,15 @@ This string replaces the {{agent_instructions}} placeholder in the agent code te
 3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {{imports}} placeholder in the agent code template.
 4. `structured_outputs` is python code that defines the class `StructuredOutput(BaseModel)`) defining the agent's output schema as a Pydantic v2 model.
 This code replaces the {{structured_outputs}} placeholder in the agent code template.
-5. `run_agent_code` is a function definition (`def run_agent(...):`). You need to define the argument(s) passed to it, a docstring description of the agent, and a prompt
-template that, together with the input parameters, defines the input prompt passed to the agent. The general structure of the `run_agent` function is the following one:
-
-    ```
-    def run_agent({{CLI_ARGS}}):
-        \"\"\"Agent description\"\"\"
-        input_prompt = f"{{PROMPT_TEMPLATE}}".format(**kwargs)
-        agent_trace = agent.run(prompt=input_prompt)
-        with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
-            f.write(agent_trace.model_dump_json(indent=2))
-        return agent_trace.final_output
-    ```
-
-6. `run_instructions` should contain clear and concise setup instructions:
+5. `cli_args` are the arguments to be passed to the `run_agent` function. Each of them is specified as argument_name: argument_value.
+These will replace the {{cli_args}} placeholder in the agent code template.
+6. `agent_description` is a string to be provided as the description of the `run_agent` function.
+7. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to the generated agent.
+8. `run_instructions` should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
     - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11
       `uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"`
-7. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
+9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
     - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
 
@@ -183,7 +181,7 @@ import os
 
 # ALWAYS used
 from dotenv import load_dotenv
-from any_agent import AgentConfig, AnyAgent
+from any_agent import AgentConfig, AnyAgent, AgentRunError
 from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
@@ -210,12 +208,23 @@ agent = AnyAgent.create(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        agent_args={{"output_type": StructuredOutput}},
+        output_type=StructuredOutput,
         model_args={{"tool_choice": "required"}},
     ),
 )
 
-{run_agent_code}
+def run_agent({cli_args}):
+    \"\"\"{agent_description}\"\"\"
+    input_prompt = f"{prompt_template}".format(**kwargs)
+    try:
+        agent_trace = agent.run(prompt=input_prompt, max_turns=20)
+    except AgentRunError as e:
+        agent_trace = e.trace
+        print(f"Agent execution failed: {{str(e)}}")
+        print("Retrieved partial agent trace...")
+    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
+        f.write(agent_trace.model_dump_json(indent=2))
+    return agent_trace.final_output
 
 if __name__ == "__main__":
     Fire(run_agent)
