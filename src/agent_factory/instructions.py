@@ -251,7 +251,7 @@ agent = AnyAgent.create(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        agent_args={{"output_type": StructuredOutput}},
+        output_type=StructuredOutput,
         model_args={{"tool_choice": "required"}},
     ),
 )
