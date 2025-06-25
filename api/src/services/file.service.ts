@@ -111,7 +111,7 @@ class FileService {
         }
       }
 
-      return workflows.sort((a, b) => a.name.localeCompare(b.name))
+      return workflows.sort((a, b) => b.name.localeCompare(a.name))
     } catch {
       throw new Error('Failed to list workflows')
     }
