@@ -1,14 +1,15 @@
-### Setup Instructions
+### Environment setup
+1. Create a `.env` file in the project root containing:
+```
+OPENAI_API_KEY=<your-openai-api-key>
+ELEVENLABS_API_KEY=<your-elevenlabs-api-key>
+```
+   (Add optional ELEVENLABS_* variables like ELEVENLABS_VOICE_ID if you want custom voices.)
 
-1. Install Python 3.11 and the **uv** package manager.
-2. In the project root, create a file named `.env` and add the following environment variables:
+2. Ensure `docker` is installed and running – it is needed for the ElevenLabs MCP server container.
 
+3. Install Python dependencies and run the agent in one shot with **uv**:
+```bash
+uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --url "https://example.com" --num_hosts 3
 ```
-OPENAI_API_KEY=your_openai_key
-ELEVENLABS_API_KEY=your_elevenlabs_key
-```
-3. Run the agent (replace `<URL>` with the webpage you want to convert):
-
-```
-uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --url "<URL>"
-```
+The agent will save its execution trace to `generated_workflows/latest/agent_eval_trace.json` and output the StructuredOutput JSON to the console.

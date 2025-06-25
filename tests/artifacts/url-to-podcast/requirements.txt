@@ -4,4 +4,4 @@ python-dotenv
 fire
 beautifulsoup4
 requests
-pydantic>=2.6.0
+litellm

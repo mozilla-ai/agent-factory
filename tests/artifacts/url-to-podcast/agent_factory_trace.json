@@ -4,8 +4,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 1120660462714811717,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -14,15 +14,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750855975781237000,
-      "end_time": 1750855980845994000,
+      "start_time": 1750862446924137000,
+      "end_time": 1750862453498101000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 8264361192463041637,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 5663710706966420130,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -34,11 +34,11 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "o3",
-        "gen_ai.input.messages": "[{\"content\": \"\\nYou are an expert software developer with a deep understanding of Mozilla AI's any-agent Python library.\\n\\nAny-agent library enables you to:\\n- Build agent systems with a unified API regardless of the underlying framework\\n- Switch between different agent frameworks (like OpenAI, LangChain, smolagents) without rewriting code\\n- Create both single-agent and multi-agent systems with consistent patterns\\n- Leverage built-in tools like web search and webpage visiting as well as MCP servers\\n- Implement comprehensive tracing and evaluation capabilities\\n\\n**Any-agent Code Generation Instructions**\\n\\n\\n# Single Agent Implementation with Multiple Steps\\n\\n## Task Overview\\nCreate a complete implementation of a single agent that executes a multi-step workflow\\nusing Mozilla's any-agent library. The implementation should:\\n\\n1. Use the OpenAI framework as the underlying agent provider\\n2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output\\n3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument\\n4. Whenever required, assign tools in the agent configuration.\\n\\n## Required Components\\n\\n#### Model (model_id):\\n- Use o3 as the model_id\\n\\n#### Instructions (instructions):\\n- Decide on the number of steps that you think would be necessary to complete the task\\n- Keep the number of steps to a minimum\\n- Provide a step-by-step clear multi-step system instructions that guides the agent's behavior\\n- The instructions should be as detailed and as unambiguous as possible\\n- Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig\\n\\n#### Tools (tools):\\n- Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).\\n  Try to use only the minimum subset of tools that are necessary for the solving the task at hand.\\n- You must choose tools from the following 3 categories, *listed in order of priority* (i.e. tools found in an earlier category are preferable to equivalent tools found in following ones):\\n    a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.\\n       Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.\\n    b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools\\n    c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,\\n       giving it a keyword that describes the task you want to accomplish.\\n       Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.\\n       Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().\\n       Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.\\n       If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).\\n\\n#### Structured Output (output_type):\\n- Define Pydantic v2 models to structure the agent's final output\\n- Implement the output_type argument correctly to obtain this structured response\\n\\n#### Agent Trace (agent_trace):\\nThe code implementation should include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()\\n- Saving of the agent trace in the code should be done to the `generated_workflows/latest/` directory. You may assume that the `generated_workflows/latest/` directory already exists\\n- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code\\n- Never try to print, log or access any other properties of the agent trace object. agent_trace.response or agent_trace.output are invalid\\n- Only agent_trace.model_dump_json(indent=2) and agent_trace.final_output are valid\\n- Do not print or save anything after saving the agent trace\\n\\n### Code Organization\\n- Create well-documented, modular code with appropriate comments\\n- Follow Python best practices for readability and maintainability\\n- Include proper import statements and dependency management\\n- Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:\\n    - Use Python dotenv library to load the environment variables and access them using os.getenv()\\n\\n### Agent code template\\n\\n- Rely on the following template to write the agent code:\\n\\n```\\n\\n# agent.py\\n\\n# good to have\\nimport os\\n\\n# ALWAYS used\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent\\nfrom any_agent.config import MCPStdio\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ADD BELOW HERE: tools made available by any-agent or agent-factory\\n{imports}\\n\\nload_dotenv()\\n\\n# ========== Structured output definition ==========\\n{structured_outputs}\\n\\n# ========== System (Multi-step) Instructions ===========\\nINSTRUCTIONS='''\\n{agent_instructions}\\n'''\\n\\n# ========== Tools definition ===========\\n{tools}\\n\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        agent_args={{\\\"output_type\\\": StructuredOutput}},\\n        model_args={{\\\"tool_choice\\\": \\\"required\\\"}},\\n    ),\\n)\\n\\n{run_agent_code}\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\\n\\n```\\n\\n\\nAs input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `output_type`.\\nYou also need to specify the correct imports, which have to be consistent with the tools used by the agent:\\n\\n\\n# agent.py\\n\\n# good to have\\nimport os\\n\\n# ALWAYS used\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent\\nfrom any_agent.config import MCPStdio\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ADD BELOW HERE: tools made available by any-agent or agent-factory\\nfrom any_agent.tools import visit_webpage\\nfrom tools.translate_text_with_llm import translate_text_with_llm\\n\\nload_dotenv()\\n\\n\\n# ========= Structured output definition =========\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"The URL of the webpage that was translated.\\\")\\n    source_language: str = Field(..., description=\\\"The source language detected on the webpage (should be 'English').\\\")\\n    extracted_text: str = Field(..., description=\\\"The main text content extracted from the original English webpage.\\\")\\n    translated_text: str = Field(..., description=\\\"The English text translated to Italian.\\\")\\n\\n\\n# ========= System Instructions =========\\nINSTRUCTIONS = '''\\nYou are an assistant that translates the main text content of an English webpage to Italian, following this step-by-step workflow:\\n1. Receive a webpage URL from the user. Visit the page and extract the primary and most relevant English text content. Focus on body content, main text, and important sections. Exclude navigation bars, headings not part of the content, footers, advertisements, and non-informational elements. Make sure the extracted text is concise but comprehensive and represents the actual page content.\\n2. Identify and confirm that the detected source language is English. If the page is not in English, halt and output the detected language and a clear message in 'translated_text'.\\n3. Use the translation tool to translate the extracted English text into fluent Italian.\\n4. Your output must be a structured JSON object with these fields:\\n   - url: the provided webpage URL\\n   - source_language: the detected primary language (should be English)\\n   - extracted_text: the main English content you extracted\\n   - translated_text: your Italian translation of the extracted text\\nLimit the output to 1000 tokens if the page is very long. Ensure the translation is accurate and clear. Do not make up or hallucinate content.\\n'''\\n\\n\\nTOOLS = [\\n    visit_webpage,                # To fetch and extract page text\\n    translate_text_with_llm,      # To translate extracted text\\n    MCPStdio(                     # To search results on the web\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"BRAVE_API_KEY\\\",\\n            \\\"mcp/brave-search\\\",\\n        ],\\n        # Specify necessary environment variables\\n        env={\\n            \\\"BRAVE_API_KEY\\\": os.getenv(\\\"BRAVE_API_KEY\\\"),\\n        },\\n        # From among the tools available from the MCP server\\n        # list only the tools that are necessary for the solving the task at hand\\n        tools=[\\n            \\\"brave_web_search\\\",\\n        ],\\n    ),\\n]\\n\\n\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n    ),\\n)\\n\\n\\ndef run_agent(url: str):\\n    \\\"\\\"\\\"\\n    Given a webpage URL, translate its main English content to Italian,\\n    and return structured output.\\n    \\\"\\\"\\\"\\n    input_prompt = f\\\"Translate the main text content from the following English webpage URL to Italian: {url}\\\"\\n    agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n    return agent_trace.final_output\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\\n\\n** Deliverables Instructions**\\n\\n\\n# Instructions to generate final deliverables\\n\\nThe final expected output is a dictionary with the following structure:\\n\\n{\\n    \\\"agent_instructions\\\": \\\"The instructions passed to the generated agent.\\\",\\n    \\\"tools\\\": \\\"The python code that defines the tools to be used by the generated agent.\\\",\\n    \\\"imports\\\": \\\"The python code snippet needed to import the required tools.\\\",\\n    \\\"structured_outputs\\\": \\\"The Pydantic v2 models used to structure the agent's final output.\\\",\\n    \\\"run_agent_code\\\": \\\"The python code for the `run_agent` function, taking input parameters from the user and calling the agent.\\\",\\n    \\\"run_instructions\\\": \\\"The instructions for setting up the environment in Markdown format.\\\",\\n    \\\"dependencies\\\": \\\"The list of python dependencies in Markdown format.\\\"\\n}\\n\\n## Building the dictionary\\n\\nTo build the output dictionary, you will use the available tool `save_to_dictionary` properly matching its parameters\\nwith the respective dictionary keys.\\n\\n## Values to assign to dictionary keys\\n\\n1. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).\\nThis string replaces the {agent_instructions} placeholder in the agent code template.\\n2. `tools` is python code that assigns the `TOOLS` variable with the list of tools required by the generated agent. This code replaces the {tools} placeholder in the agent code template.\\n3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {imports} placeholder in the agent code template.\\n4. `structured_outputs` is python code that defines the class `StructuredOutput(BaseModel)`) defining the agent's output schema as a Pydantic v2 model.\\nThis code replaces the {structured_outputs} placeholder in the agent code template.\\n5. `run_agent_code` is a function definition (`def run_agent(...):`). You need to define the argument(s) passed to it, a docstring description of the agent, and a prompt\\ntemplate that, together with the input parameters, defines the input prompt passed to the agent. The general structure of the `run_agent` function is the following one:\\n\\n    ```\\n    def run_agent({CLI_ARGS}):\\n        \\\"\\\"\\\"Agent description\\\"\\\"\\\"\\n        input_prompt = f\\\"{PROMPT_TEMPLATE}\\\".format(**kwargs)\\n        agent_trace = agent.run(prompt=input_prompt)\\n        with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n            f.write(agent_trace.model_dump_json(indent=2))\\n        return agent_trace.final_output\\n    ```\\n\\n6. `run_instructions` should contain clear and concise setup instructions:\\n    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required\\n    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11\\n      `uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 \\\"value1\\\"`\\n7. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file\\n    - the first line should be \\\"any-agent[all]==0.20.0\\\" dependency, since we are using any-agent to run the agent workflow\\n    - the second line should be \\\"uv\\\" dependency, if we use uvx to spin up any MCP server that will be used in the code\\n\\n\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"Generate Python code for an agentic workflow using the `any-agent` library\\nto do the following:\\nCreate a workflow that takes an input web URL and creates an audio podcast with multiple speakers.\\n\\nUse appropriate tools in the agent configuration:\\n- Select relevant tools from `tools/available_tools.md`.\\n- Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools\\n    to the configuration.\\n\\nAlways use the simplest and most efficient tools available for the task.\\n\\n\"}]",
+        "gen_ai.input.messages": "[{\"content\": \"\\nYou are an expert software developer with a deep understanding of Mozilla AI's any-agent Python library.\\n\\nAny-agent library enables you to:\\n- Build agent systems with a unified API regardless of the underlying framework\\n- Switch between different agent frameworks (like OpenAI, LangChain, smolagents) without rewriting code\\n- Create both single-agent and multi-agent systems with consistent patterns\\n- Leverage built-in tools like web search and webpage visiting as well as MCP servers\\n- Implement comprehensive tracing and evaluation capabilities\\n\\n**Any-agent Code Generation Instructions**\\n\\n\\n# Single Agent Implementation with Multiple Steps\\n\\n## Task Overview\\nCreate a complete implementation of a single agent that executes a multi-step workflow\\nusing Mozilla's any-agent library. The implementation should:\\n\\n1. Use the OpenAI framework as the underlying agent provider\\n2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output\\n3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument\\n4. Whenever required, assign tools in the agent configuration.\\n\\n## Required Components\\n\\n#### Model (model_id):\\n- Use o3 as the model_id\\n\\n#### Instructions (instructions):\\n- Decide on the number of steps that you think would be necessary to complete the task\\n- Keep the number of steps to a minimum\\n- Provide a step-by-step clear multi-step system instructions that guides the agent's behavior\\n- The instructions should be as detailed and as unambiguous as possible\\n- Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig\\n\\n#### Tools (tools):\\n- Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).\\n  Try to use only the minimum subset of tools that are necessary for the solving the task at hand.\\n- You must choose tools from the following 3 categories, *listed in order of priority* (i.e. tools found in an earlier category are preferable to equivalent tools found in following ones):\\n    a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.\\n       Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.\\n    b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools\\n    c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,\\n       giving it a keyword that describes the task you want to accomplish.\\n       Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.\\n       Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().\\n       Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.\\n       If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).\\n\\n#### Structured Output (output_type):\\n- Define Pydantic v2 models to structure the agent's final output\\n- Implement the output_type argument correctly to obtain this structured response\\n\\n#### Agent Trace (agent_trace):\\nThe code implementation should include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()\\n- Saving of the agent trace in the code should be done to the `generated_workflows/latest/` directory. You may assume that the `generated_workflows/latest/` directory already exists\\n- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code\\n- Never try to print, log or access any other properties of the agent trace object. agent_trace.response or agent_trace.output are invalid\\n- Only agent_trace.model_dump_json(indent=2) and agent_trace.final_output are valid\\n- Do not print or save anything after saving the agent trace\\n\\n### Code Organization\\n- Create well-documented, modular code with appropriate comments\\n- Follow Python best practices for readability and maintainability\\n- Include proper import statements and dependency management\\n- Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:\\n    - Use Python dotenv library to load the environment variables and access them using os.getenv()\\n\\n### Agent code template\\n\\n- Rely on the following template to write the agent code:\\n\\n```\\n\\n# agent.py\\n\\n# good to have\\nimport os\\n\\n# ALWAYS used\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent, AgentRunError\\nfrom any_agent.config import MCPStdio\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ADD BELOW HERE: tools made available by any-agent or agent-factory\\n{imports}\\n\\nload_dotenv()\\n\\n# ========== Structured output definition ==========\\n{structured_outputs}\\n\\n# ========== System (Multi-step) Instructions ===========\\nINSTRUCTIONS='''\\n{agent_instructions}\\n'''\\n\\n# ========== Tools definition ===========\\n{tools}\\n\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n        model_args={{\\\"tool_choice\\\": \\\"required\\\"}},\\n    ),\\n)\\n\\ndef run_agent({cli_args}):\\n    \\\"\\\"\\\"{agent_description}\\\"\\\"\\\"\\n    input_prompt = f\\\"{prompt_template}\\\".format(**kwargs)\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    except AgentRunError as e:\\n        agent_trace = e.trace\\n        print(f\\\"Agent execution failed: {{str(e)}}\\\")\\n        print(\\\"Retrieved partial agent trace...\\\")\\n    with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n    return agent_trace.final_output\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\\n\\n```\\n\\n\\nAs input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `output_type`.\\nYou also need to specify the correct imports, which have to be consistent with the tools used by the agent:\\n\\n\\n# agent.py\\n\\n# good to have\\nimport os\\n\\n# ALWAYS used\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent\\nfrom any_agent.config import MCPStdio\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ADD BELOW HERE: tools made available by any-agent or agent-factory\\nfrom any_agent.tools import visit_webpage\\nfrom tools.translate_text_with_llm import translate_text_with_llm\\n\\nload_dotenv()\\n\\n\\n# ========= Structured output definition =========\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"The URL of the webpage that was translated.\\\")\\n    source_language: str = Field(..., description=\\\"The source language detected on the webpage (should be 'English').\\\")\\n    extracted_text: str = Field(..., description=\\\"The main text content extracted from the original English webpage.\\\")\\n    translated_text: str = Field(..., description=\\\"The English text translated to Italian.\\\")\\n\\n\\n# ========= System Instructions =========\\nINSTRUCTIONS = '''\\nYou are an assistant that translates the main text content of an English webpage to Italian, following this step-by-step workflow:\\n1. Receive a webpage URL from the user. Visit the page and extract the primary and most relevant English text content. Focus on body content, main text, and important sections. Exclude navigation bars, headings not part of the content, footers, advertisements, and non-informational elements. Make sure the extracted text is concise but comprehensive and represents the actual page content.\\n2. Identify and confirm that the detected source language is English. If the page is not in English, halt and output the detected language and a clear message in 'translated_text'.\\n3. Use the translation tool to translate the extracted English text into fluent Italian.\\n4. Your output must be a structured JSON object with these fields:\\n   - url: the provided webpage URL\\n   - source_language: the detected primary language (should be English)\\n   - extracted_text: the main English content you extracted\\n   - translated_text: your Italian translation of the extracted text\\nLimit the output to 1000 tokens if the page is very long. Ensure the translation is accurate and clear. Do not make up or hallucinate content.\\n'''\\n\\n\\nTOOLS = [\\n    visit_webpage,                # To fetch and extract page text\\n    translate_text_with_llm,      # To translate extracted text\\n    MCPStdio(                     # To search results on the web\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"BRAVE_API_KEY\\\",\\n            \\\"mcp/brave-search\\\",\\n        ],\\n        # Specify necessary environment variables\\n        env={\\n            \\\"BRAVE_API_KEY\\\": os.getenv(\\\"BRAVE_API_KEY\\\"),\\n        },\\n        # From among the tools available from the MCP server\\n        # list only the tools that are necessary for the solving the task at hand\\n        tools=[\\n            \\\"brave_web_search\\\",\\n        ],\\n    ),\\n]\\n\\n\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n    ),\\n)\\n\\n\\ndef run_agent(url: str):\\n    \\\"\\\"\\\"\\n    Given a webpage URL, translate its main English content to Italian,\\n    and return structured output.\\n    \\\"\\\"\\\"\\n    input_prompt = f\\\"Translate the main text content from the following English webpage URL to Italian: {url}\\\".format(**kwargs)\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    except AgentRunError as e:\\n        agent_trace = e.trace\\n        print(f\\\"Agent execution failed: {{str(e)}}\\\")\\n        print(\\\"Retrieved partial agent trace...\\\")\\n    with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n    return agent_trace.final_output\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\\n\\n** Deliverables Instructions**\\n\\n\\n# Instructions to generate final deliverables\\n\\nThe final expected output is a dictionary with the following structure:\\n\\n{\\n    \\\"agent_instructions\\\": \\\"The instructions passed to the generated agent.\\\",\\n    \\\"tools\\\": \\\"The python code that defines the tools to be used by the generated agent.\\\",\\n    \\\"imports\\\": \\\"The python code snippet needed to import the required tools.\\\",\\n    \\\"structured_outputs\\\": \\\"The Pydantic v2 models used to structure the agent's final output.\\\",\\n    \\\"cli_args\\\": \\\"The arguments to be provided to the agent from the command line.\\\",\\n    \\\"agent_description\\\": \\\"The description of the agent and what it does.\\\",\\n    \\\"prompt_template\\\": \\\"A prompt template that, completed with cli_args, defines the agent's input prompt.\\\",\\n    \\\"run_instructions\\\": \\\"The instructions for setting up the environment in Markdown format.\\\",\\n    \\\"dependencies\\\": \\\"The list of python dependencies in Markdown format.\\\"\\n}\\n\\n## Building the dictionary\\n\\nTo build the output dictionary, you will use the available tool `save_to_dictionary` properly matching its parameters\\nwith the respective dictionary keys.\\n\\n## Values to assign to dictionary keys\\n\\n1. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).\\nThis string replaces the {agent_instructions} placeholder in the agent code template.\\n2. `tools` is python code that assigns the `TOOLS` variable with the list of tools required by the generated agent. This code replaces the {tools} placeholder in the agent code template.\\n3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {imports} placeholder in the agent code template.\\n4. `structured_outputs` is python code that defines the class `StructuredOutput(BaseModel)`) defining the agent's output schema as a Pydantic v2 model.\\nThis code replaces the {structured_outputs} placeholder in the agent code template.\\n5. `cli_args` are the arguments to be passed to the `run_agent` function. Each of them is specified as argument_name: argument_value.\\nThese will replace the {cli_args} placeholder in the agent code template.\\n6. `agent_description` is a string to be provided as the description of the `run_agent` function.\\n7. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to the generated agent.\\n8. `run_instructions` should contain clear and concise setup instructions:\\n    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required\\n    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11\\n      `uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 \\\"value1\\\"`\\n9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file\\n    - the first line should be \\\"any-agent[all]==0.20.0\\\" dependency, since we are using any-agent to run the agent workflow\\n    - the second line should be \\\"uv\\\" dependency, if we use uvx to spin up any MCP server that will be used in the code\\n\\n\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"Generate Python code for an agentic workflow using the `any-agent` library\\nto do the following:\\nCreate a workflow that takes an input web URL and creates an audio podcast with multiple speakers.\\n\\nUse appropriate tools in the agent configuration:\\n- Select relevant tools from `tools/available_tools.md`.\\n- Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools\\n    to the configuration.\\n\\nAlways use the simplest and most efficient tools available for the task.\\n\\n\"}]",
         "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\": \\\"tools/available_tools.md\\\"}\"}]",
         "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 3417,
-        "gen_ai.usage.output_tokens": 93
+        "gen_ai.usage.input_tokens": 3565,
+        "gen_ai.usage.output_tokens": 221
       },
       "links": [],
       "events": [],
@@ -56,8 +56,8 @@
       "name": "execute_tool read_file",
       "kind": "internal",
       "parent": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 1120660462714811717,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -66,15 +66,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750855980854756000,
-      "end_time": 1750855980855311000,
+      "start_time": 1750862453505864000,
+      "end_time": 1750862453506411000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 3695151301064941920,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12124085756268312634,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -106,8 +106,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 1120660462714811717,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -116,15 +116,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750855980863409000,
-      "end_time": 1750855989287777000,
+      "start_time": 1750862453514743000,
+      "end_time": 1750862458825755000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 8745395413739711048,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 14038918397887850637,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -136,10 +136,10 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "o3",
-        "gen_ai.output": "[{\"tool.name\": \"search_mcp_servers\", \"tool.args\": \"{\\\"keyword\\\":\\\"speech\\\", \\\"is_official\\\":false}\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"search_mcp_servers\", \"tool.args\": \"{\\\"keyword\\\":\\\"text-to-speech\\\", \\\"is_official\\\":false}\"}]",
         "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 3872,
-        "gen_ai.usage.output_tokens": 224
+        "gen_ai.usage.input_tokens": 4020,
+        "gen_ai.usage.output_tokens": 163
       },
       "links": [],
       "events": [],
@@ -157,8 +157,8 @@
       "name": "execute_tool search_mcp_servers",
       "kind": "internal",
       "parent": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 1120660462714811717,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -167,15 +167,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750855989297843000,
-      "end_time": 1750855989329216000,
+      "start_time": 1750862458832717000,
+      "end_time": 1750862458862624000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 801178440996319750,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 411203844426296438,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -187,7 +187,7 @@
       "attributes": {
         "gen_ai.operation.name": "execute_tool",
         "gen_ai.tool.name": "search_mcp_servers",
-        "gen_ai.tool.args": "{\"keyword\":\"speech\", \"is_official\":false}",
+        "gen_ai.tool.args": "{\"keyword\":\"text-to-speech\", \"is_official\":false}",
         "gen_ai.output": "[{\"name\": \"elevenlabs\", \"description\": \"A server that integrates with ElevenLabs text-to-speech API capable of generating full voiceovers with multiple voices.\", \"license\": \"MIT\", \"installations\": {\"uvx\": {\"type\": \"uvx\", \"command\": \"uvx\", \"args\": [\"elevenlabs-mcp-server\"], \"env\": {\"ELEVENLABS_API_KEY\": \"${ELEVENLABS_API_KEY}\", \"ELEVENLABS_VOICE_ID\": \"${ELEVENLABS_VOICE_ID}\", \"ELEVENLABS_MODEL_ID\": \"${ELEVENLABS_MODEL_ID}\", \"ELEVENLABS_STABILITY\": \"${ELEVENLABS_STABILITY}\", \"ELEVENLABS_SIMILARITY_BOOST\": \"${ELEVENLABS_SIMILARITY_BOOST}\", \"ELEVENLABS_STYLE\": \"${ELEVENLABS_STYLE}\", \"ELEVENLABS_OUTPUT_DIR\": \"${ELEVENLABS_OUTPUT_DIR}\"}}, \"docker\": {\"type\": \"docker\", \"command\": \"docker\", \"args\": [\"run\", \"-i\", \"--rm\", \"-e\", \"ELEVENLABS_API_KEY\", \"mcp/elevenlabs\"], \"env\": {\"ELEVENLABS_API_KEY\": \"${ELEVENLABS_API_KEY}\"}}}, \"arguments\": {\"ELEVENLABS_API_KEY\": {\"description\": \"Your API key for ElevenLabs to access the text-to-speech services.\", \"required\": true, \"example\": \"sk-12345abcd\"}, \"ELEVENLABS_VOICE_ID\": {\"description\": \"The ID of the voice you want to use for synthesis.\", \"required\": true, \"example\": \"voice-12345\"}, \"ELEVENLABS_MODEL_ID\": {\"description\": \"The model ID to be used, indicating the version of the ElevenLabs API to utilize.\", \"required\": false, \"example\": \"eleven_flash_v2\"}, \"ELEVENLABS_STABILITY\": {\"description\": \"Stability of the voice generation; controls variations in the output voice.\", \"required\": false, \"example\": \"0.5\"}, \"ELEVENLABS_SIMILARITY_BOOST\": {\"description\": \"Boosting similarity for the voices; affects how closely the output mimics the selected voice.\", \"required\": false, \"example\": \"0.75\"}, \"ELEVENLABS_STYLE\": {\"description\": \"Style parameter to adjust the expression in the generated speech.\", \"required\": false, \"example\": \"0.1\"}, \"ELEVENLABS_OUTPUT_DIR\": {\"description\": \"Directory path where the generated audio files will be saved.\", \"required\": false, \"example\": \"output\"}}, \"tools\": [{\"name\": \"generate_audio_simple\", \"description\": \"Generate audio from plain text using default voice settings\"}, {\"name\": \"generate_audio_script\", \"description\": \"Generate audio from a structured script with multiple voices and actors. \\n                    Accepts either:\\n                    1. Plain text string\\n                    2. JSON string with format: {\\n                        \\\"script\\\": [\\n                            {\\n                                \\\"text\\\": \\\"Text to speak\\\",\\n                                \\\"voice_id\\\": \\\"optional-voice-id\\\",\\n                                \\\"actor\\\": \\\"optional-actor-name\\\"\\n                            },\\n                            ...\\n                        ]\\n                    }\"}, {\"name\": \"delete_job\", \"description\": \"Delete a voiceover job and its associated files\"}, {\"name\": \"get_audio_file\", \"description\": \"Get the audio file content for a specific job\"}, {\"name\": \"list_voices\", \"description\": \"Get a list of all available ElevenLabs voices with metadata\"}, {\"name\": \"get_voiceover_history\", \"description\": \"Get voiceover job history. Optionally specify a job ID for a specific job.\"}]}, {\"license\": \"MIT\", \"installations\": {\"uvx\": {\"type\": \"uvx\", \"command\": \"uvx\", \"args\": [\"minimax-mcp\"], \"env\": {\"MINIMAX_API_KEY\": \"${MINIMAX_API_KEY}\", \"MINIMAX_MCP_BASE_PATH\": \"${MINIMAX_MCP_BASE_PATH}\", \"MINIMAX_API_HOST\": \"${MINIMAX_API_HOST}\", \"MINIMAX_API_RESOURCE_MODE\": \"${MINIMAX_API_RESOURCE_MODE}\"}, \"description\": \"MiniMax MCP server for Claude Desktop\"}}, \"arguments\": {\"MINIMAX_API_KEY\": {\"description\": \"MiniMax API key\", \"required\": true, \"examples\": \"insert-your-api-key-here\"}, \"MINIMAX_MCP_BASE_PATH\": {\"description\": \"Local output directory path\", \"required\": true, \"examples\": \"/User/xxx/Desktop\"}, \"MINIMAX_API_HOST\": {\"description\": \"API host\", \"required\": true, \"examples\": \"https://api.minimaxi.chat|https://api.minimax.chat\"}, \"MINIMAX_API_RESOURCE_MODE\": {\"description\": \"Resource mode\", \"required\": true, \"examples\": \"[url|local]\"}}, \"name\": \"minimax-mcp\", \"description\": \"Here is a concise description paragraph focused on what the MiniMax project does:\\n\\nMiniMax is an official server that enables interaction with powerful text-to-speech, voice cloning, video generation, and image generation APIs through the MiniMax Model Context Protocol (MCP). It allows MCP clients like Claude Desktop, Cursor, Windsurf, and OpenAI Agents to generate speech, clone voices, create videos and images, and more.\", \"is_official\": false}]",
         "gen_ai.output.type": "json"
       },
@@ -207,8 +207,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 1120660462714811717,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -217,15 +217,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750855989350046000,
-      "end_time": 1750856038183894000,
+      "start_time": 1750862458876208000,
+      "end_time": 1750862493169599000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 5960722046633305956,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 5389328135075796944,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -237,10 +237,313 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "o3",
-        "gen_ai.output": "[{\"tool.name\": \"save_to_dictionary\", \"tool.args\": \"{\\\"agent_instructions\\\":\\\"You are an assistant that creates an audio podcast with multiple speakers from the content of a webpage. Follow this concise multi-step workflow and use the provided tools exactly as instructed. Always think step-by-step and only proceed to the next step when the previous one is complete.\\\\n\\\\nSTEP 1 \\u2013 EXTRACT SOURCE TEXT\\\\n\\u2022 Input: the user supplies a single webpage URL.\\\\n\\u2022 Tool: call extract_text_from_url with the provided URL.\\\\n\\u2022 Output variable: source_text \\u2013 the main textual content of the page (exclude navigation, ads, comments, footers).\\\\n\\\\nSTEP 2 \\u2013 WRITE PODCAST SCRIPT\\\\n\\u2022 Tool: call generate_podcast_script_with_llm.\\\\n    \\u2013 Arguments: text=source_text, num_hosts=2 (at least two distinct speakers), style=\\\\\\\"conversational, engaging, informative\\\\\\\".\\\\n\\u2022 The tool returns podcast_script (string). Make sure each speaker turn begins with the speaker name followed by a colon (e.g., \\\\\\\"Host 1:\\\\\\\"). Keep total length under 1 500 words.\\\\n\\\\nSTEP 3 \\u2013 GENERATE MULTI-SPEAKER AUDIO\\\\n\\u2022 Convert podcast_script into JSON compatible with ElevenLabs generate_audio_script tool.\\\\n    Format: {\\\\\\\"script\\\\\\\":[{\\\\\\\"text\\\\\\\":\\\\\\\"...\\\\\\\",\\\\\\\"actor\\\\\\\":\\\\\\\"Host 1\\\\\\\"}, {\\\\\\\"text\\\\\\\":\\\\\\\"...\\\\\\\",\\\\\\\"actor\\\\\\\":\\\\\\\"Host 2\\\\\\\"}, \\u2026]}\\\\n\\u2022 Tool: call generate_audio_script from the ElevenLabs MCP server.\\\\n\\u2022 Capture the returned local file path of the generated mp3 audio as audio_file_path.\\\\n\\\\nSTEP 4 \\u2013 OUTPUT\\\\nReturn a JSON object that matches the StructuredOutput schema with fields:\\\\n    url \\u2013 the original webpage URL provided by the user\\\\n    podcast_script \\u2013 the full script generated in STEP 2\\\\n    audio_file_path \\u2013 the path to the final multi-speaker mp3 audio returned in STEP 3\\\\n\\\\nGeneral rules:\\\\n\\u2022 Use only the specified tools; do not rely on hidden knowledge.\\\\n\\u2022 If any tool fails, explain the error in the corresponding output field and stop.\\\\n\\u2022 Respond only with data that fits the StructuredOutput model.\\\",\\\"tools\\\":\\\"# ========== Tools definition ==========\\\\nTOOLS = [\\\\n    extract_text_from_url,            # Fetch & extract webpage text\\\\n    generate_podcast_script_with_llm, # Convert text to multi-speaker script\\\\n    MCPStdio(\\\\n        command=\\\\\\\"docker\\\\\\\",\\\\n        args=[\\\\n            \\\\\\\"run\\\\\\\",\\\\n            \\\\\\\"-i\\\\\\\",\\\\n            \\\\\\\"--rm\\\\\\\",\\\\n            \\\\\\\"-e\\\\\\\",\\\\n            \\\\\\\"ELEVENLABS_API_KEY\\\\\\\",\\\\n            \\\\\\\"mcp/elevenlabs\\\\\\\",\\\\n        ],\\\\n        env={\\\\n            \\\\\\\"ELEVENLABS_API_KEY\\\\\\\": os.getenv(\\\\\\\"ELEVENLABS_API_KEY\\\\\\\"),\\\\n        },\\\\n        tools=[\\\\n            \\\\\\\"generate_audio_script\\\\\\\",  # Text-to-speech with multiple actors\\\\n        ],\\\\n    ),\\\\n]\\\\n\\\",\\\"imports\\\":\\\"from tools.extract_text_from_url import extract_text_from_url\\\\nfrom tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm\\\\nfrom any_agent.tools import visit_webpage  # Not used but kept if needed later\\\",\\\"structured_outputs\\\":\\\"# ========== Structured output definition ==========\\\\nclass StructuredOutput(BaseModel):\\\\n    url: str = Field(..., description=\\\\\\\"Original webpage URL used as input.\\\\\\\")\\\\n    podcast_script: str = Field(..., description=\\\\\\\"The complete podcast script with speaker turns.\\\\\\\")\\\\n    audio_file_path: str = Field(..., description=\\\\\\\"Local filesystem path of the generated multi-speaker audio mp3 file.\\\\\\\")\\\",\\\"run_agent_code\\\":\\\"def run_agent(url: str):\\\\n    \\\\\\\"\\\\\\\"\\\\\\\"Generate a multi-speaker podcast from the textual content of a webpage and return structured data with the script and audio file path.\\\\\\\"\\\\\\\"\\\\\\\"\\\\n    input_prompt = f\\\\\\\"Create an audio podcast with multiple speakers from this webpage: {url}\\\\\\\"\\\\n    agent_trace = agent.run(prompt=input_prompt, max_turns=25)\\\\n    with open(\\\\\\\"generated_workflows/latest/agent_eval_trace.json\\\\\\\", \\\\\\\"w\\\\\\\", encoding=\\\\\\\"utf-8\\\\\\\") as f:\\\\n        f.write(agent_trace.model_dump_json(indent=2))\\\\n    return agent_trace.final_output\\\",\\\"run_instructions\\\":\\\"### Setup Instructions\\\\n\\\\n1. Install Python 3.11 and the **uv** package manager.\\\\n2. In the project root, create a file named `.env` and add the following environment variables:\\\\n\\\\n```\\\\nOPENAI_API_KEY=your_openai_key\\\\nELEVENLABS_API_KEY=your_elevenlabs_key\\\\n```\\\\n3. Run the agent (replace `<URL>` with the webpage you want to convert):\\\\n\\\\n```\\\\nuv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --url \\\\\\\"<URL>\\\\\\\"\\\\n```\\\",\\\"dependencies\\\":\\\"any-agent[all]==0.20.0\\\\nuv\\\\npython-dotenv\\\\nfire\\\\nbeautifulsoup4\\\\nrequests\\\\npydantic>=2.6.0\\\"}\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/combine_mp3_files_for_podcast.py\\\"}\"}]",
         "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 5053,
-        "gen_ai.usage.output_tokens": 2239
+        "gen_ai.usage.input_tokens": 5204,
+        "gen_ai.usage.output_tokens": 2145
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750862493177561000,
+      "end_time": 1750862493178650000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 6026414046281013433,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"file_name\":\"tools/combine_mp3_files_for_podcast.py\"}",
+        "gen_ai.output": "import subprocess\nimport uuid\nfrom pathlib import Path\n\n\ndef combine_mp3_files_for_podcast(\n    mp3_files: list[str], output_filename: str = \"podcast.mp3\", output_dir: str = \"podcasts\"\n) -> str:\n    \"\"\"Combines a list of MP3 audio files into a single MP3 podcast file using ffmpeg.\n\n    This function requires ffmpeg to be installed and accessible in the system's PATH.\n    It creates a temporary file list for ffmpeg's concat demuxer.\n\n    Args:\n        mp3_files: A list of absolute or relative paths to the MP3 files to be combined.\n                   The order in the list determines the order in the output file.\n        output_filename: The name for the combined output MP3 file.\n                         Defaults to \"podcast.mp3\".\n        output_dir: The directory where the combined podcast file will be saved.\n                    Defaults to \"podcasts\". Created if it doesn't exist.\n\n    Returns:\n        The absolute path to the combined podcast MP3 file if successful.\n        Returns an error message string if ffmpeg fails or an error occurs.\n    \"\"\"\n    if not mp3_files:\n        return \"Error: No MP3 files provided for combination.\"\n\n    for f_path in mp3_files:\n        if not Path(f_path).exists():\n            return f\"Error: Input file not found: {f_path}\"\n\n    Path(output_dir).mkdir(parents=True, exist_ok=True)\n    output_filepath = Path(output_dir) / output_filename\n\n    # Create a temporary file list for ffmpeg\n    list_filename = f\"ffmpeg_list_{uuid.uuid4().hex}.txt\"\n    try:\n        with Path(list_filename).open(\"w\", encoding=\"utf-8\") as f:\n            for mp3_file in mp3_files:\n                # ffmpeg's concat demuxer requires 'file' directive and paths to be escaped or simple.\n                # Using absolute paths and -safe 0 is generally more robust.\n                abs_mp3_file = Path(mp3_file).resolve()\n                f.write(f\"file '{abs_mp3_file}'\\n\")\n\n        # Construct and run the ffmpeg command\n        # -y: overwrite output without asking\n        # -f concat: use the concat demuxer\n        # -safe 0: allow unsafe file paths (needed for absolute paths in list file)\n        # -c copy: copy audio stream without re-encoding (fast, preserves quality)\n        command = [\n            \"ffmpeg\",\n            \"-y\",\n            \"-f\",\n            \"concat\",\n            \"-safe\",\n            \"0\",\n            \"-i\",\n            list_filename,\n            \"-c\",\n            \"copy\",\n            str(Path(output_filepath).resolve()),\n        ]\n\n        process = subprocess.run(command, capture_output=True, text=True, check=False)\n\n        if process.returncode != 0:\n            return f\"Error combining MP3 files with ffmpeg: {process.stderr}\"\n\n        return str(Path(output_filepath).resolve())\n\n    except FileNotFoundError:\n        return \"Error: ffmpeg command not found. Please ensure ffmpeg is installed and in your PATH.\"\n    except Exception as e:\n        return f\"An unexpected error occurred during MP3 combination: {e}\"\n    finally:\n        # Clean up the temporary list file\n        if Path(list_filename).exists():\n            Path(list_filename).unlink()\n",
+        "gen_ai.output.type": "text"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750862493203100000,
+      "end_time": 1750862504602193000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 14710176669607545804,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/generate_podcast_script_with_llm.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 5934,
+        "gen_ai.usage.output_tokens": 609
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750862504607575000,
+      "end_time": 1750862504608154000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 17505535443988579717,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"file_name\":\"tools/generate_podcast_script_with_llm.py\"}",
+        "gen_ai.output": "from litellm import completion\n\n\ndef generate_podcast_script_with_llm(document_text: str, num_hosts: int = 2, model: str = \"gpt-4o-mini\") -> str:\n    \"\"\"Writes a podcast script from a given text document using an LLM.\n    The number of hosts/speakers in the podcast can be specified.\n\n    Args:\n        document_text: The text content to be transformed into a podcast script.\n        num_hosts: The number of hosts/speakers for the podcast script (e.g., 1, 2, 3).\n                   Defaults to 2.\n        model: The LLM model to use for script generation (default: \"gpt-4o-mini\").\n\n    Returns:\n        A string containing the generated podcast script.\n        Returns an error message string if an error occurs.\n    \"\"\"\n    if not document_text.strip():\n        return \"Error: No document text provided for script generation.\"\n    if not isinstance(num_hosts, int) or num_hosts <= 0:\n        return \"Error: Number of hosts must be a positive integer.\"\n\n    system_prompt = (\n        \"You are a creative scriptwriter specializing in engaging podcast dialogues. \"\n        \"Your task is to convert the provided document into a podcast script.\"\n    )\n\n    user_prompt = (\n        f\"Generate a podcast script based on the following document. \"\n        f\"The script should feature {num_hosts} distinct hosts. \"\n        f\"Clearly label each host's lines (e.g., Host 1:, Host 2:, etc., or Speaker A:, Speaker B:). \"\n        f\"Make the conversation natural, engaging, and informative, covering the key points of the document. \"\n        f\"Include an introduction and an outro if appropriate.\\n\\n\"\n        f\"Document:\\n---\\n{document_text}\\n---\"\n    )\n\n    try:\n        response = completion(\n            model=model,\n            messages=[{\"role\": \"system\", \"content\": system_prompt}, {\"role\": \"user\", \"content\": user_prompt}],\n        )\n        return response.choices[0].message.content\n    except Exception as e:\n        return f\"Error calling LLM for podcast script generation: {e}\"\n",
+        "gen_ai.output.type": "text"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750862504627441000,
+      "end_time": 1750862508087424000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 6910187613578493246,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/extract_text_from_url.py\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 6427,
+        "gen_ai.usage.output_tokens": 24
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750862508094073000,
+      "end_time": 1750862508094735000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12955873269942574442,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"file_name\":\"tools/extract_text_from_url.py\"}",
+        "gen_ai.output": "import requests\nfrom bs4 import BeautifulSoup\n\n\ndef extract_text_from_url(url: str) -> str:\n    \"\"\"Extracts all text content from a given URL.\n\n    This function fetches the HTML content of the URL and uses BeautifulSoup\n    to parse and extract all human-readable text.\n\n    Args:\n        url: The URL from which to extract text (e.g., \"https://example.com\").\n\n    Returns:\n        A string containing the extracted text. If an error occurs (e.g.,\n        network issue, invalid URL), it returns an error message string.\n    \"\"\"\n    try:\n        response = requests.get(url, timeout=10)\n        response.raise_for_status()  # Raise an exception for HTTP errors\n        soup = BeautifulSoup(response.content, \"html.parser\")\n\n        # Remove script and style elements\n        for script_or_style in soup([\"script\", \"style\"]):\n            script_or_style.decompose()\n\n        # Get text\n        text = soup.get_text(separator=\" \", strip=True)\n        return text\n    except requests.exceptions.RequestException as e:\n        return f\"Error fetching URL: {e}\"\n    except Exception as e:\n        return f\"An unexpected error occurred during URL text extraction: {e}\"\n",
+        "gen_ai.output.type": "text"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.31.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1750862508108799000,
+      "end_time": 1750862554132136000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 2977405419018414476,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"save_to_dictionary\", \"tool.args\": \"{\\n  \\\"agent_instructions\\\": \\\"You are an autonomous assistant that transforms a webpage into a ready-to-publish audio podcast with multiple speakers by following this strictly ordered workflow and using ONLY the provided tools.\\\\n\\\\nSTEP-1  \\u2013  Extract page text\\\\n\\u2022 Use `extract_text_from_url` to fetch the URL supplied by the user.\\\\n\\u2022 If the function returns an error message (it begins with \\\\\\\"Error:\\\\\\\"), STOP and respond with that error in the `audio_file_path` field.\\\\n\\u2022 Otherwise hold the clean text for the next step.\\\\n\\\\nSTEP-2  \\u2013  Write podcast script\\\\n\\u2022 Invoke `generate_podcast_script_with_llm` with the extracted text and the number of speakers indicated by the user prompt (default 2).\\\\n\\u2022 Ensure every speaker line is clearly labelled (e.g. \\\\\\\"Speaker 1:\\\\\\\", \\\\\\\"Speaker 2:\\\\\\\" \\u2026) and the dialogue is engaging, covers the key ideas of the article, contains an intro and outro, and is under 1 500 words.\\\\n\\u2022 Store the full script text for the next step.\\\\n\\\\nSTEP-3  \\u2013  Generate multi-voice audio\\\\n\\u2022 Call `generate_audio_script` (from the ElevenLabs MCP server) with the script obtained in STEP-2. Pass the whole script as plain text \\u2013 the tool will automatically split by speaker labels and apply distinct voices.\\\\n\\u2022 Wait for the job to finish and obtain the returned mp3 file path / URL.\\\\n\\u2022 If audio generation fails, place the error message in `audio_file_path`.\\\\n\\\\nSTEP-4  \\u2013  Final output\\\\nReturn a JSON object that matches the StructuredOutput schema:\\\\n    url              \\u2013 the original webpage URL\\\\n    num_speakers     \\u2013 integer number of speakers requested\\\\n    script           \\u2013 the complete podcast script you generated\\\\n    audio_file_path  \\u2013 path or URL of the resulting mp3 file (or the error message if any step failed)\\\\n\\\\nGeneral rules:\\\\n\\u2022 NEVER fabricate tool outputs; rely solely on the tools.\\\\n\\u2022 Keep intermediate reasoning to yourself; only the final StructuredOutput will be returned to the user.\\\\n\\u2022 Adhere to the step order; do not skip steps.\\\\n\\u2022 You must use exactly the tools declared in the configuration; no external calls.\\\",\\n  \\\"tools\\\": \\\"TOOLS = [\\\\n    # Local python tools\\\\n    extract_text_from_url,\\\\n    generate_podcast_script_with_llm,\\\\n\\\\n    # ElevenLabs MCP server for multi-voice text-to-speech\\\\n    MCPStdio(\\\\n        command=\\\\\\\"docker\\\\\\\",\\\\n        args=[\\\\n            \\\\\\\"run\\\\\\\",\\\\n            \\\\\\\"-i\\\\\\\",\\\\n            \\\\\\\"--rm\\\\\\\",\\\\n            \\\\\\\"-e\\\\\\\",\\\\n            \\\\\\\"ELEVENLABS_API_KEY\\\\\\\",\\\\n            \\\\\\\"mcp/elevenlabs\\\\\\\",\\\\n        ],\\\\n        env={\\\\n            \\\\\\\"ELEVENLABS_API_KEY\\\\\\\": os.getenv(\\\\\\\"ELEVENLABS_API_KEY\\\\\\\"),\\\\n        },\\\\n        # expose only the tool we actually need\\\\n        tools=[\\\\n            \\\\\\\"generate_audio_script\\\\\\\",\\\\n        ],\\\\n    ),\\\\n]\\\",\\n  \\\"imports\\\": \\\"from tools.extract_text_from_url import extract_text_from_url\\\\nfrom tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm\\\",\\n  \\\"structured_outputs\\\": \\\"class StructuredOutput(BaseModel):\\\\n    url: str = Field(..., description=\\\\\\\"Source webpage URL.\\\\\\\")\\\\n    num_speakers: int = Field(..., description=\\\\\\\"Number of speakers requested for the podcast.\\\\\\\")\\\\n    script: str = Field(..., description=\\\\\\\"Generated podcast script.\\\\\\\")\\\\n    audio_file_path: str = Field(..., description=\\\\\\\"Local file path or URL to the final podcast audio (mp3).\\\\\\\")\\\",\\n  \\\"cli_args\\\": \\\"url: str, num_hosts: int = 2\\\",\\n  \\\"agent_description\\\": \\\"Generate a multi-speaker podcast (script and narrated audio) from a webpage URL.\\\",\\n  \\\"prompt_template\\\": \\\"Create a {num_hosts}-speaker podcast from the content at this URL: {url}\\\",\\n  \\\"run_instructions\\\": \\\"### Environment setup\\\\n1. Create a `.env` file in the project root containing:\\\\n```\\\\nOPENAI_API_KEY=<your-openai-api-key>\\\\nELEVENLABS_API_KEY=<your-elevenlabs-api-key>\\\\n```\\\\n   (Add optional ELEVENLABS_* variables like ELEVENLABS_VOICE_ID if you want custom voices.)\\\\n\\\\n2. Ensure `docker` is installed and running \\u2013 it is needed for the ElevenLabs MCP server container.\\\\n\\\\n3. Install Python dependencies and run the agent in one shot with **uv**:\\\\n```bash\\\\nuv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --url \\\\\\\"https://example.com\\\\\\\" --num_hosts 3\\\\n```\\\\nThe agent will save its execution trace to `generated_workflows/latest/agent_eval_trace.json` and output the StructuredOutput JSON to the console.\\\",\\n  \\\"dependencies\\\": \\\"any-agent[all]==0.20.0\\\\nuv\\\\npython-dotenv\\\\nfire\\\\nbeautifulsoup4\\\\nrequests\\\\nlitellm\\\"\\n}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 6713,
+        "gen_ai.usage.output_tokens": 2898
       },
       "links": [],
       "events": [],
@@ -258,8 +561,8 @@
       "name": "execute_tool save_to_dictionary",
       "kind": "internal",
       "parent": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 1120660462714811717,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -268,15 +571,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750856038195443000,
-      "end_time": 1750856038195984000,
+      "start_time": 1750862554142863000,
+      "end_time": 1750862554143462000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 2570254118588841281,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 17009835850626328444,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -288,7 +591,7 @@
       "attributes": {
         "gen_ai.operation.name": "execute_tool",
         "gen_ai.tool.name": "save_to_dictionary",
-        "gen_ai.tool.args": "{\"agent_instructions\":\"You are an assistant that creates an audio podcast with multiple speakers from the content of a webpage. Follow this concise multi-step workflow and use the provided tools exactly as instructed. Always think step-by-step and only proceed to the next step when the previous one is complete.\\n\\nSTEP 1 – EXTRACT SOURCE TEXT\\n• Input: the user supplies a single webpage URL.\\n• Tool: call extract_text_from_url with the provided URL.\\n• Output variable: source_text – the main textual content of the page (exclude navigation, ads, comments, footers).\\n\\nSTEP 2 – WRITE PODCAST SCRIPT\\n• Tool: call generate_podcast_script_with_llm.\\n    – Arguments: text=source_text, num_hosts=2 (at least two distinct speakers), style=\\\"conversational, engaging, informative\\\".\\n• The tool returns podcast_script (string). Make sure each speaker turn begins with the speaker name followed by a colon (e.g., \\\"Host 1:\\\"). Keep total length under 1 500 words.\\n\\nSTEP 3 – GENERATE MULTI-SPEAKER AUDIO\\n• Convert podcast_script into JSON compatible with ElevenLabs generate_audio_script tool.\\n    Format: {\\\"script\\\":[{\\\"text\\\":\\\"...\\\",\\\"actor\\\":\\\"Host 1\\\"}, {\\\"text\\\":\\\"...\\\",\\\"actor\\\":\\\"Host 2\\\"}, …]}\\n• Tool: call generate_audio_script from the ElevenLabs MCP server.\\n• Capture the returned local file path of the generated mp3 audio as audio_file_path.\\n\\nSTEP 4 – OUTPUT\\nReturn a JSON object that matches the StructuredOutput schema with fields:\\n    url – the original webpage URL provided by the user\\n    podcast_script – the full script generated in STEP 2\\n    audio_file_path – the path to the final multi-speaker mp3 audio returned in STEP 3\\n\\nGeneral rules:\\n• Use only the specified tools; do not rely on hidden knowledge.\\n• If any tool fails, explain the error in the corresponding output field and stop.\\n• Respond only with data that fits the StructuredOutput model.\",\"tools\":\"# ========== Tools definition ==========\\nTOOLS = [\\n    extract_text_from_url,            # Fetch & extract webpage text\\n    generate_podcast_script_with_llm, # Convert text to multi-speaker script\\n    MCPStdio(\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"ELEVENLABS_API_KEY\\\",\\n            \\\"mcp/elevenlabs\\\",\\n        ],\\n        env={\\n            \\\"ELEVENLABS_API_KEY\\\": os.getenv(\\\"ELEVENLABS_API_KEY\\\"),\\n        },\\n        tools=[\\n            \\\"generate_audio_script\\\",  # Text-to-speech with multiple actors\\n        ],\\n    ),\\n]\\n\",\"imports\":\"from tools.extract_text_from_url import extract_text_from_url\\nfrom tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm\\nfrom any_agent.tools import visit_webpage  # Not used but kept if needed later\",\"structured_outputs\":\"# ========== Structured output definition ==========\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"Original webpage URL used as input.\\\")\\n    podcast_script: str = Field(..., description=\\\"The complete podcast script with speaker turns.\\\")\\n    audio_file_path: str = Field(..., description=\\\"Local filesystem path of the generated multi-speaker audio mp3 file.\\\")\",\"run_agent_code\":\"def run_agent(url: str):\\n    \\\"\\\"\\\"Generate a multi-speaker podcast from the textual content of a webpage and return structured data with the script and audio file path.\\\"\\\"\\\"\\n    input_prompt = f\\\"Create an audio podcast with multiple speakers from this webpage: {url}\\\"\\n    agent_trace = agent.run(prompt=input_prompt, max_turns=25)\\n    with open(\\\"generated_workflows/latest/agent_eval_trace.json\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n    return agent_trace.final_output\",\"run_instructions\":\"### Setup Instructions\\n\\n1. Install Python 3.11 and the **uv** package manager.\\n2. In the project root, create a file named `.env` and add the following environment variables:\\n\\n```\\nOPENAI_API_KEY=your_openai_key\\nELEVENLABS_API_KEY=your_elevenlabs_key\\n```\\n3. Run the agent (replace `<URL>` with the webpage you want to convert):\\n\\n```\\nuv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --url \\\"<URL>\\\"\\n```\",\"dependencies\":\"any-agent[all]==0.20.0\\nuv\\npython-dotenv\\nfire\\nbeautifulsoup4\\nrequests\\npydantic>=2.6.0\"}",
+        "gen_ai.tool.args": "{\n  \"agent_instructions\": \"You are an autonomous assistant that transforms a webpage into a ready-to-publish audio podcast with multiple speakers by following this strictly ordered workflow and using ONLY the provided tools.\\n\\nSTEP-1  –  Extract page text\\n• Use `extract_text_from_url` to fetch the URL supplied by the user.\\n• If the function returns an error message (it begins with \\\"Error:\\\"), STOP and respond with that error in the `audio_file_path` field.\\n• Otherwise hold the clean text for the next step.\\n\\nSTEP-2  –  Write podcast script\\n• Invoke `generate_podcast_script_with_llm` with the extracted text and the number of speakers indicated by the user prompt (default 2).\\n• Ensure every speaker line is clearly labelled (e.g. \\\"Speaker 1:\\\", \\\"Speaker 2:\\\" …) and the dialogue is engaging, covers the key ideas of the article, contains an intro and outro, and is under 1 500 words.\\n• Store the full script text for the next step.\\n\\nSTEP-3  –  Generate multi-voice audio\\n• Call `generate_audio_script` (from the ElevenLabs MCP server) with the script obtained in STEP-2. Pass the whole script as plain text – the tool will automatically split by speaker labels and apply distinct voices.\\n• Wait for the job to finish and obtain the returned mp3 file path / URL.\\n• If audio generation fails, place the error message in `audio_file_path`.\\n\\nSTEP-4  –  Final output\\nReturn a JSON object that matches the StructuredOutput schema:\\n    url              – the original webpage URL\\n    num_speakers     – integer number of speakers requested\\n    script           – the complete podcast script you generated\\n    audio_file_path  – path or URL of the resulting mp3 file (or the error message if any step failed)\\n\\nGeneral rules:\\n• NEVER fabricate tool outputs; rely solely on the tools.\\n• Keep intermediate reasoning to yourself; only the final StructuredOutput will be returned to the user.\\n• Adhere to the step order; do not skip steps.\\n• You must use exactly the tools declared in the configuration; no external calls.\",\n  \"tools\": \"TOOLS = [\\n    # Local python tools\\n    extract_text_from_url,\\n    generate_podcast_script_with_llm,\\n\\n    # ElevenLabs MCP server for multi-voice text-to-speech\\n    MCPStdio(\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"ELEVENLABS_API_KEY\\\",\\n            \\\"mcp/elevenlabs\\\",\\n        ],\\n        env={\\n            \\\"ELEVENLABS_API_KEY\\\": os.getenv(\\\"ELEVENLABS_API_KEY\\\"),\\n        },\\n        # expose only the tool we actually need\\n        tools=[\\n            \\\"generate_audio_script\\\",\\n        ],\\n    ),\\n]\",\n  \"imports\": \"from tools.extract_text_from_url import extract_text_from_url\\nfrom tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm\",\n  \"structured_outputs\": \"class StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"Source webpage URL.\\\")\\n    num_speakers: int = Field(..., description=\\\"Number of speakers requested for the podcast.\\\")\\n    script: str = Field(..., description=\\\"Generated podcast script.\\\")\\n    audio_file_path: str = Field(..., description=\\\"Local file path or URL to the final podcast audio (mp3).\\\")\",\n  \"cli_args\": \"url: str, num_hosts: int = 2\",\n  \"agent_description\": \"Generate a multi-speaker podcast (script and narrated audio) from a webpage URL.\",\n  \"prompt_template\": \"Create a {num_hosts}-speaker podcast from the content at this URL: {url}\",\n  \"run_instructions\": \"### Environment setup\\n1. Create a `.env` file in the project root containing:\\n```\\nOPENAI_API_KEY=<your-openai-api-key>\\nELEVENLABS_API_KEY=<your-elevenlabs-api-key>\\n```\\n   (Add optional ELEVENLABS_* variables like ELEVENLABS_VOICE_ID if you want custom voices.)\\n\\n2. Ensure `docker` is installed and running – it is needed for the ElevenLabs MCP server container.\\n\\n3. Install Python dependencies and run the agent in one shot with **uv**:\\n```bash\\nuv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --url \\\"https://example.com\\\" --num_hosts 3\\n```\\nThe agent will save its execution trace to `generated_workflows/latest/agent_eval_trace.json` and output the StructuredOutput JSON to the console.\",\n  \"dependencies\": \"any-agent[all]==0.20.0\\nuv\\npython-dotenv\\nfire\\nbeautifulsoup4\\nrequests\\nlitellm\"\n}",
         "gen_ai.output": "{}",
         "gen_ai.output.type": "json"
       },
@@ -308,8 +611,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 1120660462714811717,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -318,15 +621,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750856038201846000,
-      "end_time": 1750856041120437000,
+      "start_time": 1750862554149895000,
+      "end_time": 1750862557479862000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 5743603110827206638,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 389541966524693093,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -338,10 +641,10 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "o3",
-        "gen_ai.output": "Created the agent configuration and code components for a workflow that:\n\n1. Extracts webpage text.\n2. Generates a 2-speaker podcast script.\n3. Produces a multi-speaker MP3 via ElevenLabs MCP.\n4. Returns structured JSON containing the script and audio path, while saving an agent trace for evaluation.",
+        "gen_ai.output": "I have prepared the agent workflow specification dictionary with all required sections—instructions, tools, imports, output schema, CLI arguments, prompt template, environment setup, and dependency list—ready for code generation and execution.",
         "gen_ai.output.type": "text",
-        "gen_ai.usage.input_tokens": 6142,
-        "gen_ai.usage.output_tokens": 77
+        "gen_ai.usage.input_tokens": 7798,
+        "gen_ai.usage.output_tokens": 55
       },
       "links": [],
       "events": [],
@@ -369,15 +672,15 @@
           "entries": {}
         }
       },
-      "start_time": 1750855975780736000,
-      "end_time": 1750856041131054000,
+      "start_time": 1750862446923603000,
+      "end_time": 1750862557486415000,
       "status": {
         "status_code": "unset",
         "description": null
       },
       "context": {
-        "trace_id": 338589723762761511623008998243138261601,
-        "span_id": 1120660462714811717,
+        "trace_id": 251136590675287727628844863797767504423,
+        "span_id": 12157390348734876844,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -405,5 +708,5 @@
       }
     }
   ],
-  "final_output": "Created the agent configuration and code components for a workflow that:\n\n1. Extracts webpage text.\n2. Generates a 2-speaker podcast script.\n3. Produces a multi-speaker MP3 via ElevenLabs MCP.\n4. Returns structured JSON containing the script and audio path, while saving an agent trace for evaluation."
+  "final_output": "I have prepared the agent workflow specification dictionary with all required sections—instructions, tools, imports, output schema, CLI arguments, prompt template, environment setup, and dependency list—ready for code generation and execution."
 }
