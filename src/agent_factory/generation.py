@@ -11,6 +11,7 @@ from any_agent.tracing.agent_trace import AgentTrace
 from pydantic import BaseModel, Field
 
 from agent_factory.instructions import INSTRUCTIONS
+from agent_factory.logging import logger
 from agent_factory.prompt import UserPrompt
 from agent_factory.tools import read_file, search_mcp_servers
 
@@ -59,7 +60,7 @@ def save_agent_parsed_outputs(output: AgentFactoryOutputs, output_dir: Path):
     with requirements_path.open("w", encoding="utf-8") as f:
         f.write(remove_markdown_code_block_delimiters(output.dependencies))
 
-    print(f"Files saved to {output_dir}")
+    logger.info(f"Files saved to {output_dir}")
 
 
 def create_agent():
@@ -153,7 +154,7 @@ def single_turn_generation(
 
     agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
     save_agent_outputs(agent_trace, output_dir)
-    print(f"Workflow files saved in: {output_dir}")
+    logger.info(f"Workflow files saved in: {output_dir}")
 
 
 def main():
