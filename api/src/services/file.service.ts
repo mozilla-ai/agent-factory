@@ -161,16 +161,32 @@ class FileService {
     workflowPath: string,
     criteria: EvaluationCriteria,
   ): Promise<string> {
-    const fullPath = getWorkflowPath(workflowPath)
-    await this.ensureDirectory(fullPath)
-
-    const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
-
     try {
+      const fullPath = getWorkflowPath(workflowPath)
+      console.log(`Saving criteria to path: ${fullPath}`)
+
+      await this.ensureDirectory(fullPath)
+
+      const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
+      console.log(`Writing criteria file: ${criteriaFilePath}`)
+
       await fs.writeFile(criteriaFilePath, YAML.stringify(criteria), 'utf8')
+      console.log(
+        `Successfully saved evaluation criteria to: ${criteriaFilePath}`,
+      )
+
       return criteriaFilePath
-    } catch {
-      throw new Error('Failed to save evaluation criteria')
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error saving evaluation criteria:', {
+        workflowPath,
+        error: errorMessage,
+        criteria: criteria,
+      })
+      throw new Error(
+        `Failed to save evaluation criteria to ${workflowPath}: ${errorMessage}`,
+      )
     }
   }
 
@@ -182,7 +198,9 @@ class FileService {
     const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
 
     if (!(await this.fileExists(criteriaFilePath))) {
-      throw new Error(`Evaluation criteria not found for workflow: ${workflowPath}`)
+      throw new Error(
+        `Evaluation criteria not found for workflow: ${workflowPath}`,
+      )
     }
 
     try {
@@ -199,7 +217,9 @@ class FileService {
     const resultsFilePath = path.join(fullPath, 'evaluation_results.json')
 
     if (!(await this.fileExists(resultsFilePath))) {
-      throw new Error(`Evaluation results not found for workflow: ${workflowPath}`)
+      throw new Error(
+        `Evaluation results not found for workflow: ${workflowPath}`,
+      )
     }
 
     try {
@@ -220,18 +240,58 @@ class FileService {
     }
   }
 
-  // Delete agent trace file
+  // Delete agent trace file and invalidate evaluation results
   async deleteAgentTrace(workflowPath: string): Promise<boolean> {
     const fullPath = getWorkflowPath(workflowPath)
     const tracePath = path.join(fullPath, 'agent_eval_trace.json')
-    return this.deleteFile(tracePath)
+
+    try {
+      await this.deleteFile(tracePath)
+
+      // Delete evaluation results since they're now invalid without the agent trace
+      const resultsPath = path.join(fullPath, 'evaluation_results.json')
+      if (await this.fileExists(resultsPath)) {
+        try {
+          await this.deleteFile(resultsPath)
+          console.log(
+            `Deleted dependent evaluation results file: ${resultsPath}`,
+          )
+        } catch {
+          console.warn(`Failed to delete dependent evaluation results`)
+        }
+      }
+
+      return true
+    } catch {
+      return false
+    }
   }
 
-  // Delete evaluation criteria file
+  // Delete evaluation criteria file and invalidate evaluation results
   async deleteEvaluationCriteria(workflowPath: string): Promise<boolean> {
     const fullPath = getWorkflowPath(workflowPath)
     const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
-    return this.deleteFile(criteriaPath)
+
+    try {
+      await this.deleteFile(criteriaPath)
+
+      // Delete evaluation results since they're now invalid without the criteria
+      const resultsPath = path.join(fullPath, 'evaluation_results.json')
+      if (await this.fileExists(resultsPath)) {
+        try {
+          await this.deleteFile(resultsPath)
+          console.log(
+            `Deleted dependent evaluation results file: ${resultsPath}`,
+          )
+        } catch {
+          console.warn(`Failed to delete dependent evaluation results`)
+        }
+      }
+
+      return true
+    } catch {
+      return false
+    }
   }
 
   // Delete evaluation results file

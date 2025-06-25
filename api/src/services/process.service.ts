@@ -33,18 +33,25 @@ export class ProcessService {
     console.log('Initializing Python environment...')
 
     try {
-      // Check if Python is available
-      await this.runCommand('python', ['--version'], 'python-check')
-      console.log('Python is available')
+      // Check if the configured Python executable is available
+      await this.runCommand(
+        config.pythonExecutable,
+        ['--version'],
+        'python-check',
+      )
+      console.log(`Python is available at: ${config.pythonExecutable}`)
     } catch {
-      console.log('Python not found, trying python3...')
+      console.log(`Configured Python not found at: ${config.pythonExecutable}`)
+      console.log('Trying fallback python3...')
       try {
         await this.runCommand('python3', ['--version'], 'python3-check')
         console.log('Python3 is available')
         // Update config to use python3
         config.pythonExecutable = 'python3'
       } catch {
-        throw new Error('Failed to initialize Python environment')
+        throw new Error(
+          `Failed to initialize Python environment. Neither ${config.pythonExecutable} nor python3 are available.`,
+        )
       }
     }
 
@@ -282,7 +289,10 @@ export class ProcessService {
   }
 
   // Run agent generation
-  async runAgentGeneration(workflowPath: string, onOutput?: OutputCallback): Promise<void> {
+  async runAgentGeneration(
+    workflowPath: string,
+    onOutput?: OutputCallback,
+  ): Promise<void> {
     await this.initializeEnvironment()
 
     return new Promise((resolve, reject) => {
@@ -290,12 +300,12 @@ export class ProcessService {
       const fullWorkflowPath = getWorkflowPath(workflowPath)
 
       const agentFactoryProcess = spawn(
-        'python',
+        config.pythonExecutable,
         ['-m', 'agent_factory.generation', fullWorkflowPath],
         {
           stdio: 'pipe',
-          cwd: process.cwd()
-        }
+          cwd: config.rootDir,
+        },
       )
 
       let hasErrored = false
@@ -326,7 +336,10 @@ export class ProcessService {
   }
 
   // Run agent evaluation
-  async runAgentEvaluation(workflowPath: string, onOutput?: OutputCallback): Promise<void> {
+  async runAgentEvaluation(
+    workflowPath: string,
+    onOutput?: OutputCallback,
+  ): Promise<void> {
     if (this.agentFactoryProcess) {
       throw new Error('Agent factory process is already running')
     }
@@ -337,13 +350,27 @@ export class ProcessService {
       const processId = 'agent-evaluation'
       const fullWorkflowPath = getWorkflowPath(workflowPath)
 
+      // Build the specific file paths that the Python script expects
+      const evaluationCaseFile = `${fullWorkflowPath}/evaluation_case.yaml`
+      const agentTraceFile = `${fullWorkflowPath}/agent_eval_trace.json`
+      const resultsFile = `${fullWorkflowPath}/evaluation_results.json`
+
       this.agentFactoryProcess = spawn(
-        'python',
-        ['-m', 'eval.run_generated_agent_evaluation', fullWorkflowPath],
+        config.pythonExecutable,
+        [
+          '-m',
+          'eval.run_generated_agent_evaluation',
+          '--evaluation_case_yaml_file',
+          evaluationCaseFile,
+          '--agent_trace_json_file',
+          agentTraceFile,
+          '--save_evaluation_results_path',
+          resultsFile,
+        ],
         {
           stdio: 'pipe',
-          cwd: process.cwd()
-        }
+          cwd: config.rootDir,
+        },
       )
 
       let hasErrored = false

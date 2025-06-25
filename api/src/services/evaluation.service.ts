@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { processService } from './process.service.js'
 import { fileService } from './file.service.js'
+import { processService } from './process.service.js'
 import { getWorkflowPath } from '../config/index.js'
 import type { EvaluationCriteria, OutputCallback } from '../types/index.js'
 
@@ -44,19 +44,44 @@ export class EvaluationService {
 
   async runEvaluation(
     workflowPath: string,
-    onOutput?: OutputCallback,
+    outputCallback: OutputCallback,
   ): Promise<void> {
     const workflowDir = getWorkflowPath(workflowPath)
-    const agentPath = path.join(workflowDir, 'agent.py')
+    const agentTracePath = path.join(workflowDir, 'agent_eval_trace.json')
+    const evaluationCasePath = path.join(workflowDir, 'evaluation_case.yaml')
+    const evaluationResultsPath = path.join(
+      workflowDir,
+      'evaluation_results.json',
+    )
 
-    // Check if agent exists
-    if (!(await fileService.fileExists(agentPath))) {
-      throw new Error(`Agent not found at path: ${workflowPath}/agent.py`)
+    // Validate required files exist
+    if (!(await fileService.fileExists(agentTracePath))) {
+      throw new Error(
+        'Agent trace file not found. Make sure to run the agent first.',
+      )
     }
 
-    // Run agent evaluation using process service
-    const { processService } = await import('./process.service.js')
-    await processService.runAgentEvaluation(workflowPath, onOutput)
+    if (!(await fileService.fileExists(evaluationCasePath))) {
+      throw new Error(
+        'Evaluation cases not found. Make sure to generate evaluation cases first.',
+      )
+    }
+
+    const env = {
+      ...process.env,
+    }
+
+    await processService.runPythonScript(
+      '-m',
+      [
+        'eval.run_generated_agent_evaluation',
+        evaluationCasePath,
+        agentTracePath,
+        evaluationResultsPath,
+      ],
+      outputCallback,
+      env,
+    )
   }
 
   async saveEvaluationCriteria(
@@ -88,10 +113,7 @@ export class EvaluationService {
         latestWorkflowDir,
         'agent_eval_trace.json',
       )
-      const targetTracePath = path.join(
-        workflowDir,
-        'agent_eval_trace.json',
-      )
+      const targetTracePath = path.join(workflowDir, 'agent_eval_trace.json')
 
       if (await fileService.fileExists(sourceTracePath)) {
         await fileService.copyFile(sourceTracePath, targetTracePath)
@@ -116,7 +138,14 @@ export class EvaluationService {
     }
 
     // Save criteria first
-    await fileService.saveEvaluationCriteria(workflowPath, criteria)
+    try {
+      await fileService.saveEvaluationCriteria(workflowPath, criteria)
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Failed to save evaluation criteria:', error)
+      throw new Error(`Failed to save evaluation criteria: ${errorMessage}`)
+    }
 
     // Run agent generation using process service
     const { processService } = await import('./process.service.js')
@@ -130,12 +159,25 @@ export class EvaluationService {
 
     // Validate required files exist
     if (!(await fileService.fileExists(agentTracePath))) {
-      throw new Error('Agent trace file not found. Make sure to run the agent first.')
+      throw new Error(
+        'Agent trace file not found. Make sure to run the agent first.',
+      )
     }
 
     if (!(await fileService.fileExists(evaluationCasePath))) {
-      throw new Error('Evaluation cases not found. Make sure to generate evaluation cases first.')
+      throw new Error(
+        'Evaluation cases not found. Make sure to generate evaluation cases first.',
+      )
     }
+  }
+
+  async runActualEvaluation(
+    workflowPath: string,
+    onOutput?: OutputCallback,
+  ): Promise<void> {
+    // This runs the actual evaluation script that compares agent output against criteria
+    const { processService } = await import('./process.service.js')
+    await processService.runAgentEvaluation(workflowPath, onOutput)
   }
 
   async validateEvaluationRequest(workflowPath: string): Promise<void> {
@@ -145,7 +187,9 @@ export class EvaluationService {
     try {
       await fs.access(fullPath)
     } catch {
-      throw new Error(`Workflow not found: ${workflowPath}. Please ensure the workflow exists before running evaluation.`)
+      throw new Error(
+        `Workflow not found: ${workflowPath}. Please ensure the workflow exists before running evaluation.`,
+      )
     }
 
     // Check for required files
@@ -155,7 +199,9 @@ export class EvaluationService {
     try {
       await fs.access(agentPath)
     } catch {
-      throw new Error(`Agent file (agent.py) not found in workflow: ${workflowPath}. Please generate the agent first.`)
+      throw new Error(
+        `Agent file (agent.py) not found in workflow: ${workflowPath}. Please generate the agent first.`,
+      )
     }
 
     try {
@@ -169,10 +215,11 @@ export class EvaluationService {
     try {
       await fs.access(criteriaPath)
     } catch {
-      throw new Error(`Evaluation criteria not found for workflow: ${workflowPath}. Please create evaluation criteria first.`)
+      throw new Error(
+        `Evaluation criteria not found for workflow: ${workflowPath}. Please create evaluation criteria first.`,
+      )
     }
   }
 }
 
-// Singleton instance
 export const evaluationService = new EvaluationService()

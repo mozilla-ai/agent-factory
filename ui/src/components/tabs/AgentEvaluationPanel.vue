@@ -19,6 +19,7 @@
         description="Execute the agent to generate a trace file"
         :is-completed="evaluationStatus.hasAgentTrace"
         :is-loading="runAgentMutation.isPending.value"
+        :has-error="runAgentMutation.isError.value"
         :is-disabled="
           runAgentMutation.isPending.value ||
           genCasesMutation.isPending.value ||
@@ -33,6 +34,7 @@
         description="Create test cases to evaluate the agent"
         :is-completed="evaluationStatus.hasEvalCases"
         :is-loading="genCasesMutation.isPending.value"
+        :has-error="genCasesMutation.isError.value"
         :is-disabled="
           runAgentMutation.isPending.value ||
           genCasesMutation.isPending.value ||
@@ -47,6 +49,7 @@
         description="Evaluate the agent against test cases"
         :is-completed="evaluationStatus.hasEvalResults"
         :is-loading="runEvalMutation.isPending.value"
+        :has-error="runEvalMutation.isError.value"
         :is-disabled="
           runAgentMutation.isPending.value ||
           genCasesMutation.isPending.value ||
@@ -59,9 +62,9 @@
     </div>
 
     <StreamingOutput
-      v-if="output || isProcessing"
+      v-if="output || isProcessing || hasAnyError"
       title="Output"
-      :content="output"
+      :content="output || errorMessage"
       :is-loading="isProcessing"
       max-height="300px"
     >
@@ -73,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps } from 'vue'
+import { computed, defineProps, ref } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
 import { evaluationService } from '@/services/evaluationService'
 import { useStreamProcessor } from '@/composables/useStreamProcessor'
@@ -103,6 +106,8 @@ const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows 
 const { navigateToResults } = useNavigation()
 const { output, clearOutput, processStream, isProcessing } = useStreamProcessor()
 
+const errorMessage = ref('')
+
 // Computed property to check if all evaluation files exist
 const allEvaluationFilesExist = computed(
   () =>
@@ -115,6 +120,7 @@ const allEvaluationFilesExist = computed(
 const runAgentMutation = useMutation({
   mutationFn: async () => {
     clearOutput()
+    errorMessage.value = ''
     const stream = await evaluationService.runAgent(props.workflowId)
     await processStream(stream)
   },
@@ -123,11 +129,16 @@ const runAgentMutation = useMutation({
     invalidateFileQueries(props.workflowId, 'agent_eval_trace.json')
     invalidateWorkflows()
   },
+  onError: (error) => {
+    console.error('Run agent error:', error)
+    errorMessage.value = `Failed to run agent: ${error.message}`
+  },
 })
 
 const genCasesMutation = useMutation({
   mutationFn: async () => {
     clearOutput()
+    errorMessage.value = ''
     const stream = await evaluationService.generateEvaluationCases(props.workflowId)
     await processStream(stream)
   },
@@ -136,11 +147,16 @@ const genCasesMutation = useMutation({
     invalidateFileQueries(props.workflowId, 'evaluation_case.yaml')
     invalidateWorkflows()
   },
+  onError: (error) => {
+    console.error('Generate cases error:', error)
+    errorMessage.value = `Failed to generate evaluation cases: ${error.message}`
+  },
 })
 
 const runEvalMutation = useMutation({
   mutationFn: async () => {
     clearOutput()
+    errorMessage.value = ''
     const stream = await evaluationService.runEvaluation(props.workflowId)
     await processStream(stream)
   },
@@ -149,7 +165,19 @@ const runEvalMutation = useMutation({
     invalidateFileQueries(props.workflowId, 'evaluation_results.json')
     invalidateWorkflows()
   },
+  onError: (error) => {
+    console.error('Run evaluation error:', error)
+    errorMessage.value = `Failed to run evaluation: ${error.message}`
+  },
 })
+
+const hasAnyError = computed(
+  () =>
+    runAgentMutation.isError.value ||
+    genCasesMutation.isError.value ||
+    runEvalMutation.isError.value ||
+    errorMessage.value,
+)
 
 function viewResults() {
   navigateToResults(props.workflowId)

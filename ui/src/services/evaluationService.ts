@@ -2,21 +2,32 @@ import { apiClient } from './api'
 import Yaml from 'yaml'
 import { workflowService } from './workflowService'
 import { ENDPOINTS } from '@/config/endpoints'
+import { API_CONFIG } from '@/config/api.config'
 import { getErrorMessage } from '@/helpers/error.helpers'
 import { fetchStream } from '@/helpers/stream.helpers'
 import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/index'
 
 export const evaluationService = {
   async runAgent(workflowId: string): Promise<ReadableStream> {
-    return fetchStream(ENDPOINTS.runAgent(workflowId), 'run agent')
+    return fetchStream(`${API_CONFIG.baseURL}/${ENDPOINTS.runAgent(workflowId)}`, 'run agent', {
+      method: 'POST',
+    })
   },
 
   async generateEvaluationCases(workflowId: string): Promise<ReadableStream> {
-    return fetchStream(ENDPOINTS.generateCases(workflowId), 'generate evaluation cases')
+    return fetchStream(
+      `${API_CONFIG.baseURL}/${ENDPOINTS.generateCases(workflowId)}`,
+      'generate evaluation cases',
+      { method: 'POST' },
+    )
   },
 
   async runEvaluation(workflowId: string): Promise<ReadableStream> {
-    return fetchStream(ENDPOINTS.runEvaluation(workflowId), 'run evaluation')
+    return fetchStream(
+      `${API_CONFIG.baseURL}/${ENDPOINTS.runEvaluation(workflowId)}`,
+      'run evaluation',
+      { method: 'POST' },
+    )
   },
 
   async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {

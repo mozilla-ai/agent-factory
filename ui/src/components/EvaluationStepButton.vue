@@ -1,7 +1,10 @@
 <template>
   <button
     class="eval-button"
-    :class="{ completed: isCompleted }"
+    :class="{
+      completed: isCompleted,
+      failed: hasError,
+    }"
     :disabled="isDisabled"
     @click="$emit('click')"
   >
@@ -12,6 +15,7 @@
     </div>
     <div class="step-status">
       <span v-if="isLoading" class="loading-indicator">⏳</span>
+      <span v-else-if="hasError" class="error-indicator">✗</span>
       <span v-else-if="isCompleted" class="success-indicator">✓</span>
     </div>
   </button>
@@ -25,12 +29,14 @@ interface Props {
   isCompleted?: boolean
   isLoading?: boolean
   isDisabled?: boolean
+  hasError?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   isCompleted: false,
   isLoading: false,
   isDisabled: false,
+  hasError: false,
 })
 
 defineEmits<{
@@ -69,6 +75,12 @@ defineEmits<{
   box-shadow: 0 0 0 1px var(--color-success, green);
 }
 
+.eval-button.failed {
+  border-color: var(--color-error, #ef4444);
+  background-color: var(--color-error-background, rgba(239, 68, 68, 0.1));
+  box-shadow: 0 0 0 1px var(--color-error, #ef4444);
+}
+
 .step-number {
   display: flex;
   align-items: center;
@@ -105,12 +117,19 @@ defineEmits<{
 }
 
 .loading-indicator,
-.success-indicator {
+.success-indicator,
+.error-indicator {
   font-size: 1.25rem;
 }
 
 .success-indicator {
   color: var(--color-success, green);
   font-size: 1.4rem;
+}
+
+.error-indicator {
+  color: var(--color-error, #ef4444);
+  font-size: 1.4rem;
+  font-weight: bold;
 }
 </style>

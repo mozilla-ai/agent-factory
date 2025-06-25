@@ -3,47 +3,30 @@ import { useRouter } from 'vue-router'
 export function useNavigation() {
   const router = useRouter()
 
-  const navigateToTab = (tab: string, workflowId?: string) => {
+  const navigateToTab = (tab: string, _workflowId?: string) => {
     const currentPath = router.currentRoute.value.path
-    const currentQuery = router.currentRoute.value.query
-
-    router.push({
-      path: currentPath, // Always stay on current path
-      query: { ...currentQuery, tab },
-    })
+    const basePath = currentPath.replace(/\/[^/]*$/, '')
+    router.push(`${basePath}/${tab}`)
   }
 
-  const navigateToWorkflow = (workflowId: string, tab?: string) => {
-    router.push({
-      path: `/workflows/${workflowId}`,
-      query: tab ? { tab } : {},
-    })
-  }
-
-  const navigateToWorkflows = () => {
-    router.push('/workflows')
-  }
-
-  const navigateToEvaluate = (workflowId?: string) => {
+  const navigateToEvaluate = (_workflowId?: string) => {
     navigateToTab('evaluate')
   }
 
-  const navigateToTrace = (workflowId?: string) => {
+  const navigateToTrace = (_workflowId?: string) => {
     navigateToTab('agent-trace')
   }
 
-  const navigateToCriteria = (workflowId?: string) => {
+  const navigateToCriteria = (_workflowId?: string) => {
     navigateToTab('criteria')
   }
 
-  const navigateToResults = (workflowId?: string) => {
+  const navigateToResults = (_workflowId?: string) => {
     navigateToTab('results')
   }
 
   return {
     navigateToTab,
-    navigateToWorkflow,
-    navigateToWorkflows,
     navigateToEvaluate,
     navigateToTrace,
     navigateToCriteria,
