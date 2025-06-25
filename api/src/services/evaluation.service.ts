@@ -1,9 +1,8 @@
+import fs from 'fs/promises'
 import path from 'path'
 import { processService } from './process.service.js'
 import { fileService } from './file.service.js'
 import { getWorkflowPath } from '../config/index.js'
-import { NotFoundError } from '../middleware/error.middleware.js'
-import { MESSAGES, FILE_NAMES } from '../constants/index.js'
 import type { EvaluationCriteria, OutputCallback } from '../types/index.js'
 
 export class EvaluationService {
@@ -12,13 +11,11 @@ export class EvaluationService {
     outputCallback: OutputCallback,
   ): Promise<void> {
     const workflowDir = getWorkflowPath(workflowPath)
-    const agentPath = path.join(workflowDir, FILE_NAMES.AGENT)
+    const agentPath = path.join(workflowDir, 'agent.py')
 
     // Check if agent exists
     if (!(await fileService.fileExists(agentPath))) {
-      throw new NotFoundError(
-        `Agent not found at path: ${workflowPath}/agent.py`,
-      )
+      throw new Error(`Agent not found at path: ${workflowPath}/agent.py`)
     }
 
     await processService.runPythonScript(agentPath, [], outputCallback)
@@ -35,7 +32,7 @@ export class EvaluationService {
 
     // Ensure workflow directory exists
     if (!(await fileService.fileExists(workflowDir))) {
-      throw new NotFoundError(`Workflow not found: ${workflowPath}`)
+      throw new Error(`Workflow not found: ${workflowPath}`)
     }
 
     await processService.runPythonScript(
@@ -47,44 +44,19 @@ export class EvaluationService {
 
   async runEvaluation(
     workflowPath: string,
-    outputCallback: OutputCallback,
+    onOutput?: OutputCallback,
   ): Promise<void> {
     const workflowDir = getWorkflowPath(workflowPath)
-    const agentTracePath = path.join(workflowDir, FILE_NAMES.AGENT_EVAL_TRACE)
-    const evaluationCasePath = path.join(
-      workflowDir,
-      FILE_NAMES.EVALUATION_CASE,
-    )
-    const evaluationResultsPath = path.join(
-      workflowDir,
-      FILE_NAMES.EVALUATION_RESULTS,
-    )
+    const agentPath = path.join(workflowDir, 'agent.py')
 
-    // Validate required files exist
-    if (!(await fileService.fileExists(agentTracePath))) {
-      throw new NotFoundError(MESSAGES.ERROR.AGENT_TRACE_NOT_FOUND)
+    // Check if agent exists
+    if (!(await fileService.fileExists(agentPath))) {
+      throw new Error(`Agent not found at path: ${workflowPath}/agent.py`)
     }
 
-    if (!(await fileService.fileExists(evaluationCasePath))) {
-      throw new NotFoundError(MESSAGES.ERROR.EVALUATION_CASES_NOT_FOUND)
-    }
-
-    const env = {
-      ...process.env,
-      AGENT_PATH: workflowDir,
-    }
-
-    await processService.runPythonScript(
-      '-m',
-      [
-        'eval.run_generated_agent_evaluation',
-        evaluationCasePath,
-        agentTracePath,
-        evaluationResultsPath,
-      ],
-      outputCallback,
-      env,
-    )
+    // Run agent evaluation using process service
+    const { processService } = await import('./process.service.js')
+    await processService.runAgentEvaluation(workflowPath, onOutput)
   }
 
   async saveEvaluationCriteria(
@@ -114,11 +86,11 @@ export class EvaluationService {
 
       const sourceTracePath = path.join(
         latestWorkflowDir,
-        FILE_NAMES.AGENT_EVAL_TRACE,
+        'agent_eval_trace.json',
       )
       const targetTracePath = path.join(
         workflowDir,
-        FILE_NAMES.AGENT_EVAL_TRACE,
+        'agent_eval_trace.json',
       )
 
       if (await fileService.fileExists(sourceTracePath)) {
@@ -128,6 +100,76 @@ export class EvaluationService {
     } catch (error) {
       console.warn('Could not copy trace file from latest workflow:', error)
       // Don't throw here as the main operation succeeded
+    }
+  }
+
+  async runAgentGeneration(
+    workflowPath: string,
+    criteria: EvaluationCriteria,
+    onOutput?: OutputCallback,
+  ): Promise<void> {
+    const workflowDir = getWorkflowPath(workflowPath)
+
+    // Ensure workflow directory exists
+    if (!(await fileService.fileExists(workflowDir))) {
+      throw new Error(`Workflow not found: ${workflowPath}`)
+    }
+
+    // Save criteria first
+    await fileService.saveEvaluationCriteria(workflowPath, criteria)
+
+    // Run agent generation using process service
+    const { processService } = await import('./process.service.js')
+    await processService.runAgentGeneration(workflowPath, onOutput)
+  }
+
+  async validateEvaluationFiles(workflowPath: string): Promise<void> {
+    const workflowDir = getWorkflowPath(workflowPath)
+    const agentTracePath = path.join(workflowDir, 'agent_eval_trace.json')
+    const evaluationCasePath = path.join(workflowDir, 'evaluation_case.yaml')
+
+    // Validate required files exist
+    if (!(await fileService.fileExists(agentTracePath))) {
+      throw new Error('Agent trace file not found. Make sure to run the agent first.')
+    }
+
+    if (!(await fileService.fileExists(evaluationCasePath))) {
+      throw new Error('Evaluation cases not found. Make sure to generate evaluation cases first.')
+    }
+  }
+
+  async validateEvaluationRequest(workflowPath: string): Promise<void> {
+    const fullPath = getWorkflowPath(workflowPath)
+
+    // Check if workflow directory exists
+    try {
+      await fs.access(fullPath)
+    } catch {
+      throw new Error(`Workflow not found: ${workflowPath}. Please ensure the workflow exists before running evaluation.`)
+    }
+
+    // Check for required files
+    const agentPath = path.join(fullPath, 'agent.py')
+    const tracePath = path.join(fullPath, 'agent_factory_trace.json')
+
+    try {
+      await fs.access(agentPath)
+    } catch {
+      throw new Error(`Agent file (agent.py) not found in workflow: ${workflowPath}. Please generate the agent first.`)
+    }
+
+    try {
+      await fs.access(tracePath)
+    } catch {
+      throw new Error(`Workflow not found: ${workflowPath}`)
+    }
+
+    // Check for evaluation criteria
+    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    try {
+      await fs.access(criteriaPath)
+    } catch {
+      throw new Error(`Evaluation criteria not found for workflow: ${workflowPath}. Please create evaluation criteria first.`)
     }
   }
 }

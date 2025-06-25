@@ -1,5 +1,5 @@
 import { computed, type Ref } from 'vue'
-import type { EvaluationCriteria } from '@/types/evaluation'
+import type { EvaluationCriteria } from '@/types/index'
 
 export interface EvaluationResults {
   checkpoints: Array<{

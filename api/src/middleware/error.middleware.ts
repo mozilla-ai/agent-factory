@@ -3,66 +3,17 @@ import { ZodError } from 'zod'
 import type { ApiResponse } from '../types/index.js'
 import { config } from '../config/index.js'
 
-export class AppError extends Error {
-  public readonly status: number
-  public readonly code?: string
-  public readonly details?: unknown
-
-  constructor(
-    message: string,
-    status: number = 500,
-    code?: string,
-    details?: unknown,
-  ) {
-    super(message)
-    this.status = status
-    this.code = code
-    this.details = details
-    this.name = 'AppError'
-
-    // Maintains proper stack trace for where our error was thrown
-    Error.captureStackTrace(this, this.constructor)
-  }
-}
-
-// Specific error types
-export class ValidationError extends AppError {
-  constructor(message: string, details?: unknown) {
-    super(message, 400, 'VALIDATION_ERROR', details)
-  }
-}
-
-export class NotFoundError extends AppError {
-  constructor(message: string = 'Resource not found') {
-    super(message, 404, 'NOT_FOUND')
-  }
-}
-
-export class ProcessError extends AppError {
-  constructor(message: string, details?: unknown) {
-    super(message, 500, 'PROCESS_ERROR', details)
-  }
-}
-
-export class FileOperationError extends AppError {
-  constructor(message: string, details?: unknown) {
-    super(message, 500, 'FILE_OPERATION_ERROR', details)
-  }
-}
-
 // Error response formatter
-function formatErrorResponse(error: AppError): ApiResponse {
+function formatErrorResponse(error: Error): ApiResponse {
   const response: ApiResponse = {
     success: false,
     error: error.message,
   }
 
-  // Include additional details in development
+  // Include stack trace in development
   if (config.environment !== 'production') {
     response.details = {
-      code: error.code,
       stack: error.stack,
-      details: error.details,
     }
   }
 
@@ -87,38 +38,26 @@ export function errorHandler(
 
   // Handle Zod validation errors
   if (err instanceof ZodError) {
-    const validationError = new ValidationError(
-      'Invalid request data',
-      err.errors.map((e) => ({
-        path: e.path.join('.'),
-        message: e.message,
-        code: e.code,
-      })),
-    )
-
-    res
-      .status(validationError.status)
-      .json(formatErrorResponse(validationError))
+    res.status(400).json({
+      success: false,
+      error: 'Invalid request data',
+      details:
+        config.environment !== 'production'
+          ? {
+              validation: err.errors.map((e) => ({
+                path: e.path.join('.'),
+                message: e.message,
+                code: e.code,
+              })),
+              stack: err.stack,
+            }
+          : undefined,
+    })
     return
   }
 
-  // Handle our custom app errors
-  if (err instanceof AppError) {
-    res.status(err.status).json(formatErrorResponse(err))
-    return
-  }
-
-  // Handle unexpected errors
-  const unexpectedError = new AppError(
-    config.environment === 'production' ? 'Internal server error' : err.message,
-    500,
-    'INTERNAL_ERROR',
-    config.environment !== 'production'
-      ? { originalError: err.message, stack: err.stack }
-      : undefined,
-  )
-
-  res.status(500).json(formatErrorResponse(unexpectedError))
+  // Handle all other errors as 500 internal server error
+  res.status(500).json(formatErrorResponse(err))
 }
 
 // Async error wrapper
@@ -132,6 +71,8 @@ export function asyncHandler(
 
 // 404 handler
 export function notFoundHandler(req: Request, res: Response): void {
-  const error = new NotFoundError(`Route ${req.method} ${req.path} not found`)
-  res.status(error.status).json(formatErrorResponse(error))
+  res.status(404).json({
+    success: false,
+    error: `Route ${req.method} ${req.path} not found`,
+  })
 }

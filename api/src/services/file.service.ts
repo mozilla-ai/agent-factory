@@ -2,17 +2,12 @@ import fs from 'fs/promises'
 import path from 'path'
 import YAML from 'yaml'
 import { getWorkflowPath } from '../config/index.js'
-import {
-  NotFoundError,
-  FileOperationError,
-} from '../middleware/error.middleware.js'
 import type {
   FileEntry,
   WorkflowInfo,
   EvaluationCriteria,
   EvaluationResult,
 } from '../types/index.js'
-import { FILE_NAMES } from '../constants/index.js'
 
 class FileService {
   // Check if file exists
@@ -29,10 +24,8 @@ class FileService {
   async ensureDirectory(dirPath: string): Promise<void> {
     try {
       await fs.mkdir(dirPath, { recursive: true })
-    } catch (error) {
-      throw new FileOperationError(`Failed to create directory: ${dirPath}`, {
-        error,
-      })
+    } catch {
+      throw new Error(`Failed to create directory: ${dirPath}`)
     }
   }
 
@@ -50,10 +43,8 @@ class FileService {
       }
 
       return result
-    } catch (error) {
-      throw new FileOperationError(`Failed to list directory: ${dirPath}`, {
-        error,
-      })
+    } catch {
+      throw new Error(`Failed to list directory: ${dirPath}`)
     }
   }
 
@@ -62,13 +53,13 @@ class FileService {
     const fullPath = getWorkflowPath(workflowPath)
 
     if (!(await this.fileExists(fullPath))) {
-      throw new NotFoundError(`Workflow not found: ${workflowPath}`)
+      throw new Error(`Workflow not found: ${workflowPath}`)
     }
 
-    const agentPath = path.join(fullPath, FILE_NAMES.AGENT)
-    const criteriaPath = path.join(fullPath, FILE_NAMES.EVALUATION_CASE)
-    const resultsPath = path.join(fullPath, FILE_NAMES.EVALUATION_RESULTS)
-    const tracePath = path.join(fullPath, FILE_NAMES.AGENT_EVAL_TRACE)
+    const agentPath = path.join(fullPath, 'agent.py')
+    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    const resultsPath = path.join(fullPath, 'evaluation_results.json')
+    const tracePath = path.join(fullPath, 'agent_eval_trace.json')
 
     let lastModified: Date | undefined
     try {
@@ -121,8 +112,8 @@ class FileService {
       }
 
       return workflows.sort((a, b) => a.name.localeCompare(b.name))
-    } catch (error) {
-      throw new FileOperationError('Failed to list workflows', { error })
+    } catch {
+      throw new Error('Failed to list workflows')
     }
   }
 
@@ -173,16 +164,13 @@ class FileService {
     const fullPath = getWorkflowPath(workflowPath)
     await this.ensureDirectory(fullPath)
 
-    const criteriaFilePath = path.join(fullPath, FILE_NAMES.EVALUATION_CASE)
+    const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
 
     try {
       await fs.writeFile(criteriaFilePath, YAML.stringify(criteria), 'utf8')
       return criteriaFilePath
-    } catch (error) {
-      throw new FileOperationError('Failed to save evaluation criteria', {
-        workflowPath,
-        error,
-      })
+    } catch {
+      throw new Error('Failed to save evaluation criteria')
     }
   }
 
@@ -191,78 +179,65 @@ class FileService {
     workflowPath: string,
   ): Promise<EvaluationCriteria> {
     const fullPath = getWorkflowPath(workflowPath)
-    const criteriaFilePath = path.join(fullPath, FILE_NAMES.EVALUATION_CASE)
+    const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
 
     if (!(await this.fileExists(criteriaFilePath))) {
-      throw new NotFoundError(
-        `Evaluation criteria not found for workflow: ${workflowPath}`,
-      )
+      throw new Error(`Evaluation criteria not found for workflow: ${workflowPath}`)
     }
 
     try {
       const content = await fs.readFile(criteriaFilePath, 'utf8')
       return YAML.parse(content) as EvaluationCriteria
-    } catch (error) {
-      throw new FileOperationError('Failed to load evaluation criteria', {
-        workflowPath,
-        error,
-      })
+    } catch {
+      throw new Error('Failed to load evaluation criteria')
     }
   }
 
   // Load evaluation results
   async loadEvaluationResults(workflowPath: string): Promise<EvaluationResult> {
     const fullPath = getWorkflowPath(workflowPath)
-    const resultsFilePath = path.join(fullPath, FILE_NAMES.EVALUATION_RESULTS)
+    const resultsFilePath = path.join(fullPath, 'evaluation_results.json')
 
     if (!(await this.fileExists(resultsFilePath))) {
-      throw new NotFoundError(
-        `Evaluation results not found for workflow: ${workflowPath}`,
-      )
+      throw new Error(`Evaluation results not found for workflow: ${workflowPath}`)
     }
 
     try {
       const content = await fs.readFile(resultsFilePath, 'utf8')
-      return JSON.parse(content) as EvaluationResult
-    } catch (error) {
-      throw new FileOperationError('Failed to load evaluation results', {
-        workflowPath,
-        error,
-      })
+      return YAML.parse(content) as EvaluationResult
+    } catch {
+      throw new Error('Failed to load evaluation results')
     }
   }
 
-  // Delete file (safe operation)
+  // Delete a file
   async deleteFile(filePath: string): Promise<boolean> {
     try {
       await fs.unlink(filePath)
       return true
-    } catch (error: unknown) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return false // File didn't exist
-      }
-      throw new FileOperationError(`Failed to delete file: ${filePath}`, {
-        error,
-      })
+    } catch {
+      throw new Error(`Failed to delete file: ${filePath}`)
     }
   }
 
-  // Delete workflow files
+  // Delete agent trace file
   async deleteAgentTrace(workflowPath: string): Promise<boolean> {
     const fullPath = getWorkflowPath(workflowPath)
-    const tracePath = path.join(fullPath, FILE_NAMES.AGENT_EVAL_TRACE)
+    const tracePath = path.join(fullPath, 'agent_eval_trace.json')
     return this.deleteFile(tracePath)
   }
 
+  // Delete evaluation criteria file
   async deleteEvaluationCriteria(workflowPath: string): Promise<boolean> {
     const fullPath = getWorkflowPath(workflowPath)
-    const criteriaPath = path.join(fullPath, FILE_NAMES.EVALUATION_CASE)
+    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
     return this.deleteFile(criteriaPath)
   }
 
+  // Delete evaluation results file
   async deleteEvaluationResults(workflowPath: string): Promise<boolean> {
     const fullPath = getWorkflowPath(workflowPath)
-    const resultsPath = path.join(fullPath, FILE_NAMES.EVALUATION_RESULTS)
+    const resultsPath = path.join(fullPath, 'evaluation_results.json')
     return this.deleteFile(resultsPath)
   }
 
@@ -270,36 +245,32 @@ class FileService {
   async copyFile(source: string, destination: string): Promise<void> {
     try {
       await fs.copyFile(source, destination)
-    } catch (error) {
-      throw new FileOperationError(
-        `Failed to copy file from ${source} to ${destination}`,
-        { error },
-      )
+    } catch {
+      throw new Error(`Failed to copy file from ${source} to ${destination}`)
     }
   }
 
-  // Read file content
+  // Read file
   async readFile(filePath: string): Promise<string> {
     try {
-      return await fs.readFile(filePath, 'utf8')
-    } catch (error: unknown) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new NotFoundError(`File not found: ${filePath}`)
+      if (!(await this.fileExists(filePath))) {
+        throw new Error(`File not found: ${filePath}`)
       }
-      throw new FileOperationError(`Failed to read file: ${filePath}`, {
-        error,
-      })
+      return await fs.readFile(filePath, 'utf8')
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('File not found')) {
+        throw error
+      }
+      throw new Error(`Failed to read file: ${filePath}`)
     }
   }
 
-  // Write file content
+  // Write file
   async writeFile(filePath: string, content: string): Promise<void> {
     try {
       await fs.writeFile(filePath, content, 'utf8')
-    } catch (error) {
-      throw new FileOperationError(`Failed to write file: ${filePath}`, {
-        error,
-      })
+    } catch {
+      throw new Error(`Failed to write file: ${filePath}`)
     }
   }
 }

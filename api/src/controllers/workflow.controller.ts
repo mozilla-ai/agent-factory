@@ -27,10 +27,8 @@ export class WorkflowController {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      const status =
-        error instanceof Error && error.constructor.name === 'NotFoundError'
-          ? 404
-          : 500
+      // If the error message indicates not found, return 404, otherwise 500
+      const status = errorMessage.includes('not found') ? 404 : 500
       res.status(status).json({
         success: false,
         error: errorMessage,
@@ -48,10 +46,8 @@ export class WorkflowController {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      const status =
-        error instanceof Error && error.constructor.name === 'NotFoundError'
-          ? 404
-          : 500
+      // If the error message indicates not found, return 404, otherwise 500
+      const status = errorMessage.includes('not found') ? 404 : 500
       res.status(status).json({
         success: false,
         error: errorMessage,
@@ -69,10 +65,8 @@ export class WorkflowController {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      const status =
-        error instanceof Error && error.constructor.name === 'NotFoundError'
-          ? 404
-          : 500
+      // If the error message indicates not found, return 404, otherwise 500
+      const status = errorMessage.includes('not found') ? 404 : 500
       res.status(status).json({
         success: false,
         error: errorMessage,

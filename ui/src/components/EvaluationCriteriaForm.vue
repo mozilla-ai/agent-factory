@@ -101,7 +101,7 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
-import type { EvaluationCriteria } from '../types/evaluation'
+import type { EvaluationCriteria } from '../types/index'
 import { evaluationService } from '@/services/evaluationService'
 import { handleHttpError } from '@/helpers/error.helpers'
 import { useQueryInvalidation } from '@/composables/useQueryInvalidation'

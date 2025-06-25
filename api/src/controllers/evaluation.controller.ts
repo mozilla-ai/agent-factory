@@ -1,168 +1,114 @@
 import { Request, Response } from 'express'
+import { asyncHandler } from '../middleware/error.middleware.js'
+import { setupStreamingResponse, completeStreamingResponse } from '../utils/streaming.utils.js'
 import { evaluationService } from '../services/evaluation.service.js'
-import { MESSAGES } from '../constants/index.js'
-import {
-  handleStreamingError,
-  setupStreamingResponse,
-  completeStreamingResponse,
-} from '../utils/streaming.utils.js'
+import { fileService } from '../services/file.service.js'
+import { processService } from '../services/process.service.js'
+import type { OutputCallback } from '../types/index.js'
 
 export class EvaluationController {
-  // Run agent for evaluation
-  async runAgent(req: Request, res: Response): Promise<void> {
+  // Run agent evaluation
+  runAgent = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { workflowPath } = req.params
 
-    try {
-      setupStreamingResponse(res)
+    setupStreamingResponse(res)
 
-      const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
-        const prefix = source === 'stderr' ? '[ERROR] ' : ''
-        res.write(`${prefix}${text}`)
-      }
-
-      await evaluationService.runAgent(workflowPath, outputCallback)
-      completeStreamingResponse(res, MESSAGES.SUCCESS.AGENT_RUN_COMPLETED)
-    } catch (error) {
-      handleStreamingError(res, error, 'Failed to run agent')
+    const outputCallback: OutputCallback = (source, text) => {
+      res.write(text)
     }
-  }
+
+    await evaluationService.runEvaluation(workflowPath, outputCallback)
+
+    completeStreamingResponse(res, '[Agent run completed. Generated agent_eval_trace.json]')
+  })
 
   // Generate evaluation cases
-  async generateEvaluationCases(req: Request, res: Response): Promise<void> {
-    const { workflowPath } = req.params
-
-    try {
-      setupStreamingResponse(res)
-
-      const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
-        const prefix = source === 'stderr' ? '[ERROR] ' : ''
-        res.write(`${prefix}${text}`)
-      }
-
-      await evaluationService.generateEvaluationCases(
-        workflowPath,
-        outputCallback,
-      )
-      completeStreamingResponse(
-        res,
-        MESSAGES.SUCCESS.EVALUATION_CASES_COMPLETED,
-      )
-    } catch (error) {
-      handleStreamingError(res, error, 'Failed to generate evaluation cases')
-    }
-  }
-
-  // Run evaluation
-  async runEvaluation(req: Request, res: Response): Promise<void> {
-    const { workflowPath } = req.params
-
-    try {
-      setupStreamingResponse(res)
-
-      const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
-        const prefix = source === 'stderr' ? '[ERROR] ' : ''
-        res.write(`${prefix}${text}`)
-      }
-
-      await evaluationService.runEvaluation(workflowPath, outputCallback)
-      completeStreamingResponse(res, MESSAGES.SUCCESS.EVALUATION_COMPLETED)
-    } catch (error) {
-      handleStreamingError(res, error, 'Failed to run evaluation')
-    }
-  }
-
-  // Save evaluation criteria
-  async saveEvaluationCriteria(req: Request, res: Response): Promise<void> {
+  generateEvaluationCases = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { workflowPath } = req.params
     const criteria = req.body
 
-    try {
-      const filePath = await evaluationService.saveEvaluationCriteria(
-        workflowPath,
-        criteria,
-      )
-      res.json({
-        success: true,
-        data: { path: filePath },
-        message: 'Evaluation criteria saved successfully',
-      })
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-      res.status(500).json({
-        success: false,
-        error: `Failed to save evaluation criteria: ${errorMessage}`,
-      })
+    setupStreamingResponse(res)
+
+    const outputCallback: OutputCallback = (source, text) => {
+      res.write(text)
     }
-  }
+
+    await evaluationService.runAgentGeneration(workflowPath, criteria, outputCallback)
+
+    completeStreamingResponse(
+      res,
+      '[Evaluation cases generation completed. Saved to evaluation_case.yaml]',
+    )
+  })
+
+  // Run evaluation
+  runEvaluation = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { workflowPath } = req.params
+
+    setupStreamingResponse(res)
+
+    const outputCallback: OutputCallback = (source, text) => {
+      res.write(text)
+    }
+
+    await evaluationService.validateEvaluationFiles(workflowPath)
+    await processService.runAgentEvaluation(workflowPath, outputCallback)
+
+    completeStreamingResponse(res, '[Agent evaluation completed. Results saved to evaluation_results.json]')
+  })
+
+  // Save evaluation criteria
+  saveEvaluationCriteria = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { workflowPath } = req.params
+    const criteria = req.body
+
+    const filePath = await fileService.saveEvaluationCriteria(workflowPath, criteria)
+
+    res.json({
+      success: true,
+      message: 'Evaluation criteria saved successfully',
+      path: filePath,
+    })
+  })
 
   // Delete agent evaluation trace
-  async deleteAgentTrace(req: Request, res: Response): Promise<void> {
+  deleteAgentTrace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { workflowPath } = req.params
 
-    try {
-      const deleted = await evaluationService.deleteAgentTrace(workflowPath)
-      await evaluationService.deleteEvaluationResults(workflowPath)
-      res.json({
-        success: deleted,
-        message: deleted
-          ? 'Agent evaluation trace deleted successfully'
-          : 'Agent evaluation trace file not found',
-      })
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-      res.status(500).json({
-        success: false,
-        error: `Failed to delete agent trace: ${errorMessage}`,
-      })
+    const success = await fileService.deleteAgentTrace(workflowPath)
+
+    if (success) {
+      res.json({ success: true, message: 'Agent trace deleted successfully' })
+    } else {
+      res.status(404).json({ error: 'Agent trace file not found' })
     }
-  }
+  })
 
   // Delete evaluation criteria
-  async deleteEvaluationCriteria(req: Request, res: Response): Promise<void> {
+  deleteEvaluationCriteria = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { workflowPath } = req.params
 
-    try {
-      const deleted =
-        await evaluationService.deleteEvaluationCriteria(workflowPath)
-      await evaluationService.deleteEvaluationResults(workflowPath)
-      res.json({
-        success: deleted,
-        message: deleted
-          ? 'Evaluation criteria deleted successfully'
-          : 'Evaluation criteria file not found',
-      })
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-      res.status(500).json({
-        success: false,
-        error: `Failed to delete evaluation criteria: ${errorMessage}`,
-      })
+    const success = await fileService.deleteEvaluationCriteria(workflowPath)
+
+    if (success) {
+      res.json({ success: true, message: 'Evaluation criteria deleted successfully' })
+    } else {
+      res.status(404).json({ error: 'Evaluation criteria file not found' })
     }
-  }
+  })
 
   // Delete evaluation results
-  async deleteEvaluationResults(req: Request, res: Response): Promise<void> {
+  deleteEvaluationResults = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { workflowPath } = req.params
 
-    try {
-      const deleted =
-        await evaluationService.deleteEvaluationResults(workflowPath)
-      res.json({
-        success: deleted,
-        message: deleted
-          ? 'Evaluation results deleted successfully'
-          : 'Evaluation results file not found',
-      })
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
-      res.status(500).json({
-        success: false,
-        error: `Failed to delete evaluation results: ${errorMessage}`,
-      })
+    const success = await fileService.deleteEvaluationResults(workflowPath)
+
+    if (success) {
+      res.json({ success: true, message: 'Evaluation results deleted successfully' })
+    } else {
+      res.status(404).json({ error: 'Evaluation results file not found' })
     }
-  }
+  })
 }
+
+export const evaluationController = new EvaluationController()

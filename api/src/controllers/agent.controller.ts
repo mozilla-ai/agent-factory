@@ -1,55 +1,52 @@
 import { Request, Response } from 'express'
+import { asyncHandler } from '../middleware/error.middleware.js'
+import { setupStreamingResponse, completeStreamingResponse } from '../utils/streaming.utils.js'
 import { processService } from '../services/process.service.js'
-import { PROCESS_IDS, MESSAGES, DEFAULTS } from '../constants/index.js'
-import {
-  handleStreamingError,
-  setupStreamingResponse,
-  completeStreamingResponse,
-} from '../utils/streaming.utils.js'
+import type { OutputCallback } from '../types/index.js'
 
 export class AgentController {
   // Generate agent
-  async generateAgent(req: Request, res: Response): Promise<void> {
-    const { prompt = DEFAULTS.AGENT_PROMPT } = req.body
+  generateAgent = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { prompt } = req.body
 
-    try {
-      setupStreamingResponse(res)
+    setupStreamingResponse(res)
 
-      const outputCallback = (source: 'stdout' | 'stderr', text: string) => {
-        const prefix = source === 'stderr' ? '[ERROR] ' : ''
-        res.write(`${prefix}${text}`)
-      }
+    // Use prompt from request body or default
+    const agentPrompt = prompt || 'Summarize text content from a given webpage URL'
 
-      await processService.runAgentFactory(prompt, outputCallback)
-      completeStreamingResponse(res, MESSAGES.SUCCESS.AGENT_COMPLETED)
-    } catch (error) {
-      handleStreamingError(res, error, '[agent-factory] Workflow failed')
+    const outputCallback: OutputCallback = (source, text) => {
+      res.write(text)
     }
-  }
+
+    await processService.runAgentFactory(agentPrompt, outputCallback)
+
+    completeStreamingResponse(res, '[agent-factory] Workflow completed successfully.')
+  })
 
   // Send input to running agent
-  async sendInput(req: Request, res: Response): Promise<void> {
+  sendInput = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { processId } = req.params
     const { input } = req.body
 
-    const success = processService.sendInput(PROCESS_IDS.AGENT_FACTORY, input)
+    const success = processService.sendInput(processId, input)
 
-    res.json({
-      success,
-      message: success
-        ? 'Input sent to agent process'
-        : 'No running agent process found',
-    })
-  }
+    if (success) {
+      res.json({ success: true })
+    } else {
+      res.status(404).json({ error: 'Process not found or cannot send input' })
+    }
+  })
 
   // Stop running agent
-  async stopAgent(req: Request, res: Response): Promise<void> {
-    const success = processService.stopProcess(PROCESS_IDS.AGENT_FACTORY)
+  stopAgent = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const success = processService.stopProcess('agent-factory')
 
-    res.json({
-      success: true,
-      message: success
-        ? 'Agent process stopped'
-        : 'No running agent process found',
-    })
-  }
+    if (success) {
+      res.json({ success: true, message: 'Agent process stopped' })
+    } else {
+      res.status(404).json({ error: 'No running agent process found' })
+    }
+  })
 }
+
+export const agentController = new AgentController()

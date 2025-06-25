@@ -58,30 +58,17 @@
       />
     </div>
 
-    <div v-if="output || isProcessing" class="evaluation-output">
-      <div class="output-header">
-        <h3>Output</h3>
+    <StreamingOutput
+      v-if="output || isProcessing"
+      title="Output"
+      :content="output"
+      :is-loading="isProcessing"
+      max-height="300px"
+    >
+      <template #actions>
         <BaseButton variant="ghost" size="small" @click="clearOutput()">Clear</BaseButton>
-      </div>
-
-      <div v-if="isProcessing && !output" class="loading-state">
-        <span class="loading-indicator">Processing...</span>
-      </div>
-
-      <div v-if="output" class="output-content-container">
-        <pre class="output-content">{{ output }}</pre>
-
-        <!-- Show streaming indicator while processing -->
-        <div v-if="isProcessing" class="streaming-indicator">
-          <span class="loading-indicator">Streaming...</span>
-          <div class="streaming-dots">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-      </div>
-    </div>
+      </template>
+    </StreamingOutput>
   </div>
 </template>
 
@@ -94,6 +81,7 @@ import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
 import { useNavigation } from '@/composables/useNavigation'
 import EvaluationStepButton from '../EvaluationStepButton.vue'
 import BaseButton from '../BaseButton.vue'
+import StreamingOutput from '../StreamingOutput.vue'
 
 const props = defineProps({
   workflowId: {
@@ -207,109 +195,5 @@ function viewResults() {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-}
-
-.evaluation-output {
-  margin-top: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.output-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  background-color: var(--color-background-soft);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.output-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--color-heading, var(--color-text));
-  font-weight: 600;
-}
-
-.loading-state {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  font-style: italic;
-  color: var(--color-text-secondary);
-  background: var(--color-background);
-}
-
-.loading-state .loading-indicator::before {
-  content: '⏳ ';
-  margin-right: 0.5rem;
-}
-
-.output-content-container {
-  position: relative;
-}
-
-.output-content {
-  padding: 1rem;
-  margin: 0;
-  max-height: 300px;
-  overflow: auto;
-  font-family: monospace;
-  font-size: 0.9rem;
-  white-space: pre-wrap;
-  background-color: var(--color-background);
-  color: var(--color-text);
-}
-
-.streaming-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-  border-top: 1px solid var(--color-border);
-  font-style: italic;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.streaming-dots {
-  display: flex;
-  gap: 0.2rem;
-}
-
-.streaming-dots span {
-  width: 0.25rem;
-  height: 0.25rem;
-  background: var(--color-primary);
-  border-radius: 50%;
-  animation: streaming-pulse 1.5s infinite;
-}
-
-.streaming-dots span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.streaming-dots span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes streaming-pulse {
-  0%,
-  60%,
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  30% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
 }
 </style>

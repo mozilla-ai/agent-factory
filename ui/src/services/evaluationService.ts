@@ -4,7 +4,7 @@ import { workflowService } from './workflowService'
 import { ENDPOINTS } from '@/config/endpoints'
 import { getErrorMessage } from '@/helpers/error.helpers'
 import { fetchStream } from '@/helpers/stream.helpers'
-import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/evaluation'
+import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/index'
 
 export const evaluationService = {
   async runAgent(workflowId: string): Promise<ReadableStream> {
