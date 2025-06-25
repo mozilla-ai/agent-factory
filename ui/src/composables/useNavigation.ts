@@ -5,8 +5,12 @@ export function useNavigation() {
 
   const navigateToTab = (tab: string, _workflowId?: string) => {
     const currentPath = router.currentRoute.value.path
-    const basePath = currentPath.replace(/\/[^/]*$/, '')
-    router.push(`${basePath}/${tab}`)
+    const currentQuery = router.currentRoute.value.query
+
+    router.push({
+      path: currentPath,
+      query: { ...currentQuery, tab },
+    })
   }
 
   const navigateToEvaluate = (_workflowId?: string) => {

@@ -152,7 +152,7 @@ const props = defineProps<{
 
 const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
   useQueryInvalidation()
-const { navigateToTrace, navigateToCriteria, navigateToEvaluate } = useNavigation()
+const { navigateToTrace, navigateToCriteria, navigateToEvaluate, navigateToResults } = useNavigation()
 
 // Fetch evaluation status using workflowService
 const statusQuery = useQuery({
