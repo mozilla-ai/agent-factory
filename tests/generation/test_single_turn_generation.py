@@ -15,7 +15,6 @@ def _assert_generated_files(workflow_dir: Path):
     for expected_file in expected_files:
         assert expected_file in existing_files, f"{expected_file} was not generated."
 
-    # Check no extra Python files are present
     extra_python_files = [f for f in existing_files if f.endswith(".py") and f != "agent.py"]
     assert len(extra_python_files) == 0, (
         f"Unexpected Python files found: {extra_python_files}. Only 'agent.py' should be generated."
