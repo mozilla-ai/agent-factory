@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
 import { evaluationService } from '@/services/evaluationService'
 import { useStreamProcessor } from '@/composables/useStreamProcessor'
