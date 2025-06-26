@@ -31,7 +31,7 @@ def assert_mcp_uv_consistency(agent_file: Path, requirements_path: Path):
     agent_content = agent_file.read_text(encoding="utf-8")
 
     # Check for uvx usage using regex (looking for uvx command usage)
-    uvx_pattern = r"uvx\s+"
+    uvx_pattern = r"uvx\s*"
     uvx_matches = re.findall(uvx_pattern, agent_content)
     uses_uvx = bool(uvx_matches)
 
