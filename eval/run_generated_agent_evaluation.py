@@ -4,9 +4,9 @@ from pathlib import Path
 import fire
 from any_agent.evaluation.evaluate import evaluate
 from any_agent.evaluation.evaluation_case import EvaluationCase
-from any_agent.tracing.agent_trace import AgentTrace
 
 from agent_factory.logging import logger
+from agent_factory.utils.trace_utils import load_agent_trace
 
 
 def run_evaluation(
@@ -27,23 +27,17 @@ def run_evaluation(
         Defaults to "generated_workflows/evaluation_results.json".
     """
     try:
-        # Load evaluation case from the specified YAML file
         evaluation_case = EvaluationCase.from_yaml(evaluation_case_yaml_file)
         logger.info(f"Successfully loaded evaluation case from: {evaluation_case_yaml_file}")
 
-        # Load agent trace from the specified JSON file
-        with Path(agent_trace_json_file).open(encoding="utf-8") as f:
-            agent_trace_data = f.read()
-            agent_trace = AgentTrace.model_validate_json(agent_trace_data)
+        agent_trace = load_agent_trace(agent_trace_json_file)
         logger.info(f"Successfully loaded agent trace from: {agent_trace_json_file}")
 
-        # Perform the evaluation
         eval_result = evaluate(
             evaluation_case=evaluation_case,
             trace=agent_trace,
         )
 
-        # Print the results
         logger.info("\n--- Evaluation Results ---")
         logger.info(f"Final score: {eval_result.score}")
 
@@ -62,7 +56,6 @@ def run_evaluation(
                 max_score += cp_result.points
                 checkpoint_results_list.append(cp_result.model_dump())
 
-            # Save evaluation results to a JSON file
             eval_result_dict = {
                 "obtained_score": obtained_score,
                 "max_score": max_score,
