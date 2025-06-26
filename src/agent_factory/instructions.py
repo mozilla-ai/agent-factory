@@ -160,12 +160,14 @@ These will replace the {{cli_args}} placeholder in the agent code template.
 7. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to the generated agent.
 8. `run_instructions` should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
+    - Always include the following instructions to install Python package manager uv (the end user decides which command to run based on their OS):
+        - for MacOS and Linux users: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+        - for Windows users: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
     - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11
       `uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"`
 9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
-    - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
-
+    - only if the `agent_code` uses `uvx` to spin up any MCP server, include "uv" as a dependency in the requirements.txt file
 """  # noqa: E501
 
 AGENT_CODE_TEMPLATE = """
