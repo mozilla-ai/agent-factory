@@ -1,7 +1,6 @@
 any-agent[all]==0.20.0
-uv
 python-dotenv
 fire
 beautifulsoup4
 requests
-litellm
+ffmpeg-python
