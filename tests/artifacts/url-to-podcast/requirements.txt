@@ -3,4 +3,4 @@ python-dotenv
 fire
 beautifulsoup4
 requests
-litellm
+ffmpeg-python
