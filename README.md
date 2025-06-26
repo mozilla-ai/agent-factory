@@ -133,6 +133,7 @@ A sample Chainlit app is provided in `src/agent_factory/chainlit_playground.py` 
 
 To launch the Chainlit UI for your agent workflow, run:
 ```bash
+uv sync --group chainlit-demo
 chainlit run src/agent_factory/chainlit_playground.py
 # or for interactive mode - to hot reload the app on code changes
 chainlit run src/agent_factory/chainlit_playground.py - w
