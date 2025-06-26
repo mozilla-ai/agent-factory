@@ -113,7 +113,7 @@ def run_agent(url: str):
     Given a webpage URL, translate its main English content to Italian,
     and return structured output.
     \"\"\"
-    input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}".format(**kwargs)
+    input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
@@ -210,7 +210,7 @@ agent = AnyAgent.create(
 
 def run_agent({cli_args}):
     \"\"\"{agent_description}\"\"\"
-    input_prompt = f"{prompt_template}".format(**kwargs)
+    input_prompt = f"{prompt_template}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
