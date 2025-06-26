@@ -85,7 +85,7 @@ from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent
 from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
-from fire import Fire
+from any_agent.serving import A2AServingConfig
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
 from any_agent.tools import visit_webpage
@@ -153,41 +153,18 @@ agent = AnyAgent.create(
     ),
 )
 
-
-def run_agent(url: str):
-    \"\"\"
-    Given a webpage URL, translate its main English content to Italian,
-    and return structured output.
-    \"\"\"
-    input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}"
-    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
-    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
-    return agent_trace.final_output
-
-
-if __name__ == "__main__":
-    Fire(run_agent)
+agent.serve(A2AServingConfig(port=5000, log_level="info"))
 """  # noqa: E501
 
-DELIVERABLES_INSTRUCTIONS = f"""
-The final output should be a JSON with the following structure:
-
-{{
-    "agent_code": "The python script as a single string that is runnable as agent.py.",
-    "run_instructions": "The instructions for setting up the environment in Markdown format.",
-    "dependencies": "The list of python dependencies in Markdown format."
-}}
-
-1. agent_code should contain all the code implementation of the agent which will correspond to the runnable agent.py script
-2. run_instructions should contain clear and concise setup instructions:
-    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
-    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11
-      `uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"`
-3. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
-    - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
-    - the second line should be "uv" dependency, if we use uvx to spin up any MCP server that will be used in the code
-"""  # noqa: E501
+DELIVERABLES_INSTRUCTIONS = """
+The final output should be the python script as a single string encosed in triple quotes.
+It should contain all the code implementation of the agent which will correspond to the runnable
+`agent.py` script. For example, the output should look like this:
+```python
+# agent.py
+# rest of the code...
+```
+"""
 
 CODE_GENERATION_INSTRUCTIONS = """
 # Single Agent Implementation with Multiple Steps
@@ -267,7 +244,7 @@ from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent
 from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
-from fire import Fire
+from any_agent.serving import A2AServingConfig
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
 {IMPORTS}
@@ -295,17 +272,7 @@ agent = AnyAgent.create(
     ),
 )
 
-def run_agent({CLI_ARGS}):
-    \"\"\"Agent description\"\"\"
-    input_prompt = f"{PROMPT_TEMPLATE}".format(**kwargs)
-    agent_trace = agent.run(prompt=input_prompt, max_turns=20)
-    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
-    return agent_trace.final_output
-
-if __name__ == "__main__":
-    Fire(run_agent)
-
+agent.serve(A2AServingConfig(port=5000, log_level="info"))
 """  # noqa: E501
 
 # Define the template with Jinja2 syntax
