@@ -33,13 +33,13 @@ def assert_mcp_uv_consistency(agent_file: Path, requirements_path: Path):
     # Check for uvx usage using regex (looking for uvx command usage)
     uvx_pattern = r"uvx\s+"
     uvx_matches = re.findall(uvx_pattern, agent_content)
-    has_uvx_usage = bool(uvx_matches)
+    uses_uvx = bool(uvx_matches)
 
     requirements_content = requirements_path.read_text(encoding="utf-8")
     requirements_lines = [line.strip() for line in requirements_content.split("\n") if line.strip()]
 
     # Check if 'uv' is in requirements
-    has_uv_requirement = any(
+    requires_uvx = any(
         line.startswith("uv==") or line.startswith("uv>=") or line == "uv" for line in requirements_lines
     )
 
@@ -47,19 +47,19 @@ def assert_mcp_uv_consistency(agent_file: Path, requirements_path: Path):
         f"\nDEBUG INFO:\n"
         f"- uvx_pattern: {uvx_pattern}\n"
         f"- uvx_matches found: {uvx_matches}\n"
-        f"- has_uvx_usage: {has_uvx_usage}\n"
-        f"- has_uv_requirement: {has_uv_requirement}\n\n"
+        f"- uses_uvx: {uses_uvx}\n"
+        f"- requires_uvx: {requires_uvx}\n\n"
         f"Full agent.py content:\n{agent_content}\n\n"
         f"Full requirements.txt content:\n{requirements_content}"
     )
 
-    if has_uvx_usage and not has_uv_requirement:
+    if uses_uvx and not requires_uvx:
         raise AssertionError(
             "Found uvx usage in agent.py but 'uv' is not present in requirements.txt. "
             "When using MCP tools with uvx, 'uv' must be included in requirements.txt" + debug_info
         )
 
-    if not has_uvx_usage and has_uv_requirement:
+    if not uses_uvx and requires_uvx:
         raise AssertionError(
             "Found 'uv' in requirements.txt but no uvx usage detected in agent.py. "
             "'uv' should only be present when MCP tools are used" + debug_info
