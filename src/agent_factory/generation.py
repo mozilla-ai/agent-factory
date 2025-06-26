@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+import autoflake
 import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
@@ -68,6 +69,20 @@ def build_run_instructions(user_prompt) -> str:
         return user_prompt_instance.amend_prompt(user_prompt)
 
 
+def clean_python_code_with_autoflake(code: str) -> str:
+    """Clean Python code using autoflake to remove unused imports (F401) and variables (F841)."""
+    try:
+        cleaned_code = autoflake.fix_code(
+            code,
+            remove_all_unused_imports=True,
+            remove_unused_variables=True,
+        )
+        return cleaned_code
+    except Exception as e:
+        logger.error(f"Error while running autoflake to clean Python code: {e}")
+        raise
+
+
 def setup_output_directory(output_dir: Path | None = None) -> Path:
     if output_dir is None:
         output_dir = Path.cwd()
@@ -104,9 +119,10 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         instructions_path = output_dir / "INSTRUCTIONS.md"
         requirements_path = output_dir / "requirements.txt"
         agent_code = AGENT_CODE_TEMPLATE.format(**agent_trace.final_output.model_dump())
+        cleaned_agent_code = clean_python_code_with_autoflake(agent_code)
 
         with agent_path.open("w", encoding="utf-8") as f:
-            f.write(agent_code)
+            f.write(cleaned_agent_code)
 
         with instructions_path.open("w", encoding="utf-8") as f:
             f.write(agent_trace.final_output.run_instructions)
