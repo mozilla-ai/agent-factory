@@ -76,40 +76,22 @@ def assert_requirements_installable(requirements_path: Path, timeout: int = 180)
     # Read requirements content for debugging
     requirements_content = requirements_path.read_text(encoding="utf-8")
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        env_dir = Path(temp_dir) / ".venv"
+    try:
+        # Use uv run to install and test in a throwaway environment
+        result = subprocess.run(
+            ["uv", "run", "--with-requirements", str(requirements_path), "--python", "3.11", "python", "-V"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
 
-        try:
-            # Create a new virtual environment
-            subprocess.run(
-                ["uv", "venv", str(env_dir), "--python=python3.11"],
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-            )
-
-            # Install requirements
-            result = subprocess.run(
-                ["uv", "pip", "install", "-r", str(requirements_path)],
-                check=False,
-                cwd=temp_dir,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-            )
-
-            assert result.returncode == 0, (
-                f"Failed to install requirements:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}\n\n"
-                f"Full requirements.txt content:\n{requirements_content}"
-            )
-        except subprocess.TimeoutExpired:
-            raise AssertionError(
-                f"Requirements installation timed out after {timeout} seconds\n\n"
-                f"Full requirements.txt content:\n{requirements_content}"
-            ) from None
-        except subprocess.CalledProcessError as e:
-            raise AssertionError(
-                f"Failed to create virtual environment:\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}\n\n"
-                f"Full requirements.txt content:\n{requirements_content}"
-            ) from e
+        assert result.returncode == 0, (
+            f"Failed to install requirements:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}\n\n"
+            f"Full requirements.txt content:\n{requirements_content}"
+        )
+    except subprocess.TimeoutExpired:
+        raise AssertionError(
+            f"Requirements installation timed out after {timeout} seconds\n\n"
+            f"Full requirements.txt content:\n{requirements_content}"
+        ) from None
