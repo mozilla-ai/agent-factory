@@ -1,15 +1,17 @@
-### Environment setup
-1. Create a `.env` file in the project root containing:
-```
-OPENAI_API_KEY=<your-openai-api-key>
-ELEVENLABS_API_KEY=<your-elevenlabs-api-key>
-```
-   (Add optional ELEVENLABS_* variables like ELEVENLABS_VOICE_ID if you want custom voices.)
+# Setup & Run Instructions
 
-2. Ensure `docker` is installed and running – it is needed for the ElevenLabs MCP server container.
+1. Clone or download this repository and ensure you have Python 3.11 installed.
+2. Create a `.env` file in the project root containing at minimum:
 
-3. Install Python dependencies and run the agent in one shot with **uv**:
+```
+OPENAI_API_KEY=<your-openai-key>
+ELEVENLABS_API_KEY=<your-elevenlabs-key>
+```
+3. Install dependencies and run the agent in one command:
+
 ```bash
-uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --url "https://example.com" --num_hosts 3
+uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \
+  python generated_workflows/latest/agent.py --url "https://example.com/article" --num_speakers 3
 ```
-The agent will save its execution trace to `generated_workflows/latest/agent_eval_trace.json` and output the StructuredOutput JSON to the console.
+
+The agent will save its trace to `generated_workflows/latest/agent_eval_trace.json` and print the structured JSON result containing the path to the generated podcast mp3.
