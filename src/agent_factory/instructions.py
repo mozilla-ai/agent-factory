@@ -37,9 +37,11 @@ import os
 # ALWAYS used
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent
-from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
+
+# MCPStdio should be imported ONLY if MCP servers are used in AgentConfig
+from any_agent.config import MCPStdio
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
 from any_agent.tools import visit_webpage
@@ -179,7 +181,6 @@ import os
 # ALWAYS used
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
-from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
 
@@ -266,6 +267,7 @@ using Mozilla's any-agent library. The implementation should:
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
+       You must never import or assign `search_mcp_servers` to the tools list of the generated agent in `agent_code`.
 
 #### Structured Output (output_type):
 - Define Pydantic v2 models to structure the agent's final output
