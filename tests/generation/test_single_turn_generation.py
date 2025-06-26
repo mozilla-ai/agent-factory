@@ -1,7 +1,4 @@
 import ast
-import subprocess
-import tempfile
-from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from shutil import copytree
 
@@ -38,7 +35,7 @@ def _assert_agent_syntax(agent_file: Path):
         # Agent with no MCP tools needed
         (
             "summarize-url-content",
-            "Create a workflow that takes an input web URL and returns a summary of the content. Do not use MCP servers for tools.",
+            "Create a workflow that takes an input web URL and returns a summary of the content. Do not assign MCP servers among the tools.",
         ),
         # Agent with MCP tools such as ElevenLabs
         (
