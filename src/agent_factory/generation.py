@@ -1,4 +1,3 @@
-import json
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -10,7 +9,7 @@ from any_agent.tools import search_tavily, visit_webpage
 from any_agent.tracing.agent_trace import AgentTrace
 from pydantic import BaseModel, Field
 
-from agent_factory.instructions import INSTRUCTIONS
+from agent_factory.instructions import AGENT_CODE_TEMPLATE, INSTRUCTIONS
 from agent_factory.logging import logger
 from agent_factory.prompt import UserPrompt
 from agent_factory.tools import read_file, search_mcp_servers
@@ -19,48 +18,17 @@ dotenv.load_dotenv()
 
 
 class AgentFactoryOutputs(BaseModel):
-    agent_code: str = Field(..., description="The python script as a string that is runnable as agent.py")
+    agent_instructions: str = Field(..., description="The instructions passed to the generated agent.")
+    tools: str = Field(..., description="The python code that defines the tools to be used by the generated agent.")
+    imports: str = Field(..., description="The python code snippet used to import the required tools.")
+    structured_outputs: str = Field(..., description="The Pydantic v2 models used to structure the agent's output.")
+    cli_args: str = Field(..., description="The arguments to be provided to the agent from the command line.")
+    agent_description: str = Field(..., description="The description of the agent and what it does.")
+    prompt_template: str = Field(
+        ..., description="A prompt template that, completed with cli_args, defines the agent's input prompt."
+    )
     run_instructions: str = Field(..., description="The run instructions in Markdown format")
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
-
-
-def validate_agent_outputs(str_output: str):
-    try:
-        str_output = remove_markdown_code_block_delimiters(str_output)
-        json_output = json.loads(str_output)
-        agent_factory_outputs = AgentFactoryOutputs.model_validate(json_output)
-    except Exception as e:
-        raise ValueError(
-            f"Invalid format received for agent outputs: {e}. Could not parse the output as AgentFactoryOutputs."
-        ) from e
-    return agent_factory_outputs
-
-
-def remove_markdown_code_block_delimiters(text: str) -> str:
-    """Remove backticks from the start and end of markdown output."""
-    text = text.strip()
-    if text.startswith("```") and text.endswith("```"):
-        lines = text.splitlines()
-        return "\n".join(lines[1:-1])
-    return text
-
-
-def save_agent_parsed_outputs(output: AgentFactoryOutputs, output_dir: Path):
-    """Save all three outputs from AgentFactoryOutputs to separate files."""
-    agent_path = Path(f"{output_dir}/agent.py")
-    instructions_path = Path(f"{output_dir}/INSTRUCTIONS.md")
-    requirements_path = Path(f"{output_dir}/requirements.txt")
-
-    with agent_path.open("w", encoding="utf-8") as f:
-        f.write(remove_markdown_code_block_delimiters(output.agent_code))
-
-    with instructions_path.open("w", encoding="utf-8") as f:
-        f.write(output.run_instructions)
-
-    with requirements_path.open("w", encoding="utf-8") as f:
-        f.write(remove_markdown_code_block_delimiters(output.dependencies))
-
-    logger.info(f"Files saved to {output_dir}")
 
 
 def create_agent():
@@ -71,6 +39,7 @@ def create_agent():
             model_id="o3",
             instructions=INSTRUCTIONS,
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
+            output_type=AgentFactoryOutputs,
             model_args={"tool_choice": "required"},  # Ensure tool choice is required
         ),
     )
@@ -123,6 +92,7 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
 
 
 def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
+    # First save the agent trace
     trace_path = output_dir / "agent_factory_trace.json"
     trace_path.write_text(agent_trace.model_dump_json(indent=2))
 
@@ -130,10 +100,24 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         raise RuntimeError("No final_output available in agent trace")
 
     try:
-        agent_outputs = validate_agent_outputs(agent_trace.final_output)
-        save_agent_parsed_outputs(agent_outputs, output_dir)
+        agent_path = output_dir / "agent.py"
+        instructions_path = output_dir / "INSTRUCTIONS.md"
+        requirements_path = output_dir / "requirements.txt"
+        agent_code = AGENT_CODE_TEMPLATE.format(**agent_trace.final_output.model_dump())
+
+        with agent_path.open("w", encoding="utf-8") as f:
+            f.write(agent_code)
+
+        with instructions_path.open("w", encoding="utf-8") as f:
+            f.write(agent_trace.final_output.run_instructions)
+
+        with requirements_path.open("w", encoding="utf-8") as f:
+            f.write(agent_trace.final_output.dependencies)
+
+        logger.info(f"Agent files saved to {output_dir}")
+
     except Exception as e:
-        print(f"Warning: Failed to parse agent's structured outputs: {str(e)}")
+        print(f"Warning: Failed to parse and save agent outputs: {str(e)}")
 
 
 def single_turn_generation(
