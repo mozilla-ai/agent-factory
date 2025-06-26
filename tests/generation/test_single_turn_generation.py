@@ -19,8 +19,15 @@ from agent_factory.utils.trace_utils import load_agent_trace
 
 def _assert_generated_files(workflow_dir: Path):
     existing_files = [f.name for f in workflow_dir.iterdir()]
-    for expected_file in ["agent.py", "INSTRUCTIONS.md", "requirements.txt", "agent_factory_trace.json"]:
+    expected_files = ["agent.py", "INSTRUCTIONS.md", "requirements.txt", "agent_factory_trace.json"]
+
+    for expected_file in expected_files:
         assert expected_file in existing_files, f"{expected_file} was not generated."
+
+    extra_python_files = [f for f in existing_files if f.endswith(".py") and f != "agent.py"]
+    assert len(extra_python_files) == 0, (
+        f"Unexpected Python files found: {extra_python_files}. Only 'agent.py' should be generated."
+    )
 
 
 def _assert_agent_syntax(agent_file: Path):
