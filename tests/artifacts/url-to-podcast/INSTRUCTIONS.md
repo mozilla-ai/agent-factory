@@ -1,22 +1,17 @@
-## Setup & Run Instructions
+# Setup & Run Instructions
 
-1. **Clone your project and ensure Python 3.11 is installed.**
-
-2. **Create a `.env` file in the project root with the following variables:**
+1. Clone or download this repository and ensure you have Python 3.11 installed.
+2. Create a `.env` file in the project root containing at minimum:
 
 ```
-# OpenAI key for the o3 model
-OPENAI_API_KEY="your-openai-key"
-
-# ElevenLabs text-to-speech key
-ELEVENLABS_API_KEY="your-elevenlabs-key"
+OPENAI_API_KEY=<your-openai-key>
+ELEVENLABS_API_KEY=<your-elevenlabs-key>
 ```
-
-3. **Install dependencies and execute the agent (replace `<URL>` with the target webpage):**
+3. Install dependencies and run the agent in one command:
 
 ```bash
 uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 \
-  python generated_workflows/latest/agent.py --url "<URL>" --num_hosts 3
+  python generated_workflows/latest/agent.py --url "https://example.com/article" --num_speakers 3
 ```
 
-The script will output a JSON object containing the podcast script and the path/URL to the generated MP3 file. The full agent trace is stored at `generated_workflows/latest/agent_eval_trace.json` for later inspection.
+The agent will save its trace to `generated_workflows/latest/agent_eval_trace.json` and print the structured JSON result containing the path to the generated podcast mp3.

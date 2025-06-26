@@ -1,10 +1,17 @@
 import ast
+import subprocess
+import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from shutil import copytree
 
 import pytest
 from any_agent.tracing.agent_trace import AgentTrace
+from requirements_validators import (
+    assert_mcp_uv_consistency,
+    assert_requirements_first_line_matches_any_agent_version,
+    assert_requirements_installable,
+)
 
 from agent_factory.generation import single_turn_generation
 from agent_factory.utils.trace_utils import load_agent_trace
@@ -75,11 +82,18 @@ def test_single_turn_generation(
 
     _assert_generated_files(tmp_path)
 
+    # Verify the generated agent.py has valid Python syntax
     _assert_agent_syntax(tmp_path / "agent.py")
 
+    # Assertions based on manufacturing agent's trace
     agent_trace = load_agent_trace(tmp_path / "agent_factory_trace.json")
     _assert_execution_time_within_limit(agent_trace, expected_execution_time)
     _assert_num_turns_within_limit(agent_trace, expected_num_turns)
+
+    # Assertions based on requirements.txt
+    assert_requirements_first_line_matches_any_agent_version(tmp_path / "requirements.txt")
+    assert_mcp_uv_consistency(tmp_path / "agent.py", tmp_path / "requirements.txt")
+    assert_requirements_installable(tmp_path / "requirements.txt")
 
     update_artifacts = request.config.getoption("--update-artifacts")
 
