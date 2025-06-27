@@ -8,6 +8,7 @@ Provide a clear and concise description of the content changes you're proposing.
 > If this PR is related to an issue or closes one, please link it here.
 
 Refs #...
+
 Closes #...
 
 ---
