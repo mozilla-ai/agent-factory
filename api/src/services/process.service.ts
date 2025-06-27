@@ -58,7 +58,18 @@ export class ProcessService {
     // Install/sync Python dependencies using uv
     try {
       console.log('Installing/syncing Python dependencies with uv...')
-      await this.runCommand(config.uvExecutable, ['sync'], 'uv-sync')
+
+      // Try global uv first, then fall back to venv uv
+      let uvCommand = 'uv'
+      try {
+        await this.runCommand(uvCommand, ['--version'], 'uv-version-check')
+      } catch {
+        console.log('Global uv not found, trying venv uv...')
+        uvCommand = config.uvExecutable
+        await this.runCommand(uvCommand, ['--version'], 'uv-venv-check')
+      }
+
+      await this.runCommand(uvCommand, ['sync'], 'uv-sync')
       console.log('Dependencies synced successfully')
     } catch (error) {
       console.warn('Failed to sync dependencies with uv:', error)
