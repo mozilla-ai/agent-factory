@@ -1,6 +1,5 @@
 import fs from 'fs/promises'
 import path from 'path'
-import YAML from 'yaml'
 import { getWorkflowPath } from '../config/index.js'
 import type {
   FileEntry,
@@ -57,7 +56,7 @@ class FileService {
     }
 
     const agentPath = path.join(fullPath, 'agent.py')
-    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaPath = path.join(fullPath, 'evaluation_case.json')
     const resultsPath = path.join(fullPath, 'evaluation_results.json')
     const tracePath = path.join(fullPath, 'agent_eval_trace.json')
 
@@ -167,10 +166,10 @@ class FileService {
 
       await this.ensureDirectory(fullPath)
 
-      const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
+      const criteriaFilePath = path.join(fullPath, 'evaluation_case.json')
       console.log(`Writing criteria file: ${criteriaFilePath}`)
 
-      await fs.writeFile(criteriaFilePath, YAML.stringify(criteria), 'utf8')
+      await fs.writeFile(criteriaFilePath, JSON.stringify(criteria), 'utf8')
       console.log(
         `Successfully saved evaluation criteria to: ${criteriaFilePath}`,
       )
@@ -195,7 +194,7 @@ class FileService {
     workflowPath: string,
   ): Promise<EvaluationCriteria> {
     const fullPath = getWorkflowPath(workflowPath)
-    const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaFilePath = path.join(fullPath, 'evaluation_case.json')
 
     if (!(await this.fileExists(criteriaFilePath))) {
       throw new Error(
@@ -205,7 +204,7 @@ class FileService {
 
     try {
       const content = await fs.readFile(criteriaFilePath, 'utf8')
-      return YAML.parse(content) as EvaluationCriteria
+      return JSON.parse(content) as EvaluationCriteria
     } catch {
       throw new Error('Failed to load evaluation criteria')
     }
@@ -224,7 +223,7 @@ class FileService {
 
     try {
       const content = await fs.readFile(resultsFilePath, 'utf8')
-      return YAML.parse(content) as EvaluationResult
+      return JSON.parse(content) as EvaluationResult
     } catch {
       throw new Error('Failed to load evaluation results')
     }
@@ -270,7 +269,7 @@ class FileService {
   // Delete evaluation criteria file and invalidate evaluation results
   async deleteEvaluationCriteria(workflowPath: string): Promise<boolean> {
     const fullPath = getWorkflowPath(workflowPath)
-    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaPath = path.join(fullPath, 'evaluation_case.json')
 
     try {
       await this.deleteFile(criteriaPath)

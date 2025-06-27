@@ -351,7 +351,7 @@ export class ProcessService {
       const fullWorkflowPath = getWorkflowPath(workflowPath)
 
       // Build the specific file paths that the Python script expects
-      const evaluationCaseFile = `${fullWorkflowPath}/evaluation_case.yaml`
+      const evaluationCaseFile = `${fullWorkflowPath}/evaluation_case.json`
       const agentTraceFile = `${fullWorkflowPath}/agent_eval_trace.json`
       const resultsFile = `${fullWorkflowPath}/evaluation_results.json`
 

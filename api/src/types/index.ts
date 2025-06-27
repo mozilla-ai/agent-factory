@@ -34,8 +34,7 @@ export interface EvaluationCheckpoint {
 }
 
 export interface EvaluationCriteria {
-  llm_judge: string
-  checkpoints: EvaluationCheckpoint[]
+  criteria: EvaluationCheckpoint[]
 }
 
 export interface EvaluationResult {
@@ -73,8 +72,7 @@ export const SendInputSchema = z.object({
 })
 
 export const SaveEvaluationCriteriaSchema = z.object({
-  llm_judge: z.string().min(1),
-  checkpoints: z
+  criteria: z
     .array(
       z.object({
         criteria: z.string().min(1),

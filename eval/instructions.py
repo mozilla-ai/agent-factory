@@ -1,5 +1,5 @@
 """Instructions for the agent evaluation JSON generator.
-The structured JSON output is later saved as YAML programatically.
+The structured JSON output is later saved as JSON programatically.
 """
 
 from jinja2 import Template

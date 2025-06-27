@@ -31,8 +31,8 @@ export const evaluationService = {
   },
 
   async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
-    const content = await workflowService.getFileContent(workflowId, 'evaluation_case.yaml')
-    return Yaml.parse(content)
+    const content = await workflowService.getFileContent(workflowId, 'evaluation_case.json')
+    return JSON.parse(content)
   },
 
   async saveEvaluationCriteria(

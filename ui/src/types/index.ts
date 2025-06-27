@@ -17,17 +17,8 @@ export interface WorkflowFile {
   path?: string
 }
 
-// Evaluation types
-export interface EvaluationCheckpoint {
-  criteria: string
-  points: number
-  result?: 'pass' | 'fail'
-  feedback?: string
-}
-
 export interface EvaluationCriteria {
-  llm_judge: string
-  checkpoints: EvaluationCheckpoint[]
+  criteria: string[]
 }
 
 export interface EvaluationResult {
@@ -39,7 +30,7 @@ export interface EvaluationResult {
 export interface EvaluationResults {
   score: number
   maxScore: number
-  checkpoints: EvaluationCheckpoint[]
+  criteria: string[]
 }
 
 export interface EvaluationStatus {
