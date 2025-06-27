@@ -1,51 +1,76 @@
 import { Request, Response } from 'express'
-import path from 'node:path'
-import fs from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
-import { listFilesRecursive } from '../utils/file.utils.js'
+import { fileService } from '../services/file.service.js'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-// List all generated workflows and their files
-export async function listWorkflows(
-  _req: Request,
-  res: Response,
-): Promise<void> {
-  const workflowsDir = path.resolve(__dirname, '../../../generated_workflows')
-
-  try {
-    // Check if directory exists first
+export class WorkflowController {
+  // List all workflows
+  async listWorkflows(req: Request, res: Response): Promise<void> {
     try {
-      await fs.access(workflowsDir)
-    } catch {
-      console.log('Workflows directory does not exist, returning empty array')
-      res.json([])
-      return
+      const workflows = await fileService.listWorkflows()
+      res.json(workflows)
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      res.status(500).json({
+        success: false,
+        error: `Failed to list workflows: ${errorMessage}`,
+      })
     }
+  }
 
-    // Directory exists, read its contents
-    const entries = await fs.readdir(workflowsDir, { withFileTypes: true })
+  // Get workflow details
+  async getWorkflowDetails(req: Request, res: Response): Promise<void> {
+    const { workflowPath } = req.params
 
-    // If no entries or no directories, return empty array
-    if (entries.length === 0 || !entries.some((entry) => entry.isDirectory())) {
-      res.json([])
-      return
+    try {
+      const workflowInfo = await fileService.getWorkflowInfo(workflowPath)
+      res.json(workflowInfo)
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      // If the error message indicates not found, return 404, otherwise 500
+      const status = errorMessage.includes('not found') ? 404 : 500
+      res.status(status).json({
+        success: false,
+        error: errorMessage,
+      })
     }
+  }
 
-    const result = await Promise.all(
-      entries
-        .filter((entry) => entry.isDirectory())
-        .map(async (entry) => ({
-          name: entry.name,
-          isDirectory: true,
-          files: await listFilesRecursive(path.join(workflowsDir, entry.name)),
-        })),
-    )
+  // Get evaluation criteria
+  async getEvaluationCriteria(req: Request, res: Response): Promise<void> {
+    const { workflowPath } = req.params
 
-    res.json(result)
-  } catch (error) {
-    console.error('Unexpected error reading workflows directory:', error)
-    res.status(500).json({ error: 'Failed to read workflows directory' })
+    try {
+      const criteria = await fileService.loadEvaluationCriteria(workflowPath)
+      res.json(criteria)
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      // If the error message indicates not found, return 404, otherwise 500
+      const status = errorMessage.includes('not found') ? 404 : 500
+      res.status(status).json({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  // Get evaluation results
+  async getEvaluationResults(req: Request, res: Response): Promise<void> {
+    const { workflowPath } = req.params
+
+    try {
+      const results = await fileService.loadEvaluationResults(workflowPath)
+      res.json(results)
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      // If the error message indicates not found, return 404, otherwise 500
+      const status = errorMessage.includes('not found') ? 404 : 500
+      res.status(status).json({
+        success: false,
+        error: errorMessage,
+      })
+    }
   }
 }
