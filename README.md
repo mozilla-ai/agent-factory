@@ -105,7 +105,7 @@ Run the evaluation case generator agent with your desired evaluation case prompt
 python -m eval.generate_evaluation_case
 ```
 
-This will generate a JSON file in the `generated_workflows/latest` directory with criteria and points for each evaluation.
+This will generate a JSON file in the `generated_workflows/latest` directory with evaluation criteria.
 
 ### 4. Run Evaluation Script
 

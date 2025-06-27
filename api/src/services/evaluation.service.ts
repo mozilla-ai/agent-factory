@@ -234,7 +234,7 @@ export class EvaluationService {
       throw new Error(`Workflow not found: ${workflowPath}`)
     }
 
-    // Check for evaluation criteria
+    // Check for evaluation criteria (JSON format only)
     const criteriaPath = path.join(fullPath, 'evaluation_case.json')
     try {
       await fs.access(criteriaPath)

@@ -17,8 +17,22 @@ export interface WorkflowFile {
   path?: string
 }
 
-export interface EvaluationCriteria {
+// Simple evaluation case format with just criteria strings (file format)
+export interface SimpleEvaluationCase {
   criteria: string[]
+}
+
+// Evaluation types (UI internal format - always includes points for UI components)
+export interface EvaluationCheckpoint {
+  criteria: string
+  points: number
+  result?: 'pass' | 'fail'
+  feedback?: string
+}
+
+export interface EvaluationCriteria {
+  llm_judge?: string // Optional since new format doesn't always include it
+  checkpoints: EvaluationCheckpoint[]
 }
 
 export interface EvaluationResult {
