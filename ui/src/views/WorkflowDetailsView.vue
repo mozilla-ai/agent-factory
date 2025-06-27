@@ -34,11 +34,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { useQuery } from '@tanstack/vue-query'
 import { useTabs } from '@/composables/useTabs'
+import { queryKeys } from '@/helpers/queryKeys'
 import { workflowService } from '@/services/workflowService'
-import { routes } from '@/config'
 
 // Components
 import AgentFileExplorer from '@/components/tabs/AgentFileExplorer.vue'
@@ -48,34 +48,40 @@ import EvaluationCriteriaViewer from '@/components/tabs/EvaluationCriteriaViewer
 import EvaluationResultsViewer from '@/components/tabs/EvaluationResultsViewer.vue'
 import type { WorkflowFile } from '@/types'
 
-// Setup
 const route = useRoute()
 const router = useRouter()
-const workflowsStore = useWorkflowsStore()
-const loading = ref(false)
-const error = ref('')
+const {
+  workflows,
+  loading: workflowsLoading,
+  error: workflowsError,
+  getWorkflowById,
+} = useWorkflows()
 
 // Extract the workflow id from the route
 const workflowId = computed(() => route.params.id as string)
 
 // Get the workflow from store
-const workflow = computed(() => workflowsStore.getWorkflowById(workflowId.value))
+const workflow = computed(() => getWorkflowById(workflowId.value))
 
-// Computed workflow path for API calls
-const workflowPath = computed(() => {
-  if (!workflow.value) return ''
-  return workflow.value.path || workflow.value.name
+// Combined loading state: loading if workflows are loading
+const loading = computed(() => workflowsLoading.value)
+
+// Combined error state: error if workflows failed to load or workflow not found
+const error = computed(() => {
+  if (workflowsError.value) return workflowsError.value
+  if (!workflowsLoading.value && workflows.value.length > 0 && !workflow.value) {
+    return `Workflow "${workflowId.value}" not found`
+  }
+  return ''
 })
 
-// Setup evaluation status checking
 const evaluationStatusQuery = useQuery({
-  queryKey: ['evaluation-status', workflowPath],
-  queryFn: () => workflowService.getEvaluationStatus(workflowPath.value),
-  enabled: computed(() => !!workflowPath.value),
+  queryKey: computed(() => queryKeys.evaluationStatus(workflowId.value)),
+  queryFn: () => workflowService.getEvaluationStatus(workflowId.value),
+  enabled: computed(() => !!workflowId.value),
   retry: 1,
 })
 
-// Setup tabs
 const { activeTab, setActiveTab } = useTabs('files')
 
 const handleTabClicked = (tab: string) => {
@@ -83,8 +89,6 @@ const handleTabClicked = (tab: string) => {
   setActiveTab(tab)
 }
 
-// Update the route query parameter for tab
-// Store the selected file
 const selectedFile = ref<WorkflowFile | undefined>(undefined)
 
 // Computed property for selected file path
@@ -94,15 +98,15 @@ const selectedFilePath = computed(() =>
 
 // Configure file content query with caching
 const fileContentQuery = useQuery({
-  queryKey: ['file-content', workflowPath, selectedFilePath],
+  queryKey: computed(() => queryKeys.fileContent(workflowId.value, selectedFilePath.value || '')),
   queryFn: () => {
     // Make sure we have both required parameters as strings
-    if (!workflowPath.value || !selectedFilePath.value) {
+    if (!workflowId.value || !selectedFilePath.value) {
       return Promise.resolve('') // Return empty string if path is missing
     }
-    return workflowService.getFileContent(workflowPath.value, selectedFilePath.value)
+    return workflowService.getFileContent(workflowId.value, selectedFilePath.value)
   },
-  enabled: computed(() => !!workflowPath.value && !!selectedFilePath.value),
+  enabled: computed(() => !!workflowId.value && !!selectedFilePath.value),
   retry: 1,
 })
 
@@ -122,9 +126,7 @@ const availableTabs = computed(() => {
     tabs.push({ id: 'agent-trace', label: 'Agent Trace' })
   }
 
-  // if (evaluationStatusQuery.data.value?.hasEvalCases) {
   tabs.push({ id: 'criteria', label: 'Evaluation Criteria' })
-  // }
 
   if (evaluationStatusQuery.data.value?.hasEvalResults) {
     tabs.push({ id: 'results', label: 'Evaluation Results' })
@@ -154,7 +156,7 @@ const currentTabComponent = computed(() => {
 // Props to pass to the current tab component
 const tabProps = computed(() => {
   const baseProps = {
-    workflowPath: workflowPath.value,
+    workflowId: workflowId.value,
   }
 
   // Add tab-specific props
@@ -164,7 +166,10 @@ const tabProps = computed(() => {
         ...baseProps,
         files: workflow.value?.files || [],
         selectedFile: selectedFile.value,
-        content: fileContentQuery.data.value || '',
+        content:
+          typeof fileContentQuery.data.value === 'string'
+            ? fileContentQuery.data.value
+            : JSON.stringify(fileContentQuery.data.value, null, 2) || '',
         loading: fileContentQuery.isLoading.value,
         error: fileContentQuery.error.value?.message || '',
         onSelect: handleFileSelect,
@@ -188,27 +193,11 @@ function handleEvaluationStatusChange() {
 
 // Navigation
 function navigateBack() {
-  router.push(routes.workflowList)
+  router.push('/workflows')
 }
 
-// Load data when the component mounts
-onMounted(async () => {
-  // Load the workflow if not already in store
-  if (!workflow.value) {
-    loading.value = true
-    try {
-      await workflowsStore.loadWorkflows()
-      if (!workflow.value) {
-        error.value = `Workflow "${workflowId.value}" not found`
-      }
-    } catch (err: unknown) {
-      error.value = err instanceof Error ? err.message : String(err)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  // Set tab from query parameter if present
+// Set tab from query parameter when component mounts
+onMounted(() => {
   if (route.query.tab) {
     setActiveTab(route.query.tab.toString())
   }

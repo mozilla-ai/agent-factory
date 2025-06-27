@@ -11,33 +11,21 @@
     <div v-else class="trace-content">
       <div class="trace-header">
         <h3>Agent Evaluation Trace</h3>
-        <button class="delete-button" @click="openDeleteDialog">Delete Trace</button>
+        <BaseButton variant="danger" @click="handleDeleteClick">Delete Trace</BaseButton>
       </div>
 
       <!-- Summary Card -->
       <div class="summary-card">
         <h3>Agent Execution Summary</h3>
         <div class="summary-stats">
-          <div class="stat">
-            <span class="stat-label">Duration</span>
-            <span class="stat-value">{{ formatDuration(executionDuration) }} seconds</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Total Cost</span>
-            <span class="stat-value">${{ totalCost.toFixed(4) }}</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Total Tokens</span>
-            <span class="stat-value">{{ totalTokens }}</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Steps</span>
-            <span class="stat-value">{{ traceQuery.data.value.spans.length }}</span>
-          </div>
+          <MetricDisplay label="Duration" :value="`${formatDuration(executionDuration)} seconds`" />
+          <MetricDisplay label="Total Cost" :value="`$${totalCost.toFixed(4)}`" />
+          <MetricDisplay label="Total Tokens" :value="totalTokens" />
+          <MetricDisplay label="Steps" :value="traceQuery.data.value?.spans?.length || 0" />
         </div>
         <div class="final-output">
           <h4>Final Output</h4>
-          <pre>{{ traceQuery.data.value.final_output }}</pre>
+          <pre>{{ JSON.stringify(traceQuery.data.value?.final_output, null, 2) }}</pre>
         </div>
       </div>
 
@@ -45,84 +33,65 @@
       <div class="execution-timeline">
         <h3>Execution Timeline</h3>
         <div class="timeline">
-          <div
-            v-for="(span, index) in traceQuery.data.value.spans"
+          <TimelineItem
+            v-for="(span, index) in traceQuery.data.value?.spans || []"
             :key="index"
-            class="timeline-item"
-            :class="{
-              'timeline-item-llm': span.name.startsWith('call_llm'),
-              'timeline-item-tool': span.name.startsWith('execute_tool'),
-            }"
+            :title="formatSpanTitle(span.name)"
+            :duration="formatTime(span.start_time, span.end_time)"
+            :is-expanded="!!expandedSpans[index]"
+            :is-l-l-m-call="span.name.startsWith('call_llm')"
+            :is-tool-call="span.name.startsWith('execute_tool')"
+            :is-agent-execution="span.name.startsWith('invoke_agent')"
+            @toggle="toggleSpan(index)"
           >
-            <div class="timeline-header" @click="toggleSpan(index)">
-              <div class="timeline-icon">
-                <span v-if="span.name.startsWith('call_llm')">🤖</span>
-                <span v-else-if="span.name.startsWith('execute_tool')">🔧</span>
-                <span v-else>📝</span>
-              </div>
-              <div class="timeline-title">
-                <h4>{{ formatSpanTitle(span.name) }}</h4>
-                <span class="timeline-time">{{ formatTime(span.start_time, span.end_time) }}</span>
-              </div>
-              <div class="timeline-expand">
-                <span v-if="expandedSpans[index]">▼</span>
-                <span v-else>►</span>
-              </div>
-            </div>
+            <TraceSection v-if="span.attributes['gen_ai.input.messages']" title="Input">
+              <CodeBlock :content="safeJsonFormat(span.attributes['gen_ai.input.messages'])" />
+            </TraceSection>
 
-            <div class="timeline-details" v-if="expandedSpans[index]">
-              <div v-if="span.attributes['gen_ai.input.messages']" class="detail-section">
-                <h5>Input</h5>
-                <pre class="trace-code">{{
-                  formatMessages(span.attributes['gen_ai.input.messages'])
-                }}</pre>
-              </div>
+            <TraceSection v-if="span.attributes['gen_ai.output']" title="Output">
+              <CodeBlock :content="safeJsonFormat(span.attributes['gen_ai.output'])" />
+            </TraceSection>
 
-              <div v-if="span.attributes['gen_ai.output']" class="detail-section">
-                <h5>Output</h5>
-                <pre class="trace-code">{{ formatOutput(span.attributes['gen_ai.output']) }}</pre>
-              </div>
+            <TraceSection v-if="span.attributes['gen_ai.tool.args']" title="Tool Arguments">
+              <CodeBlock :content="safeJsonFormat(span.attributes['gen_ai.tool.args'])" />
+            </TraceSection>
 
-              <div v-if="span.attributes['gen_ai.tool.args']" class="detail-section">
-                <h5>Tool Arguments</h5>
-                <pre class="trace-code">{{ formatJson(span.attributes['gen_ai.tool.args']) }}</pre>
-              </div>
+            <TraceSection v-if="hasTokenInfo(span)" title="Metrics" variant="metrics">
+              <MetricDisplay
+                variant="metric"
+                label="Input Tokens"
+                :value="span.attributes['gen_ai.usage.input_tokens'] || 'N/A'"
+              />
+              <MetricDisplay
+                variant="metric"
+                label="Output Tokens"
+                :value="span.attributes['gen_ai.usage.output_tokens'] || 'N/A'"
+              />
+              <MetricDisplay
+                variant="metric"
+                label="Input Cost"
+                :value="`$${Number(span.attributes['gen_ai.usage.input_cost'] || 0).toFixed(6)}`"
+              />
+              <MetricDisplay
+                variant="metric"
+                label="Output Cost"
+                :value="`$${Number(span.attributes['gen_ai.usage.output_cost'] || 0).toFixed(6)}`"
+              />
+            </TraceSection>
 
-              <div v-if="hasTokenInfo(span)" class="detail-section metrics">
-                <h5>Metrics</h5>
-                <div class="metrics-grid">
-                  <div class="metric-item">
-                    <span class="metric-label">Input Tokens</span>
-                    <span class="metric-value">{{
-                      span.attributes['gen_ai.usage.input_tokens'] || 'N/A'
-                    }}</span>
-                  </div>
-                  <div class="metric-item">
-                    <span class="metric-label">Output Tokens</span>
-                    <span class="metric-value">{{
-                      span.attributes['gen_ai.usage.output_tokens'] || 'N/A'
-                    }}</span>
-                  </div>
-                  <div class="metric-item">
-                    <span class="metric-label">Input Cost</span>
-                    <span class="metric-value"
-                      >${{
-                        Number(span.attributes['gen_ai.usage.input_cost'] || 0).toFixed(6)
-                      }}</span
-                    >
-                  </div>
-                  <div class="metric-item">
-                    <span class="metric-label">Output Cost</span>
-                    <span class="metric-value"
-                      >${{
-                        Number(span.attributes['gen_ai.usage.output_cost'] || 0).toFixed(6)
-                      }}</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            <!-- Fallback: Show all attributes if no standard ones are found -->
+            <TraceSection
+              v-if="!hasStandardAttributes(span) && Object.keys(span.attributes).length > 0"
+              title="Span Attributes"
+            >
+              <CodeBlock :content="safeJsonFormat(JSON.stringify(span.attributes, null, 2))" />
+            </TraceSection>
+
+            <!-- If no attributes at all, show a message -->
+            <TraceSection v-if="Object.keys(span.attributes).length === 0">
+              <p class="no-details">No detailed information available for this step.</p>
+            </TraceSection>
+          </TimelineItem>
         </div>
       </div>
     </div>
@@ -130,106 +99,88 @@
     <!-- Add Confirmation Dialog -->
     <ConfirmationDialog
       :isOpen="showDeleteDialog"
-      title="Delete Agent Evaluation Trace"
-      message="Are you sure you want to delete this agent evaluation trace? This will also delete any evaluation results. This action cannot be undone."
-      confirmButtonText="Delete"
+      :title="deleteOptions?.title || 'Delete Agent Evaluation Trace'"
+      :message="
+        deleteOptions?.message || 'Are you sure you want to delete this agent evaluation trace?'
+      "
+      :confirmButtonText="deleteOptions?.confirmButtonText || 'Delete'"
       :isDangerous="true"
       :isLoading="deleteTraceMutation.isPending.value"
       @confirm="confirmDelete"
-      @cancel="cancelDelete"
+      @cancel="closeDeleteDialog"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
-import { deleteAgentEvalTrace } from '../../services/evaluationService'
+import { ref } from 'vue'
+import { useQuery, useMutation } from '@tanstack/vue-query'
+import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
 import { workflowService } from '@/services/workflowService'
-import { useRouter } from 'vue-router'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import { useTraceMetrics } from '@/composables/useTraceMetrics'
+import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
+import { useNavigation } from '@/composables/useNavigation'
+import { queryKeys } from '@/helpers/queryKeys'
+import MetricDisplay from '../MetricDisplay.vue'
+import TraceSection from '../TraceSection.vue'
+import CodeBlock from '../CodeBlock.vue'
+import TimelineItem from '../TimelineItem.vue'
+import BaseButton from '../BaseButton.vue'
 
-const workflowsStore = useWorkflowsStore()
-interface TraceMessage {
-  role: string
-  content: string
-}
-
-// interface AgentTrace {
-//   spans: TraceSpan[]
-//   final_output: string
-// }
-
-// Update the TraceSpan interface to properly type the attributes
-interface TraceSpan {
-  name: string
-  kind: string
-  parent: Record<string, unknown>
-  start_time: number
-  end_time: number
-  status: {
-    status_code: string
-    description: string | null
-  }
-  context: Record<string, unknown>
-  attributes: {
-    'gen_ai.input.messages'?: string
-    'gen_ai.output'?: string
-    'gen_ai.tool.args'?: string
-    'gen_ai.usage.input_tokens'?: number
-    'gen_ai.usage.output_tokens'?: number
-    'gen_ai.usage.input_cost'?: number
-    'gen_ai.usage.output_cost'?: number
-    [key: string]: unknown
-  }
-  links: unknown[]
-  events: unknown[]
-  resource: {
-    attributes: Record<string, string>
-    schema_url: string
-  }
-}
+const {
+  invalidateEvaluationQueries,
+  invalidateAgentTrace,
+  invalidateFileQueries,
+  invalidateWorkflows,
+} = useQueryInvalidation()
+const { navigateToEvaluate } = useNavigation()
 
 // Props
 const props = defineProps<{
-  workflowPath: string
+  workflowId: string
 }>()
 
 // State for UI interactions
 const expandedSpans = ref<Record<number, boolean>>({})
-const showDeleteDialog = ref(false)
-const queryClient = useQueryClient()
+
+// Use delete confirmation composable
+const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
+  useDeleteConfirmation()
 
 // Fetch agent trace data using TanStack Query
 const traceQuery = useQuery({
-  queryKey: ['agentEvalTrace', props.workflowPath],
-  queryFn: () => workflowService.getAgentTrace(props.workflowPath),
+  queryKey: queryKeys.agentTrace(props.workflowId),
+  queryFn: () => workflowService.getAgentTrace(props.workflowId),
   retry: 1,
 })
-const router = useRouter()
+
+// Use trace metrics composable for calculations
+const {
+  executionDuration,
+  totalCost,
+  totalTokens,
+  formatDuration,
+  formatTime,
+  formatSpanTitle,
+  hasTokenInfo,
+  hasStandardAttributes,
+} = useTraceMetrics(traceQuery.data)
 
 // Delete mutation
 const deleteTraceMutation = useMutation({
-  mutationFn: () => deleteAgentEvalTrace(props.workflowPath),
+  mutationFn: () => evaluationService.deleteAgentEvalTrace(props.workflowId),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['agentEvalTrace', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
-    // Refresh the workflow store to update file explorer
-    workflowsStore.loadWorkflows()
-    queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'agent_eval_trace.json'],
-    })
-    showDeleteDialog.value = false
-    router.push({
-      params: { workflowPath: props.workflowPath },
-      query: { tab: 'evaluate' },
-    })
+    invalidateAgentTrace(props.workflowId)
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, 'agent_eval_trace.json', 'evaluation_results.json')
+    invalidateWorkflows()
+    closeDeleteDialog()
+    navigateToEvaluate(props.workflowId)
   },
 })
 
-// Toggle span expansion
 function toggleSpan(index: number): void {
   expandedSpans.value = {
     ...expandedSpans.value,
@@ -237,129 +188,34 @@ function toggleSpan(index: number): void {
   }
 }
 
-// Format span title for display
-function formatSpanTitle(name: string): string {
-  return name
-    .replace('call_llm ', 'LLM Call: ')
-    .replace('execute_tool ', 'Tool: ')
-    .replace('invoke_agent', 'Agent Execution')
-}
+// Safely format JSON or return as-is if it's not valid JSON
+function safeJsonFormat(value: unknown): string {
+  if (!value) return ''
 
-// Format duration for display
-function formatDuration(nanoseconds: number): string {
-  return (nanoseconds / 1_000_000_000).toFixed(2)
-}
+  const stringValue = String(value)
 
-// Format time for display
-function formatTime(start: number, end: number): string {
-  const durationMs = (end - start) / 1_000_000
-  return `${durationMs.toFixed(0)}ms`
-}
-
-// Format JSON messages for display
-function formatMessages(messagesJson: unknown): string {
-  if (typeof messagesJson !== 'string') return String(messagesJson || '')
-
+  // Try to parse as JSON first
   try {
-    const messages = JSON.parse(messagesJson) as TraceMessage[]
-    let formatted = ''
-
-    messages.forEach((msg: TraceMessage) => {
-      formatted += `[${msg.role}]:\n${msg.content}\n\n`
-    })
-
-    return formatted
+    const parsed = JSON.parse(stringValue)
+    return JSON.stringify(parsed, null, 2)
   } catch {
-    return String(messagesJson)
+    // If it's not valid JSON, return the raw string
+    return stringValue
   }
 }
-
-// Format JSON output for display
-function formatOutput(outputJson: unknown): string {
-  if (typeof outputJson !== 'string') return String(outputJson || '')
-
-  try {
-    const output = JSON.parse(outputJson) as Record<string, unknown>
-    return JSON.stringify(output, null, 2)
-  } catch {
-    return String(outputJson)
-  }
-}
-
-// Format JSON for display
-function formatJson(jsonString: unknown): string {
-  if (typeof jsonString !== 'string') return String(jsonString || '')
-
-  try {
-    const obj = JSON.parse(jsonString) as Record<string, unknown>
-    return JSON.stringify(obj, null, 2)
-  } catch {
-    return String(jsonString)
-  }
-}
-
-// Check if span has token info
-function hasTokenInfo(span: TraceSpan): boolean {
-  return !!(
-    span.attributes['gen_ai.usage.input_tokens'] ||
-    span.attributes['gen_ai.usage.output_tokens'] ||
-    span.attributes['gen_ai.usage.input_cost'] ||
-    span.attributes['gen_ai.usage.output_cost']
-  )
-}
-
-// Calculate execution duration
-const executionDuration = computed(() => {
-  if (!traceQuery.data.value) return 0
-
-  const firstSpan = traceQuery.data.value.spans.reduce(
-    (earliest: TraceSpan | null, span: TraceSpan) =>
-      !earliest || span.start_time < earliest.start_time ? span : earliest,
-    null,
-  )
-
-  const lastSpan = traceQuery.data.value.spans.reduce(
-    (latest: TraceSpan | null, span: TraceSpan) =>
-      !latest || span.end_time > latest.end_time ? span : latest,
-    null,
-  )
-
-  return firstSpan && lastSpan ? lastSpan.end_time - firstSpan.start_time : 0
-})
-
-// Calculate total cost
-const totalCost = computed(() => {
-  if (!traceQuery.data.value) return 0
-
-  return traceQuery.data.value.spans.reduce((sum: number, span: TraceSpan) => {
-    const inputCost = Number(span.attributes['gen_ai.usage.input_cost']) || 0
-    const outputCost = Number(span.attributes['gen_ai.usage.output_cost']) || 0
-    return sum + inputCost + outputCost
-  }, 0)
-})
-
-// Calculate total tokens
-const totalTokens = computed(() => {
-  if (!traceQuery.data.value) return 0
-
-  return traceQuery.data.value.spans.reduce((sum: number, span: TraceSpan) => {
-    const inputTokens = Number(span.attributes['gen_ai.usage.input_tokens']) || 0
-    const outputTokens = Number(span.attributes['gen_ai.usage.output_tokens']) || 0
-    return sum + inputTokens + outputTokens
-  }, 0)
-})
 
 // Functions for delete confirmation
-const openDeleteDialog = () => {
-  showDeleteDialog.value = true
+const handleDeleteClick = () => {
+  openDeleteDialog({
+    title: 'Delete Agent Evaluation Trace',
+    message:
+      'Are you sure you want to delete this agent evaluation trace? This will also delete any evaluation results. This action cannot be undone.',
+    confirmButtonText: 'Delete',
+  })
 }
 
 const confirmDelete = () => {
   deleteTraceMutation.mutate()
-}
-
-const cancelDelete = () => {
-  showDeleteDialog.value = false
 }
 </script>
 
@@ -395,21 +251,6 @@ const cancelDelete = () => {
   margin: 1rem 0;
 }
 
-.stat {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--color-text-light, var(--color-text-secondary));
-}
-
-.stat-value {
-  font-size: 1.2rem;
-  font-weight: 500;
-}
-
 .final-output {
   background-color: var(--color-background);
   border-radius: 4px;
@@ -430,111 +271,6 @@ const cancelDelete = () => {
   gap: 0.75rem;
 }
 
-.timeline-item {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.timeline-item-llm {
-  border-left: 4px solid #3498db;
-}
-
-.timeline-item-tool {
-  border-left: 4px solid #2ecc71;
-}
-
-.timeline-header {
-  display: flex;
-  padding: 1rem;
-  cursor: pointer;
-  background-color: var(--color-background);
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.timeline-header:hover {
-  background-color: var(--color-background-soft);
-}
-
-.timeline-icon {
-  font-size: 1.5rem;
-  width: 2rem;
-  text-align: center;
-}
-
-.timeline-title {
-  flex: 1;
-}
-
-.timeline-title h4 {
-  margin: 0;
-  font-weight: 500;
-}
-
-.timeline-time {
-  font-size: 0.9rem;
-  color: var(--color-text-light, var(--color-text-secondary));
-}
-
-.timeline-details {
-  padding: 1rem;
-  background-color: var(--color-background-soft);
-  border-top: 1px solid var(--color-border);
-}
-
-.detail-section {
-  margin-bottom: 1rem;
-}
-
-.detail-section h5 {
-  margin: 0 0 0.5rem 0;
-  font-weight: 500;
-  color: var(--color-heading, var(--color-text));
-}
-
-.trace-code {
-  background-color: var(--color-background);
-  padding: 0.75rem;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 0.9rem;
-  overflow: auto;
-  max-height: 300px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0;
-  border: 1px solid var(--color-border);
-}
-
-.metrics {
-  background-color: var(--color-background);
-  border-radius: 4px;
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-}
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 1rem;
-}
-
-.metric-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.metric-label {
-  font-size: 0.8rem;
-  color: var(--color-text-light, var(--color-text-secondary));
-}
-
-.metric-value {
-  font-weight: 500;
-}
-
 .agent-eval-trace-viewer {
   padding: 1rem;
 }
@@ -544,21 +280,6 @@ const cancelDelete = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-}
-
-.delete-button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-error);
-  background-color: var(--color-error-soft);
-  color: var(--color-error);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.delete-button:hover {
-  background-color: var(--color-error);
-  color: white;
 }
 
 /* Responsive adjustments */
@@ -573,5 +294,13 @@ const cancelDelete = () => {
   .metrics-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.no-details {
+  color: var(--color-text-light, var(--color-text-secondary));
+  font-style: italic;
+  margin: 0;
+  text-align: center;
+  padding: 1rem;
 }
 </style>

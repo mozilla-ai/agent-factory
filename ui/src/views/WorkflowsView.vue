@@ -27,17 +27,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useWorkflowsStore } from '../stores/workflows'
+import { useWorkflows } from '@/composables/useWorkflows'
 
 const router = useRouter()
-const workflowsStore = useWorkflowsStore()
-
-// Compute state from store
-const workflows = computed(() => workflowsStore.workflows)
-const loading = computed(() => workflowsStore.loading)
-const error = computed(() => workflowsStore.error)
+const { workflows, loading, error } = useWorkflows()
 
 // Navigate to the workflow details view - no direct API calls
 function selectWorkflow(workflow: { name: string }) {
@@ -48,11 +42,7 @@ function selectWorkflow(workflow: { name: string }) {
 }
 
 // Load workflows when the component is mounted
-onMounted(async () => {
-  if (workflows.value.length === 0) {
-    await workflowsStore.loadWorkflows()
-  }
-})
+// TanStack Query automatically loads workflows - no manual loading needed!
 </script>
 
 <style scoped>

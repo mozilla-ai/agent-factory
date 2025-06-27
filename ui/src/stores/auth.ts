@@ -25,7 +25,7 @@ interface TokenResponse {
 }
 
 // Constants
-const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL
+const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL || 'http://localhost:3000'
 const TOKEN_EXPIRY_THRESHOLD = 60 // Seconds before expiry to refresh token
 const STORAGE_KEYS = {
   TOKEN: 'token',

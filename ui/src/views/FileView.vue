@@ -1,7 +1,7 @@
 <template>
   <div class="file-view">
     <!-- Only show back button when used as a standalone page -->
-    <div v-if="!workflowName" class="file-nav">
+    <div v-if="!workflowId" class="file-nav">
       <button class="back-button" @click="goBack"><span class="back-icon">←</span> Back</button>
     </div>
 
@@ -28,9 +28,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, defineEmits } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
+import { workflowService } from '@/services/workflowService'
+import { queryKeys } from '@/helpers/queryKeys'
 
 const props = defineProps({
   // When used as an embedded component
@@ -38,7 +40,7 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  workflowName: {
+  workflowId: {
     type: String,
     default: '',
   },
@@ -66,26 +68,15 @@ const fileName = computed(() => {
 })
 
 const fileQuery = useQuery({
-  queryKey: ['file-content', filePath],
+  queryKey: computed(() => queryKeys.fileContent(props.workflowId, filePath.value)),
   queryFn: async () => {
-    const response = await fetch(`http://localhost:3000/agent-factory/workflows/${filePath.value}`)
-
-    if (!response.ok) {
-      throw new Error(`Failed to load file: ${response.status} ${response.statusText}`)
+    try {
+      const data = await workflowService.getFileContent(route.params.id as string, filePath.value)
+      return data
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      throw new Error(`Failed to load file: ${errorMessage}`)
     }
-
-    // Handle binary files - return a message instead of binary content
-    const contentType = response.headers.get('content-type') || ''
-    if (
-      contentType.includes('image/') ||
-      contentType.includes('audio/') ||
-      contentType.includes('video/') ||
-      contentType.includes('application/octet-stream')
-    ) {
-      return `[This is a binary file (${contentType}) and cannot be displayed inline]\n\nYou can download it at: http://localhost:3000/agent-factory/workflows/${filePath.value}`
-    }
-
-    return response.text()
   },
   enabled: computed(() => !!filePath.value),
   retry: 1,
@@ -93,7 +84,7 @@ const fileQuery = useQuery({
 
 // Navigation function - only used in standalone mode
 const goBack = () => {
-  // If we have a workflowName, go back to that workflow
+  // If we have a workflowId, go back to that workflow
   router.back()
 }
 </script>

@@ -1,8 +1,45 @@
+// File system types
+export interface FileEntry {
+  name: string
+  isDirectory: boolean
+  files?: FileEntry[]
+  path?: string
+}
+
+export interface TransformedFileEntry extends FileEntry {
+  path: string
+}
+
 export interface WorkflowFile {
   name: string
   isDirectory: boolean
   files?: WorkflowFile[]
   path?: string
+}
+
+// Evaluation types
+export interface EvaluationCheckpoint {
+  criteria: string
+  points: number
+  result?: 'pass' | 'fail'
+  feedback?: string
+}
+
+export interface EvaluationCriteria {
+  llm_judge: string
+  checkpoints: EvaluationCheckpoint[]
+}
+
+export interface EvaluationResult {
+  criteria: string
+  result: 'pass' | 'fail'
+  feedback: string
+}
+
+export interface EvaluationResults {
+  score: number
+  maxScore: number
+  checkpoints: EvaluationCheckpoint[]
 }
 
 export interface EvaluationStatus {
@@ -11,6 +48,13 @@ export interface EvaluationStatus {
   hasEvalResults: boolean
 }
 
+export interface SaveCriteriaResponse {
+  success: boolean
+  message: string
+  path: string
+}
+
+// Agent trace types
 export interface TraceMessage {
   role: string
   content: string
@@ -48,17 +92,4 @@ export interface TraceSpan {
 export interface AgentTrace {
   spans: TraceSpan[]
   final_output: string
-}
-
-export interface EvaluationCheckpoint {
-  criteria: string
-  result: 'pass' | 'fail'
-  points: number
-  feedback: string
-}
-
-export interface EvaluationResults {
-  score: number
-  maxScore: number
-  checkpoints: EvaluationCheckpoint[]
 }
