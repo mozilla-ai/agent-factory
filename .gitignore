@@ -182,6 +182,9 @@ generated_workflows
 # chainlit
 .chainlit/translations
 
+# VS Code
+.vscode/
+
 # node
 node_modules/
 # test results
