@@ -35,6 +35,7 @@ CODE_EXAMPLE_WITH_COMMENTS = """
 import os
 
 # ALWAYS used
+from pathlib import Path
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent
 from any_agent.config import MCPStdio
@@ -120,8 +121,12 @@ def run_agent(url: str):
         agent_trace = e.trace
         print(f"Agent execution failed: {{str(e)}}")
         print("Retrieved partial agent trace...")
-    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
+
+    script_dir = Path(__file__).resolve().parent
+    output_path = script_dir / "agent_eval_trace.json"
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
+
     return agent_trace.final_output
 
 
@@ -177,6 +182,7 @@ AGENT_CODE_TEMPLATE = """
 import os
 
 # ALWAYS used
+from pathlib import Path
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
 from any_agent.config import MCPStdio
@@ -219,8 +225,12 @@ def run_agent({cli_args}):
         agent_trace = e.trace
         print(f"Agent execution failed: {{str(e)}}")
         print("Retrieved partial agent trace...")
-    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
+
+    script_dir = Path(__file__).resolve().parent
+    output_path = script_dir / "agent_eval_trace.json"
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(agent_trace.model_dump_json(indent=2))
+
     return agent_trace.final_output
 
 if __name__ == "__main__":
