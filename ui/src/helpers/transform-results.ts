@@ -6,7 +6,20 @@ interface CheckpointResult {
   points: number
 }
 
+// Updated interface for the new evaluation results format
+interface NewEvaluationResult {
+  passed: boolean
+  reasoning: string
+}
+
 interface NewFormatData {
+  obtained_score: number
+  max_score: number
+  results: NewEvaluationResult[]
+}
+
+// Legacy format for backward compatibility
+interface LegacyFormatData {
   obtained_score: number
   max_score: number
   checkpoint_results: CheckpointResult[]
@@ -27,29 +40,82 @@ export interface OldFormatData {
   maxScore: number
 }
 
+// Type for evaluation criteria to merge with results
+interface EvaluationCriteria {
+  checkpoints: Array<{
+    criteria: string
+    points: number
+  }>
+}
+
 // Transform results to align with criteria
-export const transformResults = (data: NewFormatData | OldFormatData): OldFormatData => {
+export const transformResults = (
+  data: NewFormatData | LegacyFormatData | OldFormatData,
+  criteria?: EvaluationCriteria
+): OldFormatData => {
   // If it's already in the old format, return it as is
   if ('checkpoints' in data && data.checkpoints) {
     return data
   }
 
-  const newData = data as NewFormatData
+  // Handle case where data might be incomplete or undefined
+  if (!data || typeof data !== 'object') {
+    return {
+      checkpoints: [],
+      totalScore: 0,
+      maxPossibleScore: 0,
+      score: 0,
+      maxScore: 0,
+    }
+  }
 
-  // Transform from new format to old format
+  // Check if it's the new format with 'results' array
+  if ('results' in data && Array.isArray(data.results)) {
+    const newData = data as NewFormatData
+    return {
+      // Add metadata from new format
+      totalScore: newData.obtained_score || 0,
+      maxPossibleScore: newData.max_score || 0,
+      score: newData.obtained_score || 0,
+      maxScore: newData.max_score || 0,
+
+      // Transform results to match the expected format, combining with criteria if available
+      checkpoints: newData.results.map((result: NewEvaluationResult, index: number) => {
+        const criteriaItem = criteria?.checkpoints?.[index]
+        return {
+          result: result.passed ? 'pass' : 'fail',
+          feedback: result.reasoning || '',
+          criteria: criteriaItem?.criteria || `Evaluation Criterion ${index + 1}`,
+          points: criteriaItem?.points || -1,
+        }
+      }),
+    }
+  }
+
+  // Handle legacy format with 'checkpoint_results'
+  if ('checkpoint_results' in data && Array.isArray(data.checkpoint_results)) {
+    const legacyData = data as LegacyFormatData
+    return {
+      totalScore: legacyData.obtained_score || 0,
+      maxPossibleScore: legacyData.max_score || 0,
+      score: legacyData.obtained_score || 0,
+      maxScore: legacyData.max_score || 0,
+
+      checkpoints: legacyData.checkpoint_results.map((checkpoint: CheckpointResult) => ({
+        result: checkpoint.passed ? 'pass' : 'fail',
+        feedback: checkpoint.reason || '',
+        criteria: checkpoint.criteria || '',
+        points: checkpoint.points || 0,
+      })),
+    }
+  }
+
+  // Fallback for unknown format
   return {
-    // Add metadata from new format
-    totalScore: newData.obtained_score,
-    maxPossibleScore: newData.max_score,
-    score: newData.obtained_score,
-    maxScore: newData.max_score,
-
-    // Transform checkpoint results to match the expected format
-    checkpoints: newData.checkpoint_results.map((checkpoint: CheckpointResult) => ({
-      result: checkpoint.passed ? 'pass' : 'fail',
-      feedback: checkpoint.reason,
-      criteria: checkpoint.criteria,
-      points: checkpoint.points,
-    })),
+    checkpoints: [],
+    totalScore: 0,
+    maxPossibleScore: 0,
+    score: 0,
+    maxScore: 0,
   }
 }

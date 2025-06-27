@@ -1,11 +1,58 @@
 import { apiClient } from './api'
-import Yaml from 'yaml'
 import { workflowService } from './workflowService'
 import { ENDPOINTS } from '@/config/endpoints'
 import { API_CONFIG } from '@/config/api.config'
 import { getErrorMessage } from '@/helpers/error.helpers'
 import { fetchStream } from '@/helpers/stream.helpers'
 import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/index'
+
+// Current simple JSON structure from Python
+interface SimpleEvaluationCase {
+  criteria: string[]
+}
+
+// Future enhanced JSON structure that might include points
+interface EnhancedEvaluationCase {
+  criteria: Array<{
+    criteria: string
+    points?: number
+  }>
+  llm_judge?: string
+}
+
+// Union type to handle both current and future formats
+type NewEvaluationCase = SimpleEvaluationCase | EnhancedEvaluationCase
+
+// Type guard to check if it's the enhanced format
+function isEnhancedFormat(data: NewEvaluationCase): data is EnhancedEvaluationCase {
+  return Array.isArray(data.criteria) &&
+         data.criteria.length > 0 &&
+         typeof data.criteria[0] === 'object' &&
+         'criteria' in data.criteria[0]
+}
+
+// Transform function to convert new JSON format to old structure
+function transformToOldFormat(newFormat: NewEvaluationCase): EvaluationCriteria {
+  if (isEnhancedFormat(newFormat)) {
+    // Handle future enhanced format with potential points
+    return {
+      llm_judge: newFormat.llm_judge || 'gpt-4.1',
+      checkpoints: newFormat.criteria.map((item) => ({
+        criteria: item.criteria,
+        points: item.points || -1, // Use provided points or fallback to -1
+      }))
+    }
+  } else {
+    // Handle current simple format
+    return {
+      llm_judge: 'gpt-4.1', // Default value since not in current format
+      checkpoints: newFormat.criteria.map((criterion) => ({
+        criteria: criterion,
+        points: -1, // Default fallback value to indicate not set
+      }))
+    }
+  }
+}
 
 export const evaluationService = {
   async runAgent(workflowId: string): Promise<ReadableStream> {
@@ -30,22 +77,30 @@ export const evaluationService = {
     )
   },
 
-  async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
-    const content = await workflowService.getFileContent(workflowId, 'evaluation_case.yaml')
-    return Yaml.parse(content)
+          async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
+    try {
+      const content = await workflowService.getFileContent(workflowId, 'evaluation_case.json')
+
+      // Check if content is already parsed (object) or needs parsing (string)
+      const newFormat: NewEvaluationCase = typeof content === 'string' ? JSON.parse(content) : content
+
+      // Transform new format to old format for backward compatibility with UI components
+      return transformToOldFormat(newFormat)
+    } catch (error) {
+      console.error('Error loading evaluation criteria:', error)
+      throw error
+    }
   },
 
-  async saveEvaluationCriteria(
+  async saveCriteria(
     workflowId: string,
-    criteriaData: EvaluationCriteria,
+    criteria: EvaluationCriteria,
   ): Promise<SaveCriteriaResponse> {
     try {
-      const response = await apiClient.post(ENDPOINTS.saveCriteria(workflowId), criteriaData)
+      const response = await apiClient.post(ENDPOINTS.saveCriteria(workflowId), criteria)
       return response.data
     } catch (error) {
-      const message = getErrorMessage(error)
-      console.error('API Error in saving evaluation criteria:', error)
-      throw new Error(message)
+      throw new Error('Failed to save evaluation criteria: ' + getErrorMessage(error))
     }
   },
 

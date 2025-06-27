@@ -17,7 +17,24 @@ export interface WorkflowFile {
   path?: string
 }
 
-// Evaluation types
+// Current simple JSON structure from Python (raw format)
+export interface SimpleEvaluationCase {
+  criteria: string[]
+}
+
+// Future enhanced JSON structure that might include points and llm_judge
+export interface EnhancedEvaluationCase {
+  criteria: Array<{
+    criteria: string
+    points?: number
+  }>
+  llm_judge?: string
+}
+
+// Union type to handle both current and future formats
+export type NewEvaluationCase = SimpleEvaluationCase | EnhancedEvaluationCase
+
+// Evaluation types (UI internal format - always includes points for UI components)
 export interface EvaluationCheckpoint {
   criteria: string
   points: number
@@ -26,7 +43,7 @@ export interface EvaluationCheckpoint {
 }
 
 export interface EvaluationCriteria {
-  llm_judge: string
+  llm_judge?: string // Optional since new format doesn't always include it
   checkpoints: EvaluationCheckpoint[]
 }
 

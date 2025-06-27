@@ -27,14 +27,31 @@ export interface ApiError {
   details?: unknown
 }
 
-// Evaluation types
+// Current simple JSON structure from Python (raw format)
+export interface SimpleEvaluationCase {
+  criteria: string[]
+}
+
+// Future enhanced JSON structure that might include points and llm_judge
+export interface EnhancedEvaluationCase {
+  criteria: Array<{
+    criteria: string
+    points?: number
+  }>
+  llm_judge?: string
+}
+
+// Union type to handle both current and future formats
+export type NewEvaluationCase = SimpleEvaluationCase | EnhancedEvaluationCase
+
+// Evaluation types (API internal format - always includes points for consistency)
 export interface EvaluationCheckpoint {
   criteria: string
   points: number
 }
 
 export interface EvaluationCriteria {
-  llm_judge: string
+  llm_judge?: string // Optional since new format doesn't always include it
   checkpoints: EvaluationCheckpoint[]
 }
 
@@ -72,13 +89,14 @@ export const SendInputSchema = z.object({
   input: z.string().min(1),
 })
 
+// Updated schema to be more flexible for future formats
 export const SaveEvaluationCriteriaSchema = z.object({
-  llm_judge: z.string().min(1),
+  llm_judge: z.string().min(1).optional(), // Optional
   checkpoints: z
     .array(
       z.object({
         criteria: z.string().min(1),
-        points: z.number().positive(),
+        points: z.number().positive().optional().default(10), // Optional with default
       }),
     )
     .min(1),

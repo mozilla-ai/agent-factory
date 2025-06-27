@@ -21,8 +21,10 @@ export const workflowService = {
     }
     return response.body as ReadableStream
   },
-  async getFileContent(workflowId: string, filePath: string): Promise<string> {
+  async getFileContent(workflowId: string, filePath: string): Promise<string | any> {
     const response = await apiClient.get(ENDPOINTS.workflowFile(workflowId, filePath))
+    // For JSON files, Axios automatically parses them, so we might get an object
+    // For other files, we get a string
     return response.data
   },
 

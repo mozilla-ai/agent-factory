@@ -7,7 +7,7 @@ import type {
   WorkflowInfo,
   EvaluationCriteria,
   EvaluationResult,
-} from '../types/index.js'
+  } from '../types/index.js'
 
 class FileService {
   // Check if file exists
@@ -156,7 +156,28 @@ class FileService {
     }
   }
 
-  // Save evaluation criteria
+  // Check for existence of specific evaluation files
+  async checkEvaluationFiles(workflowPath: string): Promise<{
+    hasAgentTrace: boolean
+    hasEvalCases: boolean
+    hasEvalResults: boolean
+  }> {
+    const fullPath = getWorkflowPath(workflowPath)
+
+    const [hasAgentTrace, hasEvalCases, hasEvalResults] = await Promise.all([
+      this.fileExists(path.join(fullPath, 'agent_eval_trace.json')),
+      this.fileExists(path.join(fullPath, 'evaluation_case.json')),
+      this.fileExists(path.join(fullPath, 'evaluation_results.json')),
+    ])
+
+    return {
+      hasAgentTrace,
+      hasEvalCases,
+      hasEvalResults,
+    }
+  }
+
+  // Save evaluation criteria - now saves as JSON in the new simple format
   async saveEvaluationCriteria(
     workflowPath: string,
     criteria: EvaluationCriteria,
@@ -167,10 +188,15 @@ class FileService {
 
       await this.ensureDirectory(fullPath)
 
-      const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
+      const criteriaFilePath = path.join(fullPath, 'evaluation_case.json')
       console.log(`Writing criteria file: ${criteriaFilePath}`)
 
-      await fs.writeFile(criteriaFilePath, YAML.stringify(criteria), 'utf8')
+      // Transform to the new simple format that Python expects
+      const newFormat = {
+        criteria: criteria.checkpoints.map(checkpoint => checkpoint.criteria)
+      }
+
+      await fs.writeFile(criteriaFilePath, JSON.stringify(newFormat, null, 2), 'utf8')
       console.log(
         `Successfully saved evaluation criteria to: ${criteriaFilePath}`,
       )
@@ -190,12 +216,12 @@ class FileService {
     }
   }
 
-  // Load evaluation criteria
+  // Load evaluation criteria - handles both current and future JSON formats
   async loadEvaluationCriteria(
     workflowPath: string,
   ): Promise<EvaluationCriteria> {
     const fullPath = getWorkflowPath(workflowPath)
-    const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaFilePath = path.join(fullPath, 'evaluation_case.json')
 
     if (!(await this.fileExists(criteriaFilePath))) {
       throw new Error(
@@ -205,10 +231,49 @@ class FileService {
 
     try {
       const content = await fs.readFile(criteriaFilePath, 'utf8')
-      return YAML.parse(content) as EvaluationCriteria
-    } catch {
+      const jsonData = JSON.parse(content)
+
+      // Handle different JSON formats
+      if (this.isEnhancedFormat(jsonData)) {
+        // Future enhanced format with potential points and llm_judge
+        return {
+          llm_judge: jsonData.llm_judge || 'gpt-4.1',
+          checkpoints: jsonData.criteria.map((item: any) => ({
+            criteria: item.criteria,
+            points: item.points || -1, // Use provided points or fallback to -1
+          }))
+        }
+      } else if (this.isSimpleFormat(jsonData)) {
+        // Current simple format with just criteria array
+        return {
+          llm_judge: 'gpt-4.1', // Default value
+          checkpoints: jsonData.criteria.map((criterion: string) => ({
+            criteria: criterion,
+            points: -1, // Default points value
+          }))
+        }
+      } else {
+        // Assume it's already in the correct format (legacy or manual)
+        return jsonData as EvaluationCriteria
+      }
+    } catch (error) {
       throw new Error('Failed to load evaluation criteria')
     }
+  }
+
+  // Helper method to check if it's the enhanced format
+  private isEnhancedFormat(data: any): boolean {
+    return Array.isArray(data.criteria) &&
+           data.criteria.length > 0 &&
+           typeof data.criteria[0] === 'object' &&
+           'criteria' in data.criteria[0]
+  }
+
+  // Helper method to check if it's the simple format
+  private isSimpleFormat(data: any): boolean {
+    return Array.isArray(data.criteria) &&
+           data.criteria.length > 0 &&
+           typeof data.criteria[0] === 'string'
   }
 
   // Load evaluation results
@@ -270,7 +335,7 @@ class FileService {
   // Delete evaluation criteria file and invalidate evaluation results
   async deleteEvaluationCriteria(workflowPath: string): Promise<boolean> {
     const fullPath = getWorkflowPath(workflowPath)
-    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaPath = path.join(fullPath, 'evaluation_case.json')
 
     try {
       await this.deleteFile(criteriaPath)
@@ -333,6 +398,8 @@ class FileService {
       throw new Error(`Failed to write file: ${filePath}`)
     }
   }
+
+
 }
 
 // Singleton instance

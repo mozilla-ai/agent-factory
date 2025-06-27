@@ -12,17 +12,16 @@
     <form @submit.prevent="handleSubmit">
       <FormField
         v-model="formData.llm_judge"
-        label="LLM Judge"
+        label="LLM Judge (Auto-generated)"
         type="select"
-        required
+        :required="false"
+        :disabled="true"
         field-id="llm-judge"
         :options="[
-          { value: 'openai/gpt-4.1', label: 'OpenAI GPT-4.1' },
-          { value: 'openai/gpt-4', label: 'OpenAI GPT-4' },
-          { value: 'anthropic/claude-3-opus', label: 'Anthropic Claude 3 Opus' },
-          { value: 'anthropic/claude-3-sonnet', label: 'Anthropic Claude 3 Sonnet' },
+          { value: 'gpt-4.1', label: 'GPT-4.1 (Default)' },
         ]"
       />
+      <p class="help-text">LLM Judge is automatically set to gpt-4.1 and cannot be modified in the current format</p>
 
       <div class="checkpoints-section">
         <h4>Evaluation Checkpoints</h4>
@@ -64,7 +63,6 @@
               label="Points"
               type="number"
               required
-              :min="1"
               :max="10"
               :field-id="`points-${index}`"
               :error="formErrors.checkpoints[index]"
@@ -118,11 +116,11 @@ const emit = defineEmits<{
 }>()
 
 const formData = reactive<EvaluationCriteria>({
-  llm_judge: 'openai/gpt-4.1',
+  llm_judge: 'gpt-4.1',
   checkpoints: [
     {
       criteria: '',
-      points: 2,
+      points: -1,
     },
   ],
 })
@@ -146,10 +144,10 @@ const validateForm = () => {
       isValid = false
     }
 
-    if (checkpoint.points < 1 || checkpoint.points > 10) {
-      formErrors.value.checkpoints[index] = 'Points must be between 1 and 10'
-      isValid = false
-    }
+    // if (checkpoint.points < 1 || checkpoint.points > 10) {
+    //   formErrors.value.checkpoints[index] = 'Points must be between 1 and 10'
+    //   isValid = false
+    // }
   })
 
   return isValid
@@ -165,7 +163,7 @@ onMounted(() => {
 const addCheckpoint = () => {
   formData.checkpoints.push({
     criteria: '',
-    points: 2,
+    points: -1,
   })
 }
 
@@ -180,7 +178,7 @@ const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows 
 const saveMutation = useMutation({
   mutationFn: async () => {
     try {
-      return await evaluationService.saveEvaluationCriteria(props.workflowId, formData)
+      return await evaluationService.saveCriteria(props.workflowId, formData)
     } catch (error: unknown) {
       handleHttpError(error, 'saving evaluation criteria')
     }

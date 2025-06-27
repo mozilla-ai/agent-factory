@@ -40,8 +40,9 @@
           <h3>Evaluation Criteria</h3>
           <div class="judge-info">
             <span class="judge-label">LLM Judge:</span>
-            <span class="judge-model">{{ evaluationCriteriaQuery.data.value.llm_judge }}</span>
+            <span class="judge-model">{{ evaluationCriteriaQuery.data.value.llm_judge || 'N/A (auto-generated)' }}</span>
           </div>
+          <!-- Scoring functionality preserved for future use when Python code adds scoring support -->
           <div class="points-summary">
             <span class="points-label">Total Points Possible:</span>
             <span class="points-value">{{ totalPossiblePoints }}</span>
@@ -124,7 +125,7 @@ interface Checkpoint {
 }
 
 interface EvaluationCriteria {
-  llm_judge: string
+  llm_judge?: string
   checkpoints: Checkpoint[]
 }
 
