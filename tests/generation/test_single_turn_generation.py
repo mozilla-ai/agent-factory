@@ -30,8 +30,22 @@ def _assert_generated_files(workflow_dir: Path):
     )
 
 
-def _assert_agent_syntax(agent_file: Path):
+def _assert_agent_code_syntax(agent_file: Path):
     ast.parse(agent_file.read_text(encoding="utf-8"))
+
+
+def _assert_agent_code_contains_trace_writing(agent_file: Path):
+    """Assert that the agent file contains the code to write agent trace to a JSON file."""
+    agent_code = agent_file.read_text(encoding="utf-8")
+
+    assert all(
+        pattern in agent_code
+        for pattern in [
+            "script_dir = Path(__file__).resolve().parent",
+            'output_path = script_dir / "agent_eval_trace.json"',
+            "f.write(agent_trace.model_dump_json(indent=2))",
+        ]
+    ), "agent.py has incorrect usage of writing the agent trace to a JSON file"
 
 
 def _assert_execution_time_within_limit(agent_trace: AgentTrace, expected_execution_time: int) -> None:
@@ -90,7 +104,9 @@ def test_single_turn_generation(
     _assert_generated_files(tmp_path)
 
     # Verify the generated agent.py has valid Python syntax
-    _assert_agent_syntax(tmp_path / "agent.py")
+    agent_file = tmp_path / "agent.py"
+    _assert_agent_code_syntax(agent_file)
+    _assert_agent_code_contains_trace_writing(agent_file)
 
     # Assertions based on manufacturing agent's trace
     agent_trace = load_agent_trace(tmp_path / "agent_factory_trace.json")
