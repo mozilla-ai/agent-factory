@@ -1,0 +1,97 @@
+import json
+from typing import Any
+from uuid import uuid4
+
+import fire
+import httpx
+from a2a.client import A2ACardResolver, A2AClient
+from a2a.types import (
+    AgentCard,
+    MessageSendParams,
+    SendMessageRequest,
+)
+from loguru import logger
+from templates import TOOLS_REMINDER, USER_PROMPT
+from utils import save_agent_outputs
+
+PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
+EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
+
+
+async def main(message: str, host: str = "localhost", port: int = 8080, timeout: str = 600) -> None:
+    """Main entry point for the A2A client application.
+
+    Args:
+        message (str): The message to send to the agent.
+        host (str): The host address for the agent server (default: "localhost").
+        port (int): The port for the agent server (default: 8080).
+        timeout (str): The timeout for the request in seconds (default: 600).
+    """
+    base_url = f"http://{host}:{port}"
+
+    async with httpx.AsyncClient() as httpx_client:
+        resolver = A2ACardResolver(
+            httpx_client=httpx_client,
+            base_url=base_url,
+        )
+
+        agent_card: AgentCard | None = None
+        try:
+            logger.info(f"Attempting to fetch public agent card from: {base_url}{PUBLIC_AGENT_CARD_PATH}")
+            agent_card = await resolver.get_agent_card()
+            logger.info("Successfully fetched public agent card:")
+            logger.info(agent_card.model_dump_json(indent=2, exclude_none=True))
+
+            logger.info("Using public agent card for client initialization (default).")
+
+            if agent_card.supportsAuthenticatedExtendedCard:
+                try:
+                    logger.info(
+                        f"Public card supports authenticated extended card. "
+                        f"Attempting to fetch from: {base_url}{EXTENDED_AGENT_CARD_PATH}"
+                    )
+                    auth_headers_dict = {"Authorization": "Bearer dummy-token-for-extended-card"}
+                    extended_card = await resolver.get_agent_card(
+                        relative_card_path=EXTENDED_AGENT_CARD_PATH,
+                        http_kwargs={"headers": auth_headers_dict},
+                    )
+                    logger.info("Successfully fetched authenticated extended agent card:")
+                    logger.info(extended_card.model_dump_json(indent=2, exclude_none=True))
+                    agent_card = extended_card
+                    logger.info("Using extended agent card for client initialization.")
+                except Exception as e_extended:
+                    logger.warning(
+                        f"Failed to fetch extended agent card: {e_extended}. Will proceed with public card.",
+                        exc_info=True,
+                    )
+            elif agent_card:
+                logger.info("Public card does not indicate support for an extended card. Using public card.")
+
+        except Exception as e:
+            logger.error(f"Critical error fetching public agent card: {e}", exc_info=True)
+            raise RuntimeError("Failed to fetch the public agent card. Cannot continue.") from e
+
+        client = A2AClient(httpx_client=httpx_client, agent_card=agent_card)
+        logger.info("A2AClient initialized.")
+
+        prompt = USER_PROMPT.format(message, TOOLS_REMINDER)
+        send_message_payload: dict[str, Any] = {
+            "message": {
+                "role": "user",
+                "parts": [{"kind": "text", "text": prompt}],
+                "messageId": uuid4().hex,
+            },
+        }
+        request = SendMessageRequest(id=str(uuid4()), params=MessageSendParams(**send_message_payload))
+
+        response = await client.send_message(request, http_kwargs={"timeout": timeout})
+        logger.info(response.model_dump(mode="json", exclude_none=True))
+
+        result = json.loads(response.root.result.status.message.parts[0].root.text)
+        logger.info(f"Received response from agent: {result}")
+
+        save_agent_outputs(result)
+
+
+if __name__ == "__main__":
+    fire.Fire(main)
