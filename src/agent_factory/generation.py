@@ -29,6 +29,9 @@ class AgentFactoryOutputs(BaseModel):
     )
     run_instructions: str = Field(..., description="The run instructions in Markdown format")
     dependencies: str = Field(..., description="The dependencies line by line in Markdown format")
+    input_cost: float = Field(default=0.0, description="The input cost for the agent execution")
+    output_cost: float = Field(default=0.0, description="The output cost for the agent execution")
+    total_cost: float = Field(default=0.0, description="The total cost for the agent execution")
 
 
 def create_agent():
@@ -91,8 +94,80 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
         return e.trace
 
 
+def extract_cost_data(agent_trace: AgentTrace) -> tuple[float, float, float]:
+    """Extract cost data from agent trace and return as (input_cost, output_cost, total_cost)."""
+    try:
+        cost_info = agent_trace.cost
+        if not cost_info:
+            return 0.0, 0.0, 0.0
+
+        if hasattr(cost_info, "input_cost") and hasattr(cost_info, "output_cost"):
+            input_cost = float(cost_info.input_cost)
+            output_cost = float(cost_info.output_cost)
+            total_cost = input_cost + output_cost
+            return input_cost, output_cost, total_cost
+
+    except (AttributeError, ValueError, TypeError):
+        pass
+
+    return 0.0, 0.0, 0.0
+
+
+def log_cost_information(agent_trace: AgentTrace) -> None:
+    """Log cost information from the agent trace."""
+    input_cost, output_cost, total_cost = extract_cost_data(agent_trace)
+
+    if total_cost > 0:
+        logger.info("=== COST TRACKING ===")
+        if input_cost > 0 and output_cost > 0:
+            formatted_cost = f"input_cost=${input_cost:.6f} + output_cost=${output_cost:.6f} = ${total_cost:.6f}"
+            logger.info(f"Total Cost: {formatted_cost}")
+            print(f"Agent execution cost: {formatted_cost}")
+        else:
+            logger.info(f"Total Cost: ${total_cost:.6f}")
+            print(f"Agent execution cost: ${total_cost:.6f}")
+    else:
+        logger.info("No cost information available in trace")
+        print("No cost information available")
+
+
+def enrich_final_output_with_costs(agent_trace: AgentTrace) -> AgentFactoryOutputs:
+    """Enrich the agent's final output with cost information."""
+    if not hasattr(agent_trace, "final_output") or not agent_trace.final_output:
+        raise RuntimeError("No final_output available in agent trace")
+
+    # Extract cost data
+    input_cost, output_cost, total_cost = extract_cost_data(agent_trace)
+
+    original_output = agent_trace.final_output
+
+    # Create new output with cost data added
+    if isinstance(original_output, dict):
+        enriched_output = original_output.copy()
+        enriched_output.update({"input_cost": input_cost, "output_cost": output_cost, "total_cost": total_cost})
+        return AgentFactoryOutputs(**enriched_output)
+    else:
+        try:
+            if hasattr(original_output, "model_dump"):
+                output_dict = original_output.model_dump()
+            else:
+                output_dict = original_output.__dict__
+
+            output_dict.update({"input_cost": input_cost, "output_cost": output_cost, "total_cost": total_cost})
+
+            return AgentFactoryOutputs(**output_dict)
+
+        except Exception as e:
+            logger.error(f"Error during cost enrichment: {e}")
+            raise
+
+
 def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
-    # First save the agent trace
+    # Save cost information before saving the trace
+    enriched_final_output = enrich_final_output_with_costs(agent_trace)
+    agent_trace.final_output = enriched_final_output
+
+    # Save the agent trace
     trace_path = output_dir / "agent_factory_trace.json"
     trace_path.write_text(agent_trace.model_dump_json(indent=2))
 
@@ -137,6 +212,9 @@ def single_turn_generation(
     run_instructions = build_run_instructions(user_prompt)
 
     agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
+
+    log_cost_information(agent_trace)
+
     save_agent_outputs(agent_trace, output_dir)
     logger.info(f"Workflow files saved in: {output_dir}")
 
