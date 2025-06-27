@@ -56,7 +56,7 @@ export interface EvaluationResult {
 export interface EvaluationResults {
   score: number
   maxScore: number
-  checkpoints: EvaluationCheckpoint[]
+  criteria: string[]
 }
 
 export interface EvaluationStatus {

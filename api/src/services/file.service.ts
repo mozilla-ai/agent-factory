@@ -1,6 +1,5 @@
 import fs from 'fs/promises'
 import path from 'path'
-import YAML from 'yaml'
 import { getWorkflowPath } from '../config/index.js'
 import type {
   FileEntry,
@@ -57,7 +56,7 @@ class FileService {
     }
 
     const agentPath = path.join(fullPath, 'agent.py')
-    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaPath = path.join(fullPath, 'evaluation_case.json')
     const resultsPath = path.join(fullPath, 'evaluation_results.json')
     const tracePath = path.join(fullPath, 'agent_eval_trace.json')
 
@@ -289,7 +288,7 @@ class FileService {
 
     try {
       const content = await fs.readFile(resultsFilePath, 'utf8')
-      return YAML.parse(content) as EvaluationResult
+      return JSON.parse(content) as EvaluationResult
     } catch {
       throw new Error('Failed to load evaluation results')
     }

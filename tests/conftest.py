@@ -22,7 +22,7 @@ def common_eval_testing_data_path():
 
 
 @pytest.fixture(scope="module")
-def sample_evaluation_json_yaml(common_eval_testing_data_path):
+def sample_evaluation_json_file(common_eval_testing_data_path):
     return (common_eval_testing_data_path / "sample_evaluation_case.json").read_text()
 
 

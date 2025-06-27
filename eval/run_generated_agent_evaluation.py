@@ -16,7 +16,7 @@ async def run_evaluation(
     agent_trace_json_file: str = "generated_workflows/latest/agent_eval_trace.json",
     save_evaluation_results_path: str = "generated_workflows/latest/evaluation_results.json",
 ):
-    """Runs the evaluation process based on an evaluation case YAML file and an agent trace JSON file.
+    """Runs the evaluation process based on an evaluation case JSON file and an agent trace JSON file.
 
     Args:
         evaluation_case_json_file (str): Path to the evaluation case JSON file.
@@ -29,7 +29,7 @@ async def run_evaluation(
         Defaults to "generated_workflows/evaluation_results.json".
     """
     try:
-        # Load evaluation case from the specified YAML file
+        # Load evaluation case from the specified JSON file
         with Path(evaluation_case_json_file).open(encoding="utf-8") as f:
             evaluation_case = JSONEvaluationCase.model_validate_json(f.read())
         logger.info(f"Successfully loaded evaluation case from: {evaluation_case_json_file}")

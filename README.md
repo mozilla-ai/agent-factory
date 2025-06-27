@@ -6,7 +6,7 @@ A tool for generating Python code for agentic workflows using `any-agent` librar
 - Generate Python code for agentic workflows from natural language prompts
 - Automatically create runnable agents and instructions using the `any-agent` library and available tools
 - (Manually) Execute generated workflows save agent trace
-- Generate evaluation cases and YAML configs for automated testing
+- Generate evaluation cases and JSON configs for automated testing
 - (Manually) Run automated evaluations and view detailed criteria-based results
 
 ## Setup
