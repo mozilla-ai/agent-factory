@@ -27,22 +27,10 @@ export interface ApiError {
   details?: unknown
 }
 
-// Current simple JSON structure from Python (raw format)
+// Simple evaluation case format with just criteria strings (file format)
 export interface SimpleEvaluationCase {
   criteria: string[]
 }
-
-// Future enhanced JSON structure that might include points and llm_judge
-export interface EnhancedEvaluationCase {
-  criteria: Array<{
-    criteria: string
-    points?: number
-  }>
-  llm_judge?: string
-}
-
-// Union type to handle both current and future formats
-export type NewEvaluationCase = SimpleEvaluationCase | EnhancedEvaluationCase
 
 // Evaluation types (API internal format - always includes points for consistency)
 export interface EvaluationCheckpoint {
