@@ -10,15 +10,19 @@
       </div>
     </div>
     <form @submit.prevent="handleSubmit">
-      <div class="form-group">
-        <label for="llm-judge">LLM Judge</label>
-        <select id="llm-judge" v-model="formData.llm_judge" required>
-          <option value="openai/gpt-4.1">OpenAI GPT-4.1</option>
-          <option value="openai/gpt-4">OpenAI GPT-4</option>
-          <option value="anthropic/claude-3-opus">Anthropic Claude 3 Opus</option>
-          <option value="anthropic/claude-3-sonnet">Anthropic Claude 3 Sonnet</option>
-        </select>
-      </div>
+      <FormField
+        v-model="formData.llm_judge"
+        label="LLM Judge"
+        type="select"
+        required
+        field-id="llm-judge"
+        :options="[
+          { value: 'openai/gpt-4.1', label: 'OpenAI GPT-4.1' },
+          { value: 'openai/gpt-4', label: 'OpenAI GPT-4' },
+          { value: 'anthropic/claude-3-opus', label: 'Anthropic Claude 3 Opus' },
+          { value: 'anthropic/claude-3-sonnet', label: 'Anthropic Claude 3 Sonnet' },
+        ]"
+      />
 
       <div class="checkpoints-section">
         <h4>Evaluation Checkpoints</h4>
@@ -44,33 +48,27 @@
           </div>
 
           <div class="checkpoint-content">
-            <div class="form-group">
-              <label :for="`criteria-${index}`">Criteria</label>
-              <textarea
-                :id="`criteria-${index}`"
-                v-model="checkpoint.criteria"
-                rows="3"
-                placeholder="Describe what the agent should accomplish"
-                required
-                :class="{ 'input-error': formErrors.checkpoints[index] }"
-              ></textarea>
-              <div v-if="formErrors.checkpoints[index]" class="error-message">
-                {{ formErrors.checkpoints[index] }}
-              </div>
-            </div>
+            <FormField
+              v-model="checkpoint.criteria"
+              label="Criteria"
+              type="textarea"
+              placeholder="Describe what the agent should accomplish"
+              required
+              :rows="3"
+              :field-id="`criteria-${index}`"
+              :error="formErrors.checkpoints[index]"
+            />
 
-            <div class="form-group">
-              <label :for="`points-${index}`">Points</label>
-              <input
-                :id="`points-${index}`"
-                type="number"
-                v-model.number="checkpoint.points"
-                min="1"
-                max="10"
-                required
-                :class="{ 'input-error': formErrors.checkpoints[index] }"
-              />
-            </div>
+            <FormField
+              v-model="checkpoint.points"
+              label="Points"
+              type="number"
+              required
+              :min="1"
+              :max="10"
+              :field-id="`points-${index}`"
+              :error="formErrors.checkpoints[index]"
+            />
           </div>
         </div>
 
@@ -87,16 +85,6 @@
       </div>
     </form>
 
-    <!-- Add toast notification -->
-    <div
-      v-if="showToast"
-      class="toast-notification"
-      :class="{ 'toast-success': toastType === 'success', 'toast-error': toastType === 'error' }"
-    >
-      {{ toastMessage }}
-      <button class="toast-close" @click="showToast = false">&times;</button>
-    </div>
-
     <!-- Add retry mechanism if the save fails -->
     <div v-if="saveMutation.isError.value" class="save-error-container">
       <div class="save-error-message">
@@ -112,13 +100,15 @@
 
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
-import { useMutation, useQueryClient } from '@tanstack/vue-query'
-import { saveEvaluationCriteria } from '../services/evaluationService'
-import type { EvaluationCriteria } from '../types/evaluation'
-import { useWorkflowsStore } from '@/stores/workflows'
+import { useMutation } from '@tanstack/vue-query'
+import type { EvaluationCriteria } from '../types/index'
+import { evaluationService } from '@/services/evaluationService'
+import { handleHttpError } from '@/helpers/error.helpers'
+import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
+import FormField from './FormField.vue'
 
 const props = defineProps<{
-  workflowPath: string
+  workflowId: string
   initialData?: EvaluationCriteria | null
 }>()
 
@@ -137,20 +127,16 @@ const formData = reactive<EvaluationCriteria>({
   ],
 })
 
-// Add validation state
 const formErrors = ref({
   checkpoints: [] as string[],
 })
 
-// Add validation function
 const validateForm = () => {
   let isValid = true
   formErrors.value.checkpoints = []
 
-  // Reset all errors
   formErrors.value.checkpoints = Array(formData.checkpoints.length).fill('')
 
-  // Validate each checkpoint
   formData.checkpoints.forEach((checkpoint, index) => {
     if (!checkpoint.criteria.trim()) {
       formErrors.value.checkpoints[index] = 'Criteria description is required'
@@ -187,78 +173,30 @@ const removeCheckpoint = (index: number) => {
   formData.checkpoints.splice(index, 1)
 }
 
-const queryClient = useQueryClient()
-const workflowsStore = useWorkflowsStore()
+const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
+  useQueryInvalidation()
 
-// Add toast notification state
-const showToast = ref(false)
-const toastMessage = ref('')
-const toastType = ref('error') // 'success' or 'error'
 // Update mutation with better error handling
 const saveMutation = useMutation({
   mutationFn: async () => {
     try {
-      return await saveEvaluationCriteria(props.workflowPath, formData)
+      return await evaluationService.saveEvaluationCriteria(props.workflowId, formData)
     } catch (error: unknown) {
-      // Handle specific error types
-      const err = error as { response?: { status?: number }; message?: string }
-      if (err.response?.status === 403) {
-        throw new Error('You do not have permission to save evaluation criteria')
-      } else if (err.response?.status === 404) {
-        throw new Error('Workflow not found - please check the path and try again')
-      } else if (err.response?.status === 500) {
-        throw new Error('Server error while saving criteria - please try again later')
-      } else {
-        throw new Error(`Failed to save criteria: ${err.message || 'Unknown error'}`)
-      }
+      handleHttpError(error, 'saving evaluation criteria')
     }
   },
   onSuccess: () => {
-    // Success notification
-    toastMessage.value = 'Evaluation criteria saved successfully!'
-    toastType.value = 'success'
-    showToast.value = true
-
-    // Close toast after 5 seconds
-    setTimeout(() => {
-      showToast.value = false
-    }, 5000)
-
-    // Invalidate the criteria query to refresh data
-    queryClient.invalidateQueries({
-      queryKey: ['evaluation-criteria', props.workflowPath],
-    })
-    queryClient.invalidateQueries({
-      queryKey: ['evaluation-status', props.workflowPath],
-    })
-    queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath],
-    })
-    queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_case.yaml'],
-    })
-    // Refresh the workflow store to update file explorer
-    workflowsStore.loadWorkflows()
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, '', 'evaluation_case.yaml')
+    invalidateWorkflows()
     emit('saved', true)
   },
   onError: (error) => {
     console.error('Failed to save criteria:', error)
-
-    // Error notification
-    toastMessage.value = error.message || 'Failed to save evaluation criteria'
-    toastType.value = 'error'
-    showToast.value = true
-
-    // Close toast after 8 seconds for errors
-    setTimeout(() => {
-      showToast.value = false
-    }, 8000)
-
     emit('saved', false)
   },
 })
 
-// Update the submission handler
 const handleSubmit = () => {
   if (!validateForm()) {
     return
@@ -467,42 +405,6 @@ select:focus {
   color: var(--color-error);
   font-size: 0.8rem;
   margin-top: 0.25rem;
-}
-
-/* Toast notifications */
-.toast-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 1rem 1.5rem;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-width: 300px;
-  max-width: 500px;
-}
-
-.toast-success {
-  background-color: var(--color-success-soft);
-  border-left: 4px solid var(--color-success);
-  color: var(--color-success);
-}
-
-.toast-error {
-  background-color: var(--color-error-soft);
-  border-left: 4px solid var(--color-error);
-  color: var(--color-error);
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: inherit;
 }
 
 /* Error display */

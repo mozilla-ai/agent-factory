@@ -23,27 +23,39 @@
       </div>
     </div>
     <div class="output-container">
-      <h2>Output</h2>
-      <p v-if="!response">This is where the output will be displayed.</p>
-      <p v-if="isLoading">Loading...</p>
-      <pre v-if="response" class="output">{{ response }}</pre>
-
-      <router-link v-if="generationComplete" :to="{ name: 'workflows' }" class="view-files-link">
-        📁 View Generated Workflow
-      </router-link>
+      <StreamingOutput
+        title="Output"
+        :content="response"
+        :is-loading="isLoading"
+        loading-text="Loading..."
+        max-height="600px"
+        :center-header="true"
+      >
+        <template #footer>
+          <router-link
+            v-if="generationComplete"
+            :to="{ name: 'workflows' }"
+            class="view-files-link"
+          >
+            📁 View Generated Workflow
+          </router-link>
+        </template>
+      </StreamingOutput>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useWorkflowsStore } from '@/stores/workflows'
+import { workflowService } from '@/services/workflowService'
+import { useWorkflows } from '@/composables/useWorkflows'
 import { ref } from 'vue'
+import StreamingOutput from '@/components/StreamingOutput.vue'
 
 const prompt = ref<string>('Create an agent that can tell the current weather in Berlin')
 const response = ref<string>('')
 const isLoading = ref<boolean>(false)
 const generationComplete = ref<boolean>(false)
-const workflowsStore = useWorkflowsStore()
+const { invalidateWorkflows } = useWorkflows()
 
 const handleSendClicked = async () => {
   try {
@@ -51,20 +63,8 @@ const handleSendClicked = async () => {
     isLoading.value = true
     generationComplete.value = false
 
-    const res = await fetch(
-      `http://localhost:3000/agent-factory?prompt=${encodeURIComponent(prompt.value)}`,
-      {
-        method: 'GET',
-      },
-    )
-
-    if (!res.ok) {
-      response.value = `Error: ${res.status} ${res.statusText}`
-      isLoading.value = false
-      return
-    }
-
-    const reader = res.body?.getReader()
+    const body = await workflowService.generateAgent(prompt.value)
+    const reader = body?.getReader()
     if (!reader) {
       response.value = 'Error: No response body'
       isLoading.value = false
@@ -89,14 +89,15 @@ const handleSendClicked = async () => {
       generationComplete.value = true
 
       // clear all queries cache
-      workflowsStore.loadWorkflows()
+      invalidateWorkflows()
     }
 
     isLoading.value = false
   } catch (error: unknown) {
-    isLoading.value = false
     const errorMessage = error instanceof Error ? error.message : String(error)
-    response.value += '\n\nError occurred: ' + errorMessage
+
+    response.value = `Error: ${errorMessage}`
+    isLoading.value = false
   }
 }
 </script>
@@ -126,20 +127,6 @@ const handleSendClicked = async () => {
   flex-direction: column;
   height: 100%;
   max-height: 80vh;
-}
-
-.output {
-  height: 100%;
-  max-height: 600px;
-  overflow-y: auto;
-  background: var(--color-background-soft, #f8f8f8); /* Lighter background similar to textarea */
-  padding: 1rem;
-  border-radius: 4px;
-  /* border: 1px solid var(--border-color, #ccc); */
-  font-family: monospace;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin-bottom: 1rem;
 }
 
 .text-area {

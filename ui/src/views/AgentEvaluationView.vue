@@ -3,9 +3,13 @@
     <h2>Agent Evaluation</h2>
 
     <div class="workflow-selector">
-      <label for="workflow-path">Select Workflow:</label>
-      <select id="workflow-path" v-model="selectedWorkflow">
-        <option v-for="(workflow, index) in workflows" :key="index" :value="workflow">
+      <label for="workflow-id">Select Workflow:</label>
+      <select id="workflow-id" v-model="selectedWorkflow">
+        <option
+          v-for="(workflow, index) in workflows.map((w) => w.name)"
+          :key="index"
+          :value="workflow"
+        >
           {{ workflow }}
         </option>
       </select>
@@ -37,42 +41,37 @@
       </button>
     </div>
 
-    <div class="evaluation-output">
-      <h3>Output</h3>
-      <div v-if="isRunningAgent || isGeneratingCases || isRunningEval" class="loading">
-        {{ currentOperation }} in progress...
-      </div>
-
-      <pre v-if="output" class="output-content">{{ output }}</pre>
-    </div>
+    <StreamingOutput
+      title="Output"
+      :content="output"
+      :is-loading="isRunningAgent || isGeneratingCases || isRunningEval"
+      :loading-text="`${currentOperation} in progress...`"
+      max-height="400px"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useWorkflows } from '@/composables/useWorkflows'
+import { evaluationService } from '@/services/evaluationService'
+import StreamingOutput from '@/components/StreamingOutput.vue'
 
 const selectedWorkflow = ref('')
-const workflows = ref<string[]>([])
 const output = ref('')
 const isRunningAgent = ref(false)
 const isGeneratingCases = ref(false)
 const isRunningEval = ref(false)
 const currentOperation = ref('')
+const { workflows } = useWorkflows()
 
-onMounted(async () => {
-  try {
-    const response = await fetch('http://localhost:3000/agent-factory/workflows')
-    if (response.ok) {
-      workflows.value = await response.json()
-    }
-  } catch (error) {
-    console.error('Failed to load workflows:', error)
-  }
+onMounted(() => {
+  // TanStack Query automatically loads workflows - no manual loading needed!
 })
 
 // Helper function to handle streaming response
-async function handleStreamingResponse(response: Response): Promise<void> {
-  const reader = response.body?.getReader()
+async function handleStreamingResponse(body: ReadableStream): Promise<void> {
+  const reader = body?.getReader()
   if (!reader) {
     output.value += 'Error: No response body'
     return
@@ -98,12 +97,9 @@ async function runAgent() {
     currentOperation.value = 'Running agent'
     output.value = ''
 
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/run-agent/${selectedWorkflow.value}`,
-      { method: 'POST' },
-    )
+    const body = await evaluationService.runAgent(selectedWorkflow.value)
 
-    await handleStreamingResponse(response)
+    await handleStreamingResponse(body)
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     output.value += '\nError: ' + errorMessage
@@ -120,14 +116,9 @@ async function generateEvaluationCases() {
     currentOperation.value = 'Generating evaluation cases'
     output.value = ''
 
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/generate-cases/${selectedWorkflow.value}`,
-      {
-        method: 'POST',
-      },
-    )
+    const body = await evaluationService.generateEvaluationCases(selectedWorkflow.value)
 
-    await handleStreamingResponse(response)
+    await handleStreamingResponse(body)
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     output.value += '\nError: ' + errorMessage
@@ -144,12 +135,9 @@ async function runEvaluation() {
     currentOperation.value = 'Running evaluation'
     output.value = ''
 
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/evaluate/run-evaluation/${selectedWorkflow.value}`,
-      { method: 'POST' },
-    )
+    const body = await evaluationService.runEvaluation(selectedWorkflow.value)
 
-    await handleStreamingResponse(response)
+    await handleStreamingResponse(body)
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     output.value += '\nError: ' + errorMessage
@@ -211,31 +199,5 @@ async function runEvaluation() {
 .eval-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.evaluation-output {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.output-content {
-  display: flex;
-  flex-direction: column;
-  background: var(--color-background-soft);
-  padding: 1rem;
-  border-radius: 4px;
-  font-family: monospace;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.loading {
-  display: flex;
-  padding: 1rem;
-  font-style: italic;
-  color: var(--color-text-light);
 }
 </style>
