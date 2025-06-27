@@ -1,0 +1,21 @@
+[project]
+name = "agent-factory"
+description = "A factory for automatically creating agentic workflows."
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "any-agent[all,a2a]==0.22.0",
+    "fire~=0.7.0",
+    "dotenv>=0.9.9",
+    "mcpm~=1.14.0",
+    "loguru>=0.7.3",
+    "pre-commit>=4.2.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
