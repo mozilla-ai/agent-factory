@@ -1,0 +1,7 @@
+any-agent[all]==0.20.0
+python-dotenv
+fire
+litellm
+beautifulsoup4
+requests
+uv

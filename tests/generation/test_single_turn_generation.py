@@ -1,7 +1,4 @@
 import ast
-import subprocess
-import tempfile
-from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from shutil import copytree
 
@@ -78,6 +75,14 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
 @pytest.mark.parametrize(
     ("prompt_id", "prompt", "expected_num_turns", "expected_execution_time"),
     [
+        # Agent with no MCP tools needed
+        (
+            "summarize-url-content",
+            "Create a workflow that takes an input web URL and returns a summary of the content. Do not assign MCP servers among the tools.",
+            15,
+            120,
+        ),
+        # Agent with MCP tools such as ElevenLabs
         (
             "url-to-podcast",
             "Create a workflow that takes an input web URL and creates an audio podcast with multiple speakers.",
