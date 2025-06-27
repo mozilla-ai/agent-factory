@@ -1,30 +1,71 @@
 import { Request, Response } from 'express'
-import { runAgentFactoryWorkflowWithStreaming } from '../helpers/agent-factory-helpers.js'
+import { asyncHandler } from '../middleware/error.middleware.js'
+import {
+  setupStreamingResponse,
+  completeStreamingResponse,
+  handleStreamingError,
+} from '../utils/streaming.utils.js'
+import { processService } from '../services/process.service.js'
+import type { OutputCallback } from '../types/index.js'
 
-// Run agent factory workflow
-export async function generateAgent(req: Request, res: Response) {
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-  const prompt =
-    (req.query.prompt as string) ||
-    'Summarize text content from a given webpage URL'
+export class AgentController {
+  // Generate agent
+  generateAgent = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const { prompt } = req.body
 
-  try {
-    await runAgentFactoryWorkflowWithStreaming(
-      prompt,
-      (source: 'stdout' | 'stderr', text: string) => {
-        if (source === 'stdout') {
-          console.log(`${text}`)
-          res.write(`${text}`)
-        } else if (source === 'stderr') {
-          console.log(`${text}`)
-          res.write(`${text}`)
-        }
-      },
-    )
-    res.end('\n[agent-factory] Workflow completed successfully.')
-  } catch (error: unknown) {
-    console.error('Error during agent factory workflow:', error)
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    res.status(500).send(`[agent-factory] Workflow failed: ${errorMessage}`)
-  }
+      setupStreamingResponse(res)
+
+      // Use prompt from request body or default
+      const agentPrompt =
+        prompt || 'Summarize text content from a given webpage URL'
+
+      const outputCallback: OutputCallback = (source, text) => {
+        res.write(text)
+      }
+
+      try {
+        await processService.runAgentFactory(agentPrompt, outputCallback)
+        completeStreamingResponse(
+          res,
+          '[agent-factory] Workflow completed successfully.',
+        )
+      } catch (error) {
+        handleStreamingError(res, error, 'Failed to generate agent')
+      }
+    },
+  )
+
+  // Send input to running agent
+  sendInput = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const { processId } = req.params
+      const { input } = req.body
+
+      const success = processService.sendInput(processId, input)
+
+      if (success) {
+        res.json({ success: true })
+      } else {
+        res
+          .status(404)
+          .json({ error: 'Process not found or cannot send input' })
+      }
+    },
+  )
+
+  // Stop running agent
+  stopAgent = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const success = processService.stopProcess('agent-factory')
+
+      if (success) {
+        res.json({ success: true, message: 'Agent process stopped' })
+      } else {
+        res.status(404).json({ error: 'No running agent process found' })
+      }
+    },
+  )
 }
+
+export const agentController = new AgentController()

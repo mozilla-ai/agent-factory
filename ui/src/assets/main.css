@@ -123,11 +123,18 @@ select {
   box-sizing: border-box;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
+input:focus:valid,
+textarea:focus:valid,
+select:focus:valid {
   border-color: var(--input-border-focus);
   outline: none;
+}
+
+input:focus:invalid,
+textarea:focus:invalid,
+select:focus:invalid {
+  border-color: var(--input-border-focus);
+  /* Don't remove outline for invalid fields to allow validation messages */
 }
 
 input:disabled,

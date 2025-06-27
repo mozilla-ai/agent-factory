@@ -6,7 +6,7 @@
     </div>
 
     <!-- Error state for missing criteria file -->
-    <div v-else-if="hasCriteriaError" class="empty-criteria-container">
+    <div v-else-if="hasCriteriaError && !isEditMode" class="empty-criteria-container">
       <div class="empty-criteria-message">
         <h3>No Evaluation Criteria Found</h3>
         <p>
@@ -14,9 +14,9 @@
           you assess the performance of your agent against specific goals.
         </p>
       </div>
-      <button @click="startCreatingCriteria" class="create-criteria-button">
+      <BaseButton variant="primary" @click="startCreatingCriteria">
         Create Evaluation Criteria
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Form for creating/editing -->
@@ -25,8 +25,8 @@
       class="criteria-form-container"
     >
       <EvaluationCriteriaForm
-        :workflow-path="workflowPath"
-        :initialData="evaluationCriteriaQuery.data.value"
+        :workflowId="workflowId"
+        :initialData="isEditMode ? evaluationCriteriaQuery.data.value : null"
         @saved="onCriteriaSaved"
         @cancel="isEditMode = false"
       />
@@ -49,8 +49,8 @@
         </div>
 
         <div class="header-actions">
-          <button class="edit-button" @click="toggleEditMode">Edit Criteria</button>
-          <button class="delete-button" @click="openDeleteDialog">Delete</button>
+          <BaseButton variant="secondary" @click="toggleEditMode">Edit Criteria</BaseButton>
+          <BaseButton variant="danger" @click="handleDeleteClick">Delete</BaseButton>
         </div>
       </div>
 
@@ -59,19 +59,16 @@
         <h3>Final Score</h3>
         <div class="score-display">
           <div class="score-value">{{ totalScore }} / {{ totalPossiblePoints }}</div>
-          <div class="score-percentage">
-            {{ Math.round((totalScore / totalPossiblePoints) * 100) }}%
-          </div>
+          <div class="score-percentage">{{ Math.round(scorePercentage) }}%</div>
         </div>
         <div class="score-bar">
           <div
             class="score-progress"
-            :style="{ width: `${(totalScore / totalPossiblePoints) * 100}%` }"
+            :style="{ width: `${scorePercentage}%` }"
             :class="{
-              'score-high': totalScore / totalPossiblePoints >= 0.8,
-              'score-medium':
-                totalScore / totalPossiblePoints >= 0.5 && totalScore / totalPossiblePoints < 0.8,
-              'score-low': totalScore / totalPossiblePoints < 0.5,
+              'score-high': scorePercentage >= 80,
+              'score-medium': scorePercentage >= 50 && scorePercentage < 80,
+              'score-low': scorePercentage < 50,
             }"
           ></div>
         </div>
@@ -79,50 +76,28 @@
 
       <!-- Criteria checklist -->
       <div class="criteria-checklist">
-        <div
+        <CheckpointItem
           v-for="(checkpoint, index) in evaluationCriteriaQuery.data.value.checkpoints"
           :key="index"
-          class="checkpoint-item"
-        >
-          <div class="checkpoint-header">
-            <div class="checkpoint-number">{{ index + 1 }}</div>
-            <div class="checkpoint-content">
-              <div class="checkpoint-criteria">{{ checkpoint.criteria }}</div>
-              <div class="checkpoint-points">
-                {{ checkpoint.points }} {{ checkpoint.points === 1 ? 'point' : 'points' }}
-              </div>
-            </div>
-          </div>
-
-          <div v-if="hasResults" class="checkpoint-result">
-            <div
-              class="result-indicator"
-              :class="{
-                'result-pass': evaluationResults[index]?.result === 'pass',
-                'result-fail': evaluationResults[index]?.result === 'fail',
-              }"
-            >
-              <span v-if="evaluationResults[index]?.result === 'pass'">✓</span>
-              <span v-else-if="evaluationResults[index]?.result === 'fail'">✗</span>
-              <span v-else>N/A</span>
-            </div>
-            <div v-if="evaluationResults[index]?.feedback" class="result-feedback">
-              {{ evaluationResults[index]?.feedback }}
-            </div>
-          </div>
-        </div>
+          :number="index + 1"
+          :criteria="checkpoint.criteria"
+          :points="checkpoint.points"
+          :result="hasResults ? evaluationResults[index] : undefined"
+        />
       </div>
 
       <!-- Add the confirmation dialog component -->
       <ConfirmationDialog
         :isOpen="showDeleteDialog"
-        title="Delete Evaluation Criteria"
-        message="Are you sure you want to delete this evaluation criteria? This will also delete any evaluation results. This action cannot be undone."
-        confirmButtonText="Delete"
+        :title="deleteOptions?.title || 'Delete Evaluation Criteria'"
+        :message="
+          deleteOptions?.message || 'Are you sure you want to delete this evaluation criteria?'
+        "
+        :confirmButtonText="deleteOptions?.confirmButtonText || 'Delete'"
         :isDangerous="true"
         :isLoading="deleteCriteriaMutation.isPending.value"
         @confirm="confirmDelete"
-        @cancel="cancelDelete"
+        @cancel="closeDeleteDialog"
       />
     </div>
   </div>
@@ -130,14 +105,18 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import yaml from 'js-yaml'
 import { transformResults, type OldFormatData } from '@/helpers/transform-results'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
+import { useQuery, useMutation } from '@tanstack/vue-query'
 import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
-import { deleteEvaluationCriteria } from '../../services/evaluationService'
+import { evaluationService } from '../../services/evaluationService'
 import ConfirmationDialog from '../ConfirmationDialog.vue'
-import { useRouter } from 'vue-router'
-import { useWorkflowsStore } from '@/stores/workflows'
+import CheckpointItem from '../CheckpointItem.vue'
+import BaseButton from '../BaseButton.vue'
+import { useEvaluationScores } from '@/composables/useEvaluationScores'
+import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
+import { useNavigation } from '@/composables/useNavigation'
+import { queryKeys } from '@/helpers/queryKeys'
 
 interface Checkpoint {
   criteria: string
@@ -149,68 +128,48 @@ interface EvaluationCriteria {
   checkpoints: Checkpoint[]
 }
 
-interface EvaluationResult {
-  result: 'pass' | 'fail'
-  feedback: string
-  criteria: string
-  points: number
-}
-
 // Props
 const props = defineProps<{
-  workflowPath: string
+  workflowId: string
 }>()
 
-const queryClient = useQueryClient()
 const isEditMode = ref(false)
-const showDeleteDialog = ref(false)
+const { invalidateEvaluationQueries, invalidateFileQueries, invalidateWorkflows } =
+  useQueryInvalidation()
+const { navigateToEvaluate } = useNavigation()
 
-// Toggle edit mode
+// Use delete confirmation composable
+const { showDeleteDialog, deleteOptions, openDeleteDialog, closeDeleteDialog } =
+  useDeleteConfirmation()
+
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
 }
-
-const workflowsStore = useWorkflowsStore()
 // Handle criteria saved event
 const onCriteriaSaved = () => {
   isEditMode.value = false
-  // Refetch invalidated queries after updating criteria
-  queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
-  queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
-  queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
+  invalidateEvaluationQueries(props.workflowId)
 }
 
 // Fetch evaluation criteria
 const evaluationCriteriaQuery = useQuery({
-  queryKey: ['evaluation-criteria', props.workflowPath],
+  queryKey: queryKeys.evaluationCriteria(props.workflowId),
   queryFn: async (): Promise<EvaluationCriteria> => {
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_case.json`,
-    )
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to load evaluation criteria: ${response.status} ${response.statusText}`,
-      )
-    }
-
-    const criteriaText = await response.text()
-    return yaml.load(criteriaText) as EvaluationCriteria
+    return evaluationService.getEvaluationCriteria(props.workflowId)
   },
   retry: 1, // Retry once on failure
 })
 
 // Fetch evaluation results
 const evaluationResultsQuery = useQuery({
-  queryKey: ['evaluation-results', props.workflowPath],
+  queryKey: queryKeys.evaluationResults(props.workflowId),
   queryFn: async (): Promise<OldFormatData> => {
-    const response = await fetch(
-      `http://localhost:3000/agent-factory/workflows/${props.workflowPath}/evaluation_results.json`,
-    )
-
-    if (!response.ok) {
-      // If no results yet, we don't throw an error
-      // This is expected when results haven't been generated
+    try {
+      const data = await evaluationService.getEvaluationResults(props.workflowId)
+      // Handle case where data might already be parsed or is an object
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data
+      return transformResults(parsedData)
+    } catch {
       return {
         checkpoints: [],
         totalScore: 0,
@@ -219,12 +178,9 @@ const evaluationResultsQuery = useQuery({
         maxScore: 0,
       }
     }
-
-    const data = await response.json()
-    return transformResults(data)
   },
   // No need to wait for criteria to load to fetch results
-  enabled: computed(() => !!props.workflowPath),
+  enabled: computed(() => !!props.workflowId),
   // Don't retry too many times for results that might not exist yet
   retry: 1,
 })
@@ -254,24 +210,11 @@ const hasResults = computed(() => {
   return (evaluationResultsQuery.data.value?.checkpoints?.length || 0) > 0
 })
 
-// Calculate total possible points
-const totalPossiblePoints = computed(() => {
-  if (!evaluationCriteriaQuery.data.value || !evaluationCriteriaQuery.data.value.checkpoints)
-    return 0
-  return evaluationCriteriaQuery.data.value.checkpoints.reduce(
-    (sum: number, checkpoint: Checkpoint) => sum + checkpoint.points,
-    0,
-  )
-})
-
-// Calculate total score from results
-const totalScore = computed(() => {
-  if (!hasResults.value) return 0
-  return evaluationResults.value.reduce((sum: number, result: EvaluationResult, index: number) => {
-    const points = evaluationCriteriaQuery.data.value?.checkpoints[index]?.points || 0
-    return sum + (result.result === 'pass' ? points : 0)
-  }, 0)
-})
+// Use evaluation scores composable for consistent calculations
+const { totalPossiblePoints, totalScore, scorePercentage } = useEvaluationScores(
+  evaluationCriteriaQuery.data,
+  evaluationResultsQuery.data,
+)
 
 const hasCriteriaError = computed(
   () =>
@@ -283,40 +226,29 @@ const hasCriteriaError = computed(
 const startCreatingCriteria = () => {
   isEditMode.value = true
 }
-
-const router = useRouter()
-// Add delete mutation
 const deleteCriteriaMutation = useMutation({
-  mutationFn: () => deleteEvaluationCriteria(props.workflowPath),
+  mutationFn: () => evaluationService.deleteEvaluationCriteria(props.workflowId),
   onSuccess: () => {
-    // Invalidate queries to refresh the data
-    queryClient.invalidateQueries({ queryKey: ['evaluation-criteria', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-results', props.workflowPath] })
-    queryClient.invalidateQueries({ queryKey: ['evaluation-status', props.workflowPath] })
-    queryClient.invalidateQueries({
-      queryKey: ['file-content', props.workflowPath, 'evaluation_case.json'],
-    })
-    showDeleteDialog.value = false
-    // Refresh the workflow store to update file explorer
-    workflowsStore.loadWorkflows()
-    router.push({
-      params: { workflowPath: props.workflowPath },
-      query: { tab: 'evaluate' },
-    })
+    invalidateEvaluationQueries(props.workflowId)
+    invalidateFileQueries(props.workflowId, 'evaluation_case.json', 'evaluation_results.json')
+    invalidateWorkflows()
+    closeDeleteDialog()
+    navigateToEvaluate(props.workflowId)
   },
 })
 
 // Functions for delete confirmation
-const openDeleteDialog = () => {
-  showDeleteDialog.value = true
+const handleDeleteClick = () => {
+  openDeleteDialog({
+    title: 'Delete Evaluation Criteria',
+    message:
+      'Are you sure you want to delete this evaluation criteria? This will also delete any evaluation results. This action cannot be undone.',
+    confirmButtonText: 'Delete',
+  })
 }
 
 const confirmDelete = () => {
   deleteCriteriaMutation.mutate()
-}
-
-const cancelDelete = () => {
-  showDeleteDialog.value = false
 }
 </script>
 
@@ -386,94 +318,6 @@ const cancelDelete = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.checkpoint-item {
-  background-color: var(--color-background-soft);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.checkpoint-header {
-  display: flex;
-  padding: 1rem;
-  background-color: var(--color-background-soft);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.checkpoint-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  background-color: var(--color-background);
-  border-radius: 50%;
-  font-weight: bold;
-  margin-right: 1rem;
-  border: 1px solid var(--color-border);
-}
-
-.checkpoint-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.checkpoint-criteria {
-}
-
-.checkpoint-passed .checkpoint-result {
-  background-color: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-.checkpoint-failed .checkpoint-result {
-  background-color: var(--color-error-soft);
-  color: var(--color-error);
-}
-
-.checkpoint-points {
-  font-size: 0.9rem;
-  color: var(--color-text-light, var(--color-text-secondary));
-  font-weight: 500;
-}
-
-.checkpoint-result {
-  display: flex;
-  padding: 1rem;
-  background-color: var(--color-background);
-  border-top: 1px solid var(--color-border);
-}
-
-.result-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  font-weight: bold;
-  margin-right: 1rem;
-  font-size: 1.2rem;
-}
-
-.result-pass {
-  background-color: rgba(46, 204, 113, 0.15);
-  color: var(--color-success, #2ecc71);
-  border: 1px solid var(--color-success, #2ecc71);
-}
-
-.result-fail {
-  background-color: rgba(231, 76, 60, 0.15);
-  color: var(--color-error, #e74c3c);
-  border: 1px solid var(--color-error, #e74c3c);
-}
-
-.result-feedback {
-  flex: 1;
 }
 
 .final-score {
@@ -574,38 +418,9 @@ const cancelDelete = () => {
   line-height: 1.5;
 }
 
-.create-criteria-button {
-  padding: 0.75rem 1.5rem;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.create-criteria-button:hover {
-  background-color: var(--color-background-soft);
-  border-color: var(--color-border-hover);
-}
-
 .header-actions {
   display: flex;
   gap: 0.75rem;
-}
-
-.delete-button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-error);
-  background-color: var(--color-error-soft);
-  color: var(--color-error);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.delete-button:hover {
-  background-color: var(--color-error);
-  color: white;
 }
 
 /* Responsive adjustments */

@@ -5,9 +5,9 @@ from pathlib import Path
 import fire
 from any_agent.evaluation import AgentJudge
 from any_agent.evaluation.schemas import EvaluationOutput
-from any_agent.tracing.agent_trace import AgentTrace
 
 from agent_factory.logging import logger
+from agent_factory.utils.trace_utils import load_agent_trace
 from eval.generate_evaluation_case import JSONEvaluationCase
 
 
@@ -34,10 +34,7 @@ async def run_evaluation(
             evaluation_case = JSONEvaluationCase.model_validate_json(f.read())
         logger.info(f"Successfully loaded evaluation case from: {evaluation_case_json_file}")
 
-        # Load agent trace from the specified JSON file
-        with Path(agent_trace_json_file).open(encoding="utf-8") as f:
-            agent_trace_data = f.read()
-            agent_trace = AgentTrace.model_validate_json(agent_trace_data)
+        agent_trace = load_agent_trace(agent_trace_json_file)
         logger.info(f"Successfully loaded agent trace from: {agent_trace_json_file}")
 
         # Perform the evaluation

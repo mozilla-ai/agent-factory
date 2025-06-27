@@ -1,57 +1,65 @@
 import { apiClient } from './api'
-import type { WorkflowFile, EvaluationStatus } from '@/types'
+import { ENDPOINTS } from '@/config/endpoints'
+import { API_CONFIG } from '@/config/api.config'
+import type { WorkflowFile, EvaluationStatus, AgentTrace } from '@/types'
 
 export const workflowService = {
   async getWorkflows(): Promise<WorkflowFile[]> {
-    const response = await apiClient.get('/agent-factory/workflows')
+    const response = await apiClient.get(ENDPOINTS.workflows)
     return response.data
   },
-
-  async getFileContent(workflowPath: string, filePath: string): Promise<string> {
-    const response = await apiClient.get(`/agent-factory/workflows/${workflowPath}/${filePath}`, {
-      transformResponse: [(data) => data], // Prevent JSON parsing
+  async generateAgent(prompt: string): Promise<ReadableStream> {
+    const response = await fetch(`${API_CONFIG.baseURL}/${ENDPOINTS.generateAgent}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
     })
+    if (!response.ok) {
+      throw new Error(`Failed to generate agent: ${response.status} ${response.statusText}`)
+    }
+    return response.body as ReadableStream
+  },
+  async getFileContent(workflowId: string, filePath: string): Promise<string> {
+    const response = await apiClient.get(ENDPOINTS.workflowFile(workflowId, filePath))
     return response.data
   },
 
-  async checkFileExists(workflowPath: string, filePath: string): Promise<boolean> {
+  async checkFileExists(workflowId: string, filePath: string): Promise<boolean> {
     try {
-      await apiClient.head(`/agent-factory/workflows/${workflowPath}/${filePath}`)
+      await apiClient.head(ENDPOINTS.workflowFile(workflowId, filePath))
       return true
     } catch {
       return false
     }
   },
 
-  async getEvaluationStatus(workflowPath: string): Promise<EvaluationStatus> {
+  async getEvaluationStatus(workflowId: string): Promise<EvaluationStatus> {
     // Implement file checks for evaluation status
     const [hasAgentTrace, hasEvalCases, hasEvalResults] = await Promise.all([
-      this.checkFileExists(workflowPath, 'agent_eval_trace.json'),
-      this.checkFileExists(workflowPath, 'evaluation_case.json'),
-      this.checkFileExists(workflowPath, 'evaluation_results.json'),
+      this.checkFileExists(workflowId, 'agent_eval_trace.json'),
+      this.checkFileExists(workflowId, 'evaluation_case.json'),
+      this.checkFileExists(workflowId, 'evaluation_results.json'),
     ])
 
     return { hasAgentTrace, hasEvalCases, hasEvalResults }
   },
 
-  async getEvaluationResults(workflowPath: string) {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${workflowPath}/evaluation_results.json`,
-    )
-    return response.data
+  async getEvaluationResults(workflowId: string): Promise<string> {
+    return this.getFileContent(workflowId, 'evaluation_results.json')
   },
 
-  async getAgentTrace(workflowPath: string) {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${workflowPath}/agent_eval_trace.json`,
-    )
-    return response.data
+  async getAgentTrace(workflowId: string): Promise<AgentTrace> {
+    const content = await this.getFileContent(workflowId, 'agent_eval_trace.json')
+    try {
+      return typeof content === 'string' ? JSON.parse(content) : content
+    } catch (error) {
+      throw new Error(`Failed to parse agent trace: ${error}`)
+    }
   },
 
-  async getEvaluationCriteria(workflowPath: string) {
-    const response = await apiClient.get(
-      `/agent-factory/workflows/${workflowPath}/evaluation_case.json`,
-    )
-    return response.data
+  async getEvaluationCriteria(workflowId: string): Promise<string> {
+    return this.getFileContent(workflowId, 'evaluation_case.json')
   },
 }
