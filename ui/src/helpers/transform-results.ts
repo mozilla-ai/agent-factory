@@ -86,7 +86,7 @@ export const transformResults = (
           result: result.passed ? 'pass' : 'fail',
           feedback: result.reasoning || '',
           criteria: criteriaItem?.criteria || `Evaluation Criterion ${index + 1}`,
-          points: criteriaItem?.points || -1,
+          points: criteriaItem?.points || 0,
         }
       }),
     }

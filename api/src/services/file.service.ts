@@ -240,7 +240,7 @@ class FileService {
           llm_judge: jsonData.llm_judge || 'gpt-4.1',
           checkpoints: jsonData.criteria.map((item: any) => ({
             criteria: item.criteria,
-            points: item.points || -1, // Use provided points or fallback to -1
+            points: item.points || 0, // Use provided points or fallback to 0
           }))
         }
       } else if (this.isSimpleFormat(jsonData)) {
@@ -249,7 +249,7 @@ class FileService {
           llm_judge: 'gpt-4.1', // Default value
           checkpoints: jsonData.criteria.map((criterion: string) => ({
             criteria: criterion,
-            points: -1, // Default points value
+            points: 0, // Default points value
           }))
         }
       } else {

@@ -39,7 +39,7 @@ function transformToOldFormat(newFormat: NewEvaluationCase): EvaluationCriteria 
       llm_judge: newFormat.llm_judge || 'gpt-4.1',
       checkpoints: newFormat.criteria.map((item) => ({
         criteria: item.criteria,
-        points: item.points || -1, // Use provided points or fallback to -1
+        points: item.points || 0, // Use provided points or fallback to 0
       }))
     }
   } else {
@@ -48,7 +48,7 @@ function transformToOldFormat(newFormat: NewEvaluationCase): EvaluationCriteria 
       llm_judge: 'gpt-4.1', // Default value since not in current format
       checkpoints: newFormat.criteria.map((criterion) => ({
         criteria: criterion,
-        points: -1, // Default fallback value to indicate not set
+        points: 0, // Default fallback value to indicate not set
       }))
     }
   }

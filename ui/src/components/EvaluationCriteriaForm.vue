@@ -120,7 +120,7 @@ const formData = reactive<EvaluationCriteria>({
   checkpoints: [
     {
       criteria: '',
-      points: -1,
+      points: 0,
     },
   ],
 })
@@ -163,7 +163,7 @@ onMounted(() => {
 const addCheckpoint = () => {
   formData.checkpoints.push({
     criteria: '',
-    points: -1,
+    points: 0,
   })
 }
 
