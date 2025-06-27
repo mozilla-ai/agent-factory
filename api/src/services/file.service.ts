@@ -155,27 +155,6 @@ class FileService {
     }
   }
 
-  // Check for existence of specific evaluation files
-  async checkEvaluationFiles(workflowPath: string): Promise<{
-    hasAgentTrace: boolean
-    hasEvalCases: boolean
-    hasEvalResults: boolean
-  }> {
-    const fullPath = getWorkflowPath(workflowPath)
-
-    const [hasAgentTrace, hasEvalCases, hasEvalResults] = await Promise.all([
-      this.fileExists(path.join(fullPath, 'agent_eval_trace.json')),
-      this.fileExists(path.join(fullPath, 'evaluation_case.json')),
-      this.fileExists(path.join(fullPath, 'evaluation_results.json')),
-    ])
-
-    return {
-      hasAgentTrace,
-      hasEvalCases,
-      hasEvalResults,
-    }
-  }
-
   // Save evaluation criteria - now saves as JSON in the new simple format
   async saveEvaluationCriteria(
     workflowPath: string,
