@@ -17,11 +17,11 @@
         :required="false"
         :disabled="true"
         field-id="llm-judge"
-        :options="[
-          { value: 'gpt-4.1', label: 'GPT-4.1 (Default)' },
-        ]"
+        :options="[{ value: 'gpt-4.1', label: 'GPT-4.1 (Default)' }]"
       />
-      <p class="help-text">LLM Judge is automatically set to gpt-4.1 and cannot be modified in the current format</p>
+      <p class="help-text">
+        LLM Judge is automatically set to gpt-4.1 and cannot be modified in the current format
+      </p>
 
       <div class="checkpoints-section">
         <h4>Evaluation Checkpoints</h4>
@@ -120,7 +120,7 @@ const formData = reactive<EvaluationCriteria>({
   checkpoints: [
     {
       criteria: '',
-      points: 0,
+      points: 1,
     },
   ],
 })
@@ -163,7 +163,7 @@ onMounted(() => {
 const addCheckpoint = () => {
   formData.checkpoints.push({
     criteria: '',
-    points: 0,
+    points: 1,
   })
 }
 

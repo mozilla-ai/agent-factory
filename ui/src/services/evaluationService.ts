@@ -17,8 +17,8 @@ function transformToUIFormat(simpleFormat: SimpleCriteriaFormat): EvaluationCrit
     llm_judge: 'gpt-4.1', // Default value since not in current format
     checkpoints: simpleFormat.criteria.map((criterion) => ({
       criteria: criterion,
-      points: 0, // Default fallback value
-    }))
+      points: 1, // Default fallback value
+    })),
   }
 }
 
@@ -45,12 +45,13 @@ export const evaluationService = {
     )
   },
 
-          async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
+  async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
     try {
       const content = await workflowService.getFileContent(workflowId, 'evaluation_case.json')
 
       // Check if content is already parsed (object) or needs parsing (string)
-      const simpleFormat: SimpleCriteriaFormat = typeof content === 'string' ? JSON.parse(content) : content
+      const simpleFormat: SimpleCriteriaFormat =
+        typeof content === 'string' ? JSON.parse(content) : content
 
       // Transform simple format to UI format for backward compatibility with UI components
       return transformToUIFormat(simpleFormat)
@@ -76,7 +77,8 @@ export const evaluationService = {
    * Get evaluation results for a workflow
    */
   async getEvaluationResults(workflowId: string): Promise<string> {
-    return await workflowService.getFileContent(workflowId, 'evaluation_results.json')
+    const content = await workflowService.getFileContent(workflowId, 'evaluation_results.json')
+    return typeof content === 'string' ? content : JSON.stringify(content)
   },
 
   /**

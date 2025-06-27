@@ -40,7 +40,9 @@
           <h3>Evaluation Criteria</h3>
           <div class="judge-info">
             <span class="judge-label">LLM Judge:</span>
-            <span class="judge-model">{{ evaluationCriteriaQuery.data.value.llm_judge || 'N/A (auto-generated)' }}</span>
+            <span class="judge-model">{{
+              evaluationCriteriaQuery.data.value.llm_judge || 'N/A (auto-generated)'
+            }}</span>
           </div>
           <!-- Scoring functionality preserved for future use when Python code adds scoring support -->
           <div class="points-summary">
@@ -106,7 +108,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { transformResults, type OldFormatData } from '@/helpers/transform-results'
+import { transformResults } from '@/helpers/transform-results'
+import type { EvaluationResults } from '@/composables/useEvaluationScores'
 import { useQuery, useMutation } from '@tanstack/vue-query'
 import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
 import { evaluationService } from '../../services/evaluationService'
@@ -164,7 +167,7 @@ const evaluationCriteriaQuery = useQuery({
 // Fetch evaluation results
 const evaluationResultsQuery = useQuery({
   queryKey: queryKeys.evaluationResults(props.workflowId),
-  queryFn: async (): Promise<OldFormatData> => {
+  queryFn: async (): Promise<EvaluationResults> => {
     try {
       const data = await evaluationService.getEvaluationResults(props.workflowId)
       // Handle case where data might already be parsed or is an object

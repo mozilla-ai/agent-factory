@@ -6,7 +6,7 @@ import type {
   WorkflowInfo,
   EvaluationCriteria,
   EvaluationResult,
-  } from '../types/index.js'
+} from '../types/index.js'
 
 class FileService {
   // Check if file exists
@@ -171,10 +171,14 @@ class FileService {
 
       // Transform to the new simple format that Python expects
       const newFormat = {
-        criteria: criteria.checkpoints.map(checkpoint => checkpoint.criteria)
+        criteria: criteria.checkpoints.map((checkpoint) => checkpoint.criteria),
       }
 
-      await fs.writeFile(criteriaFilePath, JSON.stringify(newFormat, null, 2), 'utf8')
+      await fs.writeFile(
+        criteriaFilePath,
+        JSON.stringify(newFormat, null, 2),
+        'utf8',
+      )
       console.log(
         `Successfully saved evaluation criteria to: ${criteriaFilePath}`,
       )
@@ -212,20 +216,24 @@ class FileService {
       const jsonData = JSON.parse(content)
 
       // Check if it's the simple format with criteria array
-      if (Array.isArray(jsonData.criteria) && jsonData.criteria.length > 0 && typeof jsonData.criteria[0] === 'string') {
+      if (
+        Array.isArray(jsonData.criteria) &&
+        jsonData.criteria.length > 0 &&
+        typeof jsonData.criteria[0] === 'string'
+      ) {
         // Simple format with just criteria array
         return {
           llm_judge: 'gpt-4.1', // Default value
           checkpoints: jsonData.criteria.map((criterion: string) => ({
             criteria: criterion,
-            points: 0, // Default points value
-          }))
+            points: 1, // Default points value
+          })),
         }
       } else {
         // Assume it's already in the UI format (legacy or manual)
         return jsonData as EvaluationCriteria
       }
-    } catch (error) {
+    } catch {
       throw new Error('Failed to load evaluation criteria')
     }
   }
@@ -352,8 +360,6 @@ class FileService {
       throw new Error(`Failed to write file: ${filePath}`)
     }
   }
-
-
 }
 
 // Singleton instance

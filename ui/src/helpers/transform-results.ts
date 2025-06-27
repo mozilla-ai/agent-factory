@@ -25,7 +25,7 @@ interface EvaluationCriteria {
 // Transform results to align with criteria
 export const transformResults = (
   data: SimpleResultsFormat | EvaluationResults,
-  criteria?: EvaluationCriteria
+  criteria?: EvaluationCriteria,
 ): EvaluationResults => {
   // If it's already in the UI format, return it as is
   if ('checkpoints' in data && data.checkpoints) {
@@ -60,7 +60,7 @@ export const transformResults = (
           result: result.passed ? 'pass' : 'fail',
           feedback: result.reasoning || '',
           criteria: criteriaItem?.criteria || `Evaluation Criterion ${index + 1}`,
-          points: criteriaItem?.points || 0,
+          points: criteriaItem?.points || 1,
         }
       }),
     }

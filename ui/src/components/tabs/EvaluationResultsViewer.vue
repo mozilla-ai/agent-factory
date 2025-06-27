@@ -167,11 +167,11 @@ const criteriaQuery = useQuery({
   queryFn: async () => {
     try {
       return await evaluationService.getEvaluationCriteria(props.workflowId)
-    } catch (error) {
+    } catch {
       // Return a default criteria structure when evaluation criteria don't exist
       return {
         llm_judge: 'N/A',
-        checkpoints: []
+        checkpoints: [],
       }
     }
   },
@@ -191,7 +191,7 @@ const resultsQuery = useQuery({
       const criteria = await evaluationService.getEvaluationCriteria(props.workflowId)
 
       return transformResults(parsedData, criteria)
-    } catch (error) {
+    } catch {
       // Return empty results when evaluation results don't exist yet
       return {
         checkpoints: [],
