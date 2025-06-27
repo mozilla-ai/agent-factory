@@ -360,7 +360,7 @@ export class ProcessService {
         [
           '-m',
           'eval.run_generated_agent_evaluation',
-          '--evaluation_case_yaml_file',
+          '--evaluation_case_json_file',
           evaluationCaseFile,
           '--agent_trace_json_file',
           agentTraceFile,
