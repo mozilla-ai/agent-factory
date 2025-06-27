@@ -24,6 +24,9 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
         assert "extract_text_from_url" in generated_agent_code
         assert "generate_podcast_script_with_llm" in generated_agent_code
         assert "ELEVENLABS_API_KEY" in generated_agent_code
+        assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
+            "MCP server(s) required for url-to-podcast workflow"
+        )
         # TODO: how to assert that only subset of MCP server's tools are used?
 
 

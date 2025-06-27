@@ -78,16 +78,19 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
         # Agent with no MCP tools needed
         (
             "summarize-url-content",
-            "Create a workflow that takes an input web URL and returns a summary of the content. Do not assign MCP servers among the tools.",
+            "Workflow that takes an input web URL and returns a summary of the content. Do not assign MCP servers among the tools.",
             15,
             120,
         ),
         # Agent with MCP tools such as ElevenLabs
         (
             "url-to-podcast",
-            "Create a workflow that takes an input web URL and creates an audio podcast with multiple speakers.",
+            "Workflow to generate a 1-minute podcast mp3 based on the contents of a URL provided by the user. "
+            "And it should create separate mp3 files interleaving the turn-by-turn dialogue between a host and a guest speaker. "
+            "The final output should be saved as a single mp3 file in the current working directory using Filesystem MCP. "
+            "Use ElevenLabs API to generate the mp3 files.",
             30,
-            180,
+            300,
         ),
         # Add new "use cases" here, following this format:
         # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
