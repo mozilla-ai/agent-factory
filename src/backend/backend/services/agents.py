@@ -1,20 +1,15 @@
-import asyncio
-import json
 import re
 import shutil
 import uuid
 from pathlib import Path
 
 import dotenv
-import httpx
-from a2a.types import JSONRPCErrorResponse, SendMessageSuccessResponse
 from loguru import logger
 
-from backend.client import AgentClient
 from backend.repositories.agents import AgentRepository
-from backend.schemas import AgentConfig, AgentCreateRequest, AgentStatus, AgentSummary
+from backend.schemas import AgentConfig, AgentCreateRequest, AgentSummary
 from backend.settings import settings
-from backend.utils import create_agent_file
+from backend.tasks import send_message_task
 
 dotenv.load_dotenv()
 
@@ -76,31 +71,6 @@ class AgentService:
         logger.info(f"Updating agent {agent_id} status to {status}")
         self.agent_repository.update(agent_id, status=status)
 
-    async def _send_message(self, prompt: str, agent_id: uuid.UUID):
-        self._update_agent_status(agent_id=agent_id, status=AgentStatus.PROCESSING)
-        async with httpx.AsyncClient() as httpx_client:
-            agent = AgentClient(base_url=BASE_URL, httpx_client=httpx_client)
-            try:
-                response = await agent.send_message(prompt, timeout=600)
-                if response:
-                    if isinstance(response.root, JSONRPCErrorResponse):
-                        logger.error(f"Error from agent: {response.error.message}")
-                        self._update_agent_status(agent_id=agent_id, status=AgentStatus.FAILED)
-                        return
-                    if isinstance(response.root, SendMessageSuccessResponse):
-                        self._update_agent_status(agent_id=agent_id, status=AgentStatus.COMPLETED)
-                        result = json.loads(response.root.result.status.message.parts[0].root.text)
-                        python_string = result["result"]
-
-                        python_code = self._extract_code(python_string)
-                        readme_code = self._extract_code(create_agent_file("readme", python_code))
-                        pyproject_code = self._extract_code(create_agent_file("toml", python_code))
-
-                        self._save_agent(agent_id, python_code, readme_code, pyproject_code)
-            except Exception as e:
-                self._update_agent_status(agent_id=agent_id, status=AgentStatus.FAILED)
-                logger.info(f"Error communicating with agent: {e}")
-
     async def create_agent(self, request: AgentCreateRequest) -> AgentSummary:
         # TODO: Implement the logic to create a summary for the agent.
         summary = request.prompt[:120]
@@ -114,7 +84,7 @@ class AgentService:
         )
 
         try:
-            asyncio.create_task(self._send_message(prompt, agent_id=record.id))
+            send_message_task.delay(prompt, agent_id=str(record.id))
         except Exception as e:
             logger.error(f"Failed to send message to agent: {e}")
 
