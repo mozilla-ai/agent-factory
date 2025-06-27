@@ -55,8 +55,15 @@ export class ProcessService {
       }
     }
 
-    // TODO: Potentially install Python dependencies here in the future
-    // For now, we assume dependencies are already installed
+    // Install/sync Python dependencies using uv
+    try {
+      console.log('Installing/syncing Python dependencies with uv...')
+      await this.runCommand(config.uvExecutable, ['sync'], 'uv-sync')
+      console.log('Dependencies synced successfully')
+    } catch (error) {
+      console.warn('Failed to sync dependencies with uv:', error)
+      console.log('Continuing without dependency sync...')
+    }
 
     this.isEnvironmentInitialized = true
     console.log('Python environment initialized successfully')
