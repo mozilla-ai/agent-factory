@@ -6,51 +6,19 @@ import { getErrorMessage } from '@/helpers/error.helpers'
 import { fetchStream } from '@/helpers/stream.helpers'
 import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/index'
 
-// Current simple JSON structure from Python
-interface SimpleEvaluationCase {
+// Simple evaluation case format with just criteria strings
+interface SimpleCriteriaFormat {
   criteria: string[]
 }
 
-// Future enhanced JSON structure that might include points
-interface EnhancedEvaluationCase {
-  criteria: Array<{
-    criteria: string
-    points?: number
-  }>
-  llm_judge?: string
-}
-
-// Union type to handle both current and future formats
-type NewEvaluationCase = SimpleEvaluationCase | EnhancedEvaluationCase
-
-// Type guard to check if it's the enhanced format
-function isEnhancedFormat(data: NewEvaluationCase): data is EnhancedEvaluationCase {
-  return Array.isArray(data.criteria) &&
-         data.criteria.length > 0 &&
-         typeof data.criteria[0] === 'object' &&
-         'criteria' in data.criteria[0]
-}
-
-// Transform function to convert new JSON format to old structure
-function transformToOldFormat(newFormat: NewEvaluationCase): EvaluationCriteria {
-  if (isEnhancedFormat(newFormat)) {
-    // Handle future enhanced format with potential points
-    return {
-      llm_judge: newFormat.llm_judge || 'gpt-4.1',
-      checkpoints: newFormat.criteria.map((item) => ({
-        criteria: item.criteria,
-        points: item.points || 0, // Use provided points or fallback to 0
-      }))
-    }
-  } else {
-    // Handle current simple format
-    return {
-      llm_judge: 'gpt-4.1', // Default value since not in current format
-      checkpoints: newFormat.criteria.map((criterion) => ({
-        criteria: criterion,
-        points: 0, // Default fallback value to indicate not set
-      }))
-    }
+// Transform function to convert simple format to full UI format
+function transformToUIFormat(simpleFormat: SimpleCriteriaFormat): EvaluationCriteria {
+  return {
+    llm_judge: 'gpt-4.1', // Default value since not in current format
+    checkpoints: simpleFormat.criteria.map((criterion) => ({
+      criteria: criterion,
+      points: 0, // Default fallback value
+    }))
   }
 }
 
@@ -82,10 +50,10 @@ export const evaluationService = {
       const content = await workflowService.getFileContent(workflowId, 'evaluation_case.json')
 
       // Check if content is already parsed (object) or needs parsing (string)
-      const newFormat: NewEvaluationCase = typeof content === 'string' ? JSON.parse(content) : content
+      const simpleFormat: SimpleCriteriaFormat = typeof content === 'string' ? JSON.parse(content) : content
 
-      // Transform new format to old format for backward compatibility with UI components
-      return transformToOldFormat(newFormat)
+      // Transform simple format to UI format for backward compatibility with UI components
+      return transformToUIFormat(simpleFormat)
     } catch (error) {
       console.error('Error loading evaluation criteria:', error)
       throw error

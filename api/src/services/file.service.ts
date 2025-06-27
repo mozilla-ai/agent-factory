@@ -194,7 +194,7 @@ class FileService {
     }
   }
 
-  // Load evaluation criteria - handles both current and future JSON formats
+  // Load evaluation criteria - transforms simple criteria format to UI format
   async loadEvaluationCriteria(
     workflowPath: string,
   ): Promise<EvaluationCriteria> {
@@ -211,18 +211,9 @@ class FileService {
       const content = await fs.readFile(criteriaFilePath, 'utf8')
       const jsonData = JSON.parse(content)
 
-      // Handle different JSON formats
-      if (this.isEnhancedFormat(jsonData)) {
-        // Future enhanced format with potential points and llm_judge
-        return {
-          llm_judge: jsonData.llm_judge || 'gpt-4.1',
-          checkpoints: jsonData.criteria.map((item: any) => ({
-            criteria: item.criteria,
-            points: item.points || 0, // Use provided points or fallback to 0
-          }))
-        }
-      } else if (this.isSimpleFormat(jsonData)) {
-        // Current simple format with just criteria array
+      // Check if it's the simple format with criteria array
+      if (Array.isArray(jsonData.criteria) && jsonData.criteria.length > 0 && typeof jsonData.criteria[0] === 'string') {
+        // Simple format with just criteria array
         return {
           llm_judge: 'gpt-4.1', // Default value
           checkpoints: jsonData.criteria.map((criterion: string) => ({
@@ -231,27 +222,12 @@ class FileService {
           }))
         }
       } else {
-        // Assume it's already in the correct format (legacy or manual)
+        // Assume it's already in the UI format (legacy or manual)
         return jsonData as EvaluationCriteria
       }
     } catch (error) {
       throw new Error('Failed to load evaluation criteria')
     }
-  }
-
-  // Helper method to check if it's the enhanced format
-  private isEnhancedFormat(data: any): boolean {
-    return Array.isArray(data.criteria) &&
-           data.criteria.length > 0 &&
-           typeof data.criteria[0] === 'object' &&
-           'criteria' in data.criteria[0]
-  }
-
-  // Helper method to check if it's the simple format
-  private isSimpleFormat(data: any): boolean {
-    return Array.isArray(data.criteria) &&
-           data.criteria.length > 0 &&
-           typeof data.criteria[0] === 'string'
   }
 
   // Load evaluation results
