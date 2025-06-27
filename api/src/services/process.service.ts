@@ -55,8 +55,26 @@ export class ProcessService {
       }
     }
 
-    // TODO: Potentially install Python dependencies here in the future
-    // For now, we assume dependencies are already installed
+    // Install/sync Python dependencies using uv
+    try {
+      console.log('Installing/syncing Python dependencies with uv...')
+
+      // Try global uv first, then fall back to venv uv
+      let uvCommand = 'uv'
+      try {
+        await this.runCommand(uvCommand, ['--version'], 'uv-version-check')
+      } catch {
+        console.log('Global uv not found, trying venv uv...')
+        uvCommand = config.uvExecutable
+        await this.runCommand(uvCommand, ['--version'], 'uv-venv-check')
+      }
+
+      await this.runCommand(uvCommand, ['sync'], 'uv-sync')
+      console.log('Dependencies synced successfully')
+    } catch (error) {
+      console.warn('Failed to sync dependencies with uv:', error)
+      console.log('Continuing without dependency sync...')
+    }
 
     this.isEnvironmentInitialized = true
     console.log('Python environment initialized successfully')
@@ -351,7 +369,7 @@ export class ProcessService {
       const fullWorkflowPath = getWorkflowPath(workflowPath)
 
       // Build the specific file paths that the Python script expects
-      const evaluationCaseFile = `${fullWorkflowPath}/evaluation_case.yaml`
+      const evaluationCaseFile = `${fullWorkflowPath}/evaluation_case.json`
       const agentTraceFile = `${fullWorkflowPath}/agent_eval_trace.json`
       const resultsFile = `${fullWorkflowPath}/evaluation_results.json`
 
@@ -360,7 +378,7 @@ export class ProcessService {
         [
           '-m',
           'eval.run_generated_agent_evaluation',
-          '--evaluation_case_yaml_file',
+          '--evaluation_case_json_file',
           evaluationCaseFile,
           '--agent_trace_json_file',
           agentTraceFile,

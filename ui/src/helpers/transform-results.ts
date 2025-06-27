@@ -1,55 +1,77 @@
-// Define types for the evaluation data structures
-interface CheckpointResult {
+// Simple evaluation result with pass/fail and reasoning
+interface SimpleEvaluationResult {
   passed: boolean
-  reason: string
-  criteria: string
-  points: number
+  reasoning: string
 }
 
-interface NewFormatData {
+// Simple evaluation results format from evaluation scripts
+interface SimpleResultsFormat {
   obtained_score: number
   max_score: number
-  checkpoint_results: CheckpointResult[]
+  results: SimpleEvaluationResult[]
 }
 
-interface TransformedCheckpoint {
-  result: 'pass' | 'fail'
-  feedback: string
-  criteria: string
-  points: number
-}
+// Import the existing EvaluationResults interface
+import type { EvaluationResults } from '@/composables/useEvaluationScores'
 
-export interface OldFormatData {
-  checkpoints: TransformedCheckpoint[]
-  totalScore: number
-  maxPossibleScore: number
-  score: number
-  maxScore: number
+// Type for evaluation criteria to merge with results
+interface EvaluationCriteria {
+  checkpoints: Array<{
+    criteria: string
+    points: number
+  }>
 }
 
 // Transform results to align with criteria
-export const transformResults = (data: NewFormatData | OldFormatData): OldFormatData => {
-  // If it's already in the old format, return it as is
+export const transformResults = (
+  data: SimpleResultsFormat | EvaluationResults,
+  criteria?: EvaluationCriteria,
+): EvaluationResults => {
+  // If it's already in the UI format, return it as is
   if ('checkpoints' in data && data.checkpoints) {
     return data
   }
 
-  const newData = data as NewFormatData
+  // Handle case where data might be incomplete or undefined
+  if (!data || typeof data !== 'object') {
+    return {
+      checkpoints: [],
+      totalScore: 0,
+      maxPossibleScore: 0,
+      score: 0,
+      maxScore: 0,
+    }
+  }
 
-  // Transform from new format to old format
+  // Check if it's the simple format with 'results' array
+  if ('results' in data && Array.isArray(data.results)) {
+    const simpleData = data as SimpleResultsFormat
+    return {
+      // Add metadata from simple format
+      totalScore: simpleData.obtained_score || 0,
+      maxPossibleScore: simpleData.max_score || 0,
+      score: simpleData.obtained_score || 0,
+      maxScore: simpleData.max_score || 0,
+
+      // Transform results to match the expected format, combining with criteria if available
+      checkpoints: simpleData.results.map((result: SimpleEvaluationResult, index: number) => {
+        const criteriaItem = criteria?.checkpoints?.[index]
+        return {
+          result: result.passed ? 'pass' : 'fail',
+          feedback: result.reasoning || '',
+          criteria: criteriaItem?.criteria || `Evaluation Criterion ${index + 1}`,
+          points: criteriaItem?.points || 1,
+        }
+      }),
+    }
+  }
+
+  // Fallback for unknown format
   return {
-    // Add metadata from new format
-    totalScore: newData.obtained_score,
-    maxPossibleScore: newData.max_score,
-    score: newData.obtained_score,
-    maxScore: newData.max_score,
-
-    // Transform checkpoint results to match the expected format
-    checkpoints: newData.checkpoint_results.map((checkpoint: CheckpointResult) => ({
-      result: checkpoint.passed ? 'pass' : 'fail',
-      feedback: checkpoint.reason,
-      criteria: checkpoint.criteria,
-      points: checkpoint.points,
-    })),
+    checkpoints: [],
+    totalScore: 0,
+    maxPossibleScore: 0,
+    score: 0,
+    maxScore: 0,
   }
 }

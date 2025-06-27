@@ -1,0 +1,6 @@
+{
+  "criteria": [
+    "Did the agent start?",
+    "Did the agent do something useful?"
+  ]
+}

@@ -67,7 +67,7 @@ export class EvaluationService {
   ): Promise<void> {
     const workflowDir = getWorkflowPath(workflowPath)
     const agentTracePath = path.join(workflowDir, 'agent_eval_trace.json')
-    const evaluationCasePath = path.join(workflowDir, 'evaluation_case.yaml')
+    const evaluationCasePath = path.join(workflowDir, 'evaluation_case.json')
     const evaluationResultsPath = path.join(
       workflowDir,
       'evaluation_results.json',
@@ -179,7 +179,7 @@ export class EvaluationService {
   async validateEvaluationFiles(workflowPath: string): Promise<void> {
     const workflowDir = getWorkflowPath(workflowPath)
     const agentTracePath = path.join(workflowDir, 'agent_eval_trace.json')
-    const evaluationCasePath = path.join(workflowDir, 'evaluation_case.yaml')
+    const evaluationCasePath = path.join(workflowDir, 'evaluation_case.json')
 
     // Validate required files exist
     if (!(await fileService.fileExists(agentTracePath))) {
@@ -234,8 +234,8 @@ export class EvaluationService {
       throw new Error(`Workflow not found: ${workflowPath}`)
     }
 
-    // Check for evaluation criteria
-    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    // Check for evaluation criteria (JSON format only)
+    const criteriaPath = path.join(fullPath, 'evaluation_case.json')
     try {
       await fs.access(criteriaPath)
     } catch {

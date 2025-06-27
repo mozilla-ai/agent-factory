@@ -1,24 +1,26 @@
+import asyncio
 import json
 from pathlib import Path
 
 import fire
-from any_agent.evaluation.evaluate import evaluate
-from any_agent.evaluation.evaluation_case import EvaluationCase
+from any_agent.evaluation import AgentJudge
+from any_agent.evaluation.schemas import EvaluationOutput
 
 from agent_factory.logging import logger
 from agent_factory.utils.trace_utils import load_agent_trace
+from eval.generate_evaluation_case import JSONEvaluationCase
 
 
-def run_evaluation(
-    evaluation_case_yaml_file: str = "generated_workflows/latest/evaluation_case.yaml",
+async def run_evaluation(
+    evaluation_case_json_file: str = "generated_workflows/latest/evaluation_case.json",
     agent_trace_json_file: str = "generated_workflows/latest/agent_eval_trace.json",
     save_evaluation_results_path: str = "generated_workflows/latest/evaluation_results.json",
 ):
-    """Runs the evaluation process based on an evaluation case YAML file and an agent trace JSON file.
+    """Runs the evaluation process based on an evaluation case JSON file and an agent trace JSON file.
 
     Args:
-        evaluation_case_yaml_file (str): Path to the evaluation case YAML file.
-        Defaults to "generated_workflows/evaluation_case.yaml".
+        evaluation_case_json_file (str): Path to the evaluation case JSON file.
+        Defaults to "generated_workflows/evaluation_case.json".
 
         agent_trace_json_file (str): Path to the agent trace JSON file.
         Defaults to "generated_workflows/agent_eval_trace.json".
@@ -27,46 +29,35 @@ def run_evaluation(
         Defaults to "generated_workflows/evaluation_results.json".
     """
     try:
-        evaluation_case = EvaluationCase.from_yaml(evaluation_case_yaml_file)
-        logger.info(f"Successfully loaded evaluation case from: {evaluation_case_yaml_file}")
+        # Load evaluation case from the specified JSON file
+        with Path(evaluation_case_json_file).open(encoding="utf-8") as f:
+            evaluation_case = JSONEvaluationCase.model_validate_json(f.read())
+        logger.info(f"Successfully loaded evaluation case from: {evaluation_case_json_file}")
 
         agent_trace = load_agent_trace(agent_trace_json_file)
         logger.info(f"Successfully loaded agent trace from: {agent_trace_json_file}")
 
-        eval_result = evaluate(
-            evaluation_case=evaluation_case,
-            trace=agent_trace,
-        )
-
+        # Perform the evaluation
+        agent_judge = AgentJudge(model_id="gpt-4.1")
+        results: list[EvaluationOutput] = []
+        runs = []
+        for criteria in evaluation_case.criteria:
+            runs.append(agent_judge.run_async(agent_trace, criteria))
+        results = await asyncio.gather(*runs)
+        score = sum(result.passed for result in results)
+        # Print the results
         logger.info("\n--- Evaluation Results ---")
-        logger.info(f"Final score: {eval_result.score}")
+        logger.info(f"Final score: {score} out of {len(evaluation_case.criteria)}")
 
-        if hasattr(eval_result, "checkpoint_results"):
-            logger.info("Checkpoint results:")
-            obtained_score = 0
-            max_score = 0
-            checkpoint_results_list = []
-            for i, cp_result in enumerate(eval_result.checkpoint_results):
-                logger.info(f"\tCheckpoint {i + 1}:")
-                logger.info(f"\t\tCriteria: {cp_result.criteria}")
-                logger.info(f"\t\tCriteria Points: {cp_result.points}")
-                logger.info(f"\t\tPassed: {cp_result.passed}")
-                logger.info(f"\t\tReason: {cp_result.reason}")
-                obtained_score += cp_result.points if cp_result.passed else 0
-                max_score += cp_result.points
-                checkpoint_results_list.append(cp_result.model_dump())
-
-            eval_result_dict = {
-                "obtained_score": obtained_score,
-                "max_score": max_score,
-                "checkpoint_results": checkpoint_results_list,
-            }
-            with Path(save_evaluation_results_path).open("w", encoding="utf-8") as f:
-                f.write(json.dumps(eval_result_dict, indent=2))
-                logger.info(f"Successfully saved evaluation results to: {save_evaluation_results_path}")
-
-        else:
-            logger.info("No checkpoint results available.")
+        # Save evaluation results to a JSON file
+        eval_result_dict = {
+            "obtained_score": score,
+            "max_score": len(evaluation_case.criteria),
+            "results": [result.model_dump() for result in results],
+        }
+        with Path(save_evaluation_results_path).open("w", encoding="utf-8") as f:
+            f.write(json.dumps(eval_result_dict, indent=2))
+            logger.info(f"Successfully saved evaluation results to: {save_evaluation_results_path}")
 
     except FileNotFoundError as e:
         logger.error(f"Error: File not found - {e.filename}")

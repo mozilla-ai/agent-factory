@@ -144,7 +144,7 @@ const genCasesMutation = useMutation({
   },
   onSuccess: () => {
     invalidateEvaluationQueries(props.workflowId)
-    invalidateFileQueries(props.workflowId, 'evaluation_case.yaml')
+    invalidateFileQueries(props.workflowId, 'evaluation_case.json')
     invalidateWorkflows()
   },
   onError: (error) => {

@@ -56,7 +56,7 @@ export class EvaluationController {
         )
         completeStreamingResponse(
           res,
-          '[Evaluation cases generation completed. Saved to evaluation_case.yaml]',
+          '[Evaluation cases generation completed. Saved to evaluation_case.json]',
         )
       } catch (error) {
         handleStreamingError(res, error, 'Failed to generate evaluation cases')

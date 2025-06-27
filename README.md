@@ -6,7 +6,7 @@ A tool for generating Python code for agentic workflows using `any-agent` librar
 - Generate Python code for agentic workflows from natural language prompts
 - Automatically create runnable agents and instructions using the `any-agent` library and available tools
 - (Manually) Execute generated workflows save agent trace
-- Generate evaluation cases and YAML configs for automated testing
+- Generate evaluation cases and JSON configs for automated testing
 - (Manually) Run automated evaluations and view detailed criteria-based results
 
 ## Setup
@@ -98,14 +98,14 @@ This will run the agent and save the agent trace as `agent_eval_trace.json` in t
 > [!NOTE]
 > The agent-factory has been instructed to set the `max_turns` (the max number of steps that the generated agent can take to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see the generated agent run failing due to `AgentRunError` caused by `MaxTurnsExceeded`).
 
-### 3. Generate Evaluation Case YAML
+### 3. Generate Evaluation Case JSON
 
 Run the evaluation case generator agent with your desired evaluation case prompt:
 ```bash
 python -m eval.generate_evaluation_case
 ```
 
-This will generate a YAML file in the `generated_workflows/latest` directory with criteria and points for each evaluation.
+This will generate a JSON file in the `generated_workflows/latest` directory with evaluation criteria.
 
 ### 4. Run Evaluation Script
 

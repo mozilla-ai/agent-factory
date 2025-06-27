@@ -29,7 +29,7 @@ export function useQueryInvalidation() {
     invalidateAgentTrace(workflowId)
     invalidateFileQueries(
       workflowId,
-      'evaluation_case.yaml',
+      'evaluation_case.json',
       'evaluation_results.json',
       'agent_eval_trace.json',
     )

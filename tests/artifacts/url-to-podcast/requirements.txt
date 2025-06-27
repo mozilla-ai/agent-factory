@@ -1,4 +1,4 @@
-any-agent[all]==0.20.0
+any-agent[all]>=0.22.0
 python-dotenv
 fire
 beautifulsoup4

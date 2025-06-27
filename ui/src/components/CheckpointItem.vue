@@ -4,6 +4,7 @@
       <div class="checkpoint-number">{{ number }}</div>
       <div class="checkpoint-content">
         <div class="checkpoint-criteria">{{ criteria }}</div>
+        <!-- Points display preserved for future use when Python code adds scoring support -->
         <div class="checkpoint-points">{{ points }} {{ points === 1 ? 'point' : 'points' }}</div>
       </div>
     </div>

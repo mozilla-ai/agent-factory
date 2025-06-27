@@ -2,33 +2,23 @@ from pathlib import Path
 
 import dotenv
 import fire
-import yaml
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 
-from agent_factory.logging import logger
 from eval.instructions import INSTRUCTIONS
 
 dotenv.load_dotenv()
 
 
-class CheckpointCriteria(BaseModel):
-    criteria: str = Field(..., description="The criteria for the checkpoint.")
-    points: int = Field(..., description="The points for the checkpoint.")
-
-
 class JSONEvaluationCase(BaseModel):
-    llm_judge: str = Field(default="openai/gpt-4.1", description="The LLM to be used as the judge.")
-    checkpoints: list[CheckpointCriteria] = Field(
-        ..., description="The checkpoints criteria to be used for evaluation."
-    )
+    criteria: list[str] = Field(default_factory=list, description="A list of evaluation criteria.")
 
 
 def main(generated_workflow_dir: str = "generated_workflows/latest"):
     """Generate JSON structured evaluation case for the generated agentic workflow.
-    Save the JSON file as `evaluation_case.yaml` in the same directory as the generated workflow.
+    Save the JSON file as `evaluation_case.json` in the same directory as the generated workflow.
 
     Args:
         generated_workflow_dir: The directory of the generated workflow.
@@ -85,15 +75,12 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
     """  # noqa: E501
     agent_trace = agent.run(run_instructions, max_turns=30)
 
-    try:
-        json_output = agent_trace.final_output.model_dump()
-    except ValidationError as e:
-        logger.error("Invalid JSON output: %s", e)
-        return
+    if not isinstance(agent_trace.final_output, JSONEvaluationCase):
+        raise ValueError("The agent's final output is not a JSONEvaluationCase.")
 
-    # Save the JSON output as a YAML file
-    with (workflows_dir / "evaluation_case.yaml").open("w") as f:
-        yaml.dump(json_output, f, default_flow_style=False, sort_keys=False)
+    # Save the JSON output as a json file
+    with (workflows_dir / "evaluation_case.json").open("w") as f:
+        f.write(agent_trace.final_output.model_dump_json(indent=2))
 
 
 if __name__ == "__main__":

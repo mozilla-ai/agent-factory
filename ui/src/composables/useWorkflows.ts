@@ -13,7 +13,6 @@ export function useWorkflows() {
   const workflowsQuery = useQuery({
     queryKey: queryKeys.workflows(),
     queryFn: workflowService.getWorkflows,
-    staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 1, // Only retry once to quickly show error state
   })
 

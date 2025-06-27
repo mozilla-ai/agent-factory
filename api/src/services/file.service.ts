@@ -1,6 +1,5 @@
 import fs from 'fs/promises'
 import path from 'path'
-import YAML from 'yaml'
 import { getWorkflowPath } from '../config/index.js'
 import type {
   FileEntry,
@@ -57,7 +56,7 @@ class FileService {
     }
 
     const agentPath = path.join(fullPath, 'agent.py')
-    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaPath = path.join(fullPath, 'evaluation_case.json')
     const resultsPath = path.join(fullPath, 'evaluation_results.json')
     const tracePath = path.join(fullPath, 'agent_eval_trace.json')
 
@@ -156,7 +155,7 @@ class FileService {
     }
   }
 
-  // Save evaluation criteria
+  // Save evaluation criteria - now saves as JSON in the new simple format
   async saveEvaluationCriteria(
     workflowPath: string,
     criteria: EvaluationCriteria,
@@ -167,10 +166,19 @@ class FileService {
 
       await this.ensureDirectory(fullPath)
 
-      const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
+      const criteriaFilePath = path.join(fullPath, 'evaluation_case.json')
       console.log(`Writing criteria file: ${criteriaFilePath}`)
 
-      await fs.writeFile(criteriaFilePath, YAML.stringify(criteria), 'utf8')
+      // Transform to the new simple format that Python expects
+      const newFormat = {
+        criteria: criteria.checkpoints.map((checkpoint) => checkpoint.criteria),
+      }
+
+      await fs.writeFile(
+        criteriaFilePath,
+        JSON.stringify(newFormat, null, 2),
+        'utf8',
+      )
       console.log(
         `Successfully saved evaluation criteria to: ${criteriaFilePath}`,
       )
@@ -190,12 +198,12 @@ class FileService {
     }
   }
 
-  // Load evaluation criteria
+  // Load evaluation criteria - transforms simple criteria format to UI format
   async loadEvaluationCriteria(
     workflowPath: string,
   ): Promise<EvaluationCriteria> {
     const fullPath = getWorkflowPath(workflowPath)
-    const criteriaFilePath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaFilePath = path.join(fullPath, 'evaluation_case.json')
 
     if (!(await this.fileExists(criteriaFilePath))) {
       throw new Error(
@@ -205,7 +213,26 @@ class FileService {
 
     try {
       const content = await fs.readFile(criteriaFilePath, 'utf8')
-      return YAML.parse(content) as EvaluationCriteria
+      const jsonData = JSON.parse(content)
+
+      // Check if it's the simple format with criteria array
+      if (
+        Array.isArray(jsonData.criteria) &&
+        jsonData.criteria.length > 0 &&
+        typeof jsonData.criteria[0] === 'string'
+      ) {
+        // Simple format with just criteria array
+        return {
+          llm_judge: 'gpt-4.1', // Default value
+          checkpoints: jsonData.criteria.map((criterion: string) => ({
+            criteria: criterion,
+            points: 1, // Default points value
+          })),
+        }
+      } else {
+        // Assume it's already in the UI format (legacy or manual)
+        return jsonData as EvaluationCriteria
+      }
     } catch {
       throw new Error('Failed to load evaluation criteria')
     }
@@ -224,7 +251,7 @@ class FileService {
 
     try {
       const content = await fs.readFile(resultsFilePath, 'utf8')
-      return YAML.parse(content) as EvaluationResult
+      return JSON.parse(content) as EvaluationResult
     } catch {
       throw new Error('Failed to load evaluation results')
     }
@@ -270,7 +297,7 @@ class FileService {
   // Delete evaluation criteria file and invalidate evaluation results
   async deleteEvaluationCriteria(workflowPath: string): Promise<boolean> {
     const fullPath = getWorkflowPath(workflowPath)
-    const criteriaPath = path.join(fullPath, 'evaluation_case.yaml')
+    const criteriaPath = path.join(fullPath, 'evaluation_case.json')
 
     try {
       await this.deleteFile(criteriaPath)
