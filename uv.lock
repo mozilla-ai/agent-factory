@@ -14,7 +14,6 @@ source = { editable = "." }
 dependencies = [
     { name = "any-agent", extra = ["all"] },
     { name = "autoflake" },
-    { name = "chainlit" },
     { name = "dotenv" },
     { name = "fire" },
     { name = "jinja2" },
@@ -25,6 +24,9 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+chainlit-demo = [
+    { name = "chainlit" },
+]
 dev = [
     { name = "mkdocs" },
     { name = "mkdocs-material" },
@@ -56,7 +58,6 @@ tests = [
 requires-dist = [
     { name = "any-agent", extras = ["all"], specifier = "==0.20.0" },
     { name = "autoflake", specifier = ">=2.3.1" },
-    { name = "chainlit", specifier = ">=2.5.5" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = ">=0.7.0" },
     { name = "jinja2", specifier = ">=3.1.2" },
@@ -67,6 +68,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+chainlit-demo = [{ name = "chainlit", specifier = ">=2.5.5" }]
 dev = [
     { name = "mkdocs" },
     { name = "mkdocs-material" },

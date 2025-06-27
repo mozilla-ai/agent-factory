@@ -30,9 +30,6 @@ export class EvaluationService {
     }
 
     await processService.runPythonScript(agentPath, [], outputCallback)
-
-    // Copy trace file from latest to workflow directory if needed
-    await this.copyTraceFileIfNeeded(workflowPath)
   }
 
   async generateEvaluationCases(
@@ -150,28 +147,6 @@ export class EvaluationService {
 
   async deleteEvaluationResults(workflowPath: string): Promise<boolean> {
     return fileService.deleteEvaluationResults(workflowPath)
-  }
-
-  // Private helper to copy trace file if needed
-  private async copyTraceFileIfNeeded(workflowPath: string): Promise<void> {
-    try {
-      const latestWorkflowDir = getWorkflowPath('latest')
-      const workflowDir = getWorkflowPath(workflowPath)
-
-      const sourceTracePath = path.join(
-        latestWorkflowDir,
-        'agent_eval_trace.json',
-      )
-      const targetTracePath = path.join(workflowDir, 'agent_eval_trace.json')
-
-      if (await fileService.fileExists(sourceTracePath)) {
-        await fileService.copyFile(sourceTracePath, targetTracePath)
-        console.log(`Copied agent trace from latest to ${workflowPath}`)
-      }
-    } catch (error) {
-      console.warn('Could not copy trace file from latest workflow:', error)
-      // Don't throw here as the main operation succeeded
-    }
   }
 
   async runAgentGeneration(
