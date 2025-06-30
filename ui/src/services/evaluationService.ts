@@ -1,11 +1,26 @@
 import { apiClient } from './api'
-import Yaml from 'yaml'
 import { workflowService } from './workflowService'
 import { ENDPOINTS } from '@/config/endpoints'
 import { API_CONFIG } from '@/config/api.config'
 import { getErrorMessage } from '@/helpers/error.helpers'
 import { fetchStream } from '@/helpers/stream.helpers'
 import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/index'
+
+// Simple evaluation case format with just criteria strings
+interface SimpleCriteriaFormat {
+  criteria: string[]
+}
+
+// Transform function to convert simple format to full UI format
+function transformToUIFormat(simpleFormat: SimpleCriteriaFormat): EvaluationCriteria {
+  return {
+    llm_judge: 'gpt-4.1', // Default value since not in current format
+    checkpoints: simpleFormat.criteria.map((criterion) => ({
+      criteria: criterion,
+      points: 1, // Default fallback value
+    })),
+  }
+}
 
 export const evaluationService = {
   async runAgent(workflowId: string): Promise<ReadableStream> {
@@ -31,21 +46,30 @@ export const evaluationService = {
   },
 
   async getEvaluationCriteria(workflowId: string): Promise<EvaluationCriteria> {
-    const content = await workflowService.getFileContent(workflowId, 'evaluation_case.yaml')
-    return Yaml.parse(content)
+    try {
+      const content = await workflowService.getFileContent(workflowId, 'evaluation_case.json')
+
+      // Check if content is already parsed (object) or needs parsing (string)
+      const simpleFormat: SimpleCriteriaFormat =
+        typeof content === 'string' ? JSON.parse(content) : content
+
+      // Transform simple format to UI format for backward compatibility with UI components
+      return transformToUIFormat(simpleFormat)
+    } catch (error) {
+      console.error('Error loading evaluation criteria:', error)
+      throw error
+    }
   },
 
-  async saveEvaluationCriteria(
+  async saveCriteria(
     workflowId: string,
-    criteriaData: EvaluationCriteria,
+    criteria: EvaluationCriteria,
   ): Promise<SaveCriteriaResponse> {
     try {
-      const response = await apiClient.post(ENDPOINTS.saveCriteria(workflowId), criteriaData)
+      const response = await apiClient.post(ENDPOINTS.saveCriteria(workflowId), criteria)
       return response.data
     } catch (error) {
-      const message = getErrorMessage(error)
-      console.error('API Error in saving evaluation criteria:', error)
-      throw new Error(message)
+      throw new Error('Failed to save evaluation criteria: ' + getErrorMessage(error))
     }
   },
 
@@ -53,7 +77,8 @@ export const evaluationService = {
    * Get evaluation results for a workflow
    */
   async getEvaluationResults(workflowId: string): Promise<string> {
-    return await workflowService.getFileContent(workflowId, 'evaluation_results.json')
+    const content = await workflowService.getFileContent(workflowId, 'evaluation_results.json')
+    return typeof content === 'string' ? content : JSON.stringify(content)
   },
 
   /**

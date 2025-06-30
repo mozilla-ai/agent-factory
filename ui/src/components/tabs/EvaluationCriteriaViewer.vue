@@ -40,8 +40,11 @@
           <h3>Evaluation Criteria</h3>
           <div class="judge-info">
             <span class="judge-label">LLM Judge:</span>
-            <span class="judge-model">{{ evaluationCriteriaQuery.data.value.llm_judge }}</span>
+            <span class="judge-model">{{
+              evaluationCriteriaQuery.data.value.llm_judge || 'N/A (auto-generated)'
+            }}</span>
           </div>
+          <!-- Scoring functionality preserved for future use when Python code adds scoring support -->
           <div class="points-summary">
             <span class="points-label">Total Points Possible:</span>
             <span class="points-value">{{ totalPossiblePoints }}</span>
@@ -105,7 +108,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { transformResults, type OldFormatData } from '@/helpers/transform-results'
+import { transformResults } from '@/helpers/transform-results'
+import type { EvaluationResults } from '@/composables/useEvaluationScores'
 import { useQuery, useMutation } from '@tanstack/vue-query'
 import EvaluationCriteriaForm from '../EvaluationCriteriaForm.vue'
 import { evaluationService } from '../../services/evaluationService'
@@ -124,7 +128,7 @@ interface Checkpoint {
 }
 
 interface EvaluationCriteria {
-  llm_judge: string
+  llm_judge?: string
   checkpoints: Checkpoint[]
 }
 
@@ -163,7 +167,7 @@ const evaluationCriteriaQuery = useQuery({
 // Fetch evaluation results
 const evaluationResultsQuery = useQuery({
   queryKey: queryKeys.evaluationResults(props.workflowId),
-  queryFn: async (): Promise<OldFormatData> => {
+  queryFn: async (): Promise<EvaluationResults> => {
     try {
       const data = await evaluationService.getEvaluationResults(props.workflowId)
       // Handle case where data might already be parsed or is an object
@@ -230,7 +234,7 @@ const deleteCriteriaMutation = useMutation({
   mutationFn: () => evaluationService.deleteEvaluationCriteria(props.workflowId),
   onSuccess: () => {
     invalidateEvaluationQueries(props.workflowId)
-    invalidateFileQueries(props.workflowId, 'evaluation_case.yaml', 'evaluation_results.json')
+    invalidateFileQueries(props.workflowId, 'evaluation_case.json', 'evaluation_results.json')
     invalidateWorkflows()
     closeDeleteDialog()
     navigateToEvaluate(props.workflowId)

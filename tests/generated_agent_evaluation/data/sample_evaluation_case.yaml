@@ -1,6 +1,0 @@
-llm_judge: "openai/gpt-4.1"
-checkpoints:
-  - criteria: "Did the agent start?"
-    points: 1
-  - criteria: "Did the agent do something useful?"
-    points: 5
