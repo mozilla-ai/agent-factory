@@ -88,8 +88,8 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
             (
                 "Workflow to generate a 1-minute podcast mp3 based on the contents of a URL provided by the user. "
                 "And it should create separate mp3 files interleaving the turn-by-turn dialogue between a host and a guest speaker. "
-                "The final output should be saved as a single mp3 file in the current working directory using Filesystem MCP. "
-                "Use appropriate tools from ElevenLabs API for text-to-speech and creating the mp3 files."
+                "The final output should be saved as a single mp3 file. "
+                "Use audio generation tools from ElevenLabs API for text-to-speech."
             ),
             30,
             300,
