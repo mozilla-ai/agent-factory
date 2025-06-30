@@ -15,6 +15,7 @@ import os
 # ALWAYS used
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent
+from any_agent.serving import A2AServingConfig
 from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
@@ -86,37 +87,40 @@ TOOLS = [
 ]
 
 
-agent = AnyAgent.create(
-    "openai",
-    AgentConfig(
-        model_id="o3",
-        instructions=INSTRUCTIONS,
-        tools=TOOLS,
-        output_type=StructuredOutput,
-    ),
-)
-
-
-def run_agent(url: str):
+def main(
+    franework: str = "openai",
+    model: str = "o3",
+    host: str = "localhost",
+    port: int = 8080,
+    log_level: str = "info",
+):
     \"\"\"
     Given a webpage URL, translate its main English content to Italian,
     and return structured output.
+
+    Args:
+        framework (str): The agent framework to use (default: "openai").
+        model (str): The model ID to use (default: "o3").
+        host (str): The host address for the agent server (default: "localhost").
+        port (int): The port for the agent server (default: 8080).
+        log_level (str): The logging level (default: "info").
     \"\"\"
-    input_prompt = (f"Translate the main text content from the following English webpage URL "
-                    f"to Italian: {url}")
-    try:
-        agent_trace = agent.run(prompt=input_prompt, max_turns=20)
-    except AgentRunError as e:
-        agent_trace = e.trace
-        print(f"Agent execution failed: {{str(e)}}")
-        print("Retrieved partial agent trace...")
-    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
-    return agent_trace.final_output
+    agent = AnyAgent.create(
+        framework,
+        AgentConfig(
+            model_id=model ,
+            instructions=INSTRUCTIONS,
+            tools=TOOLS,
+            output_type=StructuredOutput,
+        ),
+    )
+
+    agent.serve(A2AServingConfig(host=host, port=port, log_level=log_level))
 
 
 if __name__ == "__main__":
-    Fire(run_agent)
+    fire.Fire(main)
+
 """  # noqa: E501
 
 DELIVERABLES_INSTRUCTIONS = f"""
@@ -181,6 +185,7 @@ import os
 # ALWAYS used
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
+from any_agent.serving import A2AServingConfig
 from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
@@ -201,32 +206,31 @@ INSTRUCTIONS='''
 # ========== Tools definition ===========
 {tools}
 
-agent = AnyAgent.create(
-    "openai",
-    AgentConfig(
-        model_id="o3",
-        instructions=INSTRUCTIONS,
-        tools=TOOLS,
-        output_type=StructuredOutput,
-        model_args={{"tool_choice": "required"}},
-    ),
-)
 
-def run_agent({cli_args}):
+def main(
+    framework: str = "openai",
+    model: str = "o3",
+    host: str = "localhost",
+    port: int = 8080,
+    log_level: str = "info",
+):
     \"\"\"{agent_description}\"\"\"
-    input_prompt = f"{prompt_template}"
-    try:
-        agent_trace = agent.run(prompt=input_prompt, max_turns=20)
-    except AgentRunError as e:
-        agent_trace = e.trace
-        print(f"Agent execution failed: {{str(e)}}")
-        print("Retrieved partial agent trace...")
-    with open("generated_workflows/latest/agent_eval_trace.json", "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
-    return agent_trace.final_output
+    agent = AnyAgent.create(
+        framework,
+        AgentConfig(
+            model_id=model,
+            instructions=INSTRUCTIONS,
+            tools=TOOLS,
+            model_args={{"tool_choice": "required"}},
+            output_type=StructuredOutput,
+        ),
+    )
+
+    agent.serve(A2AServingConfig(host=host, port=port, log_level=log_level))
+
 
 if __name__ == "__main__":
-    Fire(run_agent)
+    Fire(main)
 
 """
 
@@ -238,17 +242,18 @@ CODE_GENERATION_INSTRUCTIONS = f"""
 Create a complete implementation of a single agent that executes a multi-step workflow
 using Mozilla's any-agent library. The implementation should:
 
-1. Use the OpenAI framework as the underlying agent provider
+1. Use the OpenAI framework as the underlying agent provider, except if the user specifies a
+   different framework in their request.
 2. Implement a step-by-step approach where the agent breaks down the user's request into multiple
-   steps, each with an input and output
+   steps, each with an input and output.
 3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the
-   `output_type` argument
+   `output_type` argument.
 4. Whenever required, assign tools in the agent configuration.
 
 ## Required Components
 
 #### Model (model_id):
-- Use `o3` as the `model_id`
+- Use `o3` as the `model_id`, except if the user specifies a different model in their request.
 
 #### Instructions (instructions):
 - Decide on the number of steps that you think would be necessary to complete the task
@@ -279,18 +284,6 @@ using Mozilla's any-agent library. The implementation should:
 #### Structured Output (output_type):
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the `output_type` argument correctly to obtain this structured response
-
-#### Agent Trace (agent_trace):
-The code implementation should include the agent trace being saved into a JSON file named
-`agent_eval_trace.json` immediately after `agent.run()`:
-- Saving of the agent trace in the code should be done to the `generated_workflows/latest/`
-  directory. You may assume that the `generated_workflows/latest/` directory already exists.
-- You would accomplish this by including the lines `agent_trace.model_dump_json(indent=2)` as shown
-  in the example code.
-- Never try to print, log or access any other properties of the agent trace object.
-  `agent_trace.response` or `agent_trace.output` are invalid.
-- Only `agent_trace.model_dump_json(indent=2)` and `agent_trace.final_output` are valid.
-- Do not print or save anything after saving the agent trace.
 
 ### Code Organization
 - Create well-documented, modular code with appropriate comments
