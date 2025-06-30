@@ -78,11 +78,14 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
         # Agent with no MCP tools needed
         (
             "summarize-url-content",
-            "Workflow that takes an input web URL and returns a summary of the content. Do not assign MCP servers among the tools.",
+            (
+                "Workflow that takes an input web URL and returns a summary of the content. "
+                "Do not assign MCP servers among the tools."
+            ),
             15,
             120,
         ),
-        # Agent with MCP tools such as ElevenLabs
+        # Agent with MCP single MCP server (ElevenLabs)
         (
             "url-to-podcast",
             (
@@ -93,6 +96,22 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
             ),
             30,
             300,
+        ),
+        # Agent with multiple MCP servers (Slack and SQLite)
+        (
+            "scoring-blueprints-submission",
+            (
+                "Workflow that takes as user input a Github repo link "
+                "and checks it against guidelines found at www.mozilla.ai/Bluerprints (check guidelines on developing top notch Blueprints). "
+                "Then it should assess the submitted repo and give it a score out of 100. "
+                "Finally the workflow should formulate the results with all necessary details in a suitable structured format "
+                "and do BOTH of the following with it "
+                "(1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and "
+                "(2) log the entry to SQLite - to the table named `github_repo_evaluations` in the `blueprints.db` database. "
+                "Provide suitable configurations for Slack and SQLite MCP servers and select appropriate tools."
+            ),
+            40,
+            420,
         ),
         # Add new "use cases" here, following this format:
         # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
