@@ -1,6 +1,7 @@
-any-agent[all]>=0.22.0
+any-agent[all]==0.22.0
 python-dotenv
 fire
-beautifulsoup4
 requests
+beautifulsoup4
 litellm
+pydantic>=2.4
