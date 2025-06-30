@@ -217,6 +217,19 @@ agent = AnyAgent.create(
     ),
 )
 
+def extract_cost_data(agent_trace):
+    \"\"\"Extract cost data from agent trace and return as (input_cost, output_cost, total_cost).\"\"\"
+    try:
+        cost_info = agent_trace.cost
+        if cost_info and hasattr(cost_info, 'input_cost') and hasattr(cost_info, 'output_cost'):
+            input_cost = float(cost_info.input_cost)
+            output_cost = float(cost_info.output_cost)
+            total_cost = input_cost + output_cost
+            return input_cost, output_cost, total_cost
+    except (AttributeError, ValueError, TypeError):
+        pass
+    return 0.0, 0.0, 0.0
+
 def run_agent({cli_args}):
     \"\"\"{agent_description}\"\"\"
     input_prompt = f"{prompt_template}"
@@ -227,10 +240,27 @@ def run_agent({cli_args}):
         print(f"Agent execution failed: {{str(e)}}")
         print("Retrieved partial agent trace...")
 
+    # Extract and log cost information
+    input_cost, output_cost, total_cost = extract_cost_data(agent_trace)
+    if total_cost > 0:
+        cost_msg = f"input_cost=${{input_cost:.6f}} + output_cost=${{output_cost:.6f}} = ${{total_cost:.6f}}"
+        print(f"Agent execution cost: {{cost_msg}}")
+
+    # Create enriched trace data with costs as separate metadata
     script_dir = Path(__file__).resolve().parent
     output_path = script_dir / "agent_eval_trace.json"
+
+    # Prepare the trace data with costs
+    trace_data = agent_trace.model_dump()
+    trace_data["execution_costs"] = {{
+        "input_cost": input_cost,
+        "output_cost": output_cost,
+        "total_cost": total_cost
+    }}
+
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
+        import json
+        f.write(json.dumps(trace_data, indent=2))
 
     return agent_trace.final_output
 
