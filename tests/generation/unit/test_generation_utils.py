@@ -59,7 +59,7 @@ def test_run_agent_error_returns_trace():
     expected_trace = AgentTrace()
 
     # Create the error with the trace
-    error = AgentRunError(trace=expected_trace)
+    error = AgentRunError(trace=expected_trace, original_exception=Exception("Test error"))
 
     mock_agent = MagicMock(spec=["run"])
     mock_agent.run.side_effect = error
