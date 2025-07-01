@@ -168,7 +168,11 @@ const criteriaQuery = useQuery({
     try {
       return await evaluationService.getEvaluationCriteria(props.workflowId)
     } catch {
-      return undefined
+      // Return a default criteria structure when evaluation criteria don't exist
+      return {
+        llm_judge: 'N/A',
+        checkpoints: [],
+      }
     }
   },
   retry: 1,
@@ -178,10 +182,25 @@ const criteriaQuery = useQuery({
 const resultsQuery = useQuery({
   queryKey: queryKeys.evaluationResults(props.workflowId),
   queryFn: async () => {
-    const data = await evaluationService.getEvaluationResults(props.workflowId)
-    // Handle case where data might already be parsed or is an object
-    const parsedData = typeof data === 'string' ? JSON.parse(data) : data
-    return transformResults(parsedData)
+    try {
+      const data = await evaluationService.getEvaluationResults(props.workflowId)
+      // Handle case where data might already be parsed or is an object
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data
+
+      // Get criteria to combine with results for proper display
+      const criteria = await evaluationService.getEvaluationCriteria(props.workflowId)
+
+      return transformResults(parsedData, criteria)
+    } catch {
+      // Return empty results when evaluation results don't exist yet
+      return {
+        checkpoints: [],
+        totalScore: 0,
+        maxPossibleScore: 0,
+        score: 0,
+        maxScore: 0,
+      }
+    }
   },
   retry: 1,
 })
@@ -196,6 +215,7 @@ const hasValidScoreData = computed(() => {
   return (
     resultsQuery.data.value &&
     criteriaQuery.data.value &&
+    criteriaQuery.data.value.checkpoints?.length > 0 &&
     typeof resultsQuery.data.value.score === 'number' &&
     resultsQuery.data.value.checkpoints?.length > 0
   )
