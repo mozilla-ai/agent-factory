@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - db_data:/app
+    depends_on:
+      - redis
+
+  agent:
+    build:
+      context: ./src/agent
+      dockerfile: Containerfile
+    ports:
+      - 8080:8080
+
+  worker:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    command: ["uv", "run", "celery", "-A", "backend.celery_app", "worker", "--loglevel=info"]
+    ports:
+      - 5678:5678
+    volumes:
+      - db_data:/app
+    depends_on:
+      - redis
+      - agent
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+
+# Define a named volume for SQLite data
+# Both backend and worker services will use this volume
+volumes:
+  db_data:
+  minio_data:
