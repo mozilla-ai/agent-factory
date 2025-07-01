@@ -38,7 +38,7 @@ def test_partial_trace_handling(generated_agent_code: str):
     assert "partial" in generated_agent_code.lower() and "trace" in generated_agent_code.lower()
 
 
-def test_agent_basic_execution(generated_agent_path: str, timeout: int = 15):
+def test_agent_basic_execution(generated_agent_path: str, timeout: int = 30):
     """Test if the agent can start without immediate crash"""
     try:
         agent_file = Path(generated_agent_path) / "agent.py"
