@@ -25,7 +25,7 @@ Steps to test the changes:
 
 ## ✅ Pre-merge checklist
 
-Please ensure the following items are checked **before merging** the PR.
+Please ensure the following items are checked **before merging** the PR (if not, please add a small explanation why).
 
 - [ ] Added some tests for any new functionality
 - [ ] Tested the changes in a working environment to ensure they work as expected
