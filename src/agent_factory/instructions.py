@@ -238,10 +238,7 @@ def run_agent({cli_args}):
                 f"output_cost=${{cost_info.output_cost:.6f}} = "
                 f"${{cost_info.total_cost:.6f}}"
             )
-            print(f"Agent execution cost: {{cost_msg}}")
     except Exception as e:
-        print(f"Could not extract cost information: {{e}}")
-        # Create default cost_info
         class DefaultCost:
             input_cost = 0.0
             output_cost = 0.0

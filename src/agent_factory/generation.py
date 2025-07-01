@@ -92,31 +92,7 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
         return e.trace
 
 
-def log_cost_information(agent_trace: AgentTrace) -> None:
-    """Log cost information from the agent trace."""
-    cost_info = agent_trace.cost
-    input_cost = cost_info.input_cost
-    output_cost = cost_info.output_cost
-    total_cost = cost_info.total_cost
-
-    if total_cost > 0:
-        logger.info("=== COST TRACKING ===")
-        if input_cost > 0 and output_cost > 0:
-            formatted_cost = f"input_cost=${input_cost:.6f} + output_cost=${output_cost:.6f} = ${total_cost:.6f}"
-            logger.info(f"Total Cost: {formatted_cost}")
-            print(f"Agent execution cost: {formatted_cost}")
-        else:
-            logger.info(f"Total Cost: ${total_cost:.6f}")
-            print(f"Agent execution cost: ${total_cost:.6f}")
-    else:
-        logger.info("No cost information available in trace")
-        print("No cost information available")
-
-
 def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
-    # Log cost information to console
-    log_cost_information(agent_trace)
-
     # Create enriched trace data with costs as separate metadata
     cost_info = agent_trace.cost
     input_cost = cost_info.input_cost
