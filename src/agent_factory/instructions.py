@@ -33,6 +33,7 @@ CODE_EXAMPLE_WITH_COMMENTS = """
 
 # good to have
 import os
+import json
 
 # ALWAYS used
 from pathlib import Path
@@ -183,6 +184,7 @@ AGENT_CODE_TEMPLATE = """
 import os
 
 # ALWAYS used
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
@@ -217,19 +219,6 @@ agent = AnyAgent.create(
     ),
 )
 
-def extract_cost_data(agent_trace):
-    \"\"\"Extract cost data from agent trace and return as (input_cost, output_cost, total_cost).\"\"\"
-    try:
-        cost_info = agent_trace.cost
-        if cost_info and hasattr(cost_info, 'input_cost') and hasattr(cost_info, 'output_cost'):
-            input_cost = float(cost_info.input_cost)
-            output_cost = float(cost_info.output_cost)
-            total_cost = input_cost + output_cost
-            return input_cost, output_cost, total_cost
-    except (AttributeError, ValueError, TypeError):
-        pass
-    return 0.0, 0.0, 0.0
-
 def run_agent({cli_args}):
     \"\"\"{agent_description}\"\"\"
     input_prompt = f"{prompt_template}"
@@ -240,11 +229,24 @@ def run_agent({cli_args}):
         print(f"Agent execution failed: {{str(e)}}")
         print("Retrieved partial agent trace...")
 
-    # Extract and log cost information
-    input_cost, output_cost, total_cost = extract_cost_data(agent_trace)
-    if total_cost > 0:
-        cost_msg = f"input_cost=${{input_cost:.6f}} + output_cost=${{output_cost:.6f}} = ${{total_cost:.6f}}"
-        print(f"Agent execution cost: {{cost_msg}}")
+    # Extract cost information (with error handling)
+    try:
+        cost_info = agent_trace.cost
+        if cost_info.total_cost > 0:
+            cost_msg = (
+                f"input_cost=${{cost_info.input_cost:.6f}} + "
+                f"output_cost=${{cost_info.output_cost:.6f}} = "
+                f"${{cost_info.total_cost:.6f}}"
+            )
+            print(f"Agent execution cost: {{cost_msg}}")
+    except Exception as e:
+        print(f"Could not extract cost information: {{e}}")
+        # Create default cost_info
+        class DefaultCost:
+            input_cost = 0.0
+            output_cost = 0.0
+            total_cost = 0.0
+        cost_info = DefaultCost()
 
     # Create enriched trace data with costs as separate metadata
     script_dir = Path(__file__).resolve().parent
@@ -253,9 +255,9 @@ def run_agent({cli_args}):
     # Prepare the trace data with costs
     trace_data = agent_trace.model_dump()
     trace_data["execution_costs"] = {{
-        "input_cost": input_cost,
-        "output_cost": output_cost,
-        "total_cost": total_cost
+        "input_cost": cost_info.input_cost,
+        "output_cost": cost_info.output_cost,
+        "total_cost": cost_info.total_cost
     }}
 
     with open(output_path, "w", encoding="utf-8") as f:

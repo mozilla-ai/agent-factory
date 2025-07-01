@@ -92,28 +92,12 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
         return e.trace
 
 
-def extract_cost_data(agent_trace: AgentTrace) -> tuple[float, float, float]:
-    """Extract cost data from agent trace and return as (input_cost, output_cost, total_cost)."""
-    try:
-        cost_info = agent_trace.cost
-        if not cost_info:
-            return 0.0, 0.0, 0.0
-
-        if hasattr(cost_info, "input_cost") and hasattr(cost_info, "output_cost"):
-            input_cost = float(cost_info.input_cost)
-            output_cost = float(cost_info.output_cost)
-            total_cost = input_cost + output_cost
-            return input_cost, output_cost, total_cost
-
-    except (AttributeError, ValueError, TypeError):
-        pass
-
-    return 0.0, 0.0, 0.0
-
-
 def log_cost_information(agent_trace: AgentTrace) -> None:
     """Log cost information from the agent trace."""
-    input_cost, output_cost, total_cost = extract_cost_data(agent_trace)
+    cost_info = agent_trace.cost
+    input_cost = cost_info.input_cost
+    output_cost = cost_info.output_cost
+    total_cost = cost_info.total_cost
 
     if total_cost > 0:
         logger.info("=== COST TRACKING ===")
@@ -134,7 +118,10 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
     log_cost_information(agent_trace)
 
     # Create enriched trace data with costs as separate metadata
-    input_cost, output_cost, total_cost = extract_cost_data(agent_trace)
+    cost_info = agent_trace.cost
+    input_cost = cost_info.input_cost
+    output_cost = cost_info.output_cost
+    total_cost = cost_info.total_cost
     trace_data = agent_trace.model_dump()
     trace_data["execution_costs"] = {"input_cost": input_cost, "output_cost": output_cost, "total_cost": total_cost}
 
