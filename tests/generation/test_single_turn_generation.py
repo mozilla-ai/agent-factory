@@ -1,4 +1,5 @@
 import ast
+import json
 import subprocess
 import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
@@ -43,7 +44,9 @@ def _assert_agent_code_contains_trace_writing(agent_file: Path):
         for pattern in [
             "script_dir = Path(__file__).resolve().parent",
             'output_path = script_dir / "agent_eval_trace.json"',
-            "f.write(agent_trace.model_dump_json(indent=2))",
+            "trace_data = agent_trace.model_dump()",
+            'trace_data["execution_costs"]',
+            "f.write(json.dumps(trace_data, indent=2))",
         ]
     ), "agent.py has incorrect usage of writing the agent trace to a JSON file"
 
@@ -122,3 +125,18 @@ def test_single_turn_generation(
 
     if update_artifacts:
         copytree(tmp_path, Path(__file__).parent.parent / "artifacts" / prompt_id, dirs_exist_ok=True)
+
+
+def test_full_agent_generation_and_cost_tracking(tmp_path):
+    # Actually run the agent factory and check costs are tracked
+    user_prompt = "Create a simple agent that says hello"
+
+    single_turn_generation(user_prompt, output_dir=tmp_path)
+
+    # Check all expected files exist with cost data
+    assert (tmp_path / "agent_factory_trace.json").exists()
+    assert (tmp_path / "agent.py").exists()
+
+    # Verify trace has execution_costs
+    trace_data = json.loads((tmp_path / "agent_factory_trace.json").read_text())
+    assert "execution_costs" in trace_data
