@@ -13,60 +13,62 @@ from pydantic import BaseModel, Field
 from fire import Fire
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
-# ADD BELOW HERE: tool imports
+# ADD BELOW HERE: tools made available by any-agent or agent-factory
 from tools.extract_text_from_url import extract_text_from_url
 from tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm
-from tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast
 
 load_dotenv()
 
 # ========== Structured output definition ==========
 # ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    url: str = Field(..., description="The original webpage URL.")
-    num_hosts: int = Field(..., description="Number of hosts/speakers in the generated podcast.")
-    script_text: str = Field(..., description="The full podcast script that was generated.")
-    audio_file: str = Field(..., description="Path to the final MP3 podcast file.")
+    source_url: str = Field(..., description="Original webpage URL")
+    extracted_text: str = Field(..., description="Cleaned article text extracted from the URL")
+    podcast_script: str = Field(..., description="Generated 2-speaker podcast script")
+    audio_file_path: str = Field(..., description="File path or URL of the final MP3 podcast produced by ElevenLabs")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an assistant that turns the content of a web page into an engaging multi-speaker podcast and returns a JSON summary of the process.  Follow these steps exactly and in order:
+You are an autonomous assistant that converts any public web article into a short 5-minute podcast with two speakers (Host A and Host B).  Follow the steps below precisely and do NOTHING extra.
 
-Step 1 – Extract page text
-• Use the extract_text_from_url tool with the supplied URL.
-• If the tool returns an error message, stop the workflow and return a StructuredOutput where script_text contains the error, audio_file is an empty string, and num_hosts is what the user requested.
+Step 1 – Extract
+• Use the extract_text_from_url tool to fetch and clean the main textual content from the user-supplied URL.
+• Fail fast if the tool returns an error or no meaningful text.
 
-Step 2 – Write the podcast script
-• Call generate_podcast_script_with_llm with:
-    – document_text = text from Step 1
-    – num_hosts = value provided by the user (default 2)
-• Ensure the script clearly labels speakers (e.g. “Host 1:”, “Host 2:” …).
+Step 2 – Script
+• With generate_podcast_script_with_llm create a conversational podcast script of roughly 600–700 words (≈5 min).  
+• Requirements for the script:
+  – Two speakers: Host A and Host B (alternate turns, balance speaking time).
+  – Engaging introduction, core discussion that accurately reflects the source content, and a concise wrap-up.
+  – Add short, natural transition sentences between sections.
+  – Keep each speaker turn under 3 sentences.
+• Pass the cleaned article text as input and request exactly the above structure.
 
-Step 3 – Generate voiceover audio
-• Invoke the generate_audio_script tool (from the ElevenLabs MCP) with the full script produced in Step 2.  Default voice settings are acceptable unless otherwise specified.
-• The tool may return (a) a single MP3 file path or (b) a JSON / list of MP3 file paths.
+Step 3 – Audio
+• Call generate_audio_script (ElevenLabs MCP) to synthesise the entire script into one MP3 file.
+• Provide the full script string as the "script" parameter.  
+• If the MCP returns a path/URL to the audio file, capture it.
+• Do not create separate files for each line—generate a single combined audio file.
 
-Step 4 – (Optional) Combine multiple MP3 files
-• If Step 3 returned more than one MP3 file, call combine_mp3_files_for_podcast with those files to create a single podcast MP3.  Use the resulting file as the final audio_file.
-• If only one MP3 file was returned in Step 3, use it directly.
+Step 4 – Final output
+Return a JSON object conforming to StructuredOutput with:
+  source_url          – the original URL provided by the user
+  extracted_text      – the article text obtained in Step 1
+  podcast_script      – the full script from Step 2
+  audio_file_path     – local path or URL returned by generate_audio_script
+Validate that all fields are present and non-empty before returning.
 
-Step 5 – Final response
-Return ONLY a JSON object that matches the StructuredOutput schema with fields:
-  url – the original web address
-  num_hosts – number of hosts requested
-  script_text – the complete script produced in Step 2
-  audio_file – absolute (or working-directory-relative) path to the final MP3 file.
-
-Never reveal internal reasoning or tool call details.  Do not output anything except the JSON object.
+General rules
+• Prefer the provided tools; never write Python code or fetch websites manually.
+• Keep the conversation internal; expose nothing except the final JSON.
 '''
 
 # ========== Tools definition ===========
 # ========== Tools definition ==========
 TOOLS = [
-    extract_text_from_url,               # fetch the webpage text
-    generate_podcast_script_with_llm,    # turn text into a dialog script
-    combine_mp3_files_for_podcast,       # merge multiple mp3s if necessary
-    MCPStdio(                            # text-to-speech via ElevenLabs
+    extract_text_from_url,                 # fetch & clean article text
+    generate_podcast_script_with_llm,      # write the 2-speaker script
+    MCPStdio(
         command="docker",
         args=[
             "run",
@@ -80,7 +82,7 @@ TOOLS = [
             "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
         },
         tools=[
-            "generate_audio_script",    # only tool we need from this MCP
+            "generate_audio_script",      # synthesize full script in one go
         ],
     ),
 ]
@@ -96,9 +98,9 @@ agent = AnyAgent.create(
     ),
 )
 
-def run_agent(url: str, num_hosts: int = 2):
-    """Generate an engaging multi-speaker audio podcast (MP3) from the content of a given webpage URL and return structured details of the process."""
-    input_prompt = f"Create an audio podcast with {num_hosts} hosts from the content of this webpage: {url}"
+def run_agent(url: str):
+    """Given a web URL, produce a two-speaker podcast (script + audio) and return structured results."""
+    input_prompt = f"Create a 5-minute audio podcast from the article at the following URL: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
