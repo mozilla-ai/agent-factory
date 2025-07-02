@@ -274,7 +274,7 @@ using Mozilla's any-agent library. The implementation should:
        Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
     c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,
-       giving it a keyword that describes the task you want to accomplish.
+       giving it a keyphrase that describes the task you want to accomplish.
        Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.

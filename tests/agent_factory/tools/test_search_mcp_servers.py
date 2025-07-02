@@ -14,29 +14,29 @@ def test_search_mcp_servers_cleaned(is_official):
         assert all("inputSchema" not in tool for tool in result.get("tools", []))
 
 
-@pytest.mark.parametrize("keyword", ["slack", "github", "google calendar"])
-def test_search_mcp_servers_contains_keyword(keyword):
-    """Test that search results contain the keyword in name, description, or tags."""
-    results = search_mcp_servers(keyword)
+@pytest.mark.parametrize("keyphrase", ["slack", "github", "google calendar"])
+def test_search_mcp_servers_contains_keyphrase(keyphrase):
+    """Test that search results contain the keyphrase in name, description, or tags."""
+    results = search_mcp_servers(keyphrase)
 
     for result in results:
-        keyword_found = (
-            (keyword.lower() in result.get("name", "").lower())
-            or (keyword.lower() in result.get("description", "").lower())
-            or any(keyword.lower() in tag.lower() for tag in result.get("tags", []))
+        keyphrase_found = (
+            (keyphrase.lower() in result.get("name", "").lower())
+            or (keyphrase.lower() in result.get("description", "").lower())
+            or any(keyphrase.lower() in tag.lower() for tag in result.get("tags", []))
         )
-        assert keyword_found, f"Keyword '{keyword}' not found in result: {result}"
+        assert keyphrase_found, f"Keyphrase '{keyphrase}' not found in result: {result}"
 
 
-@pytest.mark.parametrize("invalid_keyword", ["slack,github", ""])
-def test_search_mcp_servers_validate_single_word(invalid_keyword):
-    """Test that search_mcp_servers raises ValueError for multi-word or empty keywords."""
-    with pytest.raises(ValueError, match="Keyword must be a single word"):
-        search_mcp_servers(invalid_keyword)
+@pytest.mark.parametrize("invalid_keyphrase", ["slack,github", ""])
+def test_search_mcp_servers_validate_single_word(invalid_keyphrase):
+    """Test that search_mcp_servers raises ValueError for multi-word or empty keyphrases."""
+    with pytest.raises(ValueError, match="Keyphrase must be a single word"):
+        search_mcp_servers(invalid_keyphrase)
 
 
-def test_search_mcp_servers_normalizes_keyword():
-    """Test that search_mcp_servers applies strip() and lower() to the keyword."""
+def test_search_mcp_servers_normalizes_keyphrase():
+    """Test that search_mcp_servers applies strip() and lower() to the keyphrase."""
     mock_repo = Mock()
     mock_repo.search_servers.return_value = []
 
