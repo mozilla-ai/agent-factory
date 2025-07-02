@@ -176,6 +176,7 @@ These will replace the {{cli_args}} placeholder in the agent code template.
 9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
     - only if the `agent_code` uses `uvx` to spin up any MCP server, include "uv" as a dependency in the requirements.txt file
+    - do not provide specific versions for the dependencies except for `any-agent[all]` (see the above point)
 """  # noqa: E501
 
 AGENT_CODE_TEMPLATE = """
