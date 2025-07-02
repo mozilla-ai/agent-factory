@@ -29,9 +29,10 @@ jobs:
           python-version: 3.13
           activate-environment: true
 
-      - name: Install
+      - name: Install Python dependencies
         run: |
           uv sync --group tests
+          uv pip install -e .
 
       - name: Run Code tests
         run: pytest -v tests/agent_factory
