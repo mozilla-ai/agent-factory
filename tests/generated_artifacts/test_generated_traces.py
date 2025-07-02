@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,26 @@ def generated_trace(request: pytest.FixtureRequest) -> AgentTrace:
 
 def test_any_tool_used(generated_trace: AgentTrace):
     assert any(span.is_tool_execution() for span in generated_trace.spans), "No tools were used"
+
+
+def get_specific_tool_calls_by_name(trace: AgentTrace, tool_name: str) -> list:
+    """Helper function to get all tool call args of a specific type from a trace."""
+    specific_tool_call_args = []
+    for span in trace.spans:
+        if span.is_tool_execution():
+            output_content = span.get_output_content()
+            if output_content and span.attributes.get("gen_ai.tool.name") == tool_name:
+                specific_tool_call_args.append(json.loads(span.attributes["gen_ai.tool.args"]))
+    return specific_tool_call_args
+
+
+def test_search_mcp_servers_used(generated_trace: AgentTrace, request: pytest.FixtureRequest):
+    if "scoring-blueprints-submission" in request.node.callspec.id:
+        tool_calls = get_specific_tool_calls_by_name(generated_trace, "search_mcp_servers")
+        assert tool_calls, "No search_mcp_servers tool calls found in the trace"
+        keywords_used = [tool_args.get("keyword").lower() for tool_args in tool_calls]
+        assert "slack" in keywords_used
+        assert "sqlite" in keywords_used
 
 
 @pytest.mark.parametrize("max_steps", range(5, 30, 5))
