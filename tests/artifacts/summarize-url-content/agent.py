@@ -11,51 +11,50 @@ from pydantic import BaseModel, Field
 from fire import Fire
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
+# ADD BELOW HERE: tools made available by any-agent or agent-factory
 from tools.extract_text_from_url import extract_text_from_url
 from tools.summarize_text_with_llm import summarize_text_with_llm
 
 load_dotenv()
 
 # ========== Structured output definition ==========
+# ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    url: str = Field(..., description="The webpage URL provided by the user.")
-    extracted_text: str = Field(..., description="The plaintext extracted from the webpage (may be truncated).")
-    summary: str = Field(..., description="A concise summary of the extracted text.")
-
+    url: str = Field(..., description="The URL that was summarised.")
+    summary: str = Field(..., description="A concise summary of the page content (≤200 words).")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an assistant that follows this 3-step workflow to provide a concise summary of any public webpage supplied by the user.
-Step 1 – Fetch & Extract
-• Receive a single web URL from the user.
-• Use the extract_text_from_url tool to download the page and extract all human-readable text.
-• If the tool returns an error string (it starts with “Error”), immediately halt, returning a StructuredOutput object whose summary field contains a short apology plus the error.
-Step 2 – Summarise
-• Pass the extracted text to the summarize_text_with_llm tool.
-• Ask for “a concise paragraph” unless the extracted text is longer than 8 000 characters, in which case ask for “five key bullet points”.
-• Store the resulting summary.
-Step 3 – Respond
-• Return a StructuredOutput JSON object with these fields:
-    url – the original user URL
-    extracted_text – the raw text returned in Step 1 (trimmed to the first 4 000 characters to avoid extremely long outputs; add “[…]” if truncated)
-    summary – the summary produced in Step 2.
-General rules:
-• Never invent content; base the summary strictly on the extracted text.
-• Keep the total response under 1 000 tokens.
-• Do not reveal internal reasoning or tool call details to the user.
+You are an assistant that produces a concise summary of any public web page.
+Work step-by-step and never skip a step.
 
+Step-1 – Fetch:
+• Receive exactly one URL from the user.
+• Call the tool `extract_text_from_url` with that URL to obtain the plain text of the page (body content only, exclude navigation, ads, boiler-plate).
+
+Step-2 – Validate:
+• If the extracted text is fewer than 50 words, reply that there is not enough content to summarise and stop.
+• Otherwise proceed.
+
+Step-3 – Summarise:
+• Call the tool `summarize_text_with_llm` on the extracted text.
+• Ask for a short, clear overview no longer than 200 words written in the third person.
+
+Step-4 – Respond:
+• Return a JSON object that follows the `StructuredOutput` schema strictly.
+• Fields:
+    – url: echo the input URL.
+    – summary: the generated summary.
+• Do NOT include any additional keys.
+• The final answer MUST be valid JSON.
 '''
 
 # ========== Tools definition ===========
-# ========== Tools definition =========
-from tools.extract_text_from_url import extract_text_from_url
-from tools.summarize_text_with_llm import summarize_text_with_llm
-
+# ========== Tools definition ===========
 TOOLS = [
-    extract_text_from_url,  # fetch & extract webpage text
-    summarize_text_with_llm # generate the summary
+    extract_text_from_url,       # fetch & clean webpage text
+    summarize_text_with_llm,    # create the summary via LLM
 ]
-
 
 agent = AnyAgent.create(
     "openai",
@@ -69,8 +68,8 @@ agent = AnyAgent.create(
 )
 
 def run_agent(url: str):
-    """Given a web URL, fetches the page, extracts its main text content, and returns a concise summary inside a StructuredOutput object."""
-    input_prompt = f"Summarise the content of the following webpage URL: {url}"
+    """Given a web URL, retrieve the page’s main text and return a concise summary as JSON."""
+    input_prompt = f"Summarise the content of this webpage: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
