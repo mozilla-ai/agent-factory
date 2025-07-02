@@ -96,7 +96,7 @@ graph TB
 
 ## Child Process Architecture
 
-The NodeJS API server operates as a **process orchestrator** that spawns Python child processes to handle different aspects of agent generation and evaluation. This architecture provides several key benefits:
+The NodeJS API server operates as a **process orchestrator** that spawns Python child processes to handle different aspects of agent generation and evaluation.
 
 ### Process Management Flow
 
@@ -161,16 +161,6 @@ The NodeJS API server operates as a **process orchestrator** that spawns Python 
   - Handles syntax highlighting support for code files
   - Provides direct file access for file explorer functionality
 - **File Interactions**: Serves files directly from filesystem
-
-### Benefits of This Architecture
-
-1. **Language Separation**: Python handles AI/ML logic, NodeJS handles web server logic
-2. **Process Isolation**: Each operation runs in its own process space
-3. **Streaming Support**: Real-time output without blocking the main server
-4. **Scalability**: Multiple operations can run concurrently
-5. **Error Isolation**: Python process crashes don't affect the main server
-6. **Resource Management**: Processes can be monitored and killed if needed
-7. **Clear Separation of Concerns**: Each controller has distinct responsibilities
 
 ## NodeJS API Endpoints
 
@@ -398,7 +388,6 @@ generated_workflows/
 │   ├── evaluation_case.json  # Evaluation criteria
 │   └── evaluation_results.json # Evaluation results
 ├── workflow-name-2/
-└── latest/                   # Temporary directory for latest generation
 ```
 
 ## Streaming & Real-time Features
@@ -433,38 +422,3 @@ generated_workflows/
 - Workflow directory management
 - File serving with proper MIME types
 - Cross-platform path handling
-
-## Migration Considerations for New Python API
-
-### Essential Architecture Pattern to Preserve
-
-When migrating from NodeJS to Python, the **child process orchestration pattern** must be maintained to preserve system functionality:
-
-1. **Process Orchestrator Role**: The new Python API server should act as a process manager, spawning child processes for:
-   - Agent generation
-   - Evaluation pipeline steps
-   - Agent execution
-
-2. **Streaming Communication**: Maintain real-time streaming of process output to frontend
-
-3. **File System Integration**: Direct file read/write operations between processes and API server
-
-4. **Process Lifecycle Management**: Ability to start, monitor, and terminate child processes
-
-### Recommended Python Implementation Approach
-
-- **FastAPI** with **asyncio** for non-blocking process management
-- **subprocess.Popen** with **StreamingResponse** for real-time output
-- **Background tasks** for process monitoring
-- **Static file serving** for workflow file access
-- **WebSocket** or **Server-Sent Events** for streaming updates
-
-### Critical Compatibility Requirements
-
-1. **Exact endpoint paths** - UI expects specific URL patterns
-2. **Response formats** - Especially workflow listing and file serving
-3. **Streaming patterns** - Real-time output during long operations
-4. **File serving headers** - Proper MIME types for code files
-5. **Process control** - Input injection and process termination
-
-This architecture documentation serves as the definitive reference for preserving all functionality during the Python API migration.
