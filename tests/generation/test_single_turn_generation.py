@@ -107,7 +107,7 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
                 "Finally the workflow should formulate the results with all necessary details in a suitable structured format "
                 "and do BOTH of the following with it "
                 "(1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and "
-                "(2) log the entry to SQLite - to the table named `github_repo_evaluations` in the `blueprints.db` database. "
+                "(2) log the entry to SQLite - to the already existing table named `github_repo_evaluations` in the `blueprints.db` database. "
                 "Provide suitable configurations for Slack and SQLite MCP servers and select appropriate tools."
             ),
             40,

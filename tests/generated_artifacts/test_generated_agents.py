@@ -29,8 +29,11 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
         assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
             "MCP server(s) required for url-to-podcast workflow"
         )
+        # Necessary ElevenLabs MCP tools used
         assert "generate_audio_simple" in generated_agent_code
-        # TODO: how to assert that only subset of MCP server's tools (not more than the required) are used?
+        # Non-essential tools NOT used
+        assert all(term not in generated_agent_code for term in ("delete_job", "get_voiceover_history"))
+
     elif "scoring-blueprints-submission":
         # Either visit_webpage or extract_text_from_url should be used, using both is also fine
         assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
@@ -46,6 +49,12 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
         assert "write_query" in generated_agent_code
         assert "github_repo_evaluations" in generated_agent_code
         assert "blueprints.db" in generated_agent_code
+        # Non-essential tools NOT used
+        assert all(
+            term not in generated_agent_code
+            for term in ("slack_get_users", "slack_get_channel_history", "slack_get_user_profile")
+        )
+        assert all(term not in generated_agent_code for term in ("create_table", "append_insight"))
 
 
 def test_partial_trace_handling(generated_agent_code: str):
