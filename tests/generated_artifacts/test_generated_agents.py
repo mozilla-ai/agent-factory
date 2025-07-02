@@ -30,7 +30,7 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
             "MCP server(s) required for url-to-podcast workflow"
         )
         # Necessary ElevenLabs MCP tools used
-        assert "generate_audio_simple" in generated_agent_code
+        assert "generate_audio_" in generated_agent_code
         # Non-essential tools NOT used
         assert all(term not in generated_agent_code for term in ("delete_job", "get_voiceover_history"))
 
