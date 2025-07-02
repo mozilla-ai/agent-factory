@@ -31,10 +31,19 @@ def get_specific_tool_calls_by_name(trace: AgentTrace, tool_name: str) -> list:
 
 
 def test_search_mcp_servers_used(generated_trace: AgentTrace, request: pytest.FixtureRequest):
-    if "scoring-blueprints-submission" in request.node.callspec.id:
-        tool_calls = get_specific_tool_calls_by_name(generated_trace, "search_mcp_servers")
-        assert tool_calls, "No search_mcp_servers tool calls found in the trace"
-        keywords_used = [tool_args.get("keyword").lower() for tool_args in tool_calls]
+    """On a per-usecase basis, test if the search_mcp_servers tool was used as expected with the desired keywords."""
+    if "summarize-url-content" in request.node.callspec.id:
+        search_mcp_tool_calls = get_specific_tool_calls_by_name(generated_trace, "search_mcp_servers")
+        assert not search_mcp_tool_calls, "Use of MCP servers was not allowed for summarize-url-content workflow"
+    elif "url-to-podcast" in request.node.callspec.id:
+        search_mcp_tool_calls = get_specific_tool_calls_by_name(generated_trace, "search_mcp_servers")
+        assert search_mcp_tool_calls, "No search_mcp_servers tool calls found in the trace"
+        keywords_used = [tool_args.get("keyword").lower() for tool_args in search_mcp_tool_calls]
+        assert "elevenlabs" in keywords_used
+    elif "scoring-blueprints-submission" in request.node.callspec.id:
+        search_mcp_tool_calls = get_specific_tool_calls_by_name(generated_trace, "search_mcp_servers")
+        assert search_mcp_tool_calls, "No search_mcp_servers tool calls found in the trace"
+        keywords_used = [tool_args.get("keyword").lower() for tool_args in search_mcp_tool_calls]
         assert "slack" in keywords_used
         assert "sqlite" in keywords_used
 
