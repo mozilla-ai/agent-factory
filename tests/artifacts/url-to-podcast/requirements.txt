@@ -4,4 +4,3 @@ fire
 requests
 beautifulsoup4
 litellm
-pydantic>=2.4
