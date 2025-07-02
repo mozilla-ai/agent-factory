@@ -34,15 +34,22 @@ def search_mcp_servers(keyword: str, is_official: bool = False) -> list[dict[str
 
     Args:
         keyword: A string to search for in the MCP server registry.
+                 Must be a single word (no commas).
         is_official: If `True`, only official servers will be returned. Defaults to `False`.
 
     Returns:
         A list of server descriptions that match the search criteria.
         If no servers match, returns an empty list.
         Returns official servers if `is_official` is set to `True`.
+
+    Raises:
+        ValueError: If keyword contains commas, indicating multiple words.
     """
+    if not keyword.strip() or any(sep in keyword for sep in [","]):
+        raise ValueError("Keyword must be a single word (no commas)")
+
     repository_manager = RepositoryManager(repo_url=DEFAULT_REGISTRY_URL)
-    servers = repository_manager.search_servers(keyword)
+    servers = repository_manager.search_servers(keyword.strip().lower())
 
     if is_official:
         servers = filter(lambda server: server.get("is_official", False), servers)
