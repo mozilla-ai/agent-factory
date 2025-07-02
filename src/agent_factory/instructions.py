@@ -38,9 +38,11 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent
-from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
+
+# MCPStdio should be imported ONLY if MCP servers are used in AgentConfig
+from any_agent.config import MCPStdio
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
 from any_agent.tools import visit_webpage
@@ -174,6 +176,7 @@ These will replace the {{cli_args}} placeholder in the agent code template.
 9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
     - only if the `agent_code` uses `uvx` to spin up any MCP server, include "uv" as a dependency in the requirements.txt file
+    - do not provide specific versions for the dependencies except for `any-agent[all]` (see the above point)
 """  # noqa: E501
 
 AGENT_CODE_TEMPLATE = """
@@ -186,7 +189,6 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
-from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
 
@@ -272,11 +274,12 @@ using Mozilla's any-agent library. The implementation should:
        Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
     c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,
-       giving it a keyword that describes the task you want to accomplish.
+       giving it a keyphrase that describes the task you want to accomplish.
        Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
+       You must never import or assign `search_mcp_servers` to the tools list of the generated agent in `agent_code`.
 
 #### Structured Output (output_type):
 - Define Pydantic v2 models to structure the agent's final output

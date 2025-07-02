@@ -18,31 +18,39 @@ def _cleanup_mcp_server_info(server_info):
     return server_info
 
 
-def search_mcp_servers(keyword: str, is_official: bool = False) -> list[dict[str, Any]]:
-    """Search for available MCP servers based on a single keyword.
+def search_mcp_servers(keyphrase: str, is_official: bool = False) -> list[dict[str, Any]]:
+    """Search for available MCP servers based on a single keyphrase (one or more words separated by spaces).
 
     This function queries the MCP server registry and filters the results based on the provided
-    keyword. The keyword can be a part of the server name, description, or tags.
+    keyphrase. The keyphrase can be a part of the server name, description, or tags.
 
     It returns a list of matching servers, and if no servers match the criteria, it returns an empty
     list.
 
     Example:
     ```python
-    search_mcp_servers(keyword="github", is_official=True)
+    search_mcp_servers(keyphrase="github", is_official=True)
+    search_mcp_servers(keyphrase="google calendar")
     ```
 
     Args:
-        keyword: A string to search for in the MCP server registry.
+        keyphrase: A string to search for in the MCP server registry.
+                 Must be a single keyphrase consisting of one or more words separated by spaces (no commas).
         is_official: If `True`, only official servers will be returned. Defaults to `False`.
 
     Returns:
         A list of server descriptions that match the search criteria.
         If no servers match, returns an empty list.
         Returns official servers if `is_official` is set to `True`.
+
+    Raises:
+        ValueError: If keyphrase contains commas, indicating multiple words.
     """
+    if not keyphrase.strip() or any(sep in keyphrase for sep in [","]):
+        raise ValueError("Keyphrase must be a single word (no commas)")
+
     repository_manager = RepositoryManager(repo_url=DEFAULT_REGISTRY_URL)
-    servers = repository_manager.search_servers(keyword)
+    servers = repository_manager.search_servers(keyphrase.strip().lower())
 
     if is_official:
         servers = filter(lambda server: server.get("is_official", False), servers)
