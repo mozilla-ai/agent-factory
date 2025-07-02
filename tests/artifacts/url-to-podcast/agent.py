@@ -8,67 +8,79 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
-from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 from fire import Fire
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
-# ADD BELOW HERE: tools made available by any-agent or agent-factory
 from tools.extract_text_from_url import extract_text_from_url
 from tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm
+from tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast
+from any_agent.config import MCPStdio
 
 load_dotenv()
 
 # ========== Structured output definition ==========
-# ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    source_url: str = Field(..., description="Original webpage URL")
-    extracted_text: str = Field(..., description="Cleaned article text extracted from the URL")
-    podcast_script: str = Field(..., description="Generated 2-speaker podcast script")
-    audio_file_path: str = Field(..., description="File path or URL of the final MP3 podcast produced by ElevenLabs")
+    url: str = Field(..., description="The original webpage URL provided by the user.")
+    script: str = Field(..., description="The generated 1-minute podcast script featuring Host and Guest lines.")
+    audio_files: list[str] = Field(..., description="Ordered list of individual MP3 file paths for each dialogue line.")
+    final_podcast_path: str = Field(..., description="Absolute path to the combined final podcast MP3 file.")
+
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an autonomous assistant that converts any public web article into a short 5-minute podcast with two speakers (Host A and Host B).  Follow the steps below precisely and do NOTHING extra.
+You are an autonomous agent that converts the content of a webpage into a short (≈1-minute) podcast featuring a dialogue between a Host and a Guest.  Strictly follow the workflow below and only use the provided tools.
 
-Step 1 – Extract
-• Use the extract_text_from_url tool to fetch and clean the main textual content from the user-supplied URL.
-• Fail fast if the tool returns an error or no meaningful text.
+Step 1 – Extract content
+• Receive a URL in the user prompt.
+• Call extract_text_from_url on that URL to obtain clean, human-readable text.
+• If the tool returns an error string beginning with “Error”, try once more with the same URL; if it still fails, stop and explain the failure in the final output.
 
-Step 2 – Script
-• With generate_podcast_script_with_llm create a conversational podcast script of roughly 600–700 words (≈5 min).  
-• Requirements for the script:
-  – Two speakers: Host A and Host B (alternate turns, balance speaking time).
-  – Engaging introduction, core discussion that accurately reflects the source content, and a concise wrap-up.
-  – Add short, natural transition sentences between sections.
-  – Keep each speaker turn under 3 sentences.
-• Pass the cleaned article text as input and request exactly the above structure.
+Step 2 – Draft a 1-minute dialogue script
+• Summarise the extracted text into a conversational podcast script that can be spoken in ~60 seconds (≈150–180 words).
+• Use generate_podcast_script_with_llm with num_hosts=2.
+• Alternate lines clearly labelled “Host:” and “Guest:”. Keep sentences short, engaging and faithful to the source.
 
-Step 3 – Audio
-• Call generate_audio_script (ElevenLabs MCP) to synthesise the entire script into one MP3 file.
-• Provide the full script string as the "script" parameter.  
-• If the MCP returns a path/URL to the audio file, capture it.
-• Do not create separate files for each line—generate a single combined audio file.
+Step 3 – Generate individual MP3 clips
+• Split the script into separate lines by speaker.
+• For each line, call generate_audio_script via the ElevenLabs MCP server.  Provide a JSON string in the form:
+  {
+    "script": [
+      {"text": "<line text without label>", "actor": "Host" | "Guest"}
+    ]
+  }
+• Capture the returned path to the generated MP3 file (the MCP tool returns a local path on success).
+• Maintain an ordered list (audio_files) of all generated MP3 clips.
+• If generate_audio_script returns an error string beginning with “Error”, retry once; upon repeated failure, skip that line and note the omission in the script.
 
-Step 4 – Final output
-Return a JSON object conforming to StructuredOutput with:
-  source_url          – the original URL provided by the user
-  extracted_text      – the article text obtained in Step 1
-  podcast_script      – the full script from Step 2
-  audio_file_path     – local path or URL returned by generate_audio_script
-Validate that all fields are present and non-empty before returning.
+Step 4 – Merge dialogue clips
+• Call combine_mp3_files_for_podcast with audio_files and output_filename="podcast.mp3".
+• Record the absolute path returned (final_podcast_path).  If the tool returns an error string beginning with “Error”, retry once; otherwise halt with failure information.
+
+Step 5 – Structured JSON output
+Return a StructuredOutput object with the following fields:
+• url – original URL
+• script – full podcast script produced in Step 2
+• audio_files – ordered list of individual MP3 paths from Step 3
+• final_podcast_path – path to the combined podcast MP3 from Step 4
 
 General rules
-• Prefer the provided tools; never write Python code or fetch websites manually.
-• Keep the conversation internal; expose nothing except the final JSON.
+• Keep the total number of agent turns ≤ 20.
+• Do not embed or print raw binary audio data.
+• Never invent tool outputs; always read and use the actual return values.
+• Stay concise yet complete in the script, aiming for ≈1-minute total runtime.
+
 '''
 
 # ========== Tools definition ===========
-# ========== Tools definition ==========
+# ========= Tools definition =========
+from any_agent.config import MCPStdio
+
 TOOLS = [
-    extract_text_from_url,                 # fetch & clean article text
-    generate_podcast_script_with_llm,      # write the 2-speaker script
-    MCPStdio(
+    extract_text_from_url,            # Fetch & clean webpage text
+    generate_podcast_script_with_llm, # Create the dialogue script
+    combine_mp3_files_for_podcast,    # Merge MP3 clips into one file
+    MCPStdio(                         # ElevenLabs text-to-speech capabilities
         command="docker",
         args=[
             "run",
@@ -82,10 +94,11 @@ TOOLS = [
             "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
         },
         tools=[
-            "generate_audio_script",      # synthesize full script in one go
+            "generate_audio_script",   # Generate voice clip from a single line
         ],
     ),
 ]
+
 
 agent = AnyAgent.create(
     "openai",
@@ -99,8 +112,8 @@ agent = AnyAgent.create(
 )
 
 def run_agent(url: str):
-    """Given a web URL, produce a two-speaker podcast (script + audio) and return structured results."""
-    input_prompt = f"Create a 5-minute audio podcast from the article at the following URL: {url}"
+    """Given a webpage URL, create a 1-minute two-person podcast episode, convert each dialogue line to speech with ElevenLabs, merge the clips, and return paths to all generated audio files."""
+    input_prompt = f"Create a 1-minute podcast featuring a Host–Guest dialogue based on the contents of this URL: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:

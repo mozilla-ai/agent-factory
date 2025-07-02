@@ -34,6 +34,7 @@ Install dependencies using your preferred Python package manager:
 uv venv
 source .venv/bin/activate
 uv sync --dev
+uv pip install -e .
 ```
 
 Install pre-commit hooks:
