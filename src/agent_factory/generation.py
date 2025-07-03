@@ -9,11 +9,11 @@ from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
 from any_agent.tools import search_tavily, visit_webpage
 from any_agent.tracing.agent_trace import AgentTrace
 from pydantic import BaseModel, Field
+from src.agent.factory_tools import read_file, search_mcp_servers
 
-from agent_factory.instructions import AGENT_CODE_TEMPLATE, INSTRUCTIONS
+from agent_factory.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_CLI, INSTRUCTIONS
 from agent_factory.logging import logger
 from agent_factory.prompt import UserPrompt
-from agent_factory.tools import read_file, search_mcp_servers
 
 dotenv.load_dotenv()
 
@@ -118,7 +118,11 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         agent_path = output_dir / "agent.py"
         instructions_path = output_dir / "INSTRUCTIONS.md"
         requirements_path = output_dir / "requirements.txt"
-        agent_code = AGENT_CODE_TEMPLATE.format(**agent_trace.final_output.model_dump())
+        agent_code = (
+            f"{AGENT_CODE_TEMPLATE.format(**agent_trace.final_output.model_dump())} \n"
+            f"{AGENT_CODE_TEMPLATE_RUN_VIA_CLI.format(**agent_trace.final_output.model_dump())}"
+        )
+
         cleaned_agent_code = clean_python_code_with_autoflake(agent_code)
 
         with agent_path.open("w", encoding="utf-8") as f:
