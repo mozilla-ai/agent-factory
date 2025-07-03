@@ -33,6 +33,7 @@ CODE_EXAMPLE_WITH_COMMENTS = """
 
 # good to have
 import os
+import json
 
 # ALWAYS used
 from pathlib import Path
@@ -186,6 +187,7 @@ AGENT_CODE_TEMPLATE = """
 import os
 
 # ALWAYS used
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
@@ -229,10 +231,37 @@ def run_agent({cli_args}):
         print(f"Agent execution failed: {{str(e)}}")
         print("Retrieved partial agent trace...")
 
+    # Extract cost information (with error handling)
+    try:
+        cost_info = agent_trace.cost
+        if cost_info.total_cost > 0:
+            cost_msg = (
+                f"input_cost=${{cost_info.input_cost:.6f}} + "
+                f"output_cost=${{cost_info.output_cost:.6f}} = "
+                f"${{cost_info.total_cost:.6f}}"
+            )
+    except Exception as e:
+        class DefaultCost:
+            input_cost = 0.0
+            output_cost = 0.0
+            total_cost = 0.0
+        cost_info = DefaultCost()
+
+    # Create enriched trace data with costs as separate metadata
     script_dir = Path(__file__).resolve().parent
     output_path = script_dir / "agent_eval_trace.json"
+
+    # Prepare the trace data with costs
+    trace_data = agent_trace.model_dump()
+    trace_data["execution_costs"] = {{
+        "input_cost": cost_info.input_cost,
+        "output_cost": cost_info.output_cost,
+        "total_cost": cost_info.total_cost
+    }}
+
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
+        import json
+        f.write(json.dumps(trace_data, indent=2))
 
     return agent_trace.final_output
 

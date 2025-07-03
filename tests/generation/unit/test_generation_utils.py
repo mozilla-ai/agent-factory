@@ -58,8 +58,15 @@ def test_run_agent_error_returns_trace():
     # Create a mock trace that will be passed to AgentRunError
     expected_trace = AgentTrace()
 
+    # Mock the cost property to avoid cost tracking errors
+    mock_cost = MagicMock()
+    mock_cost.input_cost = 0.0
+    mock_cost.output_cost = 0.0
+    mock_cost.total_cost = 0.0
+    expected_trace.cost = mock_cost
+
     # Create the error with the trace
-    error = AgentRunError(trace=expected_trace, original_exception=Exception("Test error"))
+    error = AgentRunError(original_exception=Exception("Test error"), trace=expected_trace)
 
     mock_agent = MagicMock(spec=["run"])
     mock_agent.run.side_effect = error

@@ -1,3 +1,4 @@
+import json
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -107,9 +108,18 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
 
 
 def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
-    # First save the agent trace
+    # Create enriched trace data with costs as separate metadata
+    cost_info = agent_trace.cost
+    input_cost = cost_info.input_cost
+    output_cost = cost_info.output_cost
+    total_cost = cost_info.total_cost
+    trace_data = agent_trace.model_dump()
+    trace_data["execution_costs"] = {"input_cost": input_cost, "output_cost": output_cost, "total_cost": total_cost}
+
+    # Save the enriched trace
     trace_path = output_dir / "agent_factory_trace.json"
-    trace_path.write_text(agent_trace.model_dump_json(indent=2))
+    with trace_path.open("w", encoding="utf-8") as f:
+        f.write(json.dumps(trace_data, indent=2))
 
     if not hasattr(agent_trace, "final_output") or not agent_trace.final_output:
         raise RuntimeError("No final_output available in agent trace")
@@ -153,6 +163,7 @@ def single_turn_generation(
     run_instructions = build_run_instructions(user_prompt)
 
     agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
+
     save_agent_outputs(agent_trace, output_dir)
     logger.info(f"Workflow files saved in: {output_dir}")
 
