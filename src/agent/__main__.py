@@ -37,7 +37,7 @@ def main(
         framework,
         AgentConfig(
             model_id=model,
-            instructions=load_system_instructions(for_cli=False),
+            instructions=load_system_instructions(for_cli_agent=False),
             description="Agent for generating agentic workflows based on user prompts.",
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             model_args={"tool_choice": "required"},  # Ensure tool choice is required

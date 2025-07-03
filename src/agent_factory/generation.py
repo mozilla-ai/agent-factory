@@ -23,7 +23,7 @@ def create_agent():
         framework,
         AgentConfig(
             model_id="o3",
-            instructions=load_system_instructions(for_cli=True),
+            instructions=load_system_instructions(for_cli_agent=True),
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             output_type=AgentFactoryOutputs,
             model_args={"tool_choice": "required"},  # Ensure tool choice is required
