@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import fire
+from any_agent import AgentTrace
 from any_agent.evaluation import AgentJudge
 from any_agent.evaluation.schemas import EvaluationOutput
 
@@ -39,12 +40,13 @@ async def run_evaluation(
 
         # Perform the evaluation
         agent_judge = AgentJudge(model_id="gpt-4.1")
-        results: list[EvaluationOutput] = []
+        eval_traces = []
         runs = []
         for criteria in evaluation_case.criteria:
             runs.append(agent_judge.run_async(agent_trace, criteria))
-        results = await asyncio.gather(*runs)
-        score = sum(result.passed for result in results)
+        eval_traces: list[AgentTrace] = await asyncio.gather(*runs)
+        results: list[EvaluationOutput] = [t.final_output for t in eval_traces]
+        score = sum(result.final_output.passed for result in results)
         # Print the results
         logger.info("\n--- Evaluation Results ---")
         logger.info(f"Final score: {score} out of {len(evaluation_case.criteria)}")
@@ -53,7 +55,7 @@ async def run_evaluation(
         eval_result_dict = {
             "obtained_score": score,
             "max_score": len(evaluation_case.criteria),
-            "results": [result.model_dump() for result in results],
+            "results": [result.final_output.model_dump() for result in results],
         }
         with Path(save_evaluation_results_path).open("w", encoding="utf-8") as f:
             f.write(json.dumps(eval_result_dict, indent=2))
