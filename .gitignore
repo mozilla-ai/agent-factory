@@ -179,8 +179,15 @@ cython_debug/
 # generated agents
 generated_workflows
 
+# SQLite database files
+**/*.db
+**/*.sqlite3
+
 # chainlit
 .chainlit/translations
+
+# VS Code
+.vscode/
 
 # node
 node_modules/
