@@ -7,7 +7,7 @@ from jinja2 import Template
 ANY_AGENT_VERSION = version("any_agent")
 
 TOOLS_REMINDER = """Use appropriate tools in the agent configuration:
-- Select relevant tools from `tools/available_tools.md`.
+- Select relevant tools from `tools/README.md`.
 - Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools
     to the configuration.
 
