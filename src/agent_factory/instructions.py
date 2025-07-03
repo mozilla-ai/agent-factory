@@ -36,6 +36,7 @@ import os
 
 # ALWAYS used
 from pathlib import Path
+from any_agent.serving import A2AServingConfig
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent
 from pydantic import BaseModel, Field
@@ -99,7 +100,10 @@ TOOLS = [
     ),
 ]
 
+"""  # noqa: E501
 
+CODE_EXAMPLE_RUN_VIA_CLI = """
+# ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
@@ -111,7 +115,7 @@ agent = AnyAgent.create(
 )
 
 
-def run_agent(url: str):
+def main(url: str):
     \"\"\"
     Given a webpage URL, translate its main English content to Italian,
     and return structured output.
@@ -133,7 +137,45 @@ def run_agent(url: str):
 
 
 if __name__ == "__main__":
-    Fire(run_agent)
+    Fire(main)
+"""  # noqa: E501
+
+CODE_EXAMPLE_RUN_VIA_A2A = """
+# ========== Running the agent via A2AServing ===========
+def main(
+    framework: str = "openai",
+    model: str = "o3",
+    host: str = "localhost",
+    port: int = 8080,
+    log_level: str = "info",
+):
+    \"\"\"
+    Given a webpage URL, translate its main English content to Italian,
+    and return structured output.
+
+    Args:
+        framework (str): The agent framework to use (default: "openai").
+        model (str): The model ID to use (default: "o3").
+        host (str): The host address for the agent server (default: "localhost").
+        port (int): The port for the agent server (default: 8080).
+        log_level (str): The logging level (default: "info").
+    \"\"\"
+    agent = AnyAgent.create(
+        framework,
+        AgentConfig(
+            model_id=model ,
+            instructions=INSTRUCTIONS,
+            tools=TOOLS,
+            output_type=StructuredOutput,
+        ),
+    )
+
+    agent.serve(A2AServingConfig(host=host, port=port, log_level=log_level))
+
+
+if __name__ == "__main__":
+    fire.Fire(main)
+
 """  # noqa: E501
 
 DELIVERABLES_INSTRUCTIONS = f"""
@@ -149,7 +191,7 @@ The final expected output is a dictionary with the following structure:
     "cli_args": "The arguments to be provided to the agent from the command line.",
     "agent_description": "The description of the agent and what it does.",
     "prompt_template": "A prompt template that, completed with cli_args, defines the agent's input prompt.",
-    "run_instructions": "The instructions for setting up the environment in Markdown format.",
+    "run_instructions": "The instructions for setting up the environment in Markdown format (e.g., A README file).",
     "dependencies": "The list of python dependencies in Markdown format."
 }}
 
@@ -161,9 +203,9 @@ This string replaces the {{agent_instructions}} placeholder in the agent code te
 3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {{imports}} placeholder in the agent code template.
 4. `structured_outputs` is python code that defines the class `StructuredOutput(BaseModel)`) defining the agent's output schema as a Pydantic v2 model.
 This code replaces the {{structured_outputs}} placeholder in the agent code template.
-5. `cli_args` are the arguments to be passed to the `run_agent` function. Each of them is specified as argument_name: argument_value.
+5. `cli_args` are the arguments to be passed to the `main` function. Each of them is specified as argument_name: argument_value.
 These will replace the {{cli_args}} placeholder in the agent code template.
-6. `agent_description` is a string to be provided as the description of the `run_agent` function.
+6. `agent_description` is a string to be provided as the description of the `main` function.
 7. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to the generated agent.
 8. `run_instructions` should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
@@ -174,9 +216,9 @@ These will replace the {{cli_args}} placeholder in the agent code template.
       `uv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 python generated_workflows/<folder_name>/agent.py --arg1 "value1"`
       where the user is expected to replace <folder_name> with the timestamped folder created in the generated_workflows directory and specify the required arguments
 9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
-    - the first line should be "any-agent[all]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
+    - the first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
     - only if the `agent_code` uses `uvx` to spin up any MCP server, include "uv" as a dependency in the requirements.txt file
-    - do not provide specific versions for the dependencies except for `any-agent[all]` (see the above point)
+    - do not provide specific versions for the dependencies except for `any-agent[all,a2a]` (see the above point)
 """  # noqa: E501
 
 AGENT_CODE_TEMPLATE = """
@@ -187,6 +229,7 @@ import os
 
 # ALWAYS used
 from pathlib import Path
+from any_agent.serving import A2AServingConfig
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
 from pydantic import BaseModel, Field
@@ -208,6 +251,10 @@ INSTRUCTIONS='''
 # ========== Tools definition ===========
 {tools}
 
+"""  # noqa: E501
+
+AGENT_CODE_TEMPLATE_RUN_VIA_CLI = """
+# ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
@@ -219,7 +266,7 @@ agent = AnyAgent.create(
     ),
 )
 
-def run_agent({cli_args}):
+def main({cli_args}):
     \"\"\"{agent_description}\"\"\"
     input_prompt = f"{prompt_template}"
     try:
@@ -237,12 +284,41 @@ def run_agent({cli_args}):
     return agent_trace.final_output
 
 if __name__ == "__main__":
-    Fire(run_agent)
+    Fire(main)
 
-"""
+"""  # noqa: E501
+
+AGENT_CODE_TEMPLATE_RUN_VIA_A2A = """
+# ========== Running the agent via A2AServing ===========
+def main(
+    framework: str = "openai",
+    model: str = "o3",
+    host: str = "localhost",
+    port: int = 8080,
+    log_level: str = "info",
+):
+    \"\"\"{agent_description}\"\"\"
+    agent = AnyAgent.create(
+        framework,
+        AgentConfig(
+            model_id=model,
+            instructions=INSTRUCTIONS,
+            tools=TOOLS,
+            model_args={{"tool_choice": "required"}},
+            output_type=StructuredOutput,
+        ),
+    )
+
+    agent.serve(A2AServingConfig(host=host, port=port, log_level=log_level))
 
 
-CODE_GENERATION_INSTRUCTIONS = f"""
+if __name__ == "__main__":
+    Fire(main)
+
+"""  # noqa: E501
+
+
+CODE_GENERATION_INSTRUCTIONS = """
 # Single Agent Implementation with Multiple Steps
 
 ## Task Overview
@@ -251,27 +327,30 @@ using Mozilla's any-agent library. The implementation should:
 
 1. Use the OpenAI framework as the underlying agent provider
 2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
-3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument
+3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the `output_type` argument.
 4. Whenever required, assign tools in the agent configuration.
 
 ## Required Components
 
 #### Model (model_id):
-- Use o3 as the model_id
+- Use `o3` as the `model_id`
 
 #### Instructions (instructions):
 - Decide on the number of steps that you think would be necessary to complete the task
 - Keep the number of steps to a minimum
 - Provide a step-by-step clear multi-step system instructions that guides the agent's behavior
 - The instructions should be as detailed and as unambiguous as possible
-- Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig
+- Define the instructions in an `INSTRUCTIONS` variable that will be passed to `AgentConfig`
 
 #### Tools (tools):
-- Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).
+- Suggest list of tools that you think would be necessary to complete the steps to be used in the
+  agent configuration `AgentConfig(tools=[...])`.
   Try to use only the minimum subset of tools that are necessary for the solving the task at hand.
-- You must choose tools from the following 3 categories, *listed in order of priority* (i.e. tools found in an earlier category are preferable to equivalent tools found in following ones):
-    a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.
-       Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.
+- You must choose tools from the following 3 categories, *listed in order of priority* (i.e. tools
+  found in an earlier category are preferable to equivalent tools found in following ones):
+    a. Python Functions: The available tools are described in the local file at `tools/README.md`,
+       which can be read using `read_file` tool. Each tool in `README.md` has a corresponding `.py`
+       file in the `tools/` directory that implements the function.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
     c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,
        giving it a keyphrase that describes the task you want to accomplish.
@@ -283,10 +362,12 @@ using Mozilla's any-agent library. The implementation should:
 
 #### Structured Output (output_type):
 - Define Pydantic v2 models to structure the agent's final output
-- Implement the output_type argument correctly to obtain this structured response
+- Implement the `output_type` argument correctly to obtain this structured response
 
-#### Agent Trace (agent_trace):
-The code implementation should include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()
+#### Agent Trace (agent_trace): Conditional on the whether the agent code requested is run via CLI or A2AServing
+Important: Saving agent_trace is ONLY required when running the agent via CLI with `agent.run()`. You MUST NEVER save the agent trace when running the agent via A2AServing.
+If the code corresponds to running the agent via CLI, use the following instructions to save the agent trace:
+- Include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()
 - Saving of the agent trace in the code should be done to the `script_dir / "agent_eval_trace.json"` directory as shown in the example code
 - You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code
 - Never try to print, log or access any other properties of the agent trace object. agent_trace.response or agent_trace.output are invalid
@@ -297,16 +378,14 @@ The code implementation should include the agent trace being saved into a JSON f
 - Create well-documented, modular code with appropriate comments
 - Follow Python best practices for readability and maintainability
 - Include proper import statements and dependency management
-- Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:
-    - Use Python dotenv library to load the environment variables and access them using os.getenv()
-
+- Environment variables required by the code/tools/MCP servers can be assumed to be set in the
+  `.env` file:
+    - Use Python `dotenv` library to load the environment variables and access them using
+      `os.getenv()`
 ### Agent code template
 
 - Rely on the following template to write the agent code:
 
-```
-{AGENT_CODE_TEMPLATE}
-```
 """  # noqa: E501
 
 # Define the template with Jinja2 syntax
@@ -324,10 +403,17 @@ Any-agent library enables you to:
 
 {{ code_generation_instructions }}
 
-As input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `output_type`.
-You also need to specify the correct imports, which have to be consistent with the tools used by the agent:
+{{ agent_code_template }}
 
+{{ agent_code_template_run_option}}
+
+As input to the `AgentConfig`, you are required to provide the parameters `model_id`,
+`instructions`, `tools`, and `output_type`.
+You also need to specify the correct imports, which have to be consistent with the tools used by the
+agent:
 {{ code_example_with_comments }}
+
+{{ code_example_run_option }}
 
 ** Deliverables Instructions**
 
@@ -338,6 +424,9 @@ You also need to specify the correct imports, which have to be consistent with t
 template = Template(INSTRUCTIONS_TEMPLATE)
 INSTRUCTIONS = template.render(
     code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
+    agent_code_template=AGENT_CODE_TEMPLATE,
+    agent_code_template_run_option=AGENT_CODE_TEMPLATE_RUN_VIA_CLI,
     code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
+    code_example_run_option=CODE_EXAMPLE_RUN_VIA_CLI,
     deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
 )
