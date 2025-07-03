@@ -420,13 +420,14 @@ agent:
 {{ deliverables_instructions }}
 """  # noqa: E501
 
-# Render the template
-template = Template(INSTRUCTIONS_TEMPLATE)
-INSTRUCTIONS = template.render(
-    code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
-    agent_code_template=AGENT_CODE_TEMPLATE,
-    agent_code_template_run_option=AGENT_CODE_TEMPLATE_RUN_VIA_CLI,
-    code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
-    code_example_run_option=CODE_EXAMPLE_RUN_VIA_CLI,
-    deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
-)
+
+def load_system_instructions(for_cli: bool = True):
+    template = Template(INSTRUCTIONS_TEMPLATE)
+    return template.render(
+        code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
+        agent_code_template=AGENT_CODE_TEMPLATE,
+        agent_code_template_run_option=AGENT_CODE_TEMPLATE_RUN_VIA_CLI if for_cli else AGENT_CODE_TEMPLATE_RUN_VIA_A2A,
+        code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
+        code_example_run_option=CODE_EXAMPLE_RUN_VIA_CLI if for_cli else CODE_EXAMPLE_RUN_VIA_A2A,
+        deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
+    )

@@ -7,7 +7,7 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 
-from agent.instructions import INSTRUCTIONS
+from agent.instructions import load_system_instructions
 from agent_factory.generation import (
     AgentFactoryOutputs,
     build_run_instructions,
@@ -93,7 +93,7 @@ async def on_message(message: cl.Message):
                 framework,
                 AgentConfig(
                     model_id="o3",
-                    instructions=INSTRUCTIONS,
+                    instructions=load_system_instructions(),
                     tools=tools,
                     output_type=AgentFactoryOutputs,
                 ),

@@ -10,7 +10,7 @@ from any_agent.tools import search_tavily, visit_webpage
 from any_agent.tracing.agent_trace import AgentTrace
 from src.agent.factory_tools import read_file, search_mcp_servers
 
-from agent.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_CLI, INSTRUCTIONS
+from agent.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_CLI, load_system_instructions
 from agent.schemas import AgentFactoryOutputs
 from agent_factory.logging import logger
 from agent_factory.prompt import UserPrompt
@@ -24,7 +24,7 @@ def create_agent():
         framework,
         AgentConfig(
             model_id="o3",
-            instructions=INSTRUCTIONS,
+            instructions=load_system_instructions(for_cli=True),
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             output_type=AgentFactoryOutputs,
             model_args={"tool_choice": "required"},  # Ensure tool choice is required
