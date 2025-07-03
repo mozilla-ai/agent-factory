@@ -4,6 +4,9 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.serving import A2AServingConfig
 from any_agent.tools import search_tavily, visit_webpage
 from instructions import INSTRUCTIONS
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.trace import get_tracer_provider
 from pydantic import BaseModel, Field
 from utils import read_file, search_mcp_servers  # type: ignore[import-not-found]
 
@@ -46,6 +49,10 @@ def main(
         raise ValueError(
             f"Invalid framework '{framework}'. Allowed values are: {[f.name.lower() for f in AgentFramework]}"
         ) from err
+
+    tp = get_tracer_provider()
+    http_exporter = OTLPSpanExporter(endpoint="http://tempo:4318/v1/traces")
+    tp.add_span_processor(SimpleSpanProcessor(http_exporter))
 
     agent = AnyAgent.create(
         framework,
