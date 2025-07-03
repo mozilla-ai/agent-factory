@@ -1,18 +1,17 @@
-import uuid
-from datetime import datetime
 from pathlib import Path
 
-import autoflake
 import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
 from any_agent.tools import search_tavily, visit_webpage
 from any_agent.tracing.agent_trace import AgentTrace
-from src.agent.factory_tools import read_file, search_mcp_servers
 
+from agent.factory_tools import read_file, search_mcp_servers
 from agent.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_CLI, load_system_instructions
 from agent.schemas import AgentFactoryOutputs
-from agent_factory.logging import logger
+from agent.utils.artifact_validation import clean_python_code_with_autoflake
+from agent.utils.io_utils import setup_output_directory
+from agent.utils.logging import logger
 from agent_factory.prompt import UserPrompt
 
 dotenv.load_dotenv()
@@ -53,34 +52,6 @@ def build_run_instructions(user_prompt) -> str:
     else:
         user_prompt_instance = UserPrompt._instance
         return user_prompt_instance.amend_prompt(user_prompt)
-
-
-def clean_python_code_with_autoflake(code: str) -> str:
-    """Clean Python code using autoflake to remove unused imports (F401) and variables (F841)."""
-    try:
-        cleaned_code = autoflake.fix_code(
-            code,
-            remove_all_unused_imports=True,
-            remove_unused_variables=True,
-        )
-        return cleaned_code
-    except Exception as e:
-        logger.error(f"Error while running autoflake to clean Python code: {e}")
-        raise
-
-
-def setup_output_directory(output_dir: Path | None = None) -> Path:
-    if output_dir is None:
-        output_dir = Path.cwd()
-        uid = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + str(uuid.uuid4())[:8]
-        # store in a unique dir under generated_workflows by default
-        output_dir = output_dir / "generated_workflows" / uid
-    else:
-        # guarantee output_dir is PosixPath
-        output_dir = Path(output_dir)
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir
 
 
 def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTrace:
