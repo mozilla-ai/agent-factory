@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from any_agent import AgentRunError, AgentTrace
 
+from agent.utils.io_utils import setup_output_directory
 from agent_factory.generation import (
     run_agent,
-    setup_output_directory,
 )
 
 
