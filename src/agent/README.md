@@ -29,14 +29,14 @@ frameworks without any code changes.
    cd agent-factory/src/agent
    ```
 
-2. Install the dependencies using `uv`:
-   ```bash
-   uv sync
-   ```
-
-3. Activate the virtual environment:
+2. Activate the virtual environment:
    ```bash
    source .venv/bin/activate
+   ```
+
+3. Install the dependencies using `uv`:
+   ```bash
+   uv sync
    ```
 
 ### Running the Server
@@ -75,8 +75,12 @@ In addition to `host` and `port`, you can also pass the following arguments:
     ```bash
     docker build -t agent-factory -f Containerfile .
     ```
+2. Create a `.env` file in the same directory with your OpenAI API key:
+    ```bash
+    OPENAI_API_KEY=your_openai_api_key_here
+    ```
 
-2.  Run the Docker container, setting the environment variables as needed:
+3.  Run the Docker container, setting the environment variables as needed:
     ```bash
     docker run -p 8080:8080 \
         -e FRAMEWORK=openai \
