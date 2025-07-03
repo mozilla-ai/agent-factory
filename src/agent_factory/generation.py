@@ -11,7 +11,7 @@ from any_agent.tracing.agent_trace import AgentTrace
 from pydantic import BaseModel, Field
 from src.agent.factory_tools import read_file, search_mcp_servers
 
-from agent_factory.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_CLI, INSTRUCTIONS
+from agent.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_CLI, INSTRUCTIONS
 from agent_factory.logging import logger
 from agent_factory.prompt import UserPrompt
 
