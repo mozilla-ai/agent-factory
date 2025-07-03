@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import dotenv
@@ -75,12 +76,21 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
     """  # noqa: E501
     agent_trace = agent.run(run_instructions, max_turns=30)
 
+    cost_info = agent_trace.cost
+    evaluation_case_generation_costs = {
+        "input_cost": cost_info.input_cost,
+        "output_cost": cost_info.output_cost,
+        "total_cost": cost_info.total_cost,
+    }
+
     if not isinstance(agent_trace.final_output, JSONEvaluationCase):
         raise ValueError("The agent's final output is not a JSONEvaluationCase.")
 
-    # Save the JSON output as a json file
+    evaluation_case_data = agent_trace.final_output.model_dump()
+    evaluation_case_data["evaluation_case_generation_costs"] = evaluation_case_generation_costs
+
     with (workflows_dir / "evaluation_case.json").open("w") as f:
-        f.write(agent_trace.final_output.model_dump_json(indent=2))
+        f.write(json.dumps(evaluation_case_data, indent=2))
 
 
 if __name__ == "__main__":
