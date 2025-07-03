@@ -3,9 +3,9 @@ import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.serving import A2AServingConfig
 from any_agent.tools import search_tavily, visit_webpage
-from instructions import INSTRUCTIONS
+from factory_tools import read_file, search_mcp_servers
+from instructions import load_system_instructions
 from schemas import AgentFactoryOutputs
-from utils import read_file, search_mcp_servers  # type: ignore[import-not-found]
 
 dotenv.load_dotenv()
 
@@ -37,7 +37,7 @@ def main(
         framework,
         AgentConfig(
             model_id=model,
-            instructions=INSTRUCTIONS,
+            instructions=load_system_instructions(for_cli=False),
             description="Agent for generating agentic workflows based on user prompts.",
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             model_args={"tool_choice": "required"},  # Ensure tool choice is required
