@@ -1,0 +1,17 @@
+# Git
+.git
+.gitignore
+
+# Docker
+.dockerignore
+Dockerfile
+
+# Virtual environment
+.venv
+
+# Python cache
+__pycache__
+*.pyc
+
+# Local database
+local.db
