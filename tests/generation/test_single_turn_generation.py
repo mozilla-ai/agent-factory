@@ -17,7 +17,7 @@ from agent_factory.generation import single_turn_generation
 
 def _assert_generated_files(workflow_dir: Path):
     existing_files = [f.name for f in workflow_dir.iterdir()]
-    expected_files = ["agent.py", "INSTRUCTIONS.md", "requirements.txt", "agent_factory_trace.json"]
+    expected_files = ["agent.py", "README.md", "requirements.txt", "agent_factory_trace.json"]
 
     for expected_file in expected_files:
         assert expected_file in existing_files, f"{expected_file} was not generated."

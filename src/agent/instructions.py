@@ -192,7 +192,7 @@ The final expected output is a dictionary with the following structure:
     "cli_args": "The arguments to be provided to the agent from the command line.",
     "agent_description": "The description of the agent and what it does.",
     "prompt_template": "A prompt template that, completed with cli_args, defines the agent's input prompt.",
-    "run_instructions": "The instructions for setting up the environment in Markdown format (e.g., A README file).",
+    "readme": "The instructions for setting up the environment in Markdown format (e.g., A README file).",
     "dependencies": "The list of python dependencies in Markdown format."
 }}
 
@@ -208,7 +208,7 @@ This code replaces the {{structured_outputs}} placeholder in the agent code temp
 These will replace the {{cli_args}} placeholder in the agent code template.
 6. `agent_description` is a string to be provided as the description of the `main` function.
 7. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to the generated agent.
-8. `run_instructions` should contain clear and concise setup instructions:
+8. `readme` should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required
     - Always include the following instructions to install Python package manager uv (the end user decides which command to run based on their OS):
         - for MacOS and Linux users: `curl -LsSf https://astral.sh/uv/install.sh | sh`

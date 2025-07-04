@@ -103,4 +103,4 @@ uv run --active test_client.py "Summarize the contents of a web page given the U
 ```
 
 The client will send the message to the server, print the response, and save the generated agent's files (`agent.py`,
-`INSTRUCTIONS.md`, and `requirements.txt`) into a new directory inside the `generated_workflows` directory.
+`README.md`, and `requirements.txt`) into a new directory inside the `generated_workflows` directory.

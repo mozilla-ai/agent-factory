@@ -136,8 +136,8 @@ async def on_message(message: cl.Message):
             output_to_render = (
                 f"## 🤖 Agent Code\n"
                 f"```python\n{json_output.get('agent_code', 'No agent code provided.')}\n```\n"
-                f"## 🚀 Run Instructions\n"
-                f"{json_output.get('run_instructions', 'No run instructions provided.')}\n\n"
+                f"## 📚 README\n"
+                f"{json_output.get('readme', 'No README provided.')}\n\n"
                 f"## 📦 Dependencies\n"
                 f"```\n{json_output.get('dependencies', 'No dependencies provided.')}\n```"
             )
@@ -147,7 +147,7 @@ async def on_message(message: cl.Message):
                 cl.Action(
                     name="export_workflow",
                     payload=json_output,
-                    tooltip="Export the generated agent code, instructions, and dependencies to generated_workflows/latest directory.",  # noqa: E501
+                    tooltip="Export the generated agent code, README, and dependencies to generated_workflows/latest directory.",  # noqa: E501
                     label="📁 Save Workflow to Files",
                     icon="download",
                 )

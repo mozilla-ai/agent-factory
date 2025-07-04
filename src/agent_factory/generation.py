@@ -83,7 +83,7 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
 
     try:
         agent_path = output_dir / "agent.py"
-        instructions_path = output_dir / "INSTRUCTIONS.md"
+        readme_path = output_dir / "README.md"
         requirements_path = output_dir / "requirements.txt"
         agent_code = (
             f"{AGENT_CODE_TEMPLATE.format(**agent_trace.final_output.model_dump())} \n"
@@ -95,8 +95,8 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         with agent_path.open("w", encoding="utf-8") as f:
             f.write(cleaned_agent_code)
 
-        with instructions_path.open("w", encoding="utf-8") as f:
-            f.write(agent_trace.final_output.run_instructions)
+        with readme_path.open("w", encoding="utf-8") as f:
+            f.write(agent_trace.final_output.readme)
 
         with requirements_path.open("w", encoding="utf-8") as f:
             f.write(agent_trace.final_output.dependencies)
