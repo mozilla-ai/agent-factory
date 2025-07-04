@@ -5,6 +5,7 @@
 import os
 
 # ALWAYS used
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 from any_agent import AgentConfig, AnyAgent, AgentRunError
@@ -13,114 +14,100 @@ from fire import Fire
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
 from any_agent.tools import visit_webpage
+from tools.extract_text_from_url import extract_text_from_url
 from any_agent.config import MCPStdio
 
 load_dotenv()
 
 # ========== Structured output definition ==========
-# ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    repo_url: str = Field(..., description="GitHub repository URL that was evaluated.")
-    total_score: int = Field(..., description="Final score out of 100 assessing compliance with Blueprint guidelines.")
-    evaluation_details: dict = Field(..., description="Dictionary mapping each guideline criterion to its sub-score and short rationale.")
-    slack_channel_id: str = Field(..., description="The id of the Slack channel where the message was posted.")
-    sqlite_write_status: str = Field(..., description="Result message from the SQLite write operation (e.g., 'INSERT OK').")
-    timestamp: str = Field(..., description="ISO 8601 timestamp when the evaluation was completed and logged.")
+    repository_url: str = Field(..., description="GitHub repository that was evaluated")
+    guidelines_summary: str = Field(..., description="3–5 bullet summary of Mozilla Blueprint guidelines used for assessment")
+    score: int = Field(..., ge=0, le=100, description="Overall compliance score (0-100)")
+    evaluation_details: str = Field(..., description="Narrative evaluation covering strengths, weaknesses, and recommendations")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an autonomous AI assistant that follows the workflow below to evaluate a GitHub repository against Mozilla AI Blueprint guidelines and publish the results.
+You are an autonomous evaluation assistant that follows this multi-step workflow to assess a GitHub repository against Mozilla AI Blueprint guidelines and publish the results:
+Step 1 – Fetch Guidelines
+• Visit https://www.mozilla.ai/Bluerprints (or any 30x-redirected URL) and extract the full textual content containing the official "Blueprint guidelines".
+• Summarise these guidelines in 3-5 concise bullet points so they can be referenced later.
 
-Workflow – keep the turns to the minimum necessary (usually 4-6) and obey tool_choice:"required".
+Step 2 – Analyse Repository
+• Visit the user-supplied GitHub repository URL and extract the README plus any CONTRIBUTING or GOVERNANCE files if present.
+• Focus on documentation, code organisation, licensing, and best-practice signals that relate to the guidelines.
 
-1. INPUT STEP
-   a. Receive the GitHub repository URL provided by the user.
-   b. Acknowledge that you will start the evaluation.
+Step 3 – Evaluate & Score
+• Compare the repository artefacts with the guideline summary.
+• Assign an overall score from 0-100 where 100 means "perfectly follows all guidelines" and 0 means "no alignment".
+• Write an evaluation paragraph covering strengths, weaknesses, and concrete improvement suggestions.
 
-2. COLLECT GUIDELINES
-   a. Use visit_webpage to download the text of https://www.mozilla.ai/Blueprints (Mozilla AI Blueprint guidelines).
-   b. Extract the key evaluation criteria (clarity, modularity, openness, documentation quality, reproducibility, safety, etc.). Keep them succinct for later reference.
+Step 4 – Produce Structured Result
+Prepare a JSON object with:
+  repository_url – the evaluated repo link
+  guidelines_summary – your 3–5 bullet guideline digest
+  score – integer 0-100
+  evaluation_details – the paragraph created in Step 3
 
-3. COLLECT REPOSITORY INFO
-   a. Use visit_webpage to retrieve the repository’s main page (the URL from step 1).
-   b. Focus on README, docs folders, CONTRIBUTING, LICENSE, and any blueprint-related files.
-   c. Summarise the repo’s purpose, structure, and documentation in < 300 words.
+Step 5 – Post to Slack
+• Use slack_list_channels to find the channel whose name contains "blueprint-submission" (case-insensitive).
+• Use slack_post_message to post the JSON result to that channel. Include the repo URL and numeric score in the message text for quick scanning.
 
-4. EVALUATION & SCORING
-   a. Compare the repo summary with each guideline criterion.
-   b. Assign a numeric sub-score (0-10) for each criterion. Sum them and scale/round to a total out-of-100 score.
-   c. Craft an "evaluation_details" JSON object mapping criterion → sub-score and explanation.
+Step 6 – Log to SQLite
+• Insert a new row into the existing github_repo_evaluations table in blueprints.db: (repo_url, score, evaluation_details, evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+• Use write_query and confirm successful insertion.
 
-5. PERSIST & NOTIFY
-   a. Use the Slack MCP tools:
-      • slack_list_channels – find the channel whose name is exactly "blueprint-submission" (case-insensitive). Extract its id.
-      • slack_post_message – send a message containing the repository URL, total score, and a concise markdown table of criterion / sub-score / comment.
-   b. Use the SQLite MCP tool write_query to insert a new row into the already-existing table github_repo_evaluations in blueprints.db with (repo_url, total_score, evaluation_json, created_at). Use CURRENT_TIMESTAMP for created_at.
-
-6. OUTPUT STEP
-   Respond with StructuredOutput JSON only (no prose) containing: repo_url, total_score, evaluation_details, slack_channel_id, sqlite_write_status, timestamp.
-
-Rules:
-• Always call the necessary tool for each step (guideline retrieval, repo retrieval, Slack channel exploration, posting, DB insertion).
-• Never disclose any environment variable values or internal tool responses.
-• Halt immediately if any critical step fails and return an explanatory error in the StructuredOutput.
-• Keep total response tokens reasonable (< 800).
-
+General rules
+• Use the minimum set of tools provided.
+• Always perform steps sequentially; do not skip or merge them.
+• Output MUST conform to the StructuredOutput schema.
+• Halt and return a clear error message if any mandatory tool fails.
 '''
 
 # ========== Tools definition ===========
-# ========== Tools definition ===========
-from pathlib import Path
+# ========= Tools definition =========
 
-script_dir = Path(__file__).resolve().parent
+# Slack MCP server – only the 2 tools we need
+SLACK_MCP = MCPStdio(
+    command="docker",
+    args=[
+        "run", "-i", "--rm",
+        "-e", "SLACK_BOT_TOKEN",
+        "-e", "SLACK_TEAM_ID",
+        "mcp/slack",
+    ],
+    env={
+        "SLACK_BOT_TOKEN": os.getenv("SLACK_BOT_TOKEN"),
+        "SLACK_TEAM_ID": os.getenv("SLACK_TEAM_ID"),
+    },
+    tools=[
+        "slack_list_channels",
+        "slack_post_message",
+    ],
+)
+
+# SQLite MCP server – only the write_query tool
+SQLITE_MCP = MCPStdio(
+    command="docker",
+    args=[
+        "run", "-i", "--rm",
+        "-v", f"{Path.cwd()}:/data",  # mount current dir so /data/blueprints.db is accessible
+        "mcp/sqlite",
+        "--db-path", "/data/blueprints.db",
+    ],
+    tools=["write_query"],
+)
 
 TOOLS = [
-    # Built-in any-agent tool to fetch webpage text
-    visit_webpage,
-
-    # Slack MCP for channel lookup & posting
-    MCPStdio(
-        command="docker",
-        args=[
-            "run",
-            "-i",
-            "--rm",
-            "-e",
-            "SLACK_BOT_TOKEN",
-            "-e",
-            "SLACK_TEAM_ID",
-            "mcp/slack",
-        ],
-        env={
-            "SLACK_BOT_TOKEN": os.getenv("SLACK_BOT_TOKEN"),
-            "SLACK_TEAM_ID": os.getenv("SLACK_TEAM_ID"),
-        },
-        tools=[
-            "slack_list_channels",
-            "slack_post_message",
-        ],
-    ),
-
-    # SQLite MCP for persisting the evaluation
-    MCPStdio(
-        command="docker",
-        args=[
-            "run",
-            "-i",
-            "--rm",
-            "-v",
-            f"{script_dir}:/mcp",  # mount current dir so blueprints.db is accessible
-            "mcp/sqlite",
-            "--db-path",
-            "/mcp/blueprints.db",
-        ],
-        tools=[
-            "write_query",
-        ],
-    ),
+    visit_webpage,               # fetch guideline & repo pages
+    extract_text_from_url,       # cleanly extract README and other docs
+    SLACK_MCP,
+    SQLITE_MCP,
 ]
 
+ 
 
+# ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
@@ -132,9 +119,9 @@ agent = AnyAgent.create(
     ),
 )
 
-def run_agent(repo_url: str):
-    """Given a GitHub repository URL, this agent evaluates it against Mozilla AI Blueprint guidelines, scores it, posts the results to the #blueprint-submission Slack channel, and records the evaluation in the local blueprints.db SQLite database."""
-    input_prompt = f"Please evaluate the GitHub repository at the following URL against the Mozilla AI Blueprint guidelines and follow the full workflow: {repo_url}"
+def main(repo_url: str):
+    """Evaluate a GitHub repository against Mozilla Blueprint guidelines, post the results to Slack, and save them to an SQLite database."""
+    input_prompt = f"Evaluate the following GitHub repository against Mozilla AI Blueprint guidelines and follow all workflow steps: {repo_url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
@@ -142,13 +129,39 @@ def run_agent(repo_url: str):
         print(f"Agent execution failed: {str(e)}")
         print("Retrieved partial agent trace...")
 
+    # Extract cost information (with error handling)
+    try:
+        cost_info = agent_trace.cost
+        if cost_info.total_cost > 0:
+            cost_msg = (
+                f"input_cost=${cost_info.input_cost:.6f} + "
+                f"output_cost=${cost_info.output_cost:.6f} = "
+                f"${cost_info.total_cost:.6f}"
+            )
+    except Exception:
+        class DefaultCost:
+            input_cost = 0.0
+            output_cost = 0.0
+            total_cost = 0.0
+        cost_info = DefaultCost()
+
+    # Create enriched trace data with costs as separate metadata
     script_dir = Path(__file__).resolve().parent
     output_path = script_dir / "agent_eval_trace.json"
+
+    # Prepare the trace data with costs
+    trace_data = agent_trace.model_dump()
+    trace_data["execution_costs"] = {
+        "input_cost": cost_info.input_cost,
+        "output_cost": cost_info.output_cost,
+        "total_cost": cost_info.total_cost
+    }
+
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
+        f.write(json.dumps(trace_data, indent=2))
 
     return agent_trace.final_output
 
 if __name__ == "__main__":
-    Fire(run_agent)
+    Fire(main)
 
