@@ -30,7 +30,7 @@ const props = defineProps<{
 
 // Fetch agent trace data using TanStack Query
 const traceQuery = useQuery({
-  queryKey: queryKeys.agentTrace(props.workflowId),
+  queryKey: queryKeys.agentGenerationTrace(props.workflowId),
   queryFn: () => workflowService.getAgentGenerationTrace(props.workflowId),
   retry: 1,
 })
