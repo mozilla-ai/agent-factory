@@ -73,7 +73,7 @@ In addition to `host` and `port`, you can also pass the following arguments:
 
 1.  From the `src/agent` directory, build the Docker image:
     ```bash
-    docker build -t agent-factory -f Containerfile .
+    docker build -t agent-factory .
     ```
 
 2.  Run the Docker container, setting the environment variables as needed:
