@@ -37,17 +37,17 @@ jobs:
       - name: Run Code tests
         run: pytest -v tests/agent_factory
 
-      - name: Run Generated Artifacts tests
-        run: pytest -v tests/generated_artifacts
-
       - name: Run Generation tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: pytest -v tests/generation
+        run: pytest -v tests/generation --update-artifacts
 
       - name: Run Generated Agent Evaluation tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pytest -v tests/generated_agent_evaluation
+
+      - name: Run Generated Artifacts tests
+        run: pytest -v tests/generated_artifacts
