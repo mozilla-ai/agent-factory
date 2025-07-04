@@ -180,6 +180,8 @@ const handleDeleteClick = () => {
   padding: 1rem;
   margin-top: 1rem;
   border: 1px solid var(--color-border);
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .final-output pre {
