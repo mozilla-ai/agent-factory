@@ -11,8 +11,8 @@ from requirements_validators import (
     assert_requirements_installable,
 )
 
+from agent.utils.trace_utils import load_agent_trace
 from agent_factory.generation import single_turn_generation
-from agent_factory.utils.trace_utils import load_agent_trace
 
 
 def _assert_generated_files(workflow_dir: Path):

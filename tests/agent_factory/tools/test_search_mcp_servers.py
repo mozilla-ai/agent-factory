@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from agent_factory.tools import KEYS_TO_DROP, search_mcp_servers
+from agent.factory_tools import KEYS_TO_DROP, search_mcp_servers
 
 
 @pytest.mark.parametrize("is_official", [True, False])
@@ -46,7 +46,7 @@ def test_search_mcp_servers_normalizes_keyphrase():
     ]
 
     for input_kw, expected_kw in test_cases:
-        with patch("agent_factory.tools.RepositoryManager", return_value=mock_repo):
+        with patch("agent.factory_tools.RepositoryManager", return_value=mock_repo):
             search_mcp_servers(input_kw)
             mock_repo.search_servers.assert_called_with(expected_kw)
             mock_repo.reset_mock()
