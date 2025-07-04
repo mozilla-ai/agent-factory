@@ -120,12 +120,12 @@ function handleFileSelect(file: WorkflowFile) {
 const availableTabs = computed(() => {
   const tabs = [
     { id: 'files', label: 'Files' },
-    { id: 'evaluate', label: 'Run Evaluation' },
+    { id: 'evaluate', label: 'Run & Eval Agent' },
     { id: 'agent-generation-trace', label: 'Agent Generation Trace' },
   ]
 
   if (evaluationStatusQuery.data.value?.hasAgentTrace) {
-    tabs.push({ id: 'agent-trace', label: 'Agent Trace' })
+    tabs.push({ id: 'agent-trace', label: 'Agent Run Trace' })
   }
 
   tabs.push({ id: 'criteria', label: 'Evaluation Criteria' })
