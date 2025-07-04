@@ -16,6 +16,7 @@ export const queryKeys = {
   evaluationCriteria: (workflowId: string) => ['evaluation-criteria', workflowId] as const,
   evaluationResults: (workflowId: string) => ['evaluation-results', workflowId] as const,
   agentTrace: (workflowId: string) => ['agentEvalTrace', workflowId] as const,
+  agentGenerationTrace: (workflowId: string) => ['agentGenerationTrace', workflowId] as const,
 } as const
 
 /**

@@ -3,7 +3,7 @@
     <VueQueryDevtools />
 
     <nav class="global-nav">
-      <router-link to="/" class="nav-link">Home</router-link>
+      <router-link to="/chat" class="nav-link">Home</router-link>
       <router-link to="/workflows" class="nav-link">Workflows</router-link>
     </nav>
 
@@ -75,8 +75,11 @@ const logout = () => {
   transform: translateX(-50%);
   display: flex;
   gap: 1.5rem;
+  width: 100%;
+  justify-content: center;
   padding: 1rem;
   z-index: 20;
+  background-color: var(--color-background-soft);
 }
 
 .nav-link {
@@ -90,7 +93,7 @@ const logout = () => {
 }
 
 .nav-link:hover {
-  background-color: var(--color-background-soft);
+  background-color: var(--button-hover-color);
 }
 
 .nav-link.router-link-active {

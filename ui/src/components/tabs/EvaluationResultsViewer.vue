@@ -172,6 +172,11 @@ const criteriaQuery = useQuery({
       return {
         llm_judge: 'N/A',
         checkpoints: [],
+        evaluation_case_generation_costs: {
+          input_cost: 0,
+          output_cost: 0,
+          total_cost: 0,
+        },
       }
     }
   },
