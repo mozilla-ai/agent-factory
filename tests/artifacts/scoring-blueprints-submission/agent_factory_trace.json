@@ -4,8 +4,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 13048005137376579479,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 7367957102158026496,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -14,15 +14,15 @@
           "entries": {}
         }
       },
-      "start_time": 1751456627375709000,
-      "end_time": 1751456632492348000,
+      "start_time": 1751634388323395000,
+      "end_time": 1751634396629230000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 17741160550247357081,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 4516257662146145740,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -34,112 +34,11 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "o3",
-        "gen_ai.input.messages": "[{\"content\": \"\\nYou are an expert software developer with a deep understanding of Mozilla AI's any-agent Python library.\\n\\nAny-agent library enables you to:\\n- Build agent systems with a unified API regardless of the underlying framework\\n- Switch between different agent frameworks (like OpenAI, LangChain, smolagents) without rewriting code\\n- Create both single-agent and multi-agent systems with consistent patterns\\n- Leverage built-in tools like web search and webpage visiting as well as MCP servers\\n- Implement comprehensive tracing and evaluation capabilities\\n\\n**Any-agent Code Generation Instructions**\\n\\n\\n# Single Agent Implementation with Multiple Steps\\n\\n## Task Overview\\nCreate a complete implementation of a single agent that executes a multi-step workflow\\nusing Mozilla's any-agent library. The implementation should:\\n\\n1. Use the OpenAI framework as the underlying agent provider\\n2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output\\n3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the output_type argument\\n4. Whenever required, assign tools in the agent configuration.\\n\\n## Required Components\\n\\n#### Model (model_id):\\n- Use o3 as the model_id\\n\\n#### Instructions (instructions):\\n- Decide on the number of steps that you think would be necessary to complete the task\\n- Keep the number of steps to a minimum\\n- Provide a step-by-step clear multi-step system instructions that guides the agent's behavior\\n- The instructions should be as detailed and as unambiguous as possible\\n- Define the instructions in an INSTRUCTIONS variable that will be passed to AgentConfig\\n\\n#### Tools (tools):\\n- Suggest list of tools that you think would be necessary to complete the steps to be used in the agent configuration AgentConfig(tools=[...]).\\n  Try to use only the minimum subset of tools that are necessary for the solving the task at hand.\\n- You must choose tools from the following 3 categories, *listed in order of priority* (i.e. tools found in an earlier category are preferable to equivalent tools found in following ones):\\n    a. Python Functions: The available tools are described in the local file at tools/available_tools.md - which can be read using `read_file` tool.\\n       Each tool in available_tools.md has a corresponding .py file in the tools/ directory that implements the function.\\n    b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools\\n    c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,\\n       giving it a keyphrase that describes the task you want to accomplish.\\n       Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.\\n       Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().\\n       Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.\\n       If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).\\n       You must never import or assign `search_mcp_servers` to the tools list of the generated agent in `agent_code`.\\n\\n#### Structured Output (output_type):\\n- Define Pydantic v2 models to structure the agent's final output\\n- Implement the output_type argument correctly to obtain this structured response\\n\\n#### Agent Trace (agent_trace):\\nThe code implementation should include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()\\n- Saving of the agent trace in the code should be done to the `script_dir / \\\"agent_eval_trace.json\\\"` directory as shown in the example code\\n- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code\\n- Never try to print, log or access any other properties of the agent trace object. agent_trace.response or agent_trace.output are invalid\\n- Only agent_trace.model_dump_json(indent=2) and agent_trace.final_output are valid\\n- Do not print or save anything after saving the agent trace\\n\\n### Code Organization\\n- Create well-documented, modular code with appropriate comments\\n- Follow Python best practices for readability and maintainability\\n- Include proper import statements and dependency management\\n- Environment variables required by the code/tools/MCP servers can be assumed to be set in the .env file:\\n    - Use Python dotenv library to load the environment variables and access them using os.getenv()\\n\\n### Agent code template\\n\\n- Rely on the following template to write the agent code:\\n\\n```\\n\\n# agent.py\\n\\n# good to have\\nimport os\\n\\n# ALWAYS used\\nfrom pathlib import Path\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent, AgentRunError\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ADD BELOW HERE: tools made available by any-agent or agent-factory\\n{imports}\\n\\nload_dotenv()\\n\\n# ========== Structured output definition ==========\\n{structured_outputs}\\n\\n# ========== System (Multi-step) Instructions ===========\\nINSTRUCTIONS='''\\n{agent_instructions}\\n'''\\n\\n# ========== Tools definition ===========\\n{tools}\\n\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n        model_args={{\\\"tool_choice\\\": \\\"required\\\"}},\\n    ),\\n)\\n\\ndef run_agent({cli_args}):\\n    \\\"\\\"\\\"{agent_description}\\\"\\\"\\\"\\n    input_prompt = f\\\"{prompt_template}\\\"\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    except AgentRunError as e:\\n        agent_trace = e.trace\\n        print(f\\\"Agent execution failed: {{str(e)}}\\\")\\n        print(\\\"Retrieved partial agent trace...\\\")\\n\\n    script_dir = Path(__file__).resolve().parent\\n    output_path = script_dir / \\\"agent_eval_trace.json\\\"\\n    with open(output_path, \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n\\n    return agent_trace.final_output\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\\n\\n```\\n\\n\\nAs input to the AgentConfig, you are required to provide the parameters `model_id`, `instructions`, `tools`, and `output_type`.\\nYou also need to specify the correct imports, which have to be consistent with the tools used by the agent:\\n\\n\\n# agent.py\\n\\n# good to have\\nimport os\\n\\n# ALWAYS used\\nfrom pathlib import Path\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# MCPStdio should be imported ONLY if MCP servers are used in AgentConfig\\nfrom any_agent.config import MCPStdio\\n\\n# ADD BELOW HERE: tools made available by any-agent or agent-factory\\nfrom any_agent.tools import visit_webpage\\nfrom tools.translate_text_with_llm import translate_text_with_llm\\n\\nload_dotenv()\\n\\n\\n# ========= Structured output definition =========\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"The URL of the webpage that was translated.\\\")\\n    source_language: str = Field(..., description=\\\"The source language detected on the webpage (should be 'English').\\\")\\n    extracted_text: str = Field(..., description=\\\"The main text content extracted from the original English webpage.\\\")\\n    translated_text: str = Field(..., description=\\\"The English text translated to Italian.\\\")\\n\\n\\n# ========= System Instructions =========\\nINSTRUCTIONS = '''\\nYou are an assistant that translates the main text content of an English webpage to Italian, following this step-by-step workflow:\\n1. Receive a webpage URL from the user. Visit the page and extract the primary and most relevant English text content. Focus on body content, main text, and important sections. Exclude navigation bars, headings not part of the content, footers, advertisements, and non-informational elements. Make sure the extracted text is concise but comprehensive and represents the actual page content.\\n2. Identify and confirm that the detected source language is English. If the page is not in English, halt and output the detected language and a clear message in 'translated_text'.\\n3. Use the translation tool to translate the extracted English text into fluent Italian.\\n4. Your output must be a structured JSON object with these fields:\\n   - url: the provided webpage URL\\n   - source_language: the detected primary language (should be English)\\n   - extracted_text: the main English content you extracted\\n   - translated_text: your Italian translation of the extracted text\\nLimit the output to 1000 tokens if the page is very long. Ensure the translation is accurate and clear. Do not make up or hallucinate content.\\n'''\\n\\n\\nTOOLS = [\\n    visit_webpage,                # To fetch and extract page text\\n    translate_text_with_llm,      # To translate extracted text\\n    MCPStdio(                     # To search results on the web\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"BRAVE_API_KEY\\\",\\n            \\\"mcp/brave-search\\\",\\n        ],\\n        # Specify necessary environment variables\\n        env={\\n            \\\"BRAVE_API_KEY\\\": os.getenv(\\\"BRAVE_API_KEY\\\"),\\n        },\\n        # From among the tools available from the MCP server\\n        # list only the tools that are necessary for the solving the task at hand\\n        tools=[\\n            \\\"brave_web_search\\\",\\n        ],\\n    ),\\n]\\n\\n\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n    ),\\n)\\n\\n\\ndef run_agent(url: str):\\n    \\\"\\\"\\\"\\n    Given a webpage URL, translate its main English content to Italian,\\n    and return structured output.\\n    \\\"\\\"\\\"\\n    input_prompt = f\\\"Translate the main text content from the following English webpage URL to Italian: {url}\\\"\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    except AgentRunError as e:\\n        agent_trace = e.trace\\n        print(f\\\"Agent execution failed: {{str(e)}}\\\")\\n        print(\\\"Retrieved partial agent trace...\\\")\\n\\n    script_dir = Path(__file__).resolve().parent\\n    output_path = script_dir / \\\"agent_eval_trace.json\\\"\\n    with open(output_path, \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n\\n    return agent_trace.final_output\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(run_agent)\\n\\n\\n** Deliverables Instructions**\\n\\n\\n# Instructions to generate final deliverables\\n\\nThe final expected output is a dictionary with the following structure:\\n\\n{\\n    \\\"agent_instructions\\\": \\\"The instructions passed to the generated agent.\\\",\\n    \\\"tools\\\": \\\"The python code that defines the tools to be used by the generated agent.\\\",\\n    \\\"imports\\\": \\\"The python code snippet needed to import the required tools.\\\",\\n    \\\"structured_outputs\\\": \\\"The Pydantic v2 models used to structure the agent's final output.\\\",\\n    \\\"cli_args\\\": \\\"The arguments to be provided to the agent from the command line.\\\",\\n    \\\"agent_description\\\": \\\"The description of the agent and what it does.\\\",\\n    \\\"prompt_template\\\": \\\"A prompt template that, completed with cli_args, defines the agent's input prompt.\\\",\\n    \\\"run_instructions\\\": \\\"The instructions for setting up the environment in Markdown format.\\\",\\n    \\\"dependencies\\\": \\\"The list of python dependencies in Markdown format.\\\"\\n}\\n\\n## Values to assign to dictionary keys\\n\\n1. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).\\nThis string replaces the {agent_instructions} placeholder in the agent code template.\\n2. `tools` is python code that assigns the `TOOLS` variable with the list of tools required by the generated agent. This code replaces the {tools} placeholder in the agent code template.\\n3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {imports} placeholder in the agent code template.\\n4. `structured_outputs` is python code that defines the class `StructuredOutput(BaseModel)`) defining the agent's output schema as a Pydantic v2 model.\\nThis code replaces the {structured_outputs} placeholder in the agent code template.\\n5. `cli_args` are the arguments to be passed to the `run_agent` function. Each of them is specified as argument_name: argument_value.\\nThese will replace the {cli_args} placeholder in the agent code template.\\n6. `agent_description` is a string to be provided as the description of the `run_agent` function.\\n7. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to the generated agent.\\n8. `run_instructions` should contain clear and concise setup instructions:\\n    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required\\n    - Always include the following instructions to install Python package manager uv (the end user decides which command to run based on their OS):\\n        - for MacOS and Linux users: `curl -LsSf https://astral.sh/uv/install.sh | sh`\\n        - for Windows users: `powershell -ExecutionPolicy ByPass -c \\\"irm https://astral.sh/uv/install.ps1 | iex\\\"`\\n    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11\\n      `uv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 python generated_workflows/<folder_name>/agent.py --arg1 \\\"value1\\\"`\\n      where the user is expected to replace <folder_name> with the timestamped folder created in the generated_workflows directory and specify the required arguments\\n9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file\\n    - the first line should be \\\"any-agent[all]==0.22.0\\\" dependency, since we are using any-agent to run the agent workflow\\n    - only if the `agent_code` uses `uvx` to spin up any MCP server, include \\\"uv\\\" as a dependency in the requirements.txt file\\n    - do not provide specific versions for the dependencies except for `any-agent[all]` (see the above point)\\n\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"\\nAmend the Python code you generated for the agentic workflow to do the following:\\nWorkflow that takes as user input a Github repo link and checks it against guidelines found at www.mozilla.ai/Bluerprints (check guidelines on developing top notch Blueprints). Then it should assess the submitted repo and give it a score out of 100. Finally the workflow should formulate the results with all necessary details in a suitable structured format and do BOTH of the following with it (1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and (2) log the entry to SQLite - to the already existing table named `github_repo_evaluations` in the `blueprints.db` database. Provide suitable configurations for Slack and SQLite MCP servers and select appropriate tools.\\n\\nIf necessary, Use appropriate tools in the agent configuration:\\n- Select relevant tools from `tools/available_tools.md`.\\n- Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools\\n    to the configuration.\\n\\nAlways use the simplest and most efficient tools available for the task.\\n\\n\"}]",
-        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\": \\\"tools/available_tools.md\\\"}\"}]",
+        "gen_ai.input.messages": "[{\"content\": \"\\nYou are an expert software developer with a deep understanding of Mozilla AI's any-agent Python library.\\n\\nAny-agent library enables you to:\\n- Build agent systems with a unified API regardless of the underlying framework\\n- Switch between different agent frameworks (like OpenAI, LangChain, smolagents) without rewriting code\\n- Create both single-agent and multi-agent systems with consistent patterns\\n- Leverage built-in tools like web search and webpage visiting as well as MCP servers\\n- Implement comprehensive tracing and evaluation capabilities\\n\\n**Any-agent Code Generation Instructions**\\n\\n\\n# Single Agent Implementation with Multiple Steps\\n\\n## Task Overview\\nCreate a complete implementation of a single agent that executes a multi-step workflow\\nusing Mozilla's any-agent library. The implementation should:\\n\\n1. Use the OpenAI framework as the underlying agent provider\\n2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output\\n3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the `output_type` argument.\\n4. Whenever required, assign tools in the agent configuration.\\n\\n## Required Components\\n\\n#### Model (model_id):\\n- Use `o3` as the `model_id`\\n\\n#### Instructions (instructions):\\n- Decide on the number of steps that you think would be necessary to complete the task\\n- Keep the number of steps to a minimum\\n- Provide a step-by-step clear multi-step system instructions that guides the agent's behavior\\n- The instructions should be as detailed and as unambiguous as possible\\n- Define the instructions in an `INSTRUCTIONS` variable that will be passed to `AgentConfig`\\n\\n#### Tools (tools):\\n- Suggest list of tools that you think would be necessary to complete the steps to be used in the\\n  agent configuration `AgentConfig(tools=[...])`.\\n  Try to use only the minimum subset of tools that are necessary for the solving the task at hand.\\n- You must choose tools from the following 3 categories, *listed in order of priority* (i.e. tools\\n  found in an earlier category are preferable to equivalent tools found in following ones):\\n    a. Python Functions: The available tools are described in the local file at `tools/README.md`,\\n       which can be read using `read_file` tool. Each tool in `README.md` has a corresponding `.py`\\n       file in the `tools/` directory that implements the function.\\n    b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools\\n    c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,\\n       giving it a keyphrase that describes the task you want to accomplish.\\n       Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.\\n       Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().\\n       Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.\\n       If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).\\n       You must never import or assign `search_mcp_servers` to the tools list of the generated agent in `agent_code`.\\n\\n#### Structured Output (output_type):\\n- Define Pydantic v2 models to structure the agent's final output\\n- Implement the `output_type` argument correctly to obtain this structured response\\n\\n#### Agent Trace (agent_trace): Conditional on the whether the agent code requested is run via CLI or A2AServing\\nImportant: Saving agent_trace is ONLY required when running the agent via CLI with `agent.run()`. You MUST NEVER save the agent trace when running the agent via A2AServing.\\nIf the code corresponds to running the agent via CLI, use the following instructions to save the agent trace:\\n- Include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()\\n- Saving of the agent trace in the code should be done to the `script_dir / \\\"agent_eval_trace.json\\\"` directory as shown in the example code\\n- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code\\n- Never try to print, log or access any other properties of the agent trace object. agent_trace.response or agent_trace.output are invalid\\n- Only agent_trace.model_dump_json(indent=2) and agent_trace.final_output are valid\\n- Do not print or save anything after saving the agent trace\\n\\n### Code Organization\\n- Create well-documented, modular code with appropriate comments\\n- Follow Python best practices for readability and maintainability\\n- Include proper import statements and dependency management\\n- Environment variables required by the code/tools/MCP servers can be assumed to be set in the\\n  `.env` file:\\n    - Use Python `dotenv` library to load the environment variables and access them using\\n      `os.getenv()`\\n### Agent code template\\n\\n- Rely on the following template to write the agent code:\\n\\n\\n\\n\\n# agent.py\\n\\n# good to have\\nimport os\\n\\n# ALWAYS used\\nimport json\\nfrom pathlib import Path\\nfrom any_agent.serving import A2AServingConfig\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent, AgentRunError\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# ADD BELOW HERE: tools made available by any-agent or agent-factory\\n{imports}\\n\\nload_dotenv()\\n\\n# ========== Structured output definition ==========\\n{structured_outputs}\\n\\n# ========== System (Multi-step) Instructions ===========\\nINSTRUCTIONS='''\\n{agent_instructions}\\n'''\\n\\n# ========== Tools definition ===========\\n{tools}\\n\\n\\n\\n\\n# ========== Running the agent via CLI ===========\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n        model_args={{\\\"tool_choice\\\": \\\"required\\\"}},\\n    ),\\n)\\n\\ndef main({cli_args}):\\n    \\\"\\\"\\\"{agent_description}\\\"\\\"\\\"\\n    input_prompt = f\\\"{prompt_template}\\\"\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    except AgentRunError as e:\\n        agent_trace = e.trace\\n        print(f\\\"Agent execution failed: {{str(e)}}\\\")\\n        print(\\\"Retrieved partial agent trace...\\\")\\n\\n    # Extract cost information (with error handling)\\n    try:\\n        cost_info = agent_trace.cost\\n        if cost_info.total_cost > 0:\\n            cost_msg = (\\n                f\\\"input_cost=${{cost_info.input_cost:.6f}} + \\\"\\n                f\\\"output_cost=${{cost_info.output_cost:.6f}} = \\\"\\n                f\\\"${{cost_info.total_cost:.6f}}\\\"\\n            )\\n    except Exception as e:\\n        class DefaultCost:\\n            input_cost = 0.0\\n            output_cost = 0.0\\n            total_cost = 0.0\\n        cost_info = DefaultCost()\\n\\n    # Create enriched trace data with costs as separate metadata\\n    script_dir = Path(__file__).resolve().parent\\n    output_path = script_dir / \\\"agent_eval_trace.json\\\"\\n\\n    # Prepare the trace data with costs\\n    trace_data = agent_trace.model_dump()\\n    trace_data[\\\"execution_costs\\\"] = {{\\n        \\\"input_cost\\\": cost_info.input_cost,\\n        \\\"output_cost\\\": cost_info.output_cost,\\n        \\\"total_cost\\\": cost_info.total_cost\\n    }}\\n\\n    with open(output_path, \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(json.dumps(trace_data, indent=2))\\n\\n    return agent_trace.final_output\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(main)\\n\\n\\n\\nAs input to the `AgentConfig`, you are required to provide the parameters `model_id`,\\n`instructions`, `tools`, and `output_type`.\\nYou also need to specify the correct imports, which have to be consistent with the tools used by the\\nagent:\\n\\n# agent.py\\n\\n# good to have\\nimport os\\n\\n# ALWAYS used\\nimport json\\nfrom pathlib import Path\\nfrom any_agent.serving import A2AServingConfig\\nfrom dotenv import load_dotenv\\nfrom any_agent import AgentConfig, AnyAgent\\nfrom pydantic import BaseModel, Field\\nfrom fire import Fire\\n\\n# MCPStdio should be imported ONLY if MCP servers are used in AgentConfig\\nfrom any_agent.config import MCPStdio\\n\\n# ADD BELOW HERE: tools made available by any-agent or agent-factory\\nfrom any_agent.tools import visit_webpage\\nfrom tools.translate_text_with_llm import translate_text_with_llm\\n\\nload_dotenv()\\n\\n\\n# ========= Structured output definition =========\\nclass StructuredOutput(BaseModel):\\n    url: str = Field(..., description=\\\"The URL of the webpage that was translated.\\\")\\n    source_language: str = Field(..., description=\\\"The source language detected on the webpage (should be 'English').\\\")\\n    extracted_text: str = Field(..., description=\\\"The main text content extracted from the original English webpage.\\\")\\n    translated_text: str = Field(..., description=\\\"The English text translated to Italian.\\\")\\n\\n\\n# ========= System Instructions =========\\nINSTRUCTIONS = '''\\nYou are an assistant that translates the main text content of an English webpage to Italian, following this step-by-step workflow:\\n1. Receive a webpage URL from the user. Visit the page and extract the primary and most relevant English text content. Focus on body content, main text, and important sections. Exclude navigation bars, headings not part of the content, footers, advertisements, and non-informational elements. Make sure the extracted text is concise but comprehensive and represents the actual page content.\\n2. Identify and confirm that the detected source language is English. If the page is not in English, halt and output the detected language and a clear message in 'translated_text'.\\n3. Use the translation tool to translate the extracted English text into fluent Italian.\\n4. Your output must be a structured JSON object with these fields:\\n   - url: the provided webpage URL\\n   - source_language: the detected primary language (should be English)\\n   - extracted_text: the main English content you extracted\\n   - translated_text: your Italian translation of the extracted text\\nLimit the output to 1000 tokens if the page is very long. Ensure the translation is accurate and clear. Do not make up or hallucinate content.\\n'''\\n\\n\\nTOOLS = [\\n    visit_webpage,                # To fetch and extract page text\\n    translate_text_with_llm,      # To translate extracted text\\n    MCPStdio(                     # To search results on the web\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"BRAVE_API_KEY\\\",\\n            \\\"mcp/brave-search\\\",\\n        ],\\n        # Specify necessary environment variables\\n        env={\\n            \\\"BRAVE_API_KEY\\\": os.getenv(\\\"BRAVE_API_KEY\\\"),\\n        },\\n        # From among the tools available from the MCP server\\n        # list only the tools that are necessary for the solving the task at hand\\n        tools=[\\n            \\\"brave_web_search\\\",\\n        ],\\n    ),\\n]\\n\\n\\n\\n\\n# ========== Running the agent via CLI ===========\\nagent = AnyAgent.create(\\n    \\\"openai\\\",\\n    AgentConfig(\\n        model_id=\\\"o3\\\",\\n        instructions=INSTRUCTIONS,\\n        tools=TOOLS,\\n        output_type=StructuredOutput,\\n    ),\\n)\\n\\n\\ndef main(url: str):\\n    \\\"\\\"\\\"\\n    Given a webpage URL, translate its main English content to Italian,\\n    and return structured output.\\n    \\\"\\\"\\\"\\n    input_prompt = f\\\"Translate the main text content from the following English webpage URL to Italian: {url}\\\"\\n    try:\\n        agent_trace = agent.run(prompt=input_prompt, max_turns=20)\\n    except AgentRunError as e:\\n        agent_trace = e.trace\\n        print(f\\\"Agent execution failed: {{str(e)}}\\\")\\n        print(\\\"Retrieved partial agent trace...\\\")\\n\\n    script_dir = Path(__file__).resolve().parent\\n    output_path = script_dir / \\\"agent_eval_trace.json\\\"\\n    with open(output_path, \\\"w\\\", encoding=\\\"utf-8\\\") as f:\\n        f.write(agent_trace.model_dump_json(indent=2))\\n\\n    return agent_trace.final_output\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    Fire(main)\\n\\n\\n** Deliverables Instructions**\\n\\n\\n# Instructions to generate final deliverables\\n\\nThe final expected output is a dictionary with the following structure:\\n\\n{\\n    \\\"agent_instructions\\\": \\\"The instructions passed to the generated agent.\\\",\\n    \\\"tools\\\": \\\"The python code that defines the tools to be used by the generated agent.\\\",\\n    \\\"imports\\\": \\\"The python code snippet needed to import the required tools.\\\",\\n    \\\"structured_outputs\\\": \\\"The Pydantic v2 models used to structure the agent's final output.\\\",\\n    \\\"cli_args\\\": \\\"The arguments to be provided to the agent from the command line.\\\",\\n    \\\"agent_description\\\": \\\"The description of the agent and what it does.\\\",\\n    \\\"prompt_template\\\": \\\"A prompt template that, completed with cli_args, defines the agent's input prompt.\\\",\\n    \\\"run_instructions\\\": \\\"The instructions for setting up the environment in Markdown format (e.g., A README file).\\\",\\n    \\\"dependencies\\\": \\\"The list of python dependencies in Markdown format.\\\"\\n}\\n\\n## Values to assign to dictionary keys\\n\\n1. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).\\nThis string replaces the {agent_instructions} placeholder in the agent code template.\\n2. `tools` is python code that assigns the `TOOLS` variable with the list of tools required by the generated agent. This code replaces the {tools} placeholder in the agent code template.\\n3. `imports` is python code containing all the required imports for the selected tools. This code replaces the {imports} placeholder in the agent code template.\\n4. `structured_outputs` is python code that defines the class `StructuredOutput(BaseModel)`) defining the agent's output schema as a Pydantic v2 model.\\nThis code replaces the {structured_outputs} placeholder in the agent code template.\\n5. `cli_args` are the arguments to be passed to the `main` function. Each of them is specified as argument_name: argument_value.\\nThese will replace the {cli_args} placeholder in the agent code template.\\n6. `agent_description` is a string to be provided as the description of the `main` function.\\n7. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to the generated agent.\\n8. `run_instructions` should contain clear and concise setup instructions:\\n    - Environment variables: Instruct the user to create a .env file to set environment variables; specify exactly which environment variables are required\\n    - Always include the following instructions to install Python package manager uv (the end user decides which command to run based on their OS):\\n        - for MacOS and Linux users: `curl -LsSf https://astral.sh/uv/install.sh | sh`\\n        - for Windows users: `powershell -ExecutionPolicy ByPass -c \\\"irm https://astral.sh/uv/install.ps1 | iex\\\"`\\n    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11\\n      `uv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 python generated_workflows/<folder_name>/agent.py --arg1 \\\"value1\\\"`\\n      where the user is expected to replace <folder_name> with the timestamped folder created in the generated_workflows directory and specify the required arguments\\n9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file\\n    - the first line should be \\\"any-agent[all,a2a]==0.22.0\\\" dependency, since we are using any-agent to run the agent workflow\\n    - only if the `agent_code` uses `uvx` to spin up any MCP server, include \\\"uv\\\" as a dependency in the requirements.txt file\\n    - do not provide specific versions for the dependencies except for `any-agent[all,a2a]` (see the above point)\\n\", \"role\": \"system\"}, {\"role\": \"user\", \"content\": \"\\nAmend the Python code you generated for the agentic workflow to do the following:\\nWorkflow that takes as user input a Github repo link and checks it against guidelines found at www.mozilla.ai/Bluerprints (check guidelines on developing top notch Blueprints). Then it should assess the submitted repo and give it a score out of 100. Finally the workflow should formulate the results with all necessary details in a suitable structured format and do BOTH of the following with it (1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and (2) log the entry to SQLite - to the already existing table named `github_repo_evaluations` in the `blueprints.db` database. Provide suitable configurations for Slack and SQLite MCP servers and select appropriate tools.\\n\\nIf necessary, Use appropriate tools in the agent configuration:\\n- Select relevant tools from `tools/README.md`.\\n- Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools\\n    to the configuration.\\n\\nAlways use the simplest and most efficient tools available for the task.\\n\\n\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"search_mcp_servers\", \"tool.args\": \"{\\\"keyphrase\\\": \\\"slack\\\", \\\"is_official\\\": true}\"}]",
         "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 3945,
-        "gen_ai.usage.output_tokens": 93
-      },
-      "links": [],
-      "events": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.34.1",
-          "service.name": "unknown_service"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "execute_tool read_file",
-      "kind": "internal",
-      "parent": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 13048005137376579479,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "start_time": 1751456632501657000,
-      "end_time": 1751456632503644000,
-      "status": {
-        "status_code": "ok",
-        "description": null
-      },
-      "context": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 18321516200311888605,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "attributes": {
-        "gen_ai.operation.name": "execute_tool",
-        "gen_ai.tool.name": "read_file",
-        "gen_ai.tool.args": "{\"file_name\": \"tools/available_tools.md\"}",
-        "gen_ai.output": "# Available Tools\n\nBelow is the list of all available files that can be looked up to fetch the tool function.\n\n- `extract_text_from_url.py`: Extracts all text content from a given URL using BeautifulSoup to parse and extract human-readable text.\n- `plot_pandas_series_line_graph.py`: Plots a line graph from a pandas Series and saves it as an image file with a unique filename.\n- `generate_recipe_from_ingredients.py`: Generates a recipe using a list of provided ingredients via an LLM.\n- `translate_text_with_llm.py`: Translates text from a source language to a target language using an LLM.\n- `summarize_text_with_llm.py`: Summarizes a given text using an LLM with customizable summary length or style.\n- `combine_mp3_files_for_podcast.py`: Combines a list of MP3 audio files into a single MP3 podcast file using ffmpeg.\n- `extract_text_from_markdown_or_html.py`: Preprocesses raw input content (Markdown or HTML) to extract plain text.\n- `generate_podcast_script_with_llm.py`: Writes a podcast script from a given text document using an LLM with configurable number of hosts/speakers.\n- `generate_database_query_with_llm.py`: Constructs database queries (e.g., SQL) based on natural language requests using an LLM.\n- `review_code_with_llm.py`: Reviews a given piece of code for errors, bugs, security issues, and style violations using an LLM.\n\n\nEach of the above tools has a corresponding .py file in the tools/ directory that implements the function.\nIf a tool is found relevant based on the filename and description, further read the .py file to understand the tool's implementation and parameters and usage, before using it in the agent configuration.\n\n--- General Note on LiteLLM and API Keys ---\nThe functions using LiteLLM (e.g., for OpenAI API calls) require API keys\nto be configured in your environment. For OpenAI, one would set the OPENAI_API_KEY\nenvironment variable.\n",
-        "gen_ai.output.type": "text"
-      },
-      "links": [],
-      "events": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.34.1",
-          "service.name": "unknown_service"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "call_llm o3",
-      "kind": "internal",
-      "parent": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 13048005137376579479,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "start_time": 1751456632511252000,
-      "end_time": 1751456640180040000,
-      "status": {
-        "status_code": "ok",
-        "description": null
-      },
-      "context": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 17090995076599621388,
-        "is_remote": false,
-        "trace_flags": {
-          "value": 0
-        },
-        "trace_state": {
-          "entries": {}
-        }
-      },
-      "attributes": {
-        "gen_ai.operation.name": "call_llm",
-        "gen_ai.request.model": "o3",
-        "gen_ai.output": "[{\"tool.name\": \"search_mcp_servers\", \"tool.args\": \"{\\\"keyphrase\\\":\\\"slack\\\", \\\"is_official\\\":true}\"}]",
-        "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 4400,
-        "gen_ai.usage.output_tokens": 226
+        "gen_ai.usage.input_tokens": 4307,
+        "gen_ai.usage.output_tokens": 355
       },
       "links": [],
       "events": [],
@@ -157,8 +56,8 @@
       "name": "execute_tool search_mcp_servers",
       "kind": "internal",
       "parent": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 13048005137376579479,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 7367957102158026496,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -167,15 +66,15 @@
           "entries": {}
         }
       },
-      "start_time": 1751456640185570000,
-      "end_time": 1751456640210014000,
+      "start_time": 1751634396639206000,
+      "end_time": 1751634396664348000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 5592668555772485903,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 2039345488357182179,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -187,7 +86,7 @@
       "attributes": {
         "gen_ai.operation.name": "execute_tool",
         "gen_ai.tool.name": "search_mcp_servers",
-        "gen_ai.tool.args": "{\"keyphrase\":\"slack\", \"is_official\":true}",
+        "gen_ai.tool.args": "{\"keyphrase\": \"slack\", \"is_official\": true}",
         "gen_ai.output": "[{\"name\": \"slack\", \"description\": \"Channel management and messaging capabilities\", \"license\": \"MIT\", \"installations\": {\"npm\": {\"type\": \"npm\", \"command\": \"npx\", \"args\": [\"-y\", \"@modelcontextprotocol/server-slack\"], \"env\": {\"SLACK_BOT_TOKEN\": \"${SLACK_BOT_TOKEN}\", \"SLACK_TEAM_ID\": \"${SLACK_TEAM_ID}\"}}, \"docker\": {\"type\": \"docker\", \"command\": \"docker\", \"args\": [\"run\", \"-i\", \"--rm\", \"-e\", \"SLACK_BOT_TOKEN\", \"-e\", \"SLACK_TEAM_ID\", \"mcp/slack\"], \"env\": {\"SLACK_BOT_TOKEN\": \"${SLACK_BOT_TOKEN}\", \"SLACK_TEAM_ID\": \"${SLACK_TEAM_ID}\"}}}, \"arguments\": {\"SLACK_BOT_TOKEN\": {\"description\": \"The OAuth token for the bot user in the Slack workspace, used for authenticating API requests.\", \"required\": true, \"example\": \"xoxb-your-bot-token\"}, \"SLACK_TEAM_ID\": {\"description\": \"The unique identifier of the Slack workspace, required for operations within the workspace.\", \"required\": true, \"example\": \"T01234567\"}}, \"tools\": [{\"name\": \"slack_list_channels\", \"description\": \"List public channels in the workspace with pagination\"}, {\"name\": \"slack_post_message\", \"description\": \"Post a new message to a Slack channel\"}, {\"name\": \"slack_reply_to_thread\", \"description\": \"Reply to a specific message thread in Slack\"}, {\"name\": \"slack_add_reaction\", \"description\": \"Add a reaction emoji to a message\"}, {\"name\": \"slack_get_channel_history\", \"description\": \"Get recent messages from a channel\"}, {\"name\": \"slack_get_thread_replies\", \"description\": \"Get all replies in a message thread\"}, {\"name\": \"slack_get_users\", \"description\": \"Get a list of all users in the workspace with their basic profile information\"}, {\"name\": \"slack_get_user_profile\", \"description\": \"Get detailed profile information for a specific user\"}], \"is_official\": true, \"is_archived\": true}]",
         "gen_ai.output.type": "json"
       },
@@ -207,8 +106,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 13048005137376579479,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 7367957102158026496,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -217,15 +116,15 @@
           "entries": {}
         }
       },
-      "start_time": 1751456640216721000,
-      "end_time": 1751456643293197000,
+      "start_time": 1751634396671395000,
+      "end_time": 1751634398121457000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 10906139881134652130,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 18059651264557171436,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -239,7 +138,7 @@
         "gen_ai.request.model": "o3",
         "gen_ai.output": "[{\"tool.name\": \"search_mcp_servers\", \"tool.args\": \"{\\\"keyphrase\\\":\\\"sqlite\\\",\\\"is_official\\\":true}\"}]",
         "gen_ai.output.type": "json",
-        "gen_ai.usage.input_tokens": 4905,
+        "gen_ai.usage.input_tokens": 4812,
         "gen_ai.usage.output_tokens": 26
       },
       "links": [],
@@ -258,8 +157,8 @@
       "name": "execute_tool search_mcp_servers",
       "kind": "internal",
       "parent": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 13048005137376579479,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 7367957102158026496,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -268,15 +167,15 @@
           "entries": {}
         }
       },
-      "start_time": 1751456643298940000,
-      "end_time": 1751456643321610000,
+      "start_time": 1751634398127146000,
+      "end_time": 1751634398154876000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 7203207751599880080,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 6147540773013240332,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -308,8 +207,8 @@
       "name": "call_llm o3",
       "kind": "internal",
       "parent": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 13048005137376579479,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 7367957102158026496,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -318,15 +217,15 @@
           "entries": {}
         }
       },
-      "start_time": 1751456643328640000,
-      "end_time": 1751456699152513000,
+      "start_time": 1751634398163751000,
+      "end_time": 1751634401844455000,
       "status": {
         "status_code": "ok",
         "description": null
       },
       "context": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 1372113648577028304,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 871922649586395725,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -338,10 +237,111 @@
       "attributes": {
         "gen_ai.operation.name": "call_llm",
         "gen_ai.request.model": "o3",
-        "gen_ai.output": "{\"agent_instructions\":\"You are an autonomous AI assistant that follows the workflow below to evaluate a GitHub repository against Mozilla AI Blueprint guidelines and publish the results.\\n\\nWorkflow – keep the turns to the minimum necessary (usually 4-6) and obey tool_choice:\\\"required\\\".\\n\\n1. INPUT STEP\\n   a. Receive the GitHub repository URL provided by the user.\\n   b. Acknowledge that you will start the evaluation.\\n\\n2. COLLECT GUIDELINES\\n   a. Use visit_webpage to download the text of https://www.mozilla.ai/Blueprints (Mozilla AI Blueprint guidelines).\\n   b. Extract the key evaluation criteria (clarity, modularity, openness, documentation quality, reproducibility, safety, etc.). Keep them succinct for later reference.\\n\\n3. COLLECT REPOSITORY INFO\\n   a. Use visit_webpage to retrieve the repository’s main page (the URL from step 1).\\n   b. Focus on README, docs folders, CONTRIBUTING, LICENSE, and any blueprint-related files.\\n   c. Summarise the repo’s purpose, structure, and documentation in < 300 words.\\n\\n4. EVALUATION & SCORING\\n   a. Compare the repo summary with each guideline criterion.\\n   b. Assign a numeric sub-score (0-10) for each criterion. Sum them and scale/round to a total out-of-100 score.\\n   c. Craft an \\\"evaluation_details\\\" JSON object mapping criterion → sub-score and explanation.\\n\\n5. PERSIST & NOTIFY\\n   a. Use the Slack MCP tools:\\n      • slack_list_channels – find the channel whose name is exactly \\\"blueprint-submission\\\" (case-insensitive). Extract its id.\\n      • slack_post_message – send a message containing the repository URL, total score, and a concise markdown table of criterion / sub-score / comment.\\n   b. Use the SQLite MCP tool write_query to insert a new row into the already-existing table github_repo_evaluations in blueprints.db with (repo_url, total_score, evaluation_json, created_at). Use CURRENT_TIMESTAMP for created_at.\\n\\n6. OUTPUT STEP\\n   Respond with StructuredOutput JSON only (no prose) containing: repo_url, total_score, evaluation_details, slack_channel_id, sqlite_write_status, timestamp.\\n\\nRules:\\n• Always call the necessary tool for each step (guideline retrieval, repo retrieval, Slack channel exploration, posting, DB insertion).\\n• Never disclose any environment variable values or internal tool responses.\\n• Halt immediately if any critical step fails and return an explanatory error in the StructuredOutput.\\n• Keep total response tokens reasonable (< 800).\\n\",\"tools\":\"# ========== Tools definition ===========\\nfrom pathlib import Path\\n\\nscript_dir = Path(__file__).resolve().parent\\n\\nTOOLS = [\\n    # Built-in any-agent tool to fetch webpage text\\n    visit_webpage,\\n\\n    # Slack MCP for channel lookup & posting\\n    MCPStdio(\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-e\\\",\\n            \\\"SLACK_BOT_TOKEN\\\",\\n            \\\"-e\\\",\\n            \\\"SLACK_TEAM_ID\\\",\\n            \\\"mcp/slack\\\",\\n        ],\\n        env={\\n            \\\"SLACK_BOT_TOKEN\\\": os.getenv(\\\"SLACK_BOT_TOKEN\\\"),\\n            \\\"SLACK_TEAM_ID\\\": os.getenv(\\\"SLACK_TEAM_ID\\\"),\\n        },\\n        tools=[\\n            \\\"slack_list_channels\\\",\\n            \\\"slack_post_message\\\",\\n        ],\\n    ),\\n\\n    # SQLite MCP for persisting the evaluation\\n    MCPStdio(\\n        command=\\\"docker\\\",\\n        args=[\\n            \\\"run\\\",\\n            \\\"-i\\\",\\n            \\\"--rm\\\",\\n            \\\"-v\\\",\\n            f\\\"{script_dir}:/mcp\\\",  # mount current dir so blueprints.db is accessible\\n            \\\"mcp/sqlite\\\",\\n            \\\"--db-path\\\",\\n            \\\"/mcp/blueprints.db\\\",\\n        ],\\n        tools=[\\n            \\\"write_query\\\",\\n        ],\\n    ),\\n]\\n\",\"imports\":\"from any_agent.tools import visit_webpage\\nfrom any_agent.config import MCPStdio\",\"structured_outputs\":\"# ========== Structured output definition ==========\\nclass StructuredOutput(BaseModel):\\n    repo_url: str = Field(..., description=\\\"GitHub repository URL that was evaluated.\\\")\\n    total_score: int = Field(..., description=\\\"Final score out of 100 assessing compliance with Blueprint guidelines.\\\")\\n    evaluation_details: dict = Field(..., description=\\\"Dictionary mapping each guideline criterion to its sub-score and short rationale.\\\")\\n    slack_channel_id: str = Field(..., description=\\\"The id of the Slack channel where the message was posted.\\\")\\n    sqlite_write_status: str = Field(..., description=\\\"Result message from the SQLite write operation (e.g., 'INSERT OK').\\\")\\n    timestamp: str = Field(..., description=\\\"ISO 8601 timestamp when the evaluation was completed and logged.\\\")\",\"cli_args\":\"repo_url: str\",\"agent_description\":\"Given a GitHub repository URL, this agent evaluates it against Mozilla AI Blueprint guidelines, scores it, posts the results to the #blueprint-submission Slack channel, and records the evaluation in the local blueprints.db SQLite database.\",\"prompt_template\":\"Please evaluate the GitHub repository at the following URL against the Mozilla AI Blueprint guidelines and follow the full workflow: {repo_url}\",\"run_instructions\":\"### Setup / Run Instructions\\n\\n1. Clone or download this generated workflow folder.\\n2. Create a `.env` file in the same folder and set **all** required environment variables:\\n\\n```\\nOPENAI_API_KEY=\\\"sk-...\\\"          # For the OpenAI model (o3)\\nSLACK_BOT_TOKEN=\\\"xoxb-...\\\"       # Bot token with chat:write & channels:read scopes\\nSLACK_TEAM_ID=\\\"T01234567\\\"        # Your Slack workspace ID\\n```\\n\\n3. Install the ultra-fast Python package manager `uv` (choose one):\\n   • macOS/Linux:\\n   ```bash\\n   curl -LsSf https://astral.sh/uv/install.sh | sh\\n   ```\\n   • Windows PowerShell:\\n   ```powershell\\n   powershell -ExecutionPolicy ByPass -c \\\"irm https://astral.sh/uv/install.ps1 | iex\\\"\\n   ```\\n\\n4. Run the agent (replace `<folder_name>` with the actual generated folder name):\\n\\n```bash\\nuv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 \\\\\\n  python generated_workflows/<folder_name>/agent.py --repo_url \\\"https://github.com/owner/repo\\\"\\n```\\n\\nThe script prints nothing but writes `agent_eval_trace.json` containing the full trace and returns the structured evaluation JSON.\",\"dependencies\":\"any-agent[all]==0.22.0\\npython-dotenv\\nfire\"}",
+        "gen_ai.output": "[{\"tool.name\": \"read_file\", \"tool.args\": \"{\\\"file_name\\\":\\\"tools/README.md\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 5454,
+        "gen_ai.usage.output_tokens": 91
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.34.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool read_file",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 7367957102158026496,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1751634401851171000,
+      "end_time": 1751634401853196000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 1979144273061455011,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "read_file",
+        "gen_ai.tool.args": "{\"file_name\":\"tools/README.md\"}",
+        "gen_ai.output": "# Available Tools\n\nBelow is the list of all available files that can be looked up to fetch the tool function.\n\n- `extract_text_from_url.py`: Extracts all text content from a given URL using BeautifulSoup to parse and extract human-readable text.\n- `plot_pandas_series_line_graph.py`: Plots a line graph from a pandas Series and saves it as an image file with a unique filename.\n- `generate_recipe_from_ingredients.py`: Generates a recipe using a list of provided ingredients via an LLM.\n- `translate_text_with_llm.py`: Translates text from a source language to a target language using an LLM.\n- `summarize_text_with_llm.py`: Summarizes a given text using an LLM with customizable summary length or style.\n- `combine_mp3_files_for_podcast.py`: Combines a list of MP3 audio files into a single MP3 podcast file using ffmpeg.\n- `extract_text_from_markdown_or_html.py`: Preprocesses raw input content (Markdown or HTML) to extract plain text.\n- `generate_podcast_script_with_llm.py`: Writes a podcast script from a given text document using an LLM with configurable number of hosts/speakers.\n- `generate_database_query_with_llm.py`: Constructs database queries (e.g., SQL) based on natural language requests using an LLM.\n- `review_code_with_llm.py`: Reviews a given piece of code for errors, bugs, security issues, and style violations using an LLM.\n\n\nEach of the above tools has a corresponding .py file in the tools/ directory that implements the function.\nIf a tool is found relevant based on the filename and description, further read the .py file to understand the tool's implementation and parameters and usage, before using it in the agent configuration.\n\n--- General Note on LiteLLM and API Keys ---\nThe functions using LiteLLM (e.g., for OpenAI API calls) require API keys\nto be configured in your environment. For OpenAI, one would set the OPENAI_API_KEY\nenvironment variable.\n",
+        "gen_ai.output.type": "text"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.34.1",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 7367957102158026496,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1751634401863544000,
+      "end_time": 1751634444670947000,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 18431805423780783597,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "{\"agent_instructions\":\"You are an autonomous evaluation assistant that follows this multi-step workflow to assess a GitHub repository against Mozilla AI Blueprint guidelines and publish the results:\\nStep 1 \u2013 Fetch Guidelines\\n\u2022 Visit https://www.mozilla.ai/Bluerprints (or any 30x-redirected URL) and extract the full textual content containing the official \\\"Blueprint guidelines\\\".\\n\u2022 Summarise these guidelines in 3-5 concise bullet points so they can be referenced later.\\n\\nStep 2 \u2013 Analyse Repository\\n\u2022 Visit the user-supplied GitHub repository URL and extract the README plus any CONTRIBUTING or GOVERNANCE files if present.\\n\u2022 Focus on documentation, code organisation, licensing, and best-practice signals that relate to the guidelines.\\n\\nStep 3 \u2013 Evaluate & Score\\n\u2022 Compare the repository artefacts with the guideline summary.\\n\u2022 Assign an overall score from 0-100 where 100 means \\\"perfectly follows all guidelines\\\" and 0 means \\\"no alignment\\\".\\n\u2022 Write an evaluation paragraph covering strengths, weaknesses, and concrete improvement suggestions.\\n\\nStep 4 \u2013 Produce Structured Result\\nPrepare a JSON object with:\\n  repository_url \u2013 the evaluated repo link\\n  guidelines_summary \u2013 your 3\u20135 bullet guideline digest\\n  score \u2013 integer 0-100\\n  evaluation_details \u2013 the paragraph created in Step 3\\n\\nStep 5 \u2013 Post to Slack\\n\u2022 Use slack_list_channels to find the channel whose name contains \\\"blueprint-submission\\\" (case-insensitive).\\n\u2022 Use slack_post_message to post the JSON result to that channel. Include the repo URL and numeric score in the message text for quick scanning.\\n\\nStep 6 \u2013 Log to SQLite\\n\u2022 Insert a new row into the existing github_repo_evaluations table in blueprints.db: (repo_url, score, evaluation_details, evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP).\\n\u2022 Use write_query and confirm successful insertion.\\n\\nGeneral rules\\n\u2022 Use the minimum set of tools provided.\\n\u2022 Always perform steps sequentially; do not skip or merge them.\\n\u2022 Output MUST conform to the StructuredOutput schema.\\n\u2022 Halt and return a clear error message if any mandatory tool fails.\",\"tools\":\"# ========= Tools definition =========\\n\\n# Slack MCP server \u2013 only the 2 tools we need\\nSLACK_MCP = MCPStdio(\\n    command=\\\"docker\\\",\\n    args=[\\n        \\\"run\\\", \\\"-i\\\", \\\"--rm\\\",\\n        \\\"-e\\\", \\\"SLACK_BOT_TOKEN\\\",\\n        \\\"-e\\\", \\\"SLACK_TEAM_ID\\\",\\n        \\\"mcp/slack\\\",\\n    ],\\n    env={\\n        \\\"SLACK_BOT_TOKEN\\\": os.getenv(\\\"SLACK_BOT_TOKEN\\\"),\\n        \\\"SLACK_TEAM_ID\\\": os.getenv(\\\"SLACK_TEAM_ID\\\"),\\n    },\\n    tools=[\\n        \\\"slack_list_channels\\\",\\n        \\\"slack_post_message\\\",\\n    ],\\n)\\n\\n# SQLite MCP server \u2013 only the write_query tool\\nSQLITE_MCP = MCPStdio(\\n    command=\\\"docker\\\",\\n    args=[\\n        \\\"run\\\", \\\"-i\\\", \\\"--rm\\\",\\n        \\\"-v\\\", f\\\"{Path.cwd()}:/data\\\",  # mount current dir so /data/blueprints.db is accessible\\n        \\\"mcp/sqlite\\\",\\n        \\\"--db-path\\\", \\\"/data/blueprints.db\\\",\\n    ],\\n    tools=[\\\"write_query\\\"],\\n)\\n\\nTOOLS = [\\n    visit_webpage,               # fetch guideline & repo pages\\n    extract_text_from_url,       # cleanly extract README and other docs\\n    SLACK_MCP,\\n    SQLITE_MCP,\\n]\",\"imports\":\"from any_agent.tools import visit_webpage\\nfrom tools.extract_text_from_url import extract_text_from_url\\nfrom any_agent.config import MCPStdio\",\"structured_outputs\":\"class StructuredOutput(BaseModel):\\n    repository_url: str = Field(..., description=\\\"GitHub repository that was evaluated\\\")\\n    guidelines_summary: str = Field(..., description=\\\"3\u20135 bullet summary of Mozilla Blueprint guidelines used for assessment\\\")\\n    score: int = Field(..., ge=0, le=100, description=\\\"Overall compliance score (0-100)\\\")\\n    evaluation_details: str = Field(..., description=\\\"Narrative evaluation covering strengths, weaknesses, and recommendations\\\")\",\"cli_args\":\"repo_url: str\",\"agent_description\":\"Evaluate a GitHub repository against Mozilla Blueprint guidelines, post the results to Slack, and save them to an SQLite database.\",\"prompt_template\":\"Evaluate the following GitHub repository against Mozilla AI Blueprint guidelines and follow all workflow steps: {repo_url}\",\"run_instructions\":\"# How to run this agent\\n\\n1. Clone or download the generated_workflows folder.\\n2. Create a `.env` file in the project root and add the following variables:\\n   ```\\n   OPENAI_API_KEY=<your-openai-key>\\n   SLACK_BOT_TOKEN=<your-slack-bot-token>\\n   SLACK_TEAM_ID=<your-team-id>\\n   ```\\n3. Ensure a file named `blueprints.db` exists in the working directory and contains the table\\n   `github_repo_evaluations` with at least these columns:\\n   ```sql\\n   CREATE TABLE IF NOT EXISTS github_repo_evaluations (\\n       repo_url TEXT,\\n       score INTEGER,\\n       evaluation_details TEXT,\\n       evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n   );\\n   ```\\n4. Install the uv package manager:\\n   \u2022 macOS/Linux:\\n     ```bash\\n     curl -LsSf https://astral.sh/uv/install.sh | sh\\n     ```\\n   \u2022 Windows PowerShell:\\n     ```powershell\\n     powershell -ExecutionPolicy ByPass -c \\\"irm https://astral.sh/uv/install.ps1 | iex\\\"\\n     ```\\n5. Install dependencies and run the agent (replace `<folder_name>` and `<repo>`):\\n   ```bash\\n   uv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 \\\\\\n     python generated_workflows/<folder_name>/agent.py --repo_url \\\"<repo>\\\"\\n   ```\",\"dependencies\":\"any-agent[all,a2a]==0.22.0\\npython-dotenv\\nfire\\npydantic\"}",
         "gen_ai.output.type": "text",
-        "gen_ai.usage.input_tokens": 5547,
-        "gen_ai.usage.output_tokens": 3218
+        "gen_ai.usage.input_tokens": 5908,
+        "gen_ai.usage.output_tokens": 2468
       },
       "links": [],
       "events": [],
@@ -369,15 +369,15 @@
           "entries": {}
         }
       },
-      "start_time": 1751456627374510000,
-      "end_time": 1751456699171662000,
+      "start_time": 1751634388322638000,
+      "end_time": 1751634444693517000,
       "status": {
         "status_code": "unset",
         "description": null
       },
       "context": {
-        "trace_id": 268435779552460905513979974136668232460,
-        "span_id": 13048005137376579479,
+        "trace_id": 243937149054863102614507127820486426156,
+        "span_id": 7367957102158026496,
         "is_remote": false,
         "trace_flags": {
           "value": 0
@@ -406,14 +406,19 @@
     }
   ],
   "final_output": {
-    "agent_instructions": "You are an autonomous AI assistant that follows the workflow below to evaluate a GitHub repository against Mozilla AI Blueprint guidelines and publish the results.\n\nWorkflow – keep the turns to the minimum necessary (usually 4-6) and obey tool_choice:\"required\".\n\n1. INPUT STEP\n   a. Receive the GitHub repository URL provided by the user.\n   b. Acknowledge that you will start the evaluation.\n\n2. COLLECT GUIDELINES\n   a. Use visit_webpage to download the text of https://www.mozilla.ai/Blueprints (Mozilla AI Blueprint guidelines).\n   b. Extract the key evaluation criteria (clarity, modularity, openness, documentation quality, reproducibility, safety, etc.). Keep them succinct for later reference.\n\n3. COLLECT REPOSITORY INFO\n   a. Use visit_webpage to retrieve the repository’s main page (the URL from step 1).\n   b. Focus on README, docs folders, CONTRIBUTING, LICENSE, and any blueprint-related files.\n   c. Summarise the repo’s purpose, structure, and documentation in < 300 words.\n\n4. EVALUATION & SCORING\n   a. Compare the repo summary with each guideline criterion.\n   b. Assign a numeric sub-score (0-10) for each criterion. Sum them and scale/round to a total out-of-100 score.\n   c. Craft an \"evaluation_details\" JSON object mapping criterion → sub-score and explanation.\n\n5. PERSIST & NOTIFY\n   a. Use the Slack MCP tools:\n      • slack_list_channels – find the channel whose name is exactly \"blueprint-submission\" (case-insensitive). Extract its id.\n      • slack_post_message – send a message containing the repository URL, total score, and a concise markdown table of criterion / sub-score / comment.\n   b. Use the SQLite MCP tool write_query to insert a new row into the already-existing table github_repo_evaluations in blueprints.db with (repo_url, total_score, evaluation_json, created_at). Use CURRENT_TIMESTAMP for created_at.\n\n6. OUTPUT STEP\n   Respond with StructuredOutput JSON only (no prose) containing: repo_url, total_score, evaluation_details, slack_channel_id, sqlite_write_status, timestamp.\n\nRules:\n• Always call the necessary tool for each step (guideline retrieval, repo retrieval, Slack channel exploration, posting, DB insertion).\n• Never disclose any environment variable values or internal tool responses.\n• Halt immediately if any critical step fails and return an explanatory error in the StructuredOutput.\n• Keep total response tokens reasonable (< 800).\n",
-    "tools": "# ========== Tools definition ===========\nfrom pathlib import Path\n\nscript_dir = Path(__file__).resolve().parent\n\nTOOLS = [\n    # Built-in any-agent tool to fetch webpage text\n    visit_webpage,\n\n    # Slack MCP for channel lookup & posting\n    MCPStdio(\n        command=\"docker\",\n        args=[\n            \"run\",\n            \"-i\",\n            \"--rm\",\n            \"-e\",\n            \"SLACK_BOT_TOKEN\",\n            \"-e\",\n            \"SLACK_TEAM_ID\",\n            \"mcp/slack\",\n        ],\n        env={\n            \"SLACK_BOT_TOKEN\": os.getenv(\"SLACK_BOT_TOKEN\"),\n            \"SLACK_TEAM_ID\": os.getenv(\"SLACK_TEAM_ID\"),\n        },\n        tools=[\n            \"slack_list_channels\",\n            \"slack_post_message\",\n        ],\n    ),\n\n    # SQLite MCP for persisting the evaluation\n    MCPStdio(\n        command=\"docker\",\n        args=[\n            \"run\",\n            \"-i\",\n            \"--rm\",\n            \"-v\",\n            f\"{script_dir}:/mcp\",  # mount current dir so blueprints.db is accessible\n            \"mcp/sqlite\",\n            \"--db-path\",\n            \"/mcp/blueprints.db\",\n        ],\n        tools=[\n            \"write_query\",\n        ],\n    ),\n]\n",
-    "imports": "from any_agent.tools import visit_webpage\nfrom any_agent.config import MCPStdio",
-    "structured_outputs": "# ========== Structured output definition ==========\nclass StructuredOutput(BaseModel):\n    repo_url: str = Field(..., description=\"GitHub repository URL that was evaluated.\")\n    total_score: int = Field(..., description=\"Final score out of 100 assessing compliance with Blueprint guidelines.\")\n    evaluation_details: dict = Field(..., description=\"Dictionary mapping each guideline criterion to its sub-score and short rationale.\")\n    slack_channel_id: str = Field(..., description=\"The id of the Slack channel where the message was posted.\")\n    sqlite_write_status: str = Field(..., description=\"Result message from the SQLite write operation (e.g., 'INSERT OK').\")\n    timestamp: str = Field(..., description=\"ISO 8601 timestamp when the evaluation was completed and logged.\")",
+    "agent_instructions": "You are an autonomous evaluation assistant that follows this multi-step workflow to assess a GitHub repository against Mozilla AI Blueprint guidelines and publish the results:\nStep 1 \u2013 Fetch Guidelines\n\u2022 Visit https://www.mozilla.ai/Bluerprints (or any 30x-redirected URL) and extract the full textual content containing the official \"Blueprint guidelines\".\n\u2022 Summarise these guidelines in 3-5 concise bullet points so they can be referenced later.\n\nStep 2 \u2013 Analyse Repository\n\u2022 Visit the user-supplied GitHub repository URL and extract the README plus any CONTRIBUTING or GOVERNANCE files if present.\n\u2022 Focus on documentation, code organisation, licensing, and best-practice signals that relate to the guidelines.\n\nStep 3 \u2013 Evaluate & Score\n\u2022 Compare the repository artefacts with the guideline summary.\n\u2022 Assign an overall score from 0-100 where 100 means \"perfectly follows all guidelines\" and 0 means \"no alignment\".\n\u2022 Write an evaluation paragraph covering strengths, weaknesses, and concrete improvement suggestions.\n\nStep 4 \u2013 Produce Structured Result\nPrepare a JSON object with:\n  repository_url \u2013 the evaluated repo link\n  guidelines_summary \u2013 your 3\u20135 bullet guideline digest\n  score \u2013 integer 0-100\n  evaluation_details \u2013 the paragraph created in Step 3\n\nStep 5 \u2013 Post to Slack\n\u2022 Use slack_list_channels to find the channel whose name contains \"blueprint-submission\" (case-insensitive).\n\u2022 Use slack_post_message to post the JSON result to that channel. Include the repo URL and numeric score in the message text for quick scanning.\n\nStep 6 \u2013 Log to SQLite\n\u2022 Insert a new row into the existing github_repo_evaluations table in blueprints.db: (repo_url, score, evaluation_details, evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP).\n\u2022 Use write_query and confirm successful insertion.\n\nGeneral rules\n\u2022 Use the minimum set of tools provided.\n\u2022 Always perform steps sequentially; do not skip or merge them.\n\u2022 Output MUST conform to the StructuredOutput schema.\n\u2022 Halt and return a clear error message if any mandatory tool fails.",
+    "tools": "# ========= Tools definition =========\n\n# Slack MCP server \u2013 only the 2 tools we need\nSLACK_MCP = MCPStdio(\n    command=\"docker\",\n    args=[\n        \"run\", \"-i\", \"--rm\",\n        \"-e\", \"SLACK_BOT_TOKEN\",\n        \"-e\", \"SLACK_TEAM_ID\",\n        \"mcp/slack\",\n    ],\n    env={\n        \"SLACK_BOT_TOKEN\": os.getenv(\"SLACK_BOT_TOKEN\"),\n        \"SLACK_TEAM_ID\": os.getenv(\"SLACK_TEAM_ID\"),\n    },\n    tools=[\n        \"slack_list_channels\",\n        \"slack_post_message\",\n    ],\n)\n\n# SQLite MCP server \u2013 only the write_query tool\nSQLITE_MCP = MCPStdio(\n    command=\"docker\",\n    args=[\n        \"run\", \"-i\", \"--rm\",\n        \"-v\", f\"{Path.cwd()}:/data\",  # mount current dir so /data/blueprints.db is accessible\n        \"mcp/sqlite\",\n        \"--db-path\", \"/data/blueprints.db\",\n    ],\n    tools=[\"write_query\"],\n)\n\nTOOLS = [\n    visit_webpage,               # fetch guideline & repo pages\n    extract_text_from_url,       # cleanly extract README and other docs\n    SLACK_MCP,\n    SQLITE_MCP,\n]",
+    "imports": "from any_agent.tools import visit_webpage\nfrom tools.extract_text_from_url import extract_text_from_url\nfrom any_agent.config import MCPStdio",
+    "structured_outputs": "class StructuredOutput(BaseModel):\n    repository_url: str = Field(..., description=\"GitHub repository that was evaluated\")\n    guidelines_summary: str = Field(..., description=\"3\u20135 bullet summary of Mozilla Blueprint guidelines used for assessment\")\n    score: int = Field(..., ge=0, le=100, description=\"Overall compliance score (0-100)\")\n    evaluation_details: str = Field(..., description=\"Narrative evaluation covering strengths, weaknesses, and recommendations\")",
     "cli_args": "repo_url: str",
-    "agent_description": "Given a GitHub repository URL, this agent evaluates it against Mozilla AI Blueprint guidelines, scores it, posts the results to the #blueprint-submission Slack channel, and records the evaluation in the local blueprints.db SQLite database.",
-    "prompt_template": "Please evaluate the GitHub repository at the following URL against the Mozilla AI Blueprint guidelines and follow the full workflow: {repo_url}",
-    "run_instructions": "### Setup / Run Instructions\n\n1. Clone or download this generated workflow folder.\n2. Create a `.env` file in the same folder and set **all** required environment variables:\n\n```\nOPENAI_API_KEY=\"sk-...\"          # For the OpenAI model (o3)\nSLACK_BOT_TOKEN=\"xoxb-...\"       # Bot token with chat:write & channels:read scopes\nSLACK_TEAM_ID=\"T01234567\"        # Your Slack workspace ID\n```\n\n3. Install the ultra-fast Python package manager `uv` (choose one):\n   • macOS/Linux:\n   ```bash\n   curl -LsSf https://astral.sh/uv/install.sh | sh\n   ```\n   • Windows PowerShell:\n   ```powershell\n   powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"\n   ```\n\n4. Run the agent (replace `<folder_name>` with the actual generated folder name):\n\n```bash\nuv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 \\\n  python generated_workflows/<folder_name>/agent.py --repo_url \"https://github.com/owner/repo\"\n```\n\nThe script prints nothing but writes `agent_eval_trace.json` containing the full trace and returns the structured evaluation JSON.",
-    "dependencies": "any-agent[all]==0.22.0\npython-dotenv\nfire"
+    "agent_description": "Evaluate a GitHub repository against Mozilla Blueprint guidelines, post the results to Slack, and save them to an SQLite database.",
+    "prompt_template": "Evaluate the following GitHub repository against Mozilla AI Blueprint guidelines and follow all workflow steps: {repo_url}",
+    "run_instructions": "# How to run this agent\n\n1. Clone or download the generated_workflows folder.\n2. Create a `.env` file in the project root and add the following variables:\n   ```\n   OPENAI_API_KEY=<your-openai-key>\n   SLACK_BOT_TOKEN=<your-slack-bot-token>\n   SLACK_TEAM_ID=<your-team-id>\n   ```\n3. Ensure a file named `blueprints.db` exists in the working directory and contains the table\n   `github_repo_evaluations` with at least these columns:\n   ```sql\n   CREATE TABLE IF NOT EXISTS github_repo_evaluations (\n       repo_url TEXT,\n       score INTEGER,\n       evaluation_details TEXT,\n       evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n   );\n   ```\n4. Install the uv package manager:\n   \u2022 macOS/Linux:\n     ```bash\n     curl -LsSf https://astral.sh/uv/install.sh | sh\n     ```\n   \u2022 Windows PowerShell:\n     ```powershell\n     powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"\n     ```\n5. Install dependencies and run the agent (replace `<folder_name>` and `<repo>`):\n   ```bash\n   uv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 \\\n     python generated_workflows/<folder_name>/agent.py --repo_url \"<repo>\"\n   ```",
+    "dependencies": "any-agent[all,a2a]==0.22.0\npython-dotenv\nfire\npydantic"
+  },
+  "execution_costs": {
+    "input_cost": 0.040962,
+    "output_cost": 0.02352,
+    "total_cost": 0.064482
   }
 }

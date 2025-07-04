@@ -56,7 +56,7 @@ agent = AnyAgent.create(
         instructions="Example instructions",
         tools=[
             search_tavily, # Example tool available from any-agent library
-            review_code_with_llm, # Example tool taken from tools/available_tools.md
+            review_code_with_llm, # Example tool taken from tools/README.md
             # Example of MCP server usage
             MCPStdio(
                     command="docker",

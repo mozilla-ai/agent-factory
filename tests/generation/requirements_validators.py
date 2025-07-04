@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def assert_requirements_first_line_matches_any_agent_version(requirements_path: Path):
-    """Verify that the first line of requirements.txt matches any-agent[all]=={version}."""
+    """Verify that the first line of requirements.txt matches any-agent[all,a2a]=={version}."""
     content = requirements_path.read_text(encoding="utf-8").strip()
     lines = content.split("\n")
 
@@ -17,11 +17,11 @@ def assert_requirements_first_line_matches_any_agent_version(requirements_path: 
 
     # Get the expected version from the installed any-agent package
     expected_version = version("any-agent")
-    expected_first_line = f"any-agent[all]=={expected_version}"
+    expected_first_line = f"any-agent[all,a2a]=={expected_version}"
 
     if first_line != expected_first_line:
         raise AssertionError(
-            f"First line must be 'any-agent[all]=={expected_version}'. "
+            f"First line must be 'any-agent[all,a2a]=={expected_version}'. "
             f"Found: '{first_line}'\n\nFull requirements.txt content:\n{content}"
         )
 

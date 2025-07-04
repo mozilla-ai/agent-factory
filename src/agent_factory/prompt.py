@@ -1,5 +1,5 @@
-from agent_factory.instructions import AMENDMENT_PROMPT, TOOLS_REMINDER, USER_PROMPT
-from agent_factory.logging import logger
+from agent.instructions import AMENDMENT_PROMPT, TOOLS_REMINDER, USER_PROMPT
+from agent.utils.logging import logger
 
 
 class UserPrompt:

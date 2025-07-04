@@ -6,8 +6,8 @@ import fire
 from any_agent.evaluation import AgentJudge
 from any_agent.evaluation.schemas import EvaluationOutput
 
-from agent_factory.logging import logger
-from agent_factory.utils.trace_utils import load_agent_trace
+from agent.utils.logging import logger
+from agent.utils.trace_utils import load_agent_trace
 from eval.generate_evaluation_case import JSONEvaluationCase
 
 
