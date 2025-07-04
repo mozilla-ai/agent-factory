@@ -15,72 +15,58 @@ from fire import Fire
 from tools.extract_text_from_url import extract_text_from_url
 from tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm
 from tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast
-from any_agent.config import MCPStdio
 
 load_dotenv()
 
 # ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    url: str = Field(..., description="The original webpage URL provided by the user.")
-    script: str = Field(..., description="The generated 1-minute podcast script featuring Host and Guest lines.")
-    audio_files: list[str] = Field(..., description="Ordered list of individual MP3 file paths for each dialogue line.")
-    final_podcast_path: str = Field(..., description="Absolute path to the combined final podcast MP3 file.")
-
+    podcast_path: str = Field(..., description="Absolute path to the final 1-minute podcast MP3 file.")
+    segment_paths: list[str] = Field(..., description="Ordered list of individual MP3 segment paths (Host/Guest turns).")
+    script: str = Field(..., description="The complete dialogue script that was voiced.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an autonomous agent that converts the content of a webpage into a short (≈1-minute) podcast featuring a dialogue between a Host and a Guest.  Strictly follow the workflow below and only use the provided tools.
+You are a podcast-production assistant that creates a 1-minute dialogue podcast from a user-supplied webpage URL.  Follow this exact 5-step workflow and do not skip or reorder steps.
 
-Step 1 – Extract content
-• Receive a URL in the user prompt.
-• Call extract_text_from_url on that URL to obtain clean, human-readable text.
-• If the tool returns an error string beginning with “Error”, try once more with the same URL; if it still fails, stop and explain the failure in the final output.
+Step 1 – Extract source text
+• Use extract_text_from_url(url) to fetch and extract all visible text.
+• If an error string is returned, stop and reply with the error in `podcast_path`.
 
-Step 2 – Draft a 1-minute dialogue script
-• Summarise the extracted text into a conversational podcast script that can be spoken in ~60 seconds (≈150–180 words).
-• Use generate_podcast_script_with_llm with num_hosts=2.
-• Alternate lines clearly labelled “Host:” and “Guest:”. Keep sentences short, engaging and faithful to the source.
+Step 2 – Draft the podcast script
+• Call generate_podcast_script_with_llm(document_text=extracted_text, num_hosts=2) and ask the model to limit the whole dialogue to ≈150–170 words (≈1 minute spoken).  Make sure the script alternates turns labelled exactly as “Host:” and “Guest:”.
+• Verify both speakers have at least two turns.  If not, add brief lines to balance.
 
-Step 3 – Generate individual MP3 clips
-• Split the script into separate lines by speaker.
-• For each line, call generate_audio_script via the ElevenLabs MCP server.  Provide a JSON string in the form:
-  {
-    "script": [
-      {"text": "<line text without label>", "actor": "Host" | "Guest"}
-    ]
-  }
-• Capture the returned path to the generated MP3 file (the MCP tool returns a local path on success).
-• Maintain an ordered list (audio_files) of all generated MP3 clips.
-• If generate_audio_script returns an error string beginning with “Error”, retry once; upon repeated failure, skip that line and note the omission in the script.
+Step 3 – Create individual MP3 segments
+• Split the script into separate utterances by speaker turn, preserving order.
+• For every line, invoke generate_audio_simple(text) from the ElevenLabs MCP server:
+  – If the speaker label is “Host:” use the default voice.
+  – If the speaker label is “Guest:” override with ELEVENLABS_GUEST_VOICE_ID (if provided in the environment) by passing the voice_id field; otherwise use the server default voice.
+• Save the returned MP3 file path into a list maintaining dialogue order.
 
-Step 4 – Merge dialogue clips
-• Call combine_mp3_files_for_podcast with audio_files and output_filename="podcast.mp3".
-• Record the absolute path returned (final_podcast_path).  If the tool returns an error string beginning with “Error”, retry once; otherwise halt with failure information.
+Step 4 – Merge the dialogue
+• Pass the ordered list of MP3 paths to combine_mp3_files_for_podcast(mp3_files).  Name the final file “one_minute_podcast.mp3”.
+• If the function returns an error string, stop and place the error in `podcast_path`.
 
-Step 5 – Structured JSON output
-Return a StructuredOutput object with the following fields:
-• url – original URL
-• script – full podcast script produced in Step 2
-• audio_files – ordered list of individual MP3 paths from Step 3
-• final_podcast_path – path to the combined podcast MP3 from Step 4
+Step 5 – Final structured reply
+Return a JSON object that matches the StructuredOutput schema:
+• podcast_path – absolute path to the merged MP3
+• segment_paths – the ordered list of intermediate MP3 file paths
+• script – the full text of the podcast script that was voiced.
 
 General rules
-• Keep the total number of agent turns ≤ 20.
-• Do not embed or print raw binary audio data.
-• Never invent tool outputs; always read and use the actual return values.
-• Stay concise yet complete in the script, aiming for ≈1-minute total runtime.
-
+• Only call tools that are listed in TOOLS.
+• Keep internal reasoning out of the final answer; output must be valid JSON only.
+• Limit total runtime to 20 turns.
 '''
 
 # ========== Tools definition ===========
-# ========= Tools definition =========
 from any_agent.config import MCPStdio
 
 TOOLS = [
-    extract_text_from_url,            # Fetch & clean webpage text
-    generate_podcast_script_with_llm, # Create the dialogue script
-    combine_mp3_files_for_podcast,    # Merge MP3 clips into one file
-    MCPStdio(                         # ElevenLabs text-to-speech capabilities
+    extract_text_from_url,                 # Step 1 – pull webpage text
+    generate_podcast_script_with_llm,      # Step 2 – craft dialogue script
+    combine_mp3_files_for_podcast,         # Step 4 – merge audio
+    MCPStdio(                              # ElevenLabs text-to-speech services (Step 3)
         command="docker",
         args=[
             "run",
@@ -94,12 +80,14 @@ TOOLS = [
             "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
         },
         tools=[
-            "generate_audio_script",   # Generate voice clip from a single line
+            "generate_audio_simple",      # minimal tool needed
         ],
     ),
 ]
 
+ 
 
+# ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
@@ -111,9 +99,9 @@ agent = AnyAgent.create(
     ),
 )
 
-def run_agent(url: str):
-    """Given a webpage URL, create a 1-minute two-person podcast episode, convert each dialogue line to speech with ElevenLabs, merge the clips, and return paths to all generated audio files."""
-    input_prompt = f"Create a 1-minute podcast featuring a Host–Guest dialogue based on the contents of this URL: {url}"
+def main(url: str):
+    """Generate a 1-minute, two-speaker podcast from a webpage and produce an MP3 file."""
+    input_prompt = f"Create a 1-minute podcast with alternating Host and Guest dialogue from the contents of this URL: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
@@ -129,5 +117,5 @@ def run_agent(url: str):
     return agent_trace.final_output
 
 if __name__ == "__main__":
-    Fire(run_agent)
+    Fire(main)
 

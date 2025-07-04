@@ -13,72 +13,71 @@ from fire import Fire
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
 from any_agent.tools import visit_webpage
+from tools.review_code_with_llm import review_code_with_llm
 from any_agent.config import MCPStdio
 
 load_dotenv()
 
 # ========== Structured output definition ==========
-# ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    repo_url: str = Field(..., description="GitHub repository URL that was evaluated.")
-    total_score: int = Field(..., description="Final score out of 100 assessing compliance with Blueprint guidelines.")
-    evaluation_details: dict = Field(..., description="Dictionary mapping each guideline criterion to its sub-score and short rationale.")
-    slack_channel_id: str = Field(..., description="The id of the Slack channel where the message was posted.")
-    sqlite_write_status: str = Field(..., description="Result message from the SQLite write operation (e.g., 'INSERT OK').")
-    timestamp: str = Field(..., description="ISO 8601 timestamp when the evaluation was completed and logged.")
+    repo_url: str = Field(..., description="The GitHub repository URL that was evaluated.")
+    score: int = Field(..., description="Overall compliance score from 0 to 100.")
+    evaluation_summary: str = Field(..., description="Detailed reasoning on how the score was determined with respect to the Mozilla Blueprints guidelines.")
+    slack_channel_id: str = Field(..., description="Slack channel id where the result was posted.")
+    slack_message_ts: str = Field(..., description="Timestamp of the Slack message that was posted.")
+    db_write_status: str = Field(..., description="Status message returned by the SQLite write_query tool.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an autonomous AI assistant that follows the workflow below to evaluate a GitHub repository against Mozilla AI Blueprint guidelines and publish the results.
+You are an autonomous agent tasked with evaluating GitHub repositories against Mozilla AI Blueprint development guidelines located at https://www.mozilla.ai/Blueprints.
 
-Workflow – keep the turns to the minimum necessary (usually 4-6) and obey tool_choice:"required".
+Follow this strict multi-step workflow – do not skip steps and always keep internal notes to a minimum.
 
-1. INPUT STEP
-   a. Receive the GitHub repository URL provided by the user.
-   b. Acknowledge that you will start the evaluation.
+Step-1 ‑ Retrieve Guidelines
+• Use `visit_webpage` on https://www.mozilla.ai/Blueprints to obtain the most up-to-date list of guidelines and best practices for high-quality blueprints.
+• Summarize the key checkpoints that will later be used for scoring.
 
-2. COLLECT GUIDELINES
-   a. Use visit_webpage to download the text of https://www.mozilla.ai/Blueprints (Mozilla AI Blueprint guidelines).
-   b. Extract the key evaluation criteria (clarity, modularity, openness, documentation quality, reproducibility, safety, etc.). Keep them succinct for later reference.
+Step-2 ‑ Retrieve Repository Context
+• The user provides a GitHub repository URL. Derive the owner/repo slug.
+• Attempt to download the repo’s README (https://raw.githubusercontent.com/<owner>/<repo>/HEAD/README.md). 
+• If the README is missing, fall back to the repository HTML page.
+• In addition, fetch any CONTRIBUTING.md and docs/overview.md if they exist (use the same raw URL pattern).
+• Combine all successfully fetched texts into a single corpus called `repo_context`.
 
-3. COLLECT REPOSITORY INFO
-   a. Use visit_webpage to retrieve the repository’s main page (the URL from step 1).
-   b. Focus on README, docs folders, CONTRIBUTING, LICENSE, and any blueprint-related files.
-   c. Summarise the repo’s purpose, structure, and documentation in < 300 words.
+Step-3 ‑ Evaluate Repository
+• Feed BOTH `repo_context` and the list of guideline checkpoints to the `review_code_with_llm` tool.
+• Ask it to produce:  
+  – a short strengths & weaknesses analysis  
+  – a checklist indicating whether each guideline is satisfied (yes/no + short note)  
+  – an overall score from 0-100 where 100 means perfect compliance.
+• Store the returned analysis as `evaluation_summary` and `score` variables.
 
-4. EVALUATION & SCORING
-   a. Compare the repo summary with each guideline criterion.
-   b. Assign a numeric sub-score (0-10) for each criterion. Sum them and scale/round to a total out-of-100 score.
-   c. Craft an "evaluation_details" JSON object mapping criterion → sub-score and explanation.
+Step-4 ‑ Post Result to Slack
+• Use `slack_list_channels` to retrieve public channels. Find the channel whose name matches “blueprint-submission” (case-insensitive).
+• Use `slack_post_message` to post a message to that channel. The message MUST include: repository URL, score, and a concise bulleted version of the evaluation summary.
+• Capture `channel_id` and `ts` (message timestamp) returned by the post operation.
 
-5. PERSIST & NOTIFY
-   a. Use the Slack MCP tools:
-      • slack_list_channels – find the channel whose name is exactly "blueprint-submission" (case-insensitive). Extract its id.
-      • slack_post_message – send a message containing the repository URL, total score, and a concise markdown table of criterion / sub-score / comment.
-   b. Use the SQLite MCP tool write_query to insert a new row into the already-existing table github_repo_evaluations in blueprints.db with (repo_url, total_score, evaluation_json, created_at). Use CURRENT_TIMESTAMP for created_at.
+Step-5 ‑ Persist Result to SQLite
+• Compose an INSERT statement for the table `github_repo_evaluations` with columns (repo_url TEXT, score INTEGER, summary TEXT, slack_channel_id TEXT, slack_message_ts TEXT, evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+• Use `write_query` to execute the INSERT.
+• Capture the success/failure message returned.
 
-6. OUTPUT STEP
-   Respond with StructuredOutput JSON only (no prose) containing: repo_url, total_score, evaluation_details, slack_channel_id, sqlite_write_status, timestamp.
-
-Rules:
-• Always call the necessary tool for each step (guideline retrieval, repo retrieval, Slack channel exploration, posting, DB insertion).
-• Never disclose any environment variable values or internal tool responses.
-• Halt immediately if any critical step fails and return an explanatory error in the StructuredOutput.
-• Keep total response tokens reasonable (< 800).
-
+Step-6 ‑ Final JSON Output
+Return a JSON object of type StructuredOutput with:
+    repo_url, score, evaluation_summary, slack_channel_id, slack_message_ts, db_write_status.
+Be sure the JSON strictly conforms to the Pydantic schema. 
+If any blocking error occurs at any step, still produce StructuredOutput with available information and a short explanation in evaluation_summary, and set score = 0.
 '''
 
 # ========== Tools definition ===========
-# ========== Tools definition ===========
-from pathlib import Path
-
-script_dir = Path(__file__).resolve().parent
-
 TOOLS = [
-    # Built-in any-agent tool to fetch webpage text
+    # --- Category b: any-agent built-in tools ---
     visit_webpage,
 
-    # Slack MCP for channel lookup & posting
+    # --- Category a: Python function tools ---
+    review_code_with_llm,
+
+    # --- MCP server for Slack ---
     MCPStdio(
         command="docker",
         args=[
@@ -101,7 +100,7 @@ TOOLS = [
         ],
     ),
 
-    # SQLite MCP for persisting the evaluation
+    # --- MCP server for SQLite ---
     MCPStdio(
         command="docker",
         args=[
@@ -109,18 +108,21 @@ TOOLS = [
             "-i",
             "--rm",
             "-v",
-            f"{script_dir}:/mcp",  # mount current dir so blueprints.db is accessible
+            f"{os.getenv('BLUEPRINTS_DB_PATH')}:/mcp/blueprints.db",
             "mcp/sqlite",
             "--db-path",
             "/mcp/blueprints.db",
         ],
+        env={},
         tools=[
             "write_query",
         ],
     ),
 ]
 
+ 
 
+# ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
@@ -132,9 +134,9 @@ agent = AnyAgent.create(
     ),
 )
 
-def run_agent(repo_url: str):
-    """Given a GitHub repository URL, this agent evaluates it against Mozilla AI Blueprint guidelines, scores it, posts the results to the #blueprint-submission Slack channel, and records the evaluation in the local blueprints.db SQLite database."""
-    input_prompt = f"Please evaluate the GitHub repository at the following URL against the Mozilla AI Blueprint guidelines and follow the full workflow: {repo_url}"
+def main(repo_url: str):
+    """Evaluate a GitHub repository against Mozilla AI Blueprint guidelines, post the results to Slack, and log them in an SQLite database."""
+    input_prompt = f"Evaluate the following GitHub repository against the Mozilla Blueprints guidelines and report the results: {repo_url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
@@ -150,5 +152,5 @@ def run_agent(repo_url: str):
     return agent_trace.final_output
 
 if __name__ == "__main__":
-    Fire(run_agent)
+    Fire(main)
 

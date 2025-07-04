@@ -1,24 +1,22 @@
 ### Setup & Run Instructions
 
-1. Create and activate a Python 3.11 environment (if not already).
-
-2. Install the **uv** package manager (choose the command that matches your OS):
-   • macOS/Linux:
+1. **Clone the repository or copy the generated code** into a local folder, e.g. `generated_workflows/20240611_123456/`.
+2. **Create a `.env` file** inside that folder and add your OpenAI key (required by `litellm`):
    ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
+   echo "OPENAI_API_KEY=your_openai_key_here" > .env
    ```
-   • Windows PowerShell:
-   ```powershell
-   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-   ```
-
-3. Place your OpenAI API key in a `.env` file at the project root:
-   ```env
-   OPENAI_API_KEY="your_openai_key_here"
-   ```
-
-4. Run the agent (replace `<folder_name>` with the generated folder and `<url>` with the target page):
+3. **Install the `uv` Python package manager** (choose the command for your OS):
+   * **macOS / Linux**:
+     ```bash
+     curl -LsSf https://astral.sh/uv/install.sh | sh
+     ```
+   * **Windows (PowerShell)**:
+     ```powershell
+     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+     ```
+4. **Run the agent** (replace the folder name and URL):
    ```bash
-   uv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 \
-     python generated_workflows/<folder_name>/agent.py --url "<url>"
+   uv run --with-requirements generated_workflows/20240611_123456/requirements.txt --python 3.11 \
+     python generated_workflows/20240611_123456/agent.py --url "https://example.com"
    ```
+   The agent creates `agent_eval_trace.json` in the same folder and prints the structured summary.
