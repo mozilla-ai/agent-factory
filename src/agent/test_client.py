@@ -1,7 +1,4 @@
 import json
-import uuid
-from datetime import datetime
-from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -13,20 +10,12 @@ from a2a.types import (
     MessageSendParams,
     SendMessageRequest,
 )
-from instructions import AGENT_CODE_TEMPLATE
-from loguru import logger
-from templates import TOOLS_REMINDER, USER_PROMPT
+from instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_A2A, TOOLS_REMINDER, USER_PROMPT
+from utils.io_utils import setup_output_directory
+from utils.logging import logger
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
-
-
-def _prepare_output_dir() -> Path:
-    output_dir = Path.cwd()
-    uid = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + str(uuid.uuid4())[:8]
-    output_dir = output_dir / "generated_workflows" / uid
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir
 
 
 def save_agent_outputs(result: dict[str, str]) -> None:
@@ -47,12 +36,12 @@ def save_agent_outputs(result: dict[str, str]) -> None:
     Raises:
         Exception: If there is an error while writing the files to the output directory.
     """
-    output_dir = _prepare_output_dir()
+    output_dir = setup_output_directory()
     try:
         agent_path = output_dir / "agent.py"
         instructions_path = output_dir / "INSTRUCTIONS.md"
         requirements_path = output_dir / "requirements.txt"
-        agent_code = AGENT_CODE_TEMPLATE.format(**result)
+        agent_code = f"{AGENT_CODE_TEMPLATE.format(**result)} \n{AGENT_CODE_TEMPLATE_RUN_VIA_A2A.format(**result)}"
 
         with agent_path.open("w", encoding="utf-8") as f:
             f.write(agent_code)
@@ -66,7 +55,7 @@ def save_agent_outputs(result: dict[str, str]) -> None:
         logger.info(f"Agent files saved to {output_dir}")
 
     except Exception as e:
-        print(f"Warning: Failed to parse and save agent outputs: {str(e)}")
+        logger.warning(f"Warning: Failed to parse and save agent outputs: {str(e)}")
 
 
 async def main(message: str, host: str = "localhost", port: int = 8080, timeout: int = 600) -> None:
