@@ -87,7 +87,7 @@ class AgentFactoryTester:
     def test_generated_files(self, result: TestResult) -> TestResult:
         """Check if expected files were generated"""
         workflow_dir = Path("generated_workflows/latest")
-        expected_files = ["agent.py", "INSTRUCTIONS.md", "requirements.txt"]
+        expected_files = ["agent.py", "README.md", "requirements.txt"]
 
         print(f"   📋 Checking for files in {workflow_dir}")
 

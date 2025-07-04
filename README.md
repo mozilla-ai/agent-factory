@@ -75,7 +75,7 @@ This will generate Python code for an agentic workflow that can summarize text c
 The three files generated are:
 
 1. `agent.py`: The Python code for the agentic workflow
-2. `INSTRUCTIONS.md`: Setup and run instructions for the generated workflow
+2. `README.md`: Setup and run instructions for the generated workflow
 3. `requirements.txt`: Python dependencies required to run the agent
 
 > [!NOTE]
