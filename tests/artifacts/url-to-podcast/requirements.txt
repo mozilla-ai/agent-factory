@@ -1,3 +1,5 @@
-any-agent[all]==0.22.0
+any-agent[all,a2a]==0.22.0
 python-dotenv
+requests
+beautifulsoup4
 fire

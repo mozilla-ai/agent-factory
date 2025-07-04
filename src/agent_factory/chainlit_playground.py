@@ -7,13 +7,13 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 
+from agent.factory_tools import read_file, search_mcp_servers
+from agent.instructions import load_system_instructions
+from agent.schemas import AgentFactoryOutputs
 from agent_factory.generation import (
-    AgentFactoryOutputs,
     build_run_instructions,
-    save_agent_parsed_outputs,
+    save_agent_outputs,
 )
-from agent_factory.instructions import INSTRUCTIONS
-from agent_factory.tools import read_file, search_mcp_servers
 
 dotenv.load_dotenv()
 
@@ -93,7 +93,7 @@ async def on_message(message: cl.Message):
                 framework,
                 AgentConfig(
                     model_id="o3",
-                    instructions=INSTRUCTIONS,
+                    instructions=load_system_instructions(),
                     tools=tools,
                     output_type=AgentFactoryOutputs,
                 ),
@@ -179,7 +179,7 @@ async def export_workflow_action(action: cl.Action):
 
     try:
         agent_factory_outputs = AgentFactoryOutputs.model_validate(action.payload)
-        save_agent_parsed_outputs(agent_factory_outputs, output_dir)
+        save_agent_outputs(agent_factory_outputs, output_dir)
         await cl.Message(
             content="✅ Workflow exported successfully to 'generated_workflows/latest'.",
             author="assistant",
