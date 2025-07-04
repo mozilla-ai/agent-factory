@@ -46,6 +46,7 @@ import AgentEvaluationPanel from '@/components/tabs/AgentEvaluationPanel.vue'
 import AgentEvalTraceViewer from '@/components/tabs/AgentEvalTraceViewer.vue'
 import EvaluationCriteriaViewer from '@/components/tabs/EvaluationCriteriaViewer.vue'
 import EvaluationResultsViewer from '@/components/tabs/EvaluationResultsViewer.vue'
+import AgentGenerationTraceViewer from '@/components/tabs/AgentGenerationTraceViewer.vue'
 import type { WorkflowFile } from '@/types'
 
 const route = useRoute()
@@ -120,6 +121,7 @@ const availableTabs = computed(() => {
   const tabs = [
     { id: 'files', label: 'Files' },
     { id: 'evaluate', label: 'Run Evaluation' },
+    { id: 'agent-generation-trace', label: 'Agent Generation Trace' },
   ]
 
   if (evaluationStatusQuery.data.value?.hasAgentTrace) {
@@ -148,6 +150,8 @@ const currentTabComponent = computed(() => {
       return EvaluationCriteriaViewer
     case 'results':
       return EvaluationResultsViewer
+    case 'agent-generation-trace':
+      return AgentGenerationTraceViewer
     default:
       return AgentFileExplorer
   }
