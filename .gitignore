@@ -179,6 +179,10 @@ cython_debug/
 # generated agents
 generated_workflows
 
+# SQLite database files
+**/*.db
+**/*.sqlite3
+
 # chainlit
 .chainlit/translations
 
