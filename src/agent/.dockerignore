@@ -1,6 +1,5 @@
 # Docker
 .dockerignore
-Containerfile
 Dockerfile
 
 # Virtual environment
