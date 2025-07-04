@@ -9,6 +9,11 @@ import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/index'
 // Simple evaluation case format with just criteria strings
 interface SimpleCriteriaFormat {
   criteria: string[]
+  evaluation_case_generation_costs: {
+    input_cost: number
+    output_cost: number
+    total_cost: number
+  }
 }
 
 // Transform function to convert simple format to full UI format
@@ -19,6 +24,7 @@ function transformToUIFormat(simpleFormat: SimpleCriteriaFormat): EvaluationCrit
       criteria: criterion,
       points: 1, // Default fallback value
     })),
+    evaluation_case_generation_costs: simpleFormat.evaluation_case_generation_costs,
   }
 }
 

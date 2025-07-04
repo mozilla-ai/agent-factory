@@ -33,6 +33,11 @@ export interface EvaluationCheckpoint {
 export interface EvaluationCriteria {
   llm_judge?: string // Optional since new format doesn't always include it
   checkpoints: EvaluationCheckpoint[]
+  evaluation_case_generation_costs: {
+    input_cost: number
+    output_cost: number
+    total_cost: number
+  }
 }
 
 export interface EvaluationResult {

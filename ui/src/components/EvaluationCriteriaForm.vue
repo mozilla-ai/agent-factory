@@ -123,6 +123,11 @@ const formData = reactive<EvaluationCriteria>({
       points: 1,
     },
   ],
+  evaluation_case_generation_costs: {
+    input_cost: 0,
+    output_cost: 0,
+    total_cost: 0,
+  },
 })
 
 const formErrors = ref({
