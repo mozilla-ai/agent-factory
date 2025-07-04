@@ -162,6 +162,11 @@ onMounted(() => {
   if (props.initialData) {
     formData.llm_judge = props.initialData.llm_judge
     formData.checkpoints = [...props.initialData.checkpoints]
+    formData.evaluation_case_generation_costs = {
+      input_cost: props.initialData.evaluation_case_generation_costs.input_cost,
+      output_cost: props.initialData.evaluation_case_generation_costs.output_cost,
+      total_cost: props.initialData.evaluation_case_generation_costs.total_cost,
+    }
   }
 })
 
