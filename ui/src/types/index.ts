@@ -33,11 +33,7 @@ export interface EvaluationCheckpoint {
 export interface EvaluationCriteria {
   llm_judge?: string // Optional since new format doesn't always include it
   checkpoints: EvaluationCheckpoint[]
-  evaluation_case_generation_costs: {
-    input_cost: number
-    output_cost: number
-    total_cost: number
-  }
+  evaluation_case_generation_costs: ExecutionCosts
 }
 
 export interface EvaluationResult {
@@ -102,4 +98,11 @@ export interface TraceSpan {
 export interface AgentTrace {
   spans: TraceSpan[]
   final_output: string
+  execution_costs: ExecutionCosts
+}
+
+export interface ExecutionCosts {
+  input_cost: number
+  output_cost: number
+  total_cost: number
 }

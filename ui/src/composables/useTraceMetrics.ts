@@ -1,11 +1,11 @@
 import { computed } from 'vue'
-import type { TraceSpan } from '@/types'
+import type { AgentTrace, TraceSpan } from '@/types'
 
 /**
  * Composable for calculating agent trace metrics
  * Extracts complex calculations from components
  */
-export function useTraceMetrics(traceData: { value?: { spans?: TraceSpan[] } }) {
+export function useTraceMetrics(traceData: { value?: AgentTrace }) {
   // Calculate execution duration
   const executionDuration = computed(() => {
     if (!traceData.value?.spans) return 0
@@ -28,13 +28,7 @@ export function useTraceMetrics(traceData: { value?: { spans?: TraceSpan[] } }) 
 
   // Calculate total cost
   const totalCost = computed(() => {
-    if (!traceData.value?.spans) return 0
-
-    return traceData.value.spans.reduce((sum: number, span: TraceSpan) => {
-      const inputCost = Number(span.attributes['gen_ai.usage.input_cost']) || 0
-      const outputCost = Number(span.attributes['gen_ai.usage.output_cost']) || 0
-      return sum + inputCost + outputCost
-    }, 0)
+    return traceData.value?.execution_costs.total_cost.toFixed(4) || '0.0000'
   })
 
   // Calculate total tokens

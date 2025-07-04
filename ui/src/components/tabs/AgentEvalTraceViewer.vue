@@ -19,7 +19,7 @@
         <h3>Agent Execution Summary</h3>
         <div class="summary-stats">
           <MetricDisplay label="Duration" :value="`${formatDuration(executionDuration)} seconds`" />
-          <MetricDisplay label="Total Cost" :value="`$${totalCost.toFixed(4)}`" />
+          <MetricDisplay label="Total Cost" :value="`$${totalCost}`" />
           <MetricDisplay label="Total Tokens" :value="totalTokens" />
           <MetricDisplay label="Steps" :value="traceQuery.data.value?.spans?.length || 0" />
         </div>

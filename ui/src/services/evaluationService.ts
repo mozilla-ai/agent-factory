@@ -4,16 +4,12 @@ import { ENDPOINTS } from '@/config/endpoints'
 import { API_CONFIG } from '@/config/api.config'
 import { getErrorMessage } from '@/helpers/error.helpers'
 import { fetchStream } from '@/helpers/stream.helpers'
-import type { EvaluationCriteria, SaveCriteriaResponse } from '@/types/index'
+import type { EvaluationCriteria, ExecutionCosts, SaveCriteriaResponse } from '@/types/index'
 
 // Simple evaluation case format with just criteria strings
 interface SimpleCriteriaFormat {
   criteria: string[]
-  evaluation_case_generation_costs: {
-    input_cost: number
-    output_cost: number
-    total_cost: number
-  }
+  evaluation_case_generation_costs: ExecutionCosts
 }
 
 // Transform function to convert simple format to full UI format
