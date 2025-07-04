@@ -13,8 +13,18 @@ from eval.instructions import INSTRUCTIONS
 dotenv.load_dotenv()
 
 
+class CostInfo(BaseModel):
+    input_cost: float
+    output_cost: float
+    total_cost: float
+
+
 class JSONEvaluationCase(BaseModel):
     criteria: list[str] = Field(default_factory=list, description="A list of evaluation criteria.")
+    evaluation_case_generation_costs: CostInfo = Field(
+        default_factory=lambda: CostInfo(input_cost=0.0, output_cost=0.0, total_cost=0.0),
+        description="Costs for generating the evaluation case",
+    )
 
 
 def main(generated_workflow_dir: str = "generated_workflows/latest"):
