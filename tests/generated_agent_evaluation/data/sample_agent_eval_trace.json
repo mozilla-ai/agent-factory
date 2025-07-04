@@ -211,5 +211,10 @@
     "sources": [
       "https://www.weatherapi.com/"
     ]
+  },
+  "execution_costs": {
+  "input_cost": 0.03659,
+  "output_cost": 0.015696,
+  "total_cost": 0.052286
   }
 }
