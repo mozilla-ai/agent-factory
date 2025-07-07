@@ -1,4 +1,3 @@
-any-agent[all,a2a]==0.22.0
+any-agent[all,a2a]==0.24.0
 python-dotenv
 fire
-pydantic
