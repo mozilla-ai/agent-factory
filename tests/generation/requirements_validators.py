@@ -1,6 +1,5 @@
 import re
 import subprocess
-import tempfile
 from importlib.metadata import version
 from pathlib import Path
 
