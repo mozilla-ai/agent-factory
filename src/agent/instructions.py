@@ -192,7 +192,7 @@ The final expected output is a dictionary with the following structure:
     "cli_args": "The arguments to be provided to the agent from the command line.",
     "agent_description": "The description of the agent and what it does.",
     "prompt_template": "A prompt template that, completed with cli_args, defines the agent's input prompt.",
-    "readme": "The instructions for setting up the environment in Markdown format (e.g., A README file).",
+    "readme": "The instructions for setting up the environment in Markdown format (e.g., a README file).",
     "dependencies": "The list of python dependencies in Markdown format."
 }}
 
