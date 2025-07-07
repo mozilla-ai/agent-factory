@@ -11,6 +11,8 @@ dependencies = [
     "mcpm~=1.14.0",
     "loguru>=0.7.3",
     "pre-commit>=4.2.0",
+    "debugpy>=1.8.2",
+    "redis~=5.0.7",
 ]
 
 [tool.hatch.build.targets.wheel]

@@ -5,6 +5,9 @@ from any_agent.serving import A2AServingConfig
 from any_agent.tools import search_tavily, visit_webpage
 from factory_tools import read_file, search_mcp_servers
 from instructions import load_system_instructions
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.trace import get_tracer_provider
+from redis_exporter import RedisSpanExporter
 from schemas import AgentFactoryOutputs
 
 dotenv.load_dotenv()
@@ -32,6 +35,10 @@ def main(
         raise ValueError(
             f"Invalid framework '{framework}'. Allowed values are: {[f.name.lower() for f in AgentFramework]}"
         ) from err
+
+    trace_provider = get_tracer_provider()
+    redis_exporter = RedisSpanExporter()
+    trace_provider.add_span_processor(SimpleSpanProcessor(redis_exporter))  # type: ignore
 
     agent = AnyAgent.create(
         framework,

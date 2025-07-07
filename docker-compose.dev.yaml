@@ -1,0 +1,15 @@
+services:
+  worker:
+    command: [
+      "uv", "run", "-m", "debugpy", "--listen", "0.0.0.0:5678",
+      "uv", "run", "celery", "-A", "backend.celery_app", "worker", "--loglevel=info"
+    ]
+    ports:
+      - 5678:5678
+
+  agent:
+    command : [
+      "sh", "-c", "uv run -m debugpy --listen 0.0.0.0:5678 . --framework openai --model o3 --host 0.0.0.0 --port 8080 --log-level info"
+    ]
+    ports:
+      - 5679:5678
