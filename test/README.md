@@ -7,7 +7,7 @@ A testing tool for agent-factory that validates both agent generation and basic 
 Test-runner executes a multi-stage validation process for each prompt:
 
 1. **Agent Generation** - Tests if agent-factory can successfully generate an agent
-2. **File Generation** - Verifies expected files are created (agent.py, INSTRUCTIONS.md, requirements.txt)
+2. **File Generation** - Verifies expected files are created (agent.py, README.md, requirements.txt)
 3. **Syntax Validation** - Checks if the generated Python code has valid syntax
 4. **Import Validation** - Tests if all imports in the agent work correctly
 5. **Basic Execution** - Verifies the agent can start without immediate crashes (by running the command with `--help`)
@@ -146,7 +146,7 @@ test_results/
 generated_workflows/
 ├── latest/                   # Most recent generated agent
 │   ├── agent.py
-│   ├── INSTRUCTIONS.md
+│   ├── README.md
 │   └── requirements.txt
 └── archive/                  # Previously generated agents
     ├── 2025-06-09_14:25:59_d34db33f/
