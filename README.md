@@ -25,7 +25,7 @@ uv sync --dev
 ### Option B: Local installation
 
 #### Prerequisites:
-- Python 3.11 or higher
+- Python 3.13 or higher
 - Docker should be up and running in the background (for filesystemMCP operations) - download and install [from here](https://www.docker.com/products/docker-desktop)
 
 Install dependencies using your preferred Python package manager:
@@ -91,7 +91,7 @@ The three files generated are:
 Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent from the root directory as:
 
 ```bash
-uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.11 python generated_workflows/latest/agent.py --arg1 "value1"
+uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.13 python generated_workflows/latest/agent.py --arg1 "value1"
 ```
 
 This will run the agent and save the agent trace as `agent_eval_trace.json` in the `generated_workflows/latest` directory.

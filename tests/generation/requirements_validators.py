@@ -79,7 +79,7 @@ def assert_requirements_installable(requirements_path: Path, timeout: int = 180)
     try:
         # Use uv run to install and test in a throwaway environment
         result = subprocess.run(
-            ["uv", "run", "--with-requirements", str(requirements_path), "--python", "3.11", "python", "-V"],
+            ["uv", "run", "--with-requirements", str(requirements_path), "--python", "3.13", "python", "-V"],
             check=False,
             capture_output=True,
             text=True,
