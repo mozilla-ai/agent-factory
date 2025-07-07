@@ -62,6 +62,11 @@ export const workflowService = {
     }
   },
 
+  async getAgentGenerationTrace(workflowId: string): Promise<AgentTrace> {
+    const content = await this.getFileContent(workflowId, 'agent_factory_trace.json')
+    return typeof content === 'string' ? JSON.parse(content) : (content as AgentTrace)
+  },
+
   async getEvaluationCriteria(workflowId: string): Promise<string> {
     const content = await this.getFileContent(workflowId, 'evaluation_case.json')
     return typeof content === 'string' ? content : JSON.stringify(content)

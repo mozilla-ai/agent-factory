@@ -49,6 +49,18 @@
             <span class="points-label">Total Points Possible:</span>
             <span class="points-value">{{ totalPossiblePoints }}</span>
           </div>
+          <div
+            class="cost-info"
+            v-if="evaluationCriteriaQuery.data.value.evaluation_case_generation_costs"
+          >
+            <span class="cost-label"
+              >Evaluation Case Generation Cost: ${{
+                evaluationCriteriaQuery.data.value.evaluation_case_generation_costs.total_cost.toFixed(
+                  2,
+                )
+              }}</span
+            >
+          </div>
         </div>
 
         <div class="header-actions">
@@ -121,16 +133,7 @@ import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useQueryInvalidation } from '@/composables/useQueryInvalidation'
 import { useNavigation } from '@/composables/useNavigation'
 import { queryKeys } from '@/helpers/queryKeys'
-
-interface Checkpoint {
-  criteria: string
-  points: number
-}
-
-interface EvaluationCriteria {
-  llm_judge?: string
-  checkpoints: Checkpoint[]
-}
+import type { EvaluationCriteria } from '@/types'
 
 // Props
 const props = defineProps<{

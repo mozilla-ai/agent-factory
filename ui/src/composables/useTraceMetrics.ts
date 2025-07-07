@@ -1,16 +1,16 @@
 import { computed } from 'vue'
-import type { TraceSpan } from '@/types'
+import type { AgentTrace, TraceSpan } from '@/types'
 
 /**
  * Composable for calculating agent trace metrics
  * Extracts complex calculations from components
  */
-export function useTraceMetrics(traceData: { value?: { spans?: TraceSpan[] } }) {
+export function useTraceMetrics(traceData: AgentTrace) {
   // Calculate execution duration
   const executionDuration = computed(() => {
-    if (!traceData.value?.spans) return 0
+    if (!traceData?.spans) return 0
 
-    const spans = traceData.value.spans
+    const spans = traceData.spans
     const firstSpan = spans.reduce(
       (earliest: TraceSpan | null, span: TraceSpan) =>
         !earliest || span.start_time < earliest.start_time ? span : earliest,
@@ -28,20 +28,14 @@ export function useTraceMetrics(traceData: { value?: { spans?: TraceSpan[] } }) 
 
   // Calculate total cost
   const totalCost = computed(() => {
-    if (!traceData.value?.spans) return 0
-
-    return traceData.value.spans.reduce((sum: number, span: TraceSpan) => {
-      const inputCost = Number(span.attributes['gen_ai.usage.input_cost']) || 0
-      const outputCost = Number(span.attributes['gen_ai.usage.output_cost']) || 0
-      return sum + inputCost + outputCost
-    }, 0)
+    return traceData?.execution_costs.total_cost.toFixed(4) || '0.0000'
   })
 
   // Calculate total tokens
   const totalTokens = computed(() => {
-    if (!traceData.value?.spans) return 0
+    if (!traceData?.spans) return 0
 
-    return traceData.value.spans.reduce((sum: number, span: TraceSpan) => {
+    return traceData.spans.reduce((sum: number, span: TraceSpan) => {
       const inputTokens = Number(span.attributes['gen_ai.usage.input_tokens']) || 0
       const outputTokens = Number(span.attributes['gen_ai.usage.output_tokens']) || 0
       return sum + inputTokens + outputTokens
