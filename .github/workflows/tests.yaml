@@ -37,7 +37,10 @@ jobs:
       - name: Run Code tests
         run: pytest -v tests/agent_factory
 
-      - name: Run Generation tests
+      - name: Run Generation unit tests
+        run: pytest -v tests/generation/unit
+
+      - name: Run Generation tests which use API Key
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

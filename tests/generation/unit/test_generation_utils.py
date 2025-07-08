@@ -71,9 +71,9 @@ def test_run_agent_error_returns_trace():
     mock_agent = MagicMock(spec=["run"])
     mock_agent.run.side_effect = error
 
-    with patch("builtins.print") as mock_print:
+    with patch("agent_factory.generation.logger") as mock_logger:
         result = run_agent(mock_agent, "test prompt")
 
         assert result == expected_trace
-        mock_print.assert_any_call("Agent execution failed: " + str(error))
-        mock_print.assert_any_call("Retrieved partial agent trace...")
+        mock_logger.error.assert_called_once_with(f"Agent execution failed: {error}")
+        mock_logger.warning.assert_called_once_with("Retrieved partial agent trace...")
