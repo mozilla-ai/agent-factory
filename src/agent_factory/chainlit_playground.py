@@ -8,7 +8,7 @@ from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 
 from agent.factory_tools import read_file, search_mcp_servers
-from agent.instructions import load_system_instructions
+from agent.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_CLI, load_system_instructions
 from agent.schemas import AgentFactoryOutputs
 from agent_factory.generation import (
     build_run_instructions,
@@ -133,9 +133,13 @@ async def on_message(message: cl.Message):
         # Send the final response
         if agent_factory_trace.final_output:
             json_output = agent_factory_trace.final_output.model_dump()
+            agent_code = (
+                f"{AGENT_CODE_TEMPLATE.format(**agent_factory_trace.final_output.model_dump())} \n"
+                f"{AGENT_CODE_TEMPLATE_RUN_VIA_CLI.format(**agent_factory_trace.final_output.model_dump())}"
+            )
             output_to_render = (
                 f"## 🤖 Agent Code\n"
-                f"```python\n{json_output.get('agent_code', 'No agent code provided.')}\n```\n"
+                f"```python\n{agent_code}\n```\n"
                 f"## 📚 README\n"
                 f"{json_output.get('readme', 'No README provided.')}\n\n"
                 f"## 📦 Dependencies\n"
