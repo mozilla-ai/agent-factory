@@ -46,6 +46,13 @@ async def run_evaluation(
             runs.append(agent_judge.run_async(agent_trace, criteria))
         eval_traces: list[AgentTrace] = await asyncio.gather(*runs)
         results: list[EvaluationOutput] = [t.final_output for t in eval_traces]
+
+        # Track costs from evaluation traces
+        total_cost = 0.0
+
+        for trace in eval_traces:
+            total_cost += trace.cost.total_cost
+
         score = sum(result.passed for result in results)
         # Print the results
         logger.info("\n--- Evaluation Results ---")
@@ -56,6 +63,7 @@ async def run_evaluation(
             "obtained_score": score,
             "max_score": len(evaluation_case.criteria),
             "results": [result.model_dump() for result in results],
+            "total_cost": total_cost,
         }
         with Path(save_evaluation_results_path).open("w", encoding="utf-8") as f:
             f.write(json.dumps(eval_result_dict, indent=2))
