@@ -83,7 +83,7 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
             "summarize-url-content",
             (
                 "Workflow that takes an input web URL and returns a summary of the content. "
-                "Do not assign MCP servers among the tools."
+                "Do not search for or assign MCP servers among the tools."
             ),
             15,
             120,
