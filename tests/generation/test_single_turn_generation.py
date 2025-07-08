@@ -111,7 +111,8 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
                 "and do BOTH of the following with it "
                 "(1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and "
                 "(2) log the entry to SQLite - to the already existing table named `github_repo_evaluations` in the `blueprints.db` database. "
-                "Provide suitable configurations for Slack and SQLite MCP servers and select appropriate tools."
+                "Use the official MCP servers for Slack and SQLite and provide suitable MCP configurations "
+                "along with only the necessary subset of tools required for the task at hand."
             ),
             40,
             420,

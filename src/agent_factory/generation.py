@@ -59,8 +59,8 @@ def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTr
     try:
         return agent.run(user_prompt, max_turns=max_turns)
     except AgentRunError as e:
-        print(f"Agent execution failed: {e}")
-        print("Retrieved partial agent trace...")
+        logger.error(f"Agent execution failed: {e}")
+        logger.warning("Retrieved partial agent trace...")
         return e.trace
 
 
@@ -104,7 +104,7 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         logger.info(f"Agent files saved to {output_dir}")
 
     except Exception as e:
-        print(f"Warning: Failed to parse and save agent outputs: {str(e)}")
+        logger.warning(f"Warning: Failed to parse and save agent outputs: {str(e)}")
 
 
 def single_turn_generation(

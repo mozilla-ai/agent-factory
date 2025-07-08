@@ -7,7 +7,7 @@ name = "agent-factory"
 description = "Agent Factory"
 license = {text = "Apache-2.0"}
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dynamic = ["version"]
 dependencies = [
     "any-agent[all]==0.24.0",

@@ -88,7 +88,7 @@ def test_agent_basic_execution(generated_agent_path: str, timeout: int = 30):
             "--with-requirements",
             agent_requirements,
             "--python",
-            "3.11",
+            "3.13",
             "python",
             agent_file,
             "--help",

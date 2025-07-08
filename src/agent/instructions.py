@@ -213,8 +213,8 @@ These will replace the {{cli_args}} placeholder in the agent code template.
     - Always include the following instructions to install Python package manager uv (the end user decides which command to run based on their OS):
         - for MacOS and Linux users: `curl -LsSf https://astral.sh/uv/install.sh | sh`
         - for Windows users: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
-    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.11
-      `uv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.11 python generated_workflows/<folder_name>/agent.py --arg1 "value1"`
+    - Run instructions for agent.py using `uv run` with specification of requirements.txt and Python 3.13
+      `uv run --with-requirements generated_workflows/<folder_name>/requirements.txt --python 3.13 python generated_workflows/<folder_name>/agent.py --arg1 "value1"`
       where the user is expected to replace <folder_name> with the timestamped folder created in the generated_workflows directory and specify the required arguments
 9. dependencies should list all the python libraries (including the ones required by the tools) as dependencies to be installed. It will be used to generate the requirements.txt file
     - the first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using any-agent to run the agent workflow
