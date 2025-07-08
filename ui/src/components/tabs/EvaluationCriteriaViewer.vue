@@ -61,6 +61,11 @@
               }}</span
             >
           </div>
+          <div class="cost-info" v-if="evaluationResultsQuery.data.value?.total_cost">
+            <span class="cost-label"
+              >Evaluation Cost: ${{ evaluationResultsQuery.data.value.total_cost.toFixed(2) }}</span
+            >
+          </div>
         </div>
 
         <div class="header-actions">
@@ -183,6 +188,7 @@ const evaluationResultsQuery = useQuery({
         maxPossibleScore: 0,
         score: 0,
         maxScore: 0,
+        total_cost: 0,
       }
     }
   },
