@@ -10,7 +10,7 @@
 
     <div class="score-value">{{ score }} / {{ maxScore }}</div>
     <div class="score-percentage">{{ Math.round(percentage) }}%</div>
-
+    <div class="score-cost">Evaluation Cost: {{ evalCost }}</div>
     <ProgressBar :percentage="percentage" variant="score" :color-threshold="colorThreshold" />
 
     <slot name="content"></slot>
@@ -26,6 +26,7 @@ const props = defineProps<{
   description?: string
   score: number
   maxScore: number
+  evalCost: string
   colorThreshold?: 'auto' | 'success' | 'warning' | 'error'
 }>()
 

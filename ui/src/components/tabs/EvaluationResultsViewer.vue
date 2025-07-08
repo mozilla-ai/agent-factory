@@ -24,6 +24,7 @@
           description="Based on point values assigned to each checkpoint"
           :score="scoreValue"
           :max-score="maxScoreValue"
+          :eval-cost="`$${resultsQuery.data.value?.total_cost.toFixed(2)}`"
           color-threshold="auto"
         >
           <template #actions>
@@ -204,6 +205,7 @@ const resultsQuery = useQuery({
         maxPossibleScore: 0,
         score: 0,
         maxScore: 0,
+        total_cost: 0,
       }
     }
   },
