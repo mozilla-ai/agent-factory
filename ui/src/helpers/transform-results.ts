@@ -9,6 +9,7 @@ interface SimpleResultsFormat {
   obtained_score: number
   max_score: number
   results: SimpleEvaluationResult[]
+  total_cost: number
 }
 
 // Import the existing EvaluationResults interface
@@ -24,14 +25,9 @@ interface EvaluationCriteria {
 
 // Transform results to align with criteria
 export const transformResults = (
-  data: SimpleResultsFormat | EvaluationResults,
+  data: SimpleResultsFormat,
   criteria?: EvaluationCriteria,
 ): EvaluationResults => {
-  // If it's already in the UI format, return it as is
-  if ('checkpoints' in data && data.checkpoints) {
-    return data
-  }
-
   // Handle case where data might be incomplete or undefined
   if (!data || typeof data !== 'object') {
     return {
@@ -40,38 +36,30 @@ export const transformResults = (
       maxPossibleScore: 0,
       score: 0,
       maxScore: 0,
+      total_cost: 0,
     }
   }
 
   // Check if it's the simple format with 'results' array
-  if ('results' in data && Array.isArray(data.results)) {
-    const simpleData = data as SimpleResultsFormat
-    return {
-      // Add metadata from simple format
-      totalScore: simpleData.obtained_score || 0,
-      maxPossibleScore: simpleData.max_score || 0,
-      score: simpleData.obtained_score || 0,
-      maxScore: simpleData.max_score || 0,
 
-      // Transform results to match the expected format, combining with criteria if available
-      checkpoints: simpleData.results.map((result: SimpleEvaluationResult, index: number) => {
-        const criteriaItem = criteria?.checkpoints?.[index]
-        return {
-          result: result.passed ? 'pass' : 'fail',
-          feedback: result.reasoning || '',
-          criteria: criteriaItem?.criteria || `Evaluation Criterion ${index + 1}`,
-          points: criteriaItem?.points || 1,
-        }
-      }),
-    }
-  }
-
-  // Fallback for unknown format
+  const simpleData = data as SimpleResultsFormat
   return {
-    checkpoints: [],
-    totalScore: 0,
-    maxPossibleScore: 0,
-    score: 0,
-    maxScore: 0,
+    // Add metadata from simple format
+    totalScore: simpleData.obtained_score || 0,
+    maxPossibleScore: simpleData.max_score || 0,
+    score: simpleData.obtained_score || 0,
+    maxScore: simpleData.max_score || 0,
+
+    // Transform results to match the expected format, combining with criteria if available
+    checkpoints: simpleData.results.map((result: SimpleEvaluationResult, index: number) => {
+      const criteriaItem = criteria?.checkpoints?.[index]
+      return {
+        result: result.passed ? 'pass' : 'fail',
+        feedback: result.reasoning || '',
+        criteria: criteriaItem?.criteria || `Evaluation Criterion ${index + 1}`,
+        points: criteriaItem?.points || 1,
+      }
+    }),
+    total_cost: simpleData.total_cost || 0,
   }
 }

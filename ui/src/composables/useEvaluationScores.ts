@@ -12,6 +12,7 @@ export interface EvaluationResults {
   maxPossibleScore: number
   score: number
   maxScore: number
+  total_cost: number
 }
 
 export function useEvaluationScores(
