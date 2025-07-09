@@ -6,6 +6,7 @@ import dotenv
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
+from any_agent.tracing.agent_trace import AgentTrace
 
 from agent.factory_tools import read_file, search_mcp_servers
 from agent.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN_VIA_CLI, load_system_instructions
@@ -132,25 +133,28 @@ async def on_message(message: cl.Message):
 
         # Send the final response
         if agent_factory_trace.final_output:
-            json_output = agent_factory_trace.final_output.model_dump()
+            final_output = agent_factory_trace.final_output.model_dump()
             agent_code = (
-                f"{AGENT_CODE_TEMPLATE.format(**agent_factory_trace.final_output.model_dump())} \n"
-                f"{AGENT_CODE_TEMPLATE_RUN_VIA_CLI.format(**agent_factory_trace.final_output.model_dump())}"
+                f"{AGENT_CODE_TEMPLATE.format(**final_output)} \n"
+                f"{AGENT_CODE_TEMPLATE_RUN_VIA_CLI.format(**final_output)}"
             )
             output_to_render = (
                 f"## 🤖 Agent Code\n"
                 f"```python\n{agent_code}\n```\n"
                 f"## 📚 README\n"
-                f"{json_output.get('readme', 'No README provided.')}\n\n"
+                f"{final_output.get('readme', 'No README provided.')}\n\n"
                 f"## 📦 Dependencies\n"
-                f"```\n{json_output.get('dependencies', 'No dependencies provided.')}\n```"
+                f"```\n{final_output.get('dependencies', 'No dependencies provided.')}\n```"
             )
 
             # Add export button action
             actions = [
                 cl.Action(
                     name="export_workflow",
-                    payload=json_output,
+                    payload={
+                        "agent_factory_trace_json_str": agent_factory_trace.model_dump_json(),
+                        "final_output": agent_factory_trace.final_output.model_dump_json(),
+                    },
                     tooltip="Export the generated agent code, README, and dependencies to generated_workflows/latest directory.",  # noqa: E501
                     label="📁 Save Workflow to Files",
                     icon="download",
@@ -182,8 +186,10 @@ async def export_workflow_action(action: cl.Action):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        agent_factory_outputs = AgentFactoryOutputs.model_validate(action.payload)
-        save_agent_outputs(agent_factory_outputs, output_dir)
+        agent_factory_trace = AgentTrace.model_validate_json(action.payload["agent_factory_trace_json_str"])
+        final_output = AgentFactoryOutputs.model_validate_json(action.payload["final_output"])
+        agent_factory_trace.final_output = final_output
+        save_agent_outputs(agent_factory_trace, output_dir)
         await cl.Message(
             content="✅ Workflow exported successfully to 'generated_workflows/latest'.",
             author="assistant",
