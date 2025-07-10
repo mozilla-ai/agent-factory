@@ -75,6 +75,36 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
     )
 
 
+def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
+    """Validate the generated artifacts for a specific scenario."""
+    from generated_artifacts.test_generated_agents import (
+        test_agent_basic_execution,
+        test_partial_trace_handling,
+        test_specific_tool_used,
+    )
+    from generated_artifacts.test_generated_traces import (
+        test_any_tool_used,
+        test_search_mcp_servers_used,
+    )
+
+    class MockRequest:
+        def __init__(self, test_id):
+            self.node = type("Node", (), {"callspec": type("CallSpec", (), {"id": test_id})})
+
+    mock_request = MockRequest(prompt_id)
+
+    agent_file = artifacts_dir / "agent.py"
+    agent_code = agent_file.read_text()
+    test_specific_tool_used(agent_code, mock_request)
+    test_partial_trace_handling(agent_code)
+    test_agent_basic_execution(artifacts_dir)
+
+    trace_file = artifacts_dir / "agent_factory_trace.json"
+    trace = AgentTrace.model_validate_json(trace_file.read_text())
+    test_any_tool_used(trace)
+    test_search_mcp_servers_used(trace, mock_request)
+
+
 @pytest.mark.parametrize(
     ("prompt_id", "prompt", "expected_num_turns", "expected_execution_time"),
     [
@@ -151,8 +181,9 @@ def test_single_turn_generation(
     assert_mcp_uv_consistency(tmp_path / "agent.py", tmp_path / "requirements.txt")
     assert_requirements_installable(tmp_path / "requirements.txt")
 
-    update_artifacts = request.config.getoption("--update-artifacts")
+    validate_generated_artifacts(tmp_path, prompt_id)
 
+    update_artifacts = request.config.getoption("--update-artifacts")
     if update_artifacts:
         copytree(tmp_path, Path(__file__).parent.parent / "artifacts" / prompt_id, dirs_exist_ok=True)
 
