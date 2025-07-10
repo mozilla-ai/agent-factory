@@ -214,7 +214,7 @@ def test_single_turn_generation(
 
     update_artifacts = request.config.getoption("--update-artifacts")
     if update_artifacts:
-        copytree(full_path, Path(__file__).parent.parent / "artifacts", dirs_exist_ok=True)
+        copytree(full_path, Path(__file__).parent.parent / "artifacts" / prompt_id, dirs_exist_ok=True)
 
 
 def test_full_agent_generation_and_cost_tracking(tmp_path):
