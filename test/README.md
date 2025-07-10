@@ -144,13 +144,8 @@ test_results/
 └── ...
 
 generated_workflows/
-├── latest/                   # Most recent generated agent
-│   ├── agent.py
-│   ├── README.md
-│   └── requirements.txt
-└── archive/                  # Previously generated agents
-    ├── 2025-06-09_14:25:59_d34db33f/
-    └── ...
+  ├── 2025-06-09_14:25:59_d34db33f/
+  └── ...
 ```
 
 ## Visual Results Analysis
