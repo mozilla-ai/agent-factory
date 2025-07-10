@@ -78,7 +78,7 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
 def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
     """Run all agent validation tests using pytest's test runner.
 
-    This function runs all tests marked with @pytest.mark.agent_validation
+    This function runs all tests marked with @pytest.mark.manufacturing_agent_artifact_validation
     in the tests/generated_artifacts/ directory for the specified prompt_id.
 
     Args:
@@ -94,7 +94,7 @@ def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
     args = [
         "tests/generated_artifacts/",
         "-m",
-        "agent_validation",
+        "manufacturing_agent_artifact_validation",
         f"--artifacts-dir={str(artifacts_dir.absolute())}",
         f"--prompt-id={prompt_id}",
         "-v",  # verbose
