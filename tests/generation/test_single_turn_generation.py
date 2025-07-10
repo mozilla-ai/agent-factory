@@ -14,6 +14,50 @@ from requirements_validators import (
 from agent.utils.trace_utils import load_agent_trace
 from agent_factory.generation import single_turn_generation
 
+# Add new "use cases" here, following this format:
+# prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
+# prompt: the actual prompt to pass for agent generation
+# expected_num_turns: the threshold max number of turns for the agent to complete the task
+# expected_execution_time: the threshold max execution time (in seconds) for the agent to complete the task
+TEST_CASES = {
+    # Agent with no MCP tools needed
+    "summarize-url-content": {
+        "prompt": (
+            "Workflow that takes an input web URL and returns a summary of the content. "
+            "Do not search for or assign MCP servers among the tools."
+        ),
+        "expected_num_turns": 15,
+        "expected_execution_time": 120,
+    },
+    # Agent with MCP single MCP server (ElevenLabs)
+    "url-to-podcast": {
+        "prompt": (
+            "Workflow to generate a 1-minute podcast mp3 based on the contents of a URL provided by the user. "
+            "And it should create separate mp3 files interleaving the turn-by-turn dialogue between a host and a guest speaker. "
+            "The final output should be saved as a single mp3 file. "
+            "Use audio generation tools from ElevenLabs API for text-to-speech."
+        ),
+        "expected_num_turns": 30,
+        "expected_execution_time": 300,
+    },
+    # Agent with multiple MCP servers (Slack and SQLite)
+    "scoring-blueprints-submission": {
+        "prompt": (
+            "Workflow that takes as user input a Github repo link "
+            "and checks it against guidelines found at www.mozilla.ai/Bluerprints (check guidelines on developing top notch Blueprints). "
+            "Then it should assess the submitted repo and give it a score out of 100. "
+            "Finally the workflow should formulate the results with all necessary details in a suitable structured format "
+            "and do BOTH of the following with it "
+            "(1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and "
+            "(2) log the entry to SQLite - to the already existing table named `github_repo_evaluations` in the `blueprints.db` database. "
+            "Use the official MCP servers for Slack and SQLite and provide suitable MCP configurations "
+            "along with only the necessary subset of tools required for the task at hand."
+        ),
+        "expected_num_turns": 40,
+        "expected_execution_time": 420,
+    },
+}
+
 
 def _assert_generated_files(workflow_dir: Path):
     existing_files = [f.name for f in workflow_dir.iterdir()]
@@ -117,79 +161,26 @@ def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
         )
 
 
-@pytest.mark.parametrize(
-    ("prompt_id", "prompt", "expected_num_turns", "expected_execution_time"),
-    [
-        # Agent with no MCP tools needed
-        (
-            "summarize-url-content",
-            (
-                "Workflow that takes an input web URL and returns a summary of the content. "
-                "Do not search for or assign MCP servers among the tools."
-            ),
-            15,
-            120,
-        ),
-        # Agent with MCP single MCP server (ElevenLabs)
-        (
-            "url-to-podcast",
-            (
-                "Workflow to generate a 1-minute podcast mp3 based on the contents of a URL provided by the user. "
-                "And it should create separate mp3 files interleaving the turn-by-turn dialogue between a host and a guest speaker. "
-                "The final output should be saved as a single mp3 file. "
-                "Use audio generation tools from ElevenLabs API for text-to-speech."
-            ),
-            30,
-            300,
-        ),
-        # Agent with multiple MCP servers (Slack and SQLite)
-        (
-            "scoring-blueprints-submission",
-            (
-                "Workflow that takes as user input a Github repo link "
-                "and checks it against guidelines found at www.mozilla.ai/Bluerprints (check guidelines on developing top notch Blueprints). "
-                "Then it should assess the submitted repo and give it a score out of 100. "
-                "Finally the workflow should formulate the results with all necessary details in a suitable structured format "
-                "and do BOTH of the following with it "
-                "(1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and "
-                "(2) log the entry to SQLite - to the already existing table named `github_repo_evaluations` in the `blueprints.db` database. "
-                "Use the official MCP servers for Slack and SQLite and provide suitable MCP configurations "
-                "along with only the necessary subset of tools required for the task at hand."
-            ),
-            40,
-            420,
-        ),
-        # Add new "use cases" here, following this format:
-        # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
-        # prompt: the actual prompt to pass for agent generation
-        # expected_num_turns: the threshold max number of turns for the agent to complete the task
-        # expected_execution_time: the threshold max execution time (in seconds) for the agent to complete the task
-    ],
-)
 def test_single_turn_generation(
     tmp_path: Path,
-    prompt_id: str,
-    prompt: str,
-    expected_num_turns: int,
-    expected_execution_time: int,
     request: pytest.FixtureRequest,
 ):
     """Test the generation of a single turn agent and validate the generated artifacts.
 
     This test generates an agent based on the provided prompt and then runs validation
     tests on the generated artifacts.
-
-    Args:
-        tmp_path: Temporary directory for test artifacts
-        prompt_id: ID of the prompt being tested
-        prompt: The prompt to use for agent generation
-        expected_num_turns: Maximum allowed number of turns
-        expected_execution_time: Maximum allowed execution time in seconds
-        request: Pytest request fixture
     """
+    # Get the prompt_id from command line or use default
+    prompt_id = request.config.getoption("--prompt-id")
+
+    if prompt_id not in TEST_CASES:
+        pytest.fail(f"Prompt ID '{prompt_id}' not found in test cases. Available IDs: {list(TEST_CASES.keys())}")
+
+    test_case = TEST_CASES[prompt_id]
+
     # Generate the agent
     full_path = tmp_path / prompt_id
-    single_turn_generation(user_prompt=prompt, output_dir=full_path)
+    single_turn_generation(user_prompt=test_case["prompt"], output_dir=full_path)
 
     # Verify the expected files were generated
     _assert_generated_files(full_path)
@@ -201,8 +192,8 @@ def test_single_turn_generation(
 
     # Assertions based on manufacturing agent's trace
     agent_trace = load_agent_trace(full_path / "agent_factory_trace.json")
-    _assert_execution_time_within_limit(agent_trace, expected_execution_time)
-    _assert_num_turns_within_limit(agent_trace, expected_num_turns)
+    _assert_execution_time_within_limit(agent_trace, test_case["expected_execution_time"])
+    _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
 
     # Assertions based on requirements.txt
     assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")

@@ -44,7 +44,11 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: pytest -xv tests/generation/test_single_turn_generation.py --update-artifacts
+        run: |
+          # Run each test case individually for better isolation and clearer output
+          pytest -xv tests/generation/test_single_turn_generation.py --prompt-id=summarize-url-content --update-artifacts
+          pytest -xv tests/generation/test_single_turn_generation.py --prompt-id=url-to-podcast --update-artifacts
+          pytest -xv tests/generation/test_single_turn_generation.py --prompt-id=scoring-blueprints-submission --update-artifacts
 
       - name: Run Generated Agent Evaluation tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
