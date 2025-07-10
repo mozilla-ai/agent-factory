@@ -76,33 +76,45 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
 
 
 def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
-    """Validate the generated artifacts for a specific scenario."""
-    from generated_artifacts.test_generated_agents import (
-        test_agent_basic_execution,
-        test_partial_trace_handling,
-        test_specific_tool_used,
-    )
-    from generated_artifacts.test_generated_traces import (
-        test_any_tool_used,
-        test_search_mcp_servers_used,
-    )
+    """Run all agent validation tests using pytest's test runner.
 
-    class MockRequest:
-        def __init__(self, test_id):
-            self.node = type("Node", (), {"callspec": type("CallSpec", (), {"id": test_id})})
+    This function runs all tests marked with @pytest.mark.agent_validation
+    in the tests/generated_artifacts/ directory for the specified prompt_id.
 
-    mock_request = MockRequest(prompt_id)
+    Args:
+        artifacts_dir: Base directory containing the generated artifacts
+        prompt_id: ID of the prompt being tested
 
-    agent_file = artifacts_dir / "agent.py"
-    agent_code = agent_file.read_text()
-    test_specific_tool_used(agent_code, mock_request)
-    test_partial_trace_handling(agent_code)
-    test_agent_basic_execution(artifacts_dir)
+    Raises:
+        AssertionError: If any of the validation tests fail
+    """
+    import sys
 
-    trace_file = artifacts_dir / "agent_factory_trace.json"
-    trace = AgentTrace.model_validate_json(trace_file.read_text())
-    test_any_tool_used(trace)
-    test_search_mcp_servers_used(trace, mock_request)
+    # Run pytest programmatically
+    args = [
+        "tests/generated_artifacts/",
+        "-m",
+        "agent_validation",
+        f"--artifacts-dir={str(artifacts_dir.absolute())}",
+        f"--prompt-id={prompt_id}",
+        "-v",  # verbose
+        "--tb=short",  # shorter tracebacks
+        "-s",  # show output
+        "-x",
+        "--no-header",
+        "--no-summary",
+    ]
+
+    exit_code = pytest.main(args)
+
+    if exit_code != 0:
+        failure_details = ""
+        if hasattr(sys, "last_value") and sys.last_value is not None:
+            failure_details = f"\nFailure details: {str(sys.last_value)}"
+
+        raise AssertionError(
+            f"Agent validation tests failed for prompt '{prompt_id}' with exit code {exit_code}.{failure_details}"
+        )
 
 
 @pytest.mark.parametrize(
@@ -162,30 +174,47 @@ def test_single_turn_generation(
     expected_execution_time: int,
     request: pytest.FixtureRequest,
 ):
-    single_turn_generation(user_prompt=prompt, output_dir=tmp_path)
+    """Test the generation of a single turn agent and validate the generated artifacts.
 
-    _assert_generated_files(tmp_path)
+    This test generates an agent based on the provided prompt and then runs validation
+    tests on the generated artifacts.
+
+    Args:
+        tmp_path: Temporary directory for test artifacts
+        prompt_id: ID of the prompt being tested
+        prompt: The prompt to use for agent generation
+        expected_num_turns: Maximum allowed number of turns
+        expected_execution_time: Maximum allowed execution time in seconds
+        request: Pytest request fixture
+    """
+    # Generate the agent
+    full_path = tmp_path / prompt_id
+    single_turn_generation(user_prompt=prompt, output_dir=full_path)
+
+    # Verify the expected files were generated
+    _assert_generated_files(full_path)
 
     # Verify the generated agent.py has valid Python syntax
-    agent_file = tmp_path / "agent.py"
+    agent_file = full_path / "agent.py"
     _assert_agent_code_syntax(agent_file)
     _assert_agent_code_contains_trace_writing(agent_file)
 
     # Assertions based on manufacturing agent's trace
-    agent_trace = load_agent_trace(tmp_path / "agent_factory_trace.json")
+    agent_trace = load_agent_trace(full_path / "agent_factory_trace.json")
     _assert_execution_time_within_limit(agent_trace, expected_execution_time)
     _assert_num_turns_within_limit(agent_trace, expected_num_turns)
 
     # Assertions based on requirements.txt
-    assert_requirements_first_line_matches_any_agent_version(tmp_path / "requirements.txt")
-    assert_mcp_uv_consistency(tmp_path / "agent.py", tmp_path / "requirements.txt")
-    assert_requirements_installable(tmp_path / "requirements.txt")
+    assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")
+    assert_mcp_uv_consistency(full_path / "agent.py", full_path / "requirements.txt")
+    assert_requirements_installable(full_path / "requirements.txt")
 
+    # Run code and trace validation tests defined in tests/generated_artifacts/
     validate_generated_artifacts(tmp_path, prompt_id)
 
     update_artifacts = request.config.getoption("--update-artifacts")
     if update_artifacts:
-        copytree(tmp_path, Path(__file__).parent.parent / "artifacts" / prompt_id, dirs_exist_ok=True)
+        copytree(full_path, Path(__file__).parent.parent / "artifacts", dirs_exist_ok=True)
 
 
 def test_full_agent_generation_and_cost_tracking(tmp_path):
