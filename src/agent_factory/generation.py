@@ -18,9 +18,9 @@ from agent_factory.prompt import UserPrompt
 dotenv.load_dotenv()
 
 
-def create_agent():
+async def create_agent():
     framework = AgentFramework.OPENAI
-    agent = AnyAgent.create(
+    agent = await AnyAgent.create_async(
         framework,
         AgentConfig(
             model_id="o3",
@@ -55,9 +55,9 @@ def build_run_instructions(user_prompt) -> str:
         return user_prompt_instance.amend_prompt(user_prompt)
 
 
-def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTrace:
+async def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTrace:
     try:
-        return agent.run(user_prompt, max_turns=max_turns)
+        return await agent.run_async(user_prompt, max_turns=max_turns)
     except AgentRunError as e:
         logger.error(f"Agent execution failed: {e}")
         logger.warning("Retrieved partial agent trace...")
@@ -107,7 +107,7 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         logger.warning(f"Warning: Failed to parse and save agent outputs: {str(e)}")
 
 
-def single_turn_generation(
+async def single_turn_generation(
     user_prompt: str,
     output_dir: Path | None = None,
     max_turns: int = 30,
@@ -120,17 +120,27 @@ def single_turn_generation(
     """
     output_dir = setup_output_directory(output_dir)
 
-    agent = create_agent()
+    agent = await create_agent()
     run_instructions = build_run_instructions(user_prompt)
 
-    agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
+    agent_trace = await run_agent(agent, run_instructions, max_turns=max_turns)
 
     save_agent_outputs(agent_trace, output_dir)
     logger.info(f"Workflow files saved in: {output_dir}")
 
 
+def async_fire(async_func):
+    """Wrapper to allow Fire to work with async functions."""
+    import asyncio
+
+    def sync_wrapper(*args, **kwargs):
+        return asyncio.run(async_func(*args, **kwargs))
+
+    return sync_wrapper
+
+
 def main():
-    fire.Fire(single_turn_generation)
+    fire.Fire(async_fire(single_turn_generation))
 
 
 if __name__ == "__main__":

@@ -14,6 +14,25 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="Overwrite/Update the output artifacts stored in `tests/artifacts`.",
     )
+    parser.addoption(
+        "--artifacts-dir",
+        action="store",
+        default=str(Path(__file__).parent / "artifacts"),
+        help="Directory containing the generated artifacts (default: tests/artifacts)",
+    )
+    parser.addoption("--prompt-id", action="store", default="test_prompt", help="ID of the prompt being tested")
+
+
+@pytest.fixture(scope="session")
+def artifacts_dir(request):
+    path = Path(request.config.getoption("--artifacts-dir"))
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture(scope="session")
+def prompt_id(request):
+    return request.config.getoption("--prompt-id")
 
 
 @pytest.fixture(scope="module")
