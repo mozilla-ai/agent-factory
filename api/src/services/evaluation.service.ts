@@ -94,9 +94,7 @@ export class EvaluationService {
       '-m',
       [
         'eval.run_generated_agent_evaluation',
-        evaluationCasePath,
-        agentTracePath,
-        evaluationResultsPath,
+        workflowDir,
       ],
       outputCallback,
       env,

@@ -18,9 +18,7 @@ def test_evaluation_runs_with_valid_inputs(tmpdir, sample_evaluation_json_file, 
         # The run_evaluation function is async, so we need to await it
         asyncio.run(
             run_evaluation(
-                evaluation_case_json_file=str(evaluation_case_path),
-                agent_trace_json_file=str(agent_trace_path),
-                save_evaluation_results_path=str(results_path),
+                generated_workflow_dir=str(tmpdir),
             )
         )
 

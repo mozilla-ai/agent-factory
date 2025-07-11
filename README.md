@@ -103,7 +103,7 @@ This will run the agent and save the agent trace as `agent_eval_trace.json` in t
 
 Run the evaluation case generator agent with your desired evaluation case prompt:
 ```bash
-python -m eval.generate_evaluation_case
+python -m eval.generate_evaluation_case generated_workflows/latest
 ```
 
 This will generate a JSON file in the `generated_workflows/latest` directory with evaluation criteria.
@@ -113,7 +113,7 @@ This will generate a JSON file in the `generated_workflows/latest` directory wit
 Evaluate the agent's execution trace against the generated evaluation case:
 
 ```bash
-python -m eval.run_generated_agent_evaluation
+python -m eval.run_generated_agent_evaluation  generated_workflows/latest
 ```
 This will display the evaluation criteria and show how the agent performed on each.
 
