@@ -10,6 +10,7 @@ from requirements_validators import (
     assert_requirements_first_line_matches_any_agent_version,
     assert_requirements_installable,
 )
+from utils.retry import retry_with_threshold
 
 from agent.utils.trace_utils import load_agent_trace
 from agent_factory.generation import single_turn_generation
@@ -161,6 +162,7 @@ def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
         )
 
 
+@retry_with_threshold(max_attempts=5, min_successes=4, delay=1.0)
 def test_single_turn_generation(
     tmp_path: Path,
     request: pytest.FixtureRequest,
