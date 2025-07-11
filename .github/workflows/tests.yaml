@@ -45,21 +45,21 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          pytest -xv tests/generation/test_single_turn_generation.py --prompt-id=summarize-url-content
+          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=summarize-url-content
 
       - name: Run Generation Test - URL to Podcast
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          pytest -xv tests/generation/test_single_turn_generation.py --prompt-id=url-to-podcast
+          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=url-to-podcast
 
       - name: Run Generation Test - Scoring Blueprints Submission
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          pytest -xv tests/generation/test_single_turn_generation.py --prompt-id=scoring-blueprints-submission
+          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=scoring-blueprints-submission
 
       - name: Run Generated Agent Evaluation tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'

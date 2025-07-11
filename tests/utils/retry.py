@@ -1,4 +1,4 @@
-"""Utility for retrying flaky tests with a minimum success threshold.
+"""Utility for running non-deterministic tests with a minimum success threshold.
 
 This module provides a decorator that runs a test function multiple times and passes only if
 the function succeeds at least a specified number of times within the maximum attempts.
@@ -15,7 +15,7 @@ T = TypeVar("T")
 ExceptionType = type[Exception] | tuple[type[Exception], ...]
 
 
-def retry_with_threshold(
+def run_until_success_threshold(
     max_attempts: int = 5, min_successes: int = 4, delay: float = 1.0, exceptions: ExceptionType = AssertionError
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator that runs a test until it passes at least min_successes times out of max_attempts.
@@ -50,6 +50,7 @@ def retry_with_threshold(
             max_failures_allowed = max_attempts - min_successes
 
             for attempt in range(1, max_attempts + 1):
+                logger.info(f"== Attempt {attempt}/{max_attempts} ==")
                 try:
                     result = func(*args, **kwargs)
                     successes += 1
