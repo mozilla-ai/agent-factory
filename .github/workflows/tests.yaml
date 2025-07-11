@@ -18,6 +18,10 @@ jobs:
   run-tests:
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test_case: [summarize-url-content, url-to-podcast, scoring-blueprints-submission]
+      fail-fast: false
 
     steps:
       - name: Check out the repository
@@ -40,26 +44,12 @@ jobs:
       - name: Run Generation unit tests
         run: pytest -v tests/generation/unit
 
-      - name: Run Generation Test - Summarize URL Content
+      - name: Run Generation Test - ${{ matrix.test_case }}
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=summarize-url-content
-
-      - name: Run Generation Test - URL to Podcast
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=url-to-podcast
-
-      - name: Run Generation Test - Scoring Blueprints Submission
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=scoring-blueprints-submission
+          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=${{ matrix.test_case }}
 
       - name: Run Generated Agent Evaluation tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
