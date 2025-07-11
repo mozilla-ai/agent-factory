@@ -12,28 +12,27 @@ from requirements_validators import (
 )
 from utils.retry import run_until_success_threshold
 
-from agent.utils.logging import logger
 from agent.utils.trace_utils import load_agent_trace
 from agent_factory.generation import single_turn_generation
 
 _RUN_COSTS = []
 
 
-def _log_run_cost_summary():
+def _print_run_cost_summary():
     if not _RUN_COSTS:
         return
 
     total_cost = sum(_RUN_COSTS)
     avg_cost = total_cost / len(_RUN_COSTS) if _RUN_COSTS else 0
 
-    logger.info("\n" + "=" * 60 + "\n" + "COST SUMMARY" + "\n" + "-" * 60)
-    logger.info(f"Number of successful runs: {len(_RUN_COSTS)}")
-    logger.info(f"Total cost: ${total_cost:.6f}")
-    logger.info(f"Average cost per run: ${avg_cost:.6f}")
-    logger.info("=" * 60 + "\n")
+    print("\n" + "=" * 60 + "\n" + "COST SUMMARY" + "\n" + "-" * 60)
+    print(f"Number of successful runs: {len(_RUN_COSTS)}")
+    print(f"Total cost: ${total_cost:.6f}")
+    print(f"Average cost per run: ${avg_cost:.6f}")
+    print("=" * 60 + "\n")
 
 
-atexit.register(_log_run_cost_summary)
+atexit.register(_print_run_cost_summary)
 
 # Add new "use cases" here, following this format:
 # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
