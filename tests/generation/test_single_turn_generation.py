@@ -1,5 +1,4 @@
 import ast
-import json
 from pathlib import Path
 from shutil import copytree
 
@@ -162,7 +161,7 @@ def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
         )
 
 
-@run_until_success_threshold(max_attempts=5, min_successes=4, delay=1.0)
+@run_until_success_threshold(max_attempts=2, min_successes=2, delay=1.0)
 def test_single_turn_generation(
     tmp_path: Path,
     request: pytest.FixtureRequest,
@@ -194,6 +193,7 @@ def test_single_turn_generation(
 
     # Assertions based on manufacturing agent's trace
     agent_trace = load_agent_trace(full_path / "agent_factory_trace.json")
+    print(f"Agent execution costs: {agent_trace.execution_costs.total_cost}")
     _assert_execution_time_within_limit(agent_trace, test_case["expected_execution_time"])
     _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
 
@@ -208,18 +208,3 @@ def test_single_turn_generation(
     update_artifacts = request.config.getoption("--update-artifacts")
     if update_artifacts:
         copytree(full_path, Path(__file__).parent.parent / "artifacts" / prompt_id, dirs_exist_ok=True)
-
-
-def test_full_agent_generation_and_cost_tracking(tmp_path):
-    # Actually run the agent factory and check costs are tracked
-    user_prompt = "Create a simple agent that says hello"
-
-    single_turn_generation(user_prompt, output_dir=tmp_path)
-
-    # Check all expected files exist with cost data
-    assert (tmp_path / "agent_factory_trace.json").exists()
-    assert (tmp_path / "agent.py").exists()
-
-    # Verify trace has execution_costs
-    trace_data = json.loads((tmp_path / "agent_factory_trace.json").read_text())
-    assert "execution_costs" in trace_data
