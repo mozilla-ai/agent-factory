@@ -1,4 +1,5 @@
 import ast
+import atexit
 from pathlib import Path
 from shutil import copytree
 
@@ -11,8 +12,28 @@ from requirements_validators import (
 )
 from utils.retry import run_until_success_threshold
 
+from agent.utils.logging import logger
 from agent.utils.trace_utils import load_agent_trace
 from agent_factory.generation import single_turn_generation
+
+_RUN_COSTS = []
+
+
+def _log_run_cost_summary():
+    if not _RUN_COSTS:
+        return
+
+    total_cost = sum(_RUN_COSTS)
+    avg_cost = total_cost / len(_RUN_COSTS) if _RUN_COSTS else 0
+
+    logger.info("\n" + "=" * 60 + "\n" + "COST SUMMARY" + "\n" + "-" * 60)
+    logger.info(f"Number of successful runs: {len(_RUN_COSTS)}")
+    logger.info(f"Total cost: ${total_cost:.6f}")
+    logger.info(f"Average cost per run: ${avg_cost:.6f}")
+    logger.info("=" * 60 + "\n")
+
+
+atexit.register(_log_run_cost_summary)
 
 # Add new "use cases" here, following this format:
 # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
@@ -161,7 +182,7 @@ def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
         )
 
 
-@run_until_success_threshold(max_attempts=2, min_successes=2, delay=1.0)
+@run_until_success_threshold(max_attempts=5, min_successes=4, delay=1.0)
 def test_single_turn_generation(
     tmp_path: Path,
     request: pytest.FixtureRequest,
@@ -193,7 +214,6 @@ def test_single_turn_generation(
 
     # Assertions based on manufacturing agent's trace
     agent_trace = load_agent_trace(full_path / "agent_factory_trace.json")
-    print(f"Agent execution costs: {agent_trace.execution_costs.total_cost}")
     _assert_execution_time_within_limit(agent_trace, test_case["expected_execution_time"])
     _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
 
@@ -204,6 +224,9 @@ def test_single_turn_generation(
 
     # Run code and trace validation tests defined in tests/generated_artifacts/
     validate_generated_artifacts(tmp_path, prompt_id)
+
+    # Cost tracking for successful runs
+    _RUN_COSTS.append(agent_trace.execution_costs.total_cost)
 
     update_artifacts = request.config.getoption("--update-artifacts")
     if update_artifacts:
