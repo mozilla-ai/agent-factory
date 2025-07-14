@@ -1,5 +1,4 @@
 import ast
-import atexit
 from pathlib import Path
 from shutil import copytree
 
@@ -14,25 +13,6 @@ from utils.non_deterministic_runs import run_until_success_threshold_async
 
 from agent.utils.trace_utils import load_agent_trace
 from agent_factory.generation import single_turn_generation
-
-_RUN_COSTS = []
-
-
-def _print_run_cost_summary():
-    if not _RUN_COSTS:
-        return
-
-    total_cost = sum(_RUN_COSTS)
-    avg_cost = total_cost / len(_RUN_COSTS) if _RUN_COSTS else 0
-
-    print("\n" + "=" * 60 + "\n" + "COST SUMMARY" + "\n" + "-" * 60)
-    print(f"Number of successful runs: {len(_RUN_COSTS)}")
-    print(f"Total cost: ${total_cost:.6f}")
-    print(f"Average cost per run: ${avg_cost:.6f}")
-    print("=" * 60 + "\n")
-
-
-atexit.register(_print_run_cost_summary)
 
 # Add new "use cases" here, following this format:
 # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
@@ -186,6 +166,7 @@ def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
 async def test_single_turn_generation(
     tmp_path: Path,
     request: pytest.FixtureRequest,
+    cost_tracker: list[float],
 ):
     """Test the generation of a single turn agent and validate the generated artifacts.
 
@@ -217,6 +198,9 @@ async def test_single_turn_generation(
     _assert_execution_time_within_limit(agent_trace, test_case["expected_execution_time"])
     _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
 
+    # Cost tracking for completed agent artifact generations (based on agent_factory_trace.json)
+    cost_tracker.append(agent_trace.execution_costs.total_cost)
+
     # Assertions based on requirements.txt
     assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")
     assert_mcp_uv_consistency(full_path / "agent.py", full_path / "requirements.txt")
@@ -224,9 +208,6 @@ async def test_single_turn_generation(
 
     # Run code and trace validation tests defined in tests/generated_artifacts/
     validate_generated_artifacts(tmp_path, prompt_id)
-
-    # Cost tracking for successful runs
-    _RUN_COSTS.append(agent_trace.execution_costs.total_cost)
 
     update_artifacts = request.config.getoption("--update-artifacts")
     if update_artifacts:
