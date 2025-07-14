@@ -40,6 +40,7 @@ def test_setup_output_directory_creates_nonexistent_parents(tmp_path):
     assert result.exists()
 
 
+@pytest.mark.asyncio
 async def test_run_agent_successful_returns_trace():
     """Tests that run_agent returns the AgentTrace object when the agent runs successfully."""
     mock_agent = AsyncMock()
@@ -53,6 +54,7 @@ async def test_run_agent_successful_returns_trace():
     mock_agent.run_async.assert_called_once_with("test prompt", max_turns=max_turns)
 
 
+@pytest.mark.asyncio
 async def test_run_agent_error_returns_trace():
     """Tests that when an AgentRunError occurs, the trace is returned."""
     # Create a mock trace that will be passed to AgentRunError
