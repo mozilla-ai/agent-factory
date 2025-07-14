@@ -10,7 +10,7 @@ from requirements_validators import (
     assert_requirements_first_line_matches_any_agent_version,
     assert_requirements_installable,
 )
-from utils.retry import run_until_success_threshold_async
+from utils.non_deterministic_runs import run_until_success_threshold_async
 
 from agent.utils.trace_utils import load_agent_trace
 from agent_factory.generation import single_turn_generation
