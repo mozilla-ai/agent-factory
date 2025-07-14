@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=48", "setuptools_scm[toml]>=6.3.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backend"
+description = "Agent Factory Backend"
+license = {text = "Apache-2.0"}
+readme = "README.md"
+requires-python = ">=3.13"
+dynamic = ["version"]
+dependencies = [
+    "fastapi[standard]>=0.115.0",
+    "openai>=1.91.0",
+    "pydantic>=2.11.0",
+    "pydantic-settings==2.10.0",
+    "uvicorn[standard]>=0.34.0",
+    "dotenv>=0.9.9",
+    "sqlalchemy[asyncio]==2.0.41",
+    "alembic>=1.16.2",
+    "a2a-sdk==0.2.8",
+    "celery>=5.4.0",
+    "redis>=5.0.7",
+    "debugpy>=1.8.2",
+    "rich>=14.0.0",
+    "boto3>=1.26.0",
+]
+
+[project.optional-dependencies]
+tests = [
+  "pytest>=8,<9",
+  "pytest-asyncio",
+  "pytest-mock",
+  "pytest-sugar>=0.9.6",
+  "pytest-lazy-fixtures>=1.1.2",
+  "pytest-timeout>=2.4.0",
+  "syrupy>=4.9.1",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests.*"]
+namespaces = false
+
+[project.urls]
+Documentation = "https://mozilla-ai.github.io/agent-factory/"
+Issues = "https://github.com/mozilla-ai/agent-factory/issues"
+Source = "https://github.com/mozilla-ai/agent-factory"

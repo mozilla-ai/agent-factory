@@ -25,18 +25,18 @@ frameworks without any code changes.
 
 1. Clone the repository and navigate to the agent's source directory:
    ```bash
-   git clone https://github.com/mzai/agent-factory.git
+   git clone https://github.com/mozilla-ai/agent-factory.git
    cd agent-factory/src/agent
    ```
 
-2. Activate the virtual environment:
-   ```bash
-   source .venv/bin/activate
-   ```
-
-3. Install the dependencies using `uv`:
+2. Install the dependencies using `uv`:
    ```bash
    uv sync
+   ```
+
+3. Activate the virtual environment:
+   ```bash
+   source .venv/bin/activate
    ```
 
 ### Running the Server
