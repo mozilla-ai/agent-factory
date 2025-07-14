@@ -19,7 +19,7 @@ from agent_factory.prompt import UserPrompt
 dotenv.load_dotenv()
 
 
-async def create_agent(drop_printspan_callback: bool = False):
+async def create_agent(disable_printspan_callback: bool = False):
     framework = AgentFramework.OPENAI
     agent_config = AgentConfig(
         model_id="o3",
@@ -28,7 +28,7 @@ async def create_agent(drop_printspan_callback: bool = False):
         output_type=AgentFactoryOutputs,
         model_args={"tool_choice": "required"},  # Ensure tool choice is required
     )
-    if drop_printspan_callback:
+    if disable_printspan_callback:
         for cb in agent_config.callbacks:
             # We drop the default ConsolePrintSpan callback for CI tests to avoid overloading the output
             if isinstance(cb, ConsolePrintSpan):
@@ -120,7 +120,7 @@ async def single_turn_generation(
     user_prompt: str,
     output_dir: Path | None = None,
     max_turns: int = 30,
-    drop_printspan_callback: bool = False,
+    disable_printspan_callback: bool = False,
 ) -> None:
     """Generate python code for an agentic workflow based on the user prompt.
 
@@ -128,11 +128,11 @@ async def single_turn_generation(
         user_prompt: The user's prompt describing the desired agent behavior.
         output_dir: Optional directory to save outputs to. If None, creates a unique directory.
         max_turns: Maximum number of turns to run the agent for.
-        drop_printspan_callback: Whether to drop the ConsolePrintSpan callback.
+        disable_printspan_callback: Whether to disable the ConsolePrintSpan callback.
     """
     output_dir = setup_output_directory(output_dir)
 
-    agent = await create_agent(drop_printspan_callback)
+    agent = await create_agent(disable_printspan_callback)
     run_instructions = build_run_instructions(user_prompt)
 
     agent_trace = await run_agent(agent, run_instructions, max_turns=max_turns)
