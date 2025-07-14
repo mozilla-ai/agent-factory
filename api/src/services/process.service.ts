@@ -369,21 +369,14 @@ export class ProcessService {
       const fullWorkflowPath = getWorkflowPath(workflowPath)
 
       // Build the specific file paths that the Python script expects
-      const evaluationCaseFile = `${fullWorkflowPath}/evaluation_case.json`
-      const agentTraceFile = `${fullWorkflowPath}/agent_eval_trace.json`
-      const resultsFile = `${fullWorkflowPath}/evaluation_results.json`
+      const workflowDir = `${fullWorkflowPath}`
 
       this.agentFactoryProcess = spawn(
         config.pythonExecutable,
         [
           '-m',
           'eval.run_generated_agent_evaluation',
-          '--evaluation_case_json_file',
-          evaluationCaseFile,
-          '--agent_trace_json_file',
-          agentTraceFile,
-          '--save_evaluation_results_path',
-          resultsFile,
+          workflowDir,
         ],
         {
           stdio: 'pipe',
