@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from any_agent import AgentRunError, AgentTrace
@@ -40,20 +40,20 @@ def test_setup_output_directory_creates_nonexistent_parents(tmp_path):
     assert result.exists()
 
 
-def test_run_agent_successful_returns_trace():
+async def test_run_agent_successful_returns_trace():
     """Tests that run_agent returns the AgentTrace object when the agent runs successfully."""
-    mock_agent = MagicMock(spec=["run"])
+    mock_agent = AsyncMock()
     max_turns = 30
     expected_trace = AgentTrace()
-    mock_agent.run.return_value = expected_trace
+    mock_agent.run_async.return_value = expected_trace
 
-    result = run_agent(mock_agent, "test prompt")
+    result = await run_agent(mock_agent, "test prompt", max_turns=max_turns)
 
     assert result == expected_trace
-    mock_agent.run.assert_called_once_with("test prompt", max_turns=max_turns)
+    mock_agent.run_async.assert_called_once_with("test prompt", max_turns=max_turns)
 
 
-def test_run_agent_error_returns_trace():
+async def test_run_agent_error_returns_trace():
     """Tests that when an AgentRunError occurs, the trace is returned."""
     # Create a mock trace that will be passed to AgentRunError
     expected_trace = AgentTrace()
@@ -68,11 +68,11 @@ def test_run_agent_error_returns_trace():
     # Create the error with the trace
     error = AgentRunError(original_exception=Exception("Test error"), trace=expected_trace)
 
-    mock_agent = MagicMock(spec=["run"])
-    mock_agent.run.side_effect = error
+    mock_agent = AsyncMock()
+    mock_agent.run_async.side_effect = error
 
     with patch("agent_factory.generation.logger") as mock_logger:
-        result = run_agent(mock_agent, "test prompt")
+        result = await run_agent(mock_agent, "test prompt")
 
         assert result == expected_trace
         mock_logger.error.assert_called_once_with(f"Agent execution failed: {error}")
