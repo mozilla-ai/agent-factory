@@ -51,6 +51,12 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     needs: run-tests
+    strategy:
+      matrix:
+        prompt_id:
+          - summarize-url-content
+          - url-to-podcast
+          - scoring-blueprints-submission
 
     steps:
       - name: Check out the repository
@@ -67,23 +73,11 @@ jobs:
           uv sync --group tests
           uv pip install -e .
 
-      - name: Run Generation Test - Summarize URL Content
+      - name: Run Generation Test - ${{ matrix.prompt_id }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=summarize-url-content
-
-      - name: Run Generation Test - URL to Podcast
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=url-to-podcast
-
-      - name: Run Generation Test - Scoring Blueprints Submission
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=scoring-blueprints-submission
+          pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=${{ matrix.prompt_id }}
 
       - name: Run Generated Agent Evaluation tests
         env:
