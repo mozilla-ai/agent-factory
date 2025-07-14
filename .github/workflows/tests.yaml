@@ -47,6 +47,7 @@ jobs:
           pytest tests/generated_artifacts/ -m manufacturing_agent_artifact_validation --prompt-id=scoring-blueprints-submission -v
 
   run-tests-requiring-api-key:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     runs-on: ubuntu-latest
     needs: run-tests
@@ -67,28 +68,24 @@ jobs:
           uv pip install -e .
 
       - name: Run Generation Test - Summarize URL Content
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=summarize-url-content
 
       - name: Run Generation Test - URL to Podcast
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=url-to-podcast
 
       - name: Run Generation Test - Scoring Blueprints Submission
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=scoring-blueprints-submission
 
       - name: Run Generated Agent Evaluation tests
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pytest -v tests/generated_agent_evaluation
