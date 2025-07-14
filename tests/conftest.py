@@ -2,9 +2,17 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
+
+
+@pytest.fixture(scope="session")
+def use_cases():
+    use_cases_path = project_root / "tests/generation/use_cases.yaml"
+    with use_cases_path.open() as f:
+        return yaml.safe_load(f)
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
