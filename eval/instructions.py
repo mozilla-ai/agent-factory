@@ -113,8 +113,9 @@ Always use openai/gpt-4.1 as the llm_judge.
 """  # noqa: E501
 
 INSTRUCTIONS_TEMPLATE = """
-1. List files in the generated_workflows/latest directory.
-2. Check the file generated_workflows/latest/agent.py.
+The generated_workflow_dir is {{ generated_workflow_dir }}.
+1. List files in the {{ generated_workflow_dir }} directory.
+2. Check the file {{ generated_workflow_dir }}/agent.py.
 3. Generate a comprehensive JSON evaluation file for the given agent.py script.
 
 Analyze the agent's task, tools, and expected workflow to create thorough evaluation criteria.
@@ -134,10 +135,13 @@ You may access to the following webpages using `visit_webpage` tool:
 
 """  # noqa: E501
 
-# Render the template with the WEBPAGE_DESCRIPTIONS dictionary
-template = Template(INSTRUCTIONS_TEMPLATE)
-INSTRUCTIONS = template.render(
-    webpage_descriptions=WEBPAGE_DESCRIPTIONS,
-    evaluation_categories=EVALUATION_CATEGORIES,
-    agent_script_and_json_example=AGENT_SCRIPT_AND_JSON_EXAMPLE,
-)
+
+def get_instructions(generated_workflow_dir: str) -> str:
+    """Get evaluation instructions with the generated_workflow_dir properly set."""
+    template = Template(INSTRUCTIONS_TEMPLATE)
+    return template.render(
+        generated_workflow_dir=generated_workflow_dir,
+        webpage_descriptions=WEBPAGE_DESCRIPTIONS,
+        evaluation_categories=EVALUATION_CATEGORIES,
+        agent_script_and_json_example=AGENT_SCRIPT_AND_JSON_EXAMPLE,
+    )

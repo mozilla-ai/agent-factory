@@ -13,22 +13,34 @@ from eval.generate_evaluation_case import JSONEvaluationCase
 
 
 async def run_evaluation(
-    evaluation_case_json_file: str = "generated_workflows/latest/evaluation_case.json",
-    agent_trace_json_file: str = "generated_workflows/latest/agent_eval_trace.json",
-    save_evaluation_results_path: str = "generated_workflows/latest/evaluation_results.json",
+    generated_workflow_dir: str = "generated_workflows/latest",
+    evaluation_case_json_file: str | None = None,
+    agent_trace_json_file: str | None = None,
+    save_evaluation_results_path: str | None = None,
 ):
     """Runs the evaluation process based on an evaluation case JSON file and an agent trace JSON file.
 
     Args:
-        evaluation_case_json_file (str): Path to the evaluation case JSON file.
-        Defaults to "generated_workflows/evaluation_case.json".
+        generated_workflow_dir (str): The directory of the generated workflow.
+        Defaults to "generated_workflows/latest".
 
-        agent_trace_json_file (str): Path to the agent trace JSON file.
-        Defaults to "generated_workflows/agent_eval_trace.json".
+        evaluation_case_json_file (str, optional): Path to the evaluation case JSON file.
+        If None, will use generated_workflow_dir/evaluation_case.json.
 
-        save_evaluation_results_path (str): Path to save the evaluation results JSON file.
-        Defaults to "generated_workflows/evaluation_results.json".
+        agent_trace_json_file (str, optional): Path to the agent trace JSON file.
+        If None, will use generated_workflow_dir/agent_eval_trace.json.
+
+        save_evaluation_results_path (str, optional): Path to save the evaluation results JSON file.
+        If None, will use generated_workflow_dir/evaluation_results.json.
     """
+    # Set default paths based on generated_workflow_dir if not provided
+    if evaluation_case_json_file is None:
+        evaluation_case_json_file = f"{generated_workflow_dir}/evaluation_case.json"
+    if agent_trace_json_file is None:
+        agent_trace_json_file = f"{generated_workflow_dir}/agent_eval_trace.json"
+    if save_evaluation_results_path is None:
+        save_evaluation_results_path = f"{generated_workflow_dir}/evaluation_results.json"
+
     try:
         # Load evaluation case from the specified JSON file
         with Path(evaluation_case_json_file).open(encoding="utf-8") as f:
