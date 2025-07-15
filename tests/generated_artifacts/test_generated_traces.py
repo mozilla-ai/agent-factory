@@ -26,7 +26,7 @@ def get_specific_tool_calls_by_name(trace: AgentTrace, tool_name: str) -> list:
         if span.is_tool_execution():
             output_content = span.get_output_content()
             if output_content and span.attributes.get("gen_ai.tool.name") == tool_name:
-                specific_tool_call_args.append(json.loads(span.attributes["gen_ai.tool.args"]))
+                specific_tool_call_args.append(json.loads(json.loads(span.attributes["gen_ai.tool.args"])))
     return specific_tool_call_args
 
 
