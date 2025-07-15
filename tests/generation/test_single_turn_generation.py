@@ -132,7 +132,7 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
                 "The newsletter should be structured into different sections. "
                 "The total newsletter should be concise, with an informal tone, and less than 300 words total. "
                 "Include links to relevant sources. "
-                "The newsletter should be posted to the weekly-newsletter channel."
+                "The newsletter should be posted to the weekly-newsletter Slack channel."
 )
             ),
             50,
