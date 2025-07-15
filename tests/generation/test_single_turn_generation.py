@@ -135,8 +135,8 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
                 "The newsletter should be posted to the weekly-newsletter Slack channel."
 )
             ),
-            50,
-            500,
+            40,
+            420,
         ),
         # Add new "use cases" here, following this format:
         # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
