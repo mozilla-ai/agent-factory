@@ -67,6 +67,28 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
         )
         assert all(term not in generated_agent_code for term in ("create_table", "append_insight"))
 
+    elif "slack-newsletter":
+        # Require search_tavily, extract_text_from_url, summarize_text_with_llm to be present
+        assert "search_tavily" in generated_agent_code
+        assert "extract_text_from_url" in generated_agent_code
+        assert "summarize_text_with_llm" in generated_agent_code
+        # Slack MCP related code matching
+        assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
+            "MCP server(s) required for scoring-blueprints-submission workflow"
+        )
+        # Ensure Slack is the only MCP server referenced
+        assert generated_agent_code.count("mcp/slack") == generated_agent_code.count("mcp/"), (
+            "Only mcp/slack should be referenced"
+        )
+        assert all(term in generated_agent_code for term in ("SLACK_BOT_TOKEN", "SLACK_TEAM_ID"))
+        assert "slack_list_channels" in generated_agent_code
+        assert "slack_post_message" in generated_agent_code
+        # Non-essential tools NOT used
+        assert all(
+            term not in generated_agent_code
+            for term in ("slack_get_users", "slack_get_channel_history", "slack_get_user_profile")
+        )
+
 
 def test_partial_trace_handling(generated_agent_code: str):
     """Test that the generated agent includes proper partial trace handling."""

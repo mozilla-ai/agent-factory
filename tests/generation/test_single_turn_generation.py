@@ -117,6 +117,27 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
             40,
             420,
         ),
+            # Agent with websearch tool and single MCP (Slack)
+        (
+            "slack-newsletter",
+            (
+(
+                "Create a newsletter for my company about the latest AI news and trends. "
+                "I need it to be based only on information from the following websites: "
+                "https://www.anthropic.com/news "
+                "https://news.mit.edu/topic/artificial-intelligence2 "
+                "https://bair.berkeley.edu/blog/ "
+                "https://deepmind.google/discover/blog/ "
+                "The newsletter should only be based on new information from the last week. "
+                "The newsletter should be structured into different sections. "
+                "The total newsletter should be concise, with an informal tone, and less than 300 words total. "
+                "Include links to relevant sources. "
+                "The newsletter should be posted to the weekly-newsletter channel."
+)
+            ),
+            50,
+            500,
+        ),
         # Add new "use cases" here, following this format:
         # prompt_id: the directory where the artifacts will be generated under the /tests/assets folder
         # prompt: the actual prompt to pass for agent generation
