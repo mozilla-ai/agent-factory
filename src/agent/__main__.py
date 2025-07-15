@@ -1,5 +1,3 @@
-import asyncio
-
 import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
@@ -57,4 +55,4 @@ async def main(
 
 
 if __name__ == "__main__":
-    asyncio.run(main(fire.Fire(main)))
+    fire.Fire(main)

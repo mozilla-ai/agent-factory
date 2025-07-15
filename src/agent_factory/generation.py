@@ -141,18 +141,8 @@ async def single_turn_generation(
     logger.info(f"Workflow files saved in: {output_dir}")
 
 
-def async_fire(async_func):
-    """Wrapper to allow Fire to work with async functions."""
-    import asyncio
-
-    def sync_wrapper(*args, **kwargs):
-        return asyncio.run(async_func(*args, **kwargs))
-
-    return sync_wrapper
-
-
 def main():
-    fire.Fire(async_fire(single_turn_generation))
+    fire.Fire(single_turn_generation)
 
 
 if __name__ == "__main__":
