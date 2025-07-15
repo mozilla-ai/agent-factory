@@ -1,5 +1,4 @@
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -32,7 +31,8 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
             "MCP server not required for summarize-url-content workflow"
         )
     elif "url-to-podcast" in request.node.callspec.id:
-        assert "extract_text_from_url" in generated_agent_code
+        # Either visit_webpage or extract_text_from_url should be used, using both is also fine
+        assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
         assert "generate_podcast_script_with_llm" in generated_agent_code
         assert "combine_mp3_files_for_podcast" in generated_agent_code
         # ElevenLabs MCP related code matching

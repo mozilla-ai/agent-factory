@@ -4,6 +4,7 @@ from pathlib import Path
 import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
+from any_agent.callbacks.span_print import ConsolePrintSpan
 from any_agent.tools import search_tavily, visit_webpage
 from any_agent.tracing.agent_trace import AgentTrace
 
@@ -18,17 +19,25 @@ from agent_factory.prompt import UserPrompt
 dotenv.load_dotenv()
 
 
-def create_agent():
+async def create_agent(disable_printspan_callback: bool = False):
     framework = AgentFramework.OPENAI
-    agent = AnyAgent.create(
+    agent_config = AgentConfig(
+        model_id="o3",
+        instructions=load_system_instructions(for_cli_agent=True),
+        tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
+        output_type=AgentFactoryOutputs,
+        model_args={"tool_choice": "required"},  # Ensure tool choice is required
+    )
+    if disable_printspan_callback:
+        for cb in agent_config.callbacks:
+            # We drop the default ConsolePrintSpan callback for CI tests to avoid overloading the output
+            if isinstance(cb, ConsolePrintSpan):
+                agent_config.callbacks.remove(cb)
+                break
+
+    agent = await AnyAgent.create_async(
         framework,
-        AgentConfig(
-            model_id="o3",
-            instructions=load_system_instructions(for_cli_agent=True),
-            tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
-            output_type=AgentFactoryOutputs,
-            model_args={"tool_choice": "required"},  # Ensure tool choice is required
-        ),
+        agent_config,
     )
     return agent
 
@@ -55,9 +64,9 @@ def build_run_instructions(user_prompt) -> str:
         return user_prompt_instance.amend_prompt(user_prompt)
 
 
-def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTrace:
+async def run_agent(agent: AnyAgent, user_prompt: str, max_turns: int = 30) -> AgentTrace:
     try:
-        return agent.run(user_prompt, max_turns=max_turns)
+        return await agent.run_async(user_prompt, max_turns=max_turns)
     except AgentRunError as e:
         logger.error(f"Agent execution failed: {e}")
         logger.warning("Retrieved partial agent trace...")
@@ -107,23 +116,26 @@ def save_agent_outputs(agent_trace: AgentTrace, output_dir: Path) -> None:
         logger.warning(f"Warning: Failed to parse and save agent outputs: {str(e)}")
 
 
-def single_turn_generation(
+async def single_turn_generation(
     user_prompt: str,
     output_dir: Path | None = None,
     max_turns: int = 30,
+    disable_printspan_callback: bool = False,
 ) -> None:
     """Generate python code for an agentic workflow based on the user prompt.
 
     Args:
         user_prompt: The user's prompt describing the desired agent behavior.
         output_dir: Optional directory to save outputs to. If None, creates a unique directory.
+        max_turns: Maximum number of turns to run the agent for.
+        disable_printspan_callback: Whether to disable the ConsolePrintSpan callback.
     """
     output_dir = setup_output_directory(output_dir)
 
-    agent = create_agent()
+    agent = await create_agent(disable_printspan_callback)
     run_instructions = build_run_instructions(user_prompt)
 
-    agent_trace = run_agent(agent, run_instructions, max_turns=max_turns)
+    agent_trace = await run_agent(agent, run_instructions, max_turns=max_turns)
 
     save_agent_outputs(agent_trace, output_dir)
     logger.info(f"Workflow files saved in: {output_dir}")

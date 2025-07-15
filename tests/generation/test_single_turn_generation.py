@@ -124,7 +124,8 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
         # expected_execution_time: the threshold max execution time (in seconds) for the agent to complete the task
     ],
 )
-def test_single_turn_generation(
+@pytest.mark.asyncio
+async def test_single_turn_generation(
     tmp_path: Path,
     prompt_id: str,
     prompt: str,
@@ -132,7 +133,7 @@ def test_single_turn_generation(
     expected_execution_time: int,
     request: pytest.FixtureRequest,
 ):
-    single_turn_generation(user_prompt=prompt, output_dir=tmp_path)
+    await single_turn_generation(user_prompt=prompt, output_dir=tmp_path)
 
     _assert_generated_files(tmp_path)
 
@@ -157,11 +158,12 @@ def test_single_turn_generation(
         copytree(tmp_path, Path(__file__).parent.parent / "artifacts" / prompt_id, dirs_exist_ok=True)
 
 
-def test_full_agent_generation_and_cost_tracking(tmp_path):
+@pytest.mark.asyncio
+async def test_full_agent_generation_and_cost_tracking(tmp_path):
     # Actually run the agent factory and check costs are tracked
     user_prompt = "Create a simple agent that says hello"
 
-    single_turn_generation(user_prompt, output_dir=tmp_path)
+    await single_turn_generation(user_prompt, output_dir=tmp_path)
 
     # Check all expected files exist with cost data
     assert (tmp_path / "agent_factory_trace.json").exists()

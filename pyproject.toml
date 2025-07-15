@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dynamic = ["version"]
 dependencies = [
-    "any-agent[all]==0.24.0",
+    "any-agent[all]==0.25.0",
     "jinja2>=3.1.2",
     "fire>=0.7.0",
     "dotenv>=0.9.9",
@@ -59,6 +59,7 @@ tests = [
   "pytest-lazy-fixtures>=1.1.2",
   "pytest-timeout>=2.4.0",
   "syrupy>=4.9.1",
+  "pytest-asyncio>=1.0.0",
 ]
 chainlit-demo = [
   "chainlit==2.6.0",

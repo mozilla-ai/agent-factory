@@ -10,7 +10,7 @@ from schemas import AgentFactoryOutputs
 dotenv.load_dotenv()
 
 
-def main(
+async def main(
     framework: str = "openai",
     model: str = "o3",
     host: str = "localhost",
@@ -33,7 +33,7 @@ def main(
             f"Invalid framework '{framework}'. Allowed values are: {[f.name.lower() for f in AgentFramework]}"
         ) from err
 
-    agent = AnyAgent.create(
+    agent = await AnyAgent.create_async(
         framework,
         AgentConfig(
             model_id=model,
@@ -45,7 +45,13 @@ def main(
         ),
     )
 
-    agent.serve(A2AServingConfig(host=host, port=port, log_level=log_level))
+    server_handle = await agent.serve_async(A2AServingConfig(host=host, port=port, log_level=log_level))
+
+    try:
+        # Keep the server running
+        await server_handle.task
+    except KeyboardInterrupt:
+        await server_handle.shutdown()
 
 
 if __name__ == "__main__":
