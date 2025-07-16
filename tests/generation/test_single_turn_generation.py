@@ -140,7 +140,7 @@ async def test_single_turn_generation(
 
     # Generate the agent
     full_path = tmp_path / prompt_id
-    await single_turn_generation(user_prompt=test_case["prompt"], output_dir=full_path)
+    await single_turn_generation(user_prompt=test_case["prompt"], output_dir=full_path, disable_printspan_callback=True)
 
     # Verify the expected files were generated
     _assert_generated_files(full_path)
