@@ -1,4 +1,5 @@
 import sys
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -64,7 +65,6 @@ def cost_tracker():
     during the test session.
     """
     run_costs = []
-    # Yield the list to the tests that use this fixture
     yield run_costs
 
     # The code below runs AFTER all tests in the session are complete
@@ -74,9 +74,13 @@ def cost_tracker():
     total_cost = sum(run_costs)
     avg_cost = total_cost / len(run_costs) if run_costs else 0
 
-    # Use pytest's reporting mechanism for cleaner output
-    print("\n" + "=" * 60 + "\n" + "COST SUMMARY" + "\n" + "-" * 60 + "\n")
-    print(f"Number of runs: {len(run_costs)}")
-    print(f"Total cost: ${total_cost:.6f}")
-    print(f"Average cost per run: ${avg_cost:.6f}")
-    print("=" * 60 + "\n")
+    summary_output = textwrap.dedent(f"""
+        {"=" * 60}
+        COST SUMMARY
+        {"-" * 60}
+        Number of runs: {len(run_costs)}
+        Total cost: ${total_cost:.3f}
+        Average cost per run: ${avg_cost:.3f}
+        {"=" * 60}
+    """)
+    print(summary_output)
