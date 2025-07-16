@@ -45,7 +45,6 @@ def run_until_success_threshold_async(
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> T:
             semaphore = asyncio.Semaphore(concurrency_limit)
-            max_failures_allowed = max_attempts - min_successes
 
             async def single_attempt(attempt_num: int) -> Any:
                 """Runs a single attempt of the decorated function, returning the result or exception."""
@@ -86,9 +85,9 @@ def run_until_success_threshold_async(
                         f"✅ Test passed with {successes} successful attempts out of {successes + failures} total attempts."
                     )
                     return successful_result
-                if failures > max_failures_allowed:
-                    break  # No point in checking further results if we have exceeded max_failures_allowed
-
+                remaining = max_attempts - (successes + failures)
+                if successes + remaining < min_successes:
+                    break  # No point in checking further results as we cannot reach min_successes
             # If loop completes without meeting the threshold
             error_msg = [
                 f"Test failed with {successes} successes out of {max_attempts} attempts. "
