@@ -45,6 +45,7 @@ def run_until_success_threshold_async(
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> T:
             semaphore = asyncio.Semaphore(concurrency_limit)
+            max_failures_allowed = max_attempts - min_successes
 
             async def single_attempt(attempt_num: int) -> Any:
                 """Runs a single attempt of the decorated function, returning the result or exception."""
@@ -62,33 +63,36 @@ def run_until_success_threshold_async(
                         logger.error(f"❌ Attempt {attempt_num + 1}/{max_attempts} failed: {e}")
                         return e
 
-            tasks = [single_attempt(i) for i in range(max_attempts)]
-            results = await asyncio.gather(*tasks)
-
-            successes = 0
-            failures = 0
-            successful_result = None
+            tasks = [asyncio.create_task(single_attempt(i)) for i in range(max_attempts)]
             exceptions_list = []
+            successes = 0
+            successful_result = None
 
-            for result in results:
-                if isinstance(result, Exception):
-                    failures += 1
-                    exceptions_list.append(result)
-                else:
-                    successes += 1
-                    if successful_result is None:
-                        successful_result = result
+            try:
+                for task_future in asyncio.as_completed(tasks):
+                    result = await task_future
+                    if isinstance(result, Exception):
+                        exceptions_list.append(result)
+                        failures = len(exceptions_list)
+                        if failures > max_failures_allowed:
+                            logger.warning("Test failing: success threshold can no longer be met.")
+                            break  # No point in checking further, as we cannot reach min_successes
+                    else:
+                        successes += 1
+                        if successful_result is None:
+                            successful_result = result
+                        if successes >= min_successes:
+                            logger.info(f"✅ Test passed with {successes} successful attempts.")
+                            return successful_result
+            finally:
+                # Cancel any outstanding tasks that are still running
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
+                # Wait for all tasks to complete (including cancelled ones) to avoid warnings
+                await asyncio.gather(*tasks, return_exceptions=True)
 
-                # Early exit if we have reached min_successes
-                if successes >= min_successes:
-                    logger.info(
-                        f"✅ Test passed with {successes} successful attempts out of {successes + failures} total attempts."
-                    )
-                    return successful_result
-                remaining = max_attempts - (successes + failures)
-                if successes + remaining < min_successes:
-                    break  # No point in checking further results as we cannot reach min_successes
-            # If loop completes without meeting the threshold
+            # If loop completes without meeting the threshold, display the errors encountered
             error_msg = [
                 f"Test failed with {successes} successes out of {max_attempts} attempts. "
                 f"Required at least {min_successes} successes."
