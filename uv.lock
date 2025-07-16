@@ -52,7 +52,7 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["all"], specifier = "==0.24.0" },
+    { name = "any-agent", extras = ["all"], specifier = "==0.25.0" },
     { name = "autoflake", specifier = ">=2.3.1" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = ">=0.7.0" },
@@ -220,7 +220,7 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "0.24.0"
+version = "0.25.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "duckduckgo-search" },
@@ -235,9 +235,9 @@ dependencies = [
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/15/d7/b3294b2505a76890396e9a78c460efe54c6ca61409011df7922815543d56/any_agent-0.24.0.tar.gz", hash = "sha256:21388d31c9296230d1349279c7bf7ca72729d2962677646c921acbc141a691f8", size = 323537 }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/5e/e9efb97dc6e1a95ad71515eccbc0affb9243ec94e51fe7b9be0d7caf2646/any_agent-0.25.0.tar.gz", hash = "sha256:cf020efebcb1875608073b2034f567ed923acca63f4d9843acb0de7dfc566a7c", size = 348972 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b9/f1/9234ce9d911b63ae09cdfcb7cb79f3314ae375dcbb17575060915c2ec736/any_agent-0.24.0-py3-none-any.whl", hash = "sha256:b4b11a1ff731472cbb4e2347b049455069e8530ed212573e9c54e399195cc110", size = 85729 },
+    { url = "https://files.pythonhosted.org/packages/c2/e3/00f68dbf89ff0bba71150def2cc8ce6ca977c2418f4addd310f6cc48b424/any_agent-0.25.0-py3-none-any.whl", hash = "sha256:215421b1e98cc49fbf28228f6d2e08b3187c7a823404c36a5ff172d53459ab6f", size = 100358 },
 ]
 
 [package.optional-dependencies]
@@ -245,7 +245,6 @@ all = [
     { name = "agno" },
     { name = "google-adk" },
     { name = "langchain" },
-    { name = "langchain-litellm" },
     { name = "langchain-mcp-adapters" },
     { name = "langgraph" },
     { name = "llama-index" },
@@ -1519,19 +1518,6 @@ wheels = [
 ]
 
 [[package]]
-name = "langchain-litellm"
-version = "0.2.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "langchain-core" },
-    { name = "litellm" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/47/ac/5c0c03a2fe3bf204d8632057d4276385e0b62d39bbe4fcd31884bfe355e7/langchain_litellm-0.2.1.tar.gz", hash = "sha256:962b130f21ba28fff6ebcf39099e9200a5f9c988f53be723e6d1279ea290e050", size = 10778 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e5/78/3c2d75715654d8190d20fba728b1651e0a91b3de5bf524295d40a33a1dfd/langchain_litellm-0.2.1-py3-none-any.whl", hash = "sha256:f23087f62f98d0e17b0f041a4fa909d78469fe46476665faf196948789444d30", size = 11527 },
-]
-
-[[package]]
 name = "langchain-mcp-adapters"
 version = "0.1.7"
 source = { registry = "https://pypi.org/simple" }
@@ -1641,7 +1627,7 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.72.4"
+version = "1.74.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1656,9 +1642,9 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/83/80/d73c821a2f65ee5b97b41e61d9b18324ebb9d616e1e21844f4253ac38957/litellm-1.72.4.tar.gz", hash = "sha256:8855de30f78bcb1f37af244519b37a37faaaf579401b1414400b5b5e5b616d57", size = 8132997 }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/e3/3091066f6682016840e9a36111560656b609b95de04b2ec7b19ad2580eaa/litellm-1.74.3.tar.gz", hash = "sha256:a9e87ebe78947ceec67e75f830f1c956cc653b84563574241acea9c84e7e3ca1", size = 9256457 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6f/0d/0f86db9724b9bd63d057b912aa6aa532a76e6e707f9bb75abbd3b0a0401a/litellm-1.72.4-py3-none-any.whl", hash = "sha256:f98ca994420ed649c466d423655a6e0f2aeecab4564ed372b3378a949e491dc2", size = 8036589 },
+    { url = "https://files.pythonhosted.org/packages/14/6f/07735b5178f32e28daf8a30ed6ad3e2c8c06ac374dc06aecde007110470f/litellm-1.74.3-py3-none-any.whl", hash = "sha256:638ec73633c6f2cf78a7343723d8f3bc13c192558fcbaa29f3ba6bc7802e8663", size = 8618899 },
 ]
 
 [[package]]
@@ -3883,7 +3869,7 @@ wheels = [
 
 [[package]]
 name = "smolagents"
-version = "1.19.0"
+version = "1.20.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "huggingface-hub" },
@@ -3893,9 +3879,9 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0a/84/685cc60ebf97499f8066e0645983fe4697ff6fc5edba03d0b6be9c350a51/smolagents-1.19.0.tar.gz", hash = "sha256:e05426d59950f6ee4d082b5704f3831c17dbef11fa739a1dfaae0ccbaee175fc", size = 186042 }
+sdist = { url = "https://files.pythonhosted.org/packages/35/ee/1733f20e8d181afc8acadb52ee8457e9c142735456d715ff47b25320341c/smolagents-1.20.0.tar.gz", hash = "sha256:b59950b7f6d4e51930bb651793046d9aea6856f8680651680c51a9202bec35ff", size = 196149 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6f/5c/2e1207d9dc17e31dfe2c67af34b3379f767351ef3cb55fd88677196439a4/smolagents-1.19.0-py3-none-any.whl", hash = "sha256:e33be79a85059613a771e29af8f24f1ed2f0d0d84c02bb1c503d655f1de5f4d3", size = 138209 },
+    { url = "https://files.pythonhosted.org/packages/04/f2/ea0dd074db7ef6e437e0ae8785529ce816d3b331c40d21cbe76a6f548816/smolagents-1.20.0-py3-none-any.whl", hash = "sha256:a838fcee1c06bae8f6c907992d2f08385f4a3a33938bb578e3c4f42111f9bd21", size = 145354 },
 ]
 
 [package.optional-dependencies]

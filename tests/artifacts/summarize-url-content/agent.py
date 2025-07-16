@@ -12,41 +12,37 @@ from pydantic import BaseModel, Field
 from fire import Fire
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
+# ADD BELOW HERE: tools made available by any-agent or agent-factory
 from tools.extract_text_from_url import extract_text_from_url
 from tools.summarize_text_with_llm import summarize_text_with_llm
 
 load_dotenv()
 
 # ========== Structured output definition ==========
+# ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    url: str = Field(..., description="The webpage URL that was summarized.")
-    summary: str = Field(..., description="A concise paragraph summarizing the page content.")
+    url: str = Field(..., description="The webpage URL provided by the user.")
+    extracted_text: str = Field(..., description="The main textual content extracted from the webpage.")
+    summary: str = Field(..., description="A concise summary (≤200 words) of the webpage content.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an assistant that produces concise summaries of webpages by following this structured, two-step workflow:
-1. Extract Main Text
-   • Use the `extract_text_from_url` tool to fetch the webpage located at the user-supplied URL and return its primary textual content (body, articles, posts). Strip boilerplate such as navigation, ads, and footer text. Work on English and non-English pages alike.
-   • If no meaningful text is found, respond with an error message in the summary field indicating the page is empty or not accessible.
-
-2. Summarize Content
-   • Pass the extracted text to `summarize_text_with_llm` requesting a concise, well-structured paragraph (≈150 words maximum). Capture the essence, key points, and tone without adding new information.
-   • Ensure the summary is self-contained—readers should grasp the page topic without visiting the link.
-
-Output Requirements
-• Always return a JSON object matching the `StructuredOutput` schema.
-• Do not include any additional keys. Do not reveal internal tool calls or reasoning.
-• Keep the summary free of sensitive or private data.
-• If an error occurs at any step, return the URL and a brief error explanation in the `summary` field.
-
+You are an assistant that, given a webpage URL, returns a concise summary of its main content. Work through these steps:
+1. Use the `extract_text_from_url` tool to visit the page and extract the primary textual content. Strip away navigation menus, ads, footers, scripts, and any non-informative elements. Keep only the meaningful body text.
+2. Pass the extracted text to the `summarize_text_with_llm` tool. Produce a clear, accurate, and self-contained summary no longer than 200 words. The summary must capture the key points and overall message of the page without adding external information.
+3. Reply **only** with a JSON object that matches the `StructuredOutput` schema. Populate:
+   • `url` – the original URL.
+   • `extracted_text` – the cleaned raw text you retrieved.
+   • `summary` – the 200-word (max) summary you generated.
+Follow the steps strictly, do not skip any, and do not include any additional fields in the final response.
 '''
 
 # ========== Tools definition ===========
+# ========= Tools definition =========
 TOOLS = [
-    extract_text_from_url,          # fetch & extract webpage text
-    summarize_text_with_llm,        # create concise summary with an LLM
+    extract_text_from_url,      # fetch & clean page text
+    summarize_text_with_llm,    # produce concise summary
 ]
-
 
  
 
@@ -63,7 +59,7 @@ agent = AnyAgent.create(
 )
 
 def main(url: str):
-    """Given a webpage URL, this agent extracts the main textual content of the page and delivers a concise summary."""
+    """Extracts text from a webpage and returns a concise summary of its content."""
     input_prompt = f"Summarize the content of the following webpage: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)

@@ -8,7 +8,7 @@ from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 from pydantic import BaseModel, Field
 
-from eval.instructions import INSTRUCTIONS
+from eval.instructions import get_instructions
 
 dotenv.load_dotenv()
 
@@ -47,7 +47,7 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
         framework,
         AgentConfig(
             model_id="gpt-4.1",
-            instructions=INSTRUCTIONS,
+            instructions=get_instructions(generated_workflow_dir),
             tools=[
                 visit_webpage,
                 search_tavily,
@@ -76,7 +76,7 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
     )
 
     run_instructions = """
-    Read the generated_workflows/latest/agent.py script and generate a JSON evaluation case for it.
+    Read the {generated_workflow_dir}/agent.py script and generate a JSON evaluation case for it.
     The criteria generated must:
     - be specific, measurable, and independent.
     - should not be vague or open-ended or generic.
@@ -84,7 +84,7 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
     - be solely based on the agent's INSTRUCTIONS, tools in the agent configuration (including MCPs) and output_type JSON structured output.
     You may ignore the framework name and model_id in the agent configuration.
     """  # noqa: E501
-    agent_trace = agent.run(run_instructions, max_turns=30)
+    agent_trace = agent.run(run_instructions.format(generated_workflow_dir=generated_workflow_dir), max_turns=30)
 
     cost_info = agent_trace.cost
     evaluation_case_generation_costs = {
