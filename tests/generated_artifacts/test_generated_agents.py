@@ -68,9 +68,10 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
         assert all(term not in generated_agent_code for term in ("create_table", "append_insight"))
 
     elif "slack-newsletter" in request.node.callspec.id:
-        # Require search_tavily, visit_webpage to be present
+        # Require search_tavily
         assert "search_tavily" in generated_agent_code
-        assert "visit_webpage" in generated_agent_code
+        # Either visit_webpage or extract_text_from_url used
+        assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
         # Slack MCP related code matching
         assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
             "MCP server(s) required for scoring-blueprints-submission workflow"
