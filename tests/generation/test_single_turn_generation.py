@@ -117,11 +117,10 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
             40,
             420,
         ),
-            # Agent with websearch tool and single MCP (Slack)
+        # Agent with websearch tool and single MCP (Slack)
         (
             "slack-newsletter",
             (
-(
                 "Create a newsletter for my company about the latest AI news and trends. "
                 "I need it to be based only on information from the following websites: "
                 "https://www.anthropic.com/news "
@@ -132,8 +131,7 @@ def _assert_num_turns_within_limit(agent_trace: AgentTrace, expected_num_turns: 
                 "The newsletter should be structured into different sections. "
                 "The total newsletter should be concise, with an informal tone, and less than 300 words total. "
                 "Include links to relevant sources. "
-                "The newsletter should be posted to the weekly-newsletter Slack channel."
-)
+                "Find the Slack channel called ‘weekly-newsletter’ and post the newsletter there."
             ),
             40,
             420,

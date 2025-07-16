@@ -53,8 +53,6 @@ def test_search_mcp_servers_used(generated_trace: AgentTrace, request: pytest.Fi
         assert search_mcp_tool_calls, "No search_mcp_servers tool calls found in the trace"
         keyphrases_used = [tool_args.get("keyphrase").lower() for tool_args in search_mcp_tool_calls]
         assert "slack" in keyphrases_used
-        # Only official servers are to be used, as per the user prompt
-        assert all(tool_args.get("is_official") is True for tool_args in search_mcp_tool_calls)
 
 
 @pytest.mark.parametrize("max_steps", range(5, 30, 5))

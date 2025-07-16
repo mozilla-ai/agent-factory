@@ -13,8 +13,7 @@ from pydantic import BaseModel, Field
 from fire import Fire
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
-from any_agent.tools import search_tavily
-from tools.extract_text_from_url import extract_text_from_url
+from any_agent.tools import search_tavily, visit_webpage
 from tools.summarize_text_with_llm import summarize_text_with_llm
 from any_agent.config import MCPStdio
 
@@ -22,58 +21,58 @@ load_dotenv()
 
 # ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    newsletter_text: str = Field(..., description="The exact newsletter text that was posted to Slack.")
-    word_count: int = Field(..., description="Total number of words in the newsletter (should be < 300).")
-    source_links: list[str] = Field(..., description="List of all article URLs referenced in the newsletter.")
-    slack_message_ts: str | None = Field(None, description="Timestamp ID returned by slack_post_message indicating successful post.")
+    newsletter_text: str = Field(..., description="The full newsletter content that was posted to Slack.")
+    word_count: int = Field(..., description="Total number of words in the newsletter text.")
+    posted: bool = Field(..., description="True if the Slack post succeeded, else False.")
+    channel_id: str | None = Field(None, description="Slack channel ID where the newsletter was posted.")
+    message_ts: str | None = Field(None, description="Slack message timestamp of the posted newsletter.")
+    sources: list[str] = Field(..., description="List of source article URLs referenced in the newsletter.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an autonomous assistant that prepares and publishes our company’s weekly AI newsletter in a concise, informal tone (max 300 words).  Follow this exact 6-step workflow and do not skip or merge steps:
+You are an autonomous newsletter assistant.  Follow this precise multi-step workflow:
 
-Step 1 – Gather fresh links (last 7 days only)
-• For each site in this list:
-  - https://www.anthropic.com/news
-  - https://news.mit.edu/topic/artificial-intelligence2
-  - https://bair.berkeley.edu/blog/
-  - https://deepmind.google/discover/blog/
-• Use the search_tavily tool with the query:  "site:{DOMAIN} artificial intelligence past week" (replace {DOMAIN}).
-• Collect up to 3 recent article URLs per site that were published within the last 7 days.
+1. Establish the current date (today) and calculate the date 7 days ago (inclusive).
+2. For EACH of the four given websites
+   • https://www.anthropic.com/news
+   • https://news.mit.edu/topic/artificial-intelligence2
+   • https://bair.berkeley.edu/blog/
+   • https://deepmind.google/discover/blog/
+   perform a focused web search limited to that domain for articles published within the last week.
+   – Use search_tavily with a query like:
+     "site:{domain} artificial intelligence after:{yyyy-mm-dd}" where the after date is 7 days ago.
+   – Collect up to 3 of the most relevant, non-duplicate URLs per site (skip if none are recent).
+3. Visit each selected URL with visit_webpage to retrieve its full content in Markdown.
+4. Summarise each article to 1–2 informal sentences (≈30 words) using summarize_text_with_llm.  Preserve the factual information, keep the tone friendly, and capture the key takeaway.  Return a tuple (summary, url).
+5. Group the summaries by source site in this order and label each section with the organisation’s name:
+   “Anthropic”, “MIT AI”, “Berkeley BAIR”, “Google DeepMind”.  Within a section, list bullet points (–) in the same order you processed them.  Add the hyperlink immediately after each bullet.
+6. Assemble all sections into a single newsletter headed: "📢 Weekly AI Round-Up (<today’s ISO date>)".  Ensure the total body (everything after the heading) is UNDER 300 words.  Keep an upbeat, conversational style.
+7. Count words to confirm <300.  If over, shorten individual bullet phrases rather than deleting entire points.
+8. Post the final newsletter text to the Slack public channel named “weekly-newsletter”.  
+   – First call slack_list_channels, find the channel whose name exactly matches “weekly-newsletter” (case-insensitive).  Retrieve its id.
+   – Then call slack_post_message with that channel id and the newsletter text.
+   – On success capture the message timestamp.
+9. Produce a structured JSON response with:
+   newsletter_text  (the exact posted newsletter),
+   word_count       (int),
+   posted           (bool true if Slack post succeeded),
+   channel_id,      (Slack id),
+   message_ts,      (Slack timestamp),
+   sources          (list of all URLs referenced).
 
-Step 2 – Extract article text
-• For every gathered URL, call extract_text_from_url and retain the raw text.
-
-Step 3 – Summarise
-• For each article’s raw text, call summarize_text_with_llm asking for a 1-sentence informal summary (include a call-to-action style when suitable).  Keep the returned summary under 35 words.
-
-Step 4 – Compose newsletter
-• Organise the article summaries into four sections titled “Anthropic”, “MIT AI”, “BAIR”, and “DeepMind”.
-• Begin with a friendly opener (e.g., “Hey team – here’s what’s hot in AI this week…”).
-• Under each section, use bullet points for each article:  1-sentence summary followed by the hyperlink in parentheses.
-• Ensure the entire newsletter is < 300 words and remains informal.
-
-Step 5 – Publish to Slack
-• Post the final newsletter text to the channel named "weekly-newsletter" using slack_post_message.
-• The message must mention “Enjoy the read!” at the end.
-
-Step 6 – Final JSON output
-Return a JSON object matching StructuredOutput with:
-• newsletter_text – the exact text posted to Slack
-• word_count – integer word count
-• source_links – list of all URLs cited
-• slack_message_ts – the timestamp (ts) returned by slack_post_message
-
-General rules:
-• Only use the specified tools.
-• Never fabricate content or sources; if no new items for a section, write “No major updates this week.”
-• Respect the 300-word limit – truncating politely if needed.
+Strictly follow the steps, use only the authorised tools, do not fabricate information, and never exceed 300 words in the newsletter.
 '''
 
 # ========== Tools definition ===========
+from any_agent.tools import search_tavily, visit_webpage
+from tools.summarize_text_with_llm import summarize_text_with_llm
+from any_agent.config import MCPStdio
+import os
+
 TOOLS = [
-    search_tavily,                  # find recent links within each site
-    extract_text_from_url,          # pull full article text
-    summarize_text_with_llm,        # create short informal summaries
+    search_tavily,           # find recent articles
+    visit_webpage,           # fetch article content
+    summarize_text_with_llm, # LLM summarisation
     MCPStdio(
         command="docker",
         args=[
@@ -91,7 +90,8 @@ TOOLS = [
             "SLACK_TEAM_ID": os.getenv("SLACK_TEAM_ID"),
         },
         tools=[
-            "slack_post_message",  # send the newsletter
+            "slack_list_channels",
+            "slack_post_message",
         ],
     ),
 ]
@@ -110,9 +110,9 @@ agent = AnyAgent.create(
     ),
 )
 
-def main():
-    """Fetch last-week AI articles from the four specified sites, summarise them, create a <300-word informal newsletter, and post it to the #weekly-newsletter Slack channel."""
-    input_prompt = f"Create this week’s company AI newsletter following the multi-step workflow."
+def main(company_name: str):
+    """Generate a concise (<300 words) weekly AI-news newsletter for the given company, drawn from four specified research-organisation sites, and post it to the Slack channel “weekly-newsletter”."""
+    input_prompt = f"Create a weekly AI newsletter for {company_name}."
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:

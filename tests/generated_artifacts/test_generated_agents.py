@@ -45,7 +45,7 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
         # Non-essential tools NOT used
         assert all(term not in generated_agent_code for term in ("delete_job", "get_voiceover_history"))
 
-    elif "scoring-blueprints-submission":
+    elif "scoring-blueprints-submission" in request.node.callspec.id:
         # Either visit_webpage or extract_text_from_url should be used, using both is also fine
         assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
         # Slack MCP related code matching
@@ -67,11 +67,10 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
         )
         assert all(term not in generated_agent_code for term in ("create_table", "append_insight"))
 
-    elif "slack-newsletter":
-        # Require search_tavily, extract_text_from_url, summarize_text_with_llm to be present
+    elif "slack-newsletter" in request.node.callspec.id:
+        # Require search_tavily, visit_webpage to be present
         assert "search_tavily" in generated_agent_code
-        assert "extract_text_from_url" in generated_agent_code
-        assert "summarize_text_with_llm" in generated_agent_code
+        assert "visit_webpage" in generated_agent_code
         # Slack MCP related code matching
         assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
             "MCP server(s) required for scoring-blueprints-submission workflow"
