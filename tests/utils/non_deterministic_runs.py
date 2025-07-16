@@ -53,9 +53,12 @@ def run_until_success_threshold_async(
                     logger.info(f"🔄 Starting attempt {attempt_num + 1}/{max_attempts}")
                     try:
                         if asyncio.iscoroutinefunction(func):
-                            return await func(*args, **kwargs)
-                        loop = asyncio.get_event_loop()
-                        return await loop.run_in_executor(None, lambda: func(*args, **kwargs))
+                            result = await func(*args, **kwargs)
+                        else:
+                            loop = asyncio.get_event_loop()
+                            result = await loop.run_in_executor(None, lambda: func(*args, **kwargs))
+                        logger.info(f"✅ Attempt {attempt_num + 1}/{max_attempts} succeeded.")
+                        return result
                     except exceptions as e:
                         logger.error(f"❌ Attempt {attempt_num + 1}/{max_attempts} failed: {e}")
                         return e
