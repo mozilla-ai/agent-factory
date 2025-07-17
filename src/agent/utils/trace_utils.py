@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from any_agent.tracing.agent_trace import AgentTrace
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 class ExecutionCosts(BaseModel):
@@ -11,7 +11,6 @@ class ExecutionCosts(BaseModel):
 
 
 class AgentTraceWithExecutionCosts(AgentTrace):
-    model_config = ConfigDict(extra="allow")
     execution_costs: ExecutionCosts
 
 
