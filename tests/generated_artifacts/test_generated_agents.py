@@ -4,18 +4,6 @@ from pathlib import Path
 import pytest
 
 
-@pytest.fixture
-def agent_file(artifacts_dir, prompt_id):
-    """Fixture to get the agent file path for the current prompt."""
-    return artifacts_dir / prompt_id / "agent.py"
-
-
-@pytest.fixture
-def generated_agent_code(agent_file):
-    """Fixture to read the agent code."""
-    return agent_file.read_text()
-
-
 @pytest.mark.artifact_validation
 def test_specific_tool_used(generated_agent_code: str, prompt_id: str):
     """Test that the correct tools are used based on the prompt ID."""

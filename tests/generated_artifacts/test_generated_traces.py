@@ -5,18 +5,6 @@ import pytest
 from any_agent import AgentTrace
 
 
-@pytest.fixture
-def agent_factory_trace_file(artifacts_dir: Path, prompt_id: str) -> Path:
-    """Fixture to get the trace file path for the current prompt."""
-    return artifacts_dir / prompt_id / "agent_factory_trace.json"
-
-
-@pytest.fixture
-def agent_factory_trace(agent_factory_trace_file: Path) -> AgentTrace:
-    """Fixture to load and validate the trace for the current prompt."""
-    return AgentTrace.model_validate_json(agent_factory_trace_file.read_text())
-
-
 def get_specific_tool_calls_by_name(trace: AgentTrace, tool_name: str) -> list:
     """Helper function to get all tool call args of a specific type from a trace."""
     specific_tool_call_args = []

@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from any_agent import AgentTrace
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
@@ -37,6 +38,30 @@ def artifacts_dir(request):
     path = Path(request.config.getoption("--artifacts-dir"))
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+@pytest.fixture
+def agent_file(artifacts_dir, prompt_id):
+    """Fixture to get the agent file path for the current prompt."""
+    return artifacts_dir / prompt_id / "agent.py"
+
+
+@pytest.fixture
+def generated_agent_code(agent_file):
+    """Fixture to read the agent code."""
+    return agent_file.read_text()
+
+
+@pytest.fixture
+def agent_factory_trace_file(artifacts_dir: Path, prompt_id: str) -> Path:
+    """Fixture to get the trace file path for the current prompt."""
+    return artifacts_dir / prompt_id / "agent_factory_trace.json"
+
+
+@pytest.fixture
+def agent_factory_trace(agent_factory_trace_file: Path) -> AgentTrace:
+    """Fixture to load and validate the trace for the current prompt."""
+    return AgentTrace.model_validate_json(agent_factory_trace_file.read_text())
 
 
 @pytest.fixture(scope="session")
