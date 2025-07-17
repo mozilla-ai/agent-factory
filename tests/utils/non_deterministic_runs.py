@@ -18,7 +18,7 @@ ExceptionType = type[Exception] | tuple[type[Exception], ...]
 def run_until_success_threshold_async(
     max_attempts: int = 5,
     min_successes: int = 4,
-    exceptions: ExceptionType = AssertionError,
+    exceptions: ExceptionType = (AssertionError, ValueError, RuntimeError, SyntaxError),
     concurrency_limit: int = 2,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Async decorator that runs a test until it passes at least min_successes times out of max_attempts.
