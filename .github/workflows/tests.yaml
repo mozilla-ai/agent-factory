@@ -41,9 +41,9 @@ jobs:
 
       - name: Run Generated Artifacts tests
         run: |
-          pytest tests/generated_artifacts/ -m manufacturing_agent_artifact_validation --prompt-id=summarize-url-content -v
-          pytest tests/generated_artifacts/ -m manufacturing_agent_artifact_validation --prompt-id=url-to-podcast -v
-          pytest tests/generated_artifacts/ -m manufacturing_agent_artifact_validation --prompt-id=scoring-blueprints-submission -v
+          pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=summarize-url-content -v
+          pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=url-to-podcast -v
+          pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=scoring-blueprints-submission -v
 
   run-generation-tests:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'

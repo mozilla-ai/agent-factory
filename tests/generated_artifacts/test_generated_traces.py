@@ -28,13 +28,13 @@ def get_specific_tool_calls_by_name(trace: AgentTrace, tool_name: str) -> list:
     return specific_tool_call_args
 
 
-@pytest.mark.manufacturing_agent_artifact_validation
+@pytest.mark.artifact_validation
 def test_any_tool_used(agent_factory_trace: AgentTrace):
     """Test that at least one tool was used in the trace."""
     assert any(span.is_tool_execution() for span in agent_factory_trace.spans), "No tools were used"
 
 
-@pytest.mark.manufacturing_agent_artifact_validation
+@pytest.mark.artifact_validation
 def test_search_mcp_servers_used(agent_factory_trace: AgentTrace, prompt_id: str):
     """Test if the search_mcp_servers tool was used as expected with the desired keyphrases."""
     if "summarize-url-content" in prompt_id:
@@ -55,7 +55,7 @@ def test_search_mcp_servers_used(agent_factory_trace: AgentTrace, prompt_id: str
         assert all(tool_args.get("is_official") is True for tool_args in search_mcp_tool_calls)
 
 
-@pytest.mark.manufacturing_agent_artifact_validation
+@pytest.mark.artifact_validation
 @pytest.mark.parametrize("max_steps", range(5, 30, 5))
 def test_steps_taken(agent_factory_trace: AgentTrace, max_steps: int):
     """Test that the number of steps taken is within the expected range."""
@@ -64,7 +64,7 @@ def test_steps_taken(agent_factory_trace: AgentTrace, max_steps: int):
     assert len(agent_factory_trace.spans) < max_steps
 
 
-@pytest.mark.manufacturing_agent_artifact_validation
+@pytest.mark.artifact_validation
 @pytest.mark.parametrize("max_tokens", range(1000, 50000, 5000))
 def test_tokens_used(agent_factory_trace: AgentTrace, max_tokens: int):
     """Test that the number of tokens used is within the expected range."""

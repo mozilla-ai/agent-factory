@@ -16,7 +16,7 @@ def generated_agent_code(agent_file):
     return agent_file.read_text()
 
 
-@pytest.mark.manufacturing_agent_artifact_validation
+@pytest.mark.artifact_validation
 def test_specific_tool_used(generated_agent_code: str, prompt_id: str):
     """Test that the correct tools are used based on the prompt ID."""
     if "summarize-url-content" in prompt_id:
@@ -61,7 +61,7 @@ def test_specific_tool_used(generated_agent_code: str, prompt_id: str):
         assert all(term not in generated_agent_code for term in ("create_table", "append_insight"))
 
 
-@pytest.mark.manufacturing_agent_artifact_validation
+@pytest.mark.artifact_validation
 def test_partial_trace_handling(generated_agent_code: str):
     """Test that the generated agent includes proper partial trace handling."""
     assert "except AgentRunError as e:" in generated_agent_code
@@ -69,7 +69,7 @@ def test_partial_trace_handling(generated_agent_code: str):
     assert "partial" in generated_agent_code.lower() and "trace" in generated_agent_code.lower()
 
 
-@pytest.mark.manufacturing_agent_artifact_validation
+@pytest.mark.artifact_validation
 def test_agent_basic_execution(artifacts_dir: Path, prompt_id: str, timeout: int = 30):
     """Test if the agent can start without immediate crash."""
     agent_file = artifacts_dir / prompt_id / "agent.py"
