@@ -32,7 +32,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           uv sync --group tests
-          uv pip install -e .
 
       - name: Run Code tests
         run: pytest -v tests/agent_factory
@@ -72,7 +71,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           uv sync --group tests
-          uv pip install -e .
 
       - name: Run Generation Test - ${{ matrix.prompt_id }}
         env:
@@ -99,7 +97,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           uv sync --group tests
-          uv pip install -e .
 
       - name: Run Generated Agent Evaluation tests
         env:
