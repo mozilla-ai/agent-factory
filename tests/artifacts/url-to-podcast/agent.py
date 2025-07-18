@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 from fire import Fire
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
+from typing import Literal, List
+from any_agent.config import MCPStdio
 from tools.extract_text_from_url import extract_text_from_url
 from tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm
 from tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast
@@ -20,64 +22,71 @@ from tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast
 load_dotenv()
 
 # ========== Structured output definition ==========
+class DialogSegment(BaseModel):
+    speaker: Literal["Host", "Guest"] = Field(..., description="Speaker label (Host or Guest).")
+    text: str = Field(..., description="Text spoken by the speaker in this segment.")
+    audio_file: str = Field(..., description="Path to the generated mp3 file for this segment.")
+
 class StructuredOutput(BaseModel):
-    url: str = Field(..., description="The source webpage URL")
-    script_text: str = Field(..., description="The generated 1-minute dialogue script")
-    line_mp3_files: list[str] = Field(..., description="Ordered list of mp3 files—one per dialogue turn")
-    final_podcast_mp3: str = Field(..., description="Path to the combined final podcast mp3 file")
+    final_podcast_mp3: str = Field(..., description="Path to the final combined podcast mp3 file.")
+    segments: List[DialogSegment] = Field(..., description="Ordered list of dialogue segments with corresponding audio files.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an autonomous podcast-producer that must turn any public web page into a crisp 1-minute dialogue podcast.  Follow this exact multi-step workflow and use the provided tools only.
+You are a podcast-production assistant that follows this precise multi-step workflow to create a 1-minute podcast from a webpage URL:
+STEP 1 – Extract Source Text
+•   Receive the webpage URL from the user.
+•   Call `extract_text_from_url(url=<user URL>)` to fetch and return the main textual content (ignore navigation, ads, etc.).
 
-STEP 1 ‑ FETCH SOURCE TEXT
-• Call extract_text_from_url(url) with the user supplied URL.
-• If an error string is returned, immediately halt and return a structured output explaining the failure.
-• Keep the raw text for later steps.
+STEP 2 – Draft Podcast Script
+•   Call `generate_podcast_script_with_llm` with arguments:
+    – `text`  = extracted content from STEP 1
+    – `num_speakers` = 2
+    – `style` = "friendly interview"
+    – `max_words` ≈ 160 (≈1-minute spoken audio)
+•   The tool returns a JSON list of dialogue turns in order, each turn containing:
+        {"speaker": "Host"|"Guest", "text": "…"}
+•   Ensure the list alternates speakers starting with Host and ending with Host or Guest such that total script length ≈ 1 minute.
 
-STEP 2 ‑ WRITE A 1-MINUTE SCRIPT (≈140-170 spoken words)
-• Call generate_podcast_script_with_llm(document_text=raw_text, num_hosts=2).
-• Instruct the LLM via the tool arguments/system prompt to:
-    – Produce a lively, factual dialogue that lasts ~1 minute when read aloud ( ≈ 150 words).
-    – Alternate turns labelled exactly “Host:” and “Guest:” (no numbering).
-    – Put each turn on its own line (no blank lines).
-• Save the script text. Verify it contains at least 4 but no more than 14 alternating turns.
+STEP 3 – Text-to-Speech for Each Turn
+•   For each dialogue turn i (preserve order):
+     – If speaker == "Host", call `text_to_speech` with `text=<turn text>`, `voice_name`="Adam" (or user-provided host voice), `output_filename` = f"host_{i}.mp3".
+     – If speaker == "Guest", call `text_to_speech` with `text=<turn text>`, `voice_name`="Rachel" (or user-provided guest voice), `output_filename` = f"guest_{i}.mp3".
+•   Collect generated mp3 file paths in the same order as the dialogue list.
 
-STEP 3 ‑ GENERATE MP3 PER LINE
-• For each line in the script:
-    – Strip the “Host:” / “Guest:” label to get the spoken text.
-    – Select a voice:
-        ▷ Host → default ElevenLabs voice (omit voice_id to use account default).
-        ▷ Guest → if ELEVENLABS_VOICE_ID env var is set, pass it; otherwise also use default.
-    – Call generate_audio_simple(text, voice_id?) to create an mp3.
-    – Collect returned file paths in the original script order.
+STEP 4 – Combine Audio Files
+•   Call `combine_mp3_files_for_podcast(mp3_file_paths=<ordered list>, output_filename="podcast_final.mp3")` to merge individual segments into one seamless podcast file.
 
-STEP 4 ‑ COMBINE INTO A SINGLE PODCAST FILE
-• Call combine_mp3_files_for_podcast(mp3_files=list_of_paths, output_filename="final_podcast.mp3").
-• If ffmpeg fails, halt and report the error via structured output.
-
-STEP 5 ‑ RETURN RESULTS
-Return a JSON object conforming to StructuredOutput with:
-    url – original URL
-    script_text – full dialogue script
-    line_mp3_files – ordered list of per-turn mp3 paths
-    final_podcast_mp3 – path of the combined 1-minute podcast file.
-
-General Rules
-• Never invent content: base everything on the extracted page text.
-• The total runtime must stay around one minute.
-• Think step-by-step, but do not reveal chain-of-thought to the user.
-• Use only the declared tools; no internet browsing or extra libraries.
-• All errors must surface as a clean StructuredOutput with explanatory text.
+STEP 5 – Return Structured Output
+Return a JSON object following the `StructuredOutput` schema:
+{
+  "final_podcast_mp3": "podcast_final.mp3",
+  "segments": [
+        {"speaker": "Host",  "text": "…", "audio_file": "host_1.mp3"},
+        {"speaker": "Guest", "text": "…", "audio_file": "guest_2.mp3"},
+        …
+  ]
+}
+General Rules:
+•   Always respect the step order; do not skip or reorder steps.
+•   Only call the specified tools with the minimal required arguments.
+•   Keep total dialogue length to ~160 words for ~60 seconds of speech.
+•   Never fabricate content; base the script on the extracted webpage text.
+•   If any step fails, return a clear error message in the corresponding field.
 '''
 
 # ========== Tools definition ===========
 from any_agent.config import MCPStdio
+import os
+from tools.extract_text_from_url import extract_text_from_url
+from tools.generate_podcast_script_with_llm import generate_podcast_script_with_llm
+from tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast
 
 TOOLS = [
     extract_text_from_url,
     generate_podcast_script_with_llm,
     combine_mp3_files_for_podcast,
+    # ElevenLabs text-to-speech via MCP
     MCPStdio(
         command="docker",
         args=[
@@ -92,7 +101,7 @@ TOOLS = [
             "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
         },
         tools=[
-            "generate_audio_simple",
+            "text_to_speech",
         ],
     ),
 ]
@@ -112,8 +121,8 @@ agent = AnyAgent.create(
 )
 
 def main(url: str):
-    """Generate a 1-minute, two-person dialogue podcast from a webpage URL, synthesize each line with ElevenLabs, and return the script plus mp3 file paths."""
-    input_prompt = f"Create a 1-minute podcast (host & guest) based on the content at this URL: {url}"
+    """Generate a 1-minute podcast mp3 from the textual content of the provided webpage URL, using interleaved dialogue between a Host and a Guest, and return paths of generated audio files in structured form."""
+    input_prompt = f"Create a 1-minute podcast based on the content at this URL: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
