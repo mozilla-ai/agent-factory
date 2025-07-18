@@ -44,7 +44,7 @@ def test_search_mcp_servers_used(agent_factory_trace: AgentTrace, prompt_id: str
 
 
 @pytest.mark.artifact_validation
-@pytest.mark.parametrize("max_steps", range(5, 30, 5))
+@pytest.mark.parametrize("max_steps", range(5, 40, 5))
 def test_steps_taken(agent_factory_trace: AgentTrace, max_steps: int):
     """Test that the number of steps taken is within the expected range."""
     if max_steps <= len(agent_factory_trace.spans):
@@ -53,7 +53,7 @@ def test_steps_taken(agent_factory_trace: AgentTrace, max_steps: int):
 
 
 @pytest.mark.artifact_validation
-@pytest.mark.parametrize("max_tokens", range(1000, 50000, 5000))
+@pytest.mark.parametrize("max_tokens", range(5000, 60000, 5000))
 def test_tokens_used(agent_factory_trace: AgentTrace, max_tokens: int):
     """Test that the number of tokens used is within the expected range."""
     if max_tokens <= agent_factory_trace.tokens.total_tokens:
