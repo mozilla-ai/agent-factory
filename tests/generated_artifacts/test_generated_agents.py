@@ -48,7 +48,7 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
             for term in ("text_to_sound_effects", "create_agent", "speech_to_speech", "speech_to_text")
         )
 
-    elif "scoring-blueprints-submission":
+    elif "scoring-blueprints-submission" in request.node.callspec.id:
         # Either visit_webpage or extract_text_from_url should be used, using both is also fine
         assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
         # Slack MCP related code matching
@@ -69,6 +69,28 @@ def test_specific_tool_used(generated_agent_code: str, request: pytest.FixtureRe
             for term in ("slack_get_users", "slack_get_channel_history", "slack_get_user_profile")
         )
         assert all(term not in generated_agent_code for term in ("create_table", "append_insight"))
+
+    elif "slack-newsletter" in request.node.callspec.id:
+        # Require search_tavily
+        assert "search_tavily" in generated_agent_code
+        # Either visit_webpage or extract_text_from_url used
+        assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
+        # Slack MCP related code matching
+        assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
+            "MCP server(s) required for scoring-blueprints-submission workflow"
+        )
+        # Ensure Slack is the only MCP server referenced
+        assert generated_agent_code.count("mcp/slack") == generated_agent_code.count("mcp/"), (
+            "Only mcp/slack should be referenced"
+        )
+        assert all(term in generated_agent_code for term in ("SLACK_BOT_TOKEN", "SLACK_TEAM_ID"))
+        assert "slack_list_channels" in generated_agent_code
+        assert "slack_post_message" in generated_agent_code
+        # Non-essential tools NOT used
+        assert all(
+            term not in generated_agent_code
+            for term in ("slack_get_users", "slack_get_channel_history", "slack_get_user_profile")
+        )
 
 
 def test_partial_trace_handling(generated_agent_code: str):
