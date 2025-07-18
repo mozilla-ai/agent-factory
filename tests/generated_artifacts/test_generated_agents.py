@@ -24,10 +24,14 @@ def test_specific_tool_used(generated_agent_code: str, prompt_id: str):
             "MCP server(s) required for url-to-podcast workflow"
         )
         # Necessary ElevenLabs MCP tools used
-        assert "generate_audio_" in generated_agent_code
+        assert "text_to_speech" in generated_agent_code
         # Non-essential tools NOT used
-        assert all(term not in generated_agent_code for term in ("delete_job", "get_voiceover_history"))
-    elif "scoring-blueprints-submission" in prompt_id:
+        assert all(
+            term not in generated_agent_code
+            for term in ("text_to_sound_effects", "create_agent", "speech_to_speech", "speech_to_text")
+        )
+    elif "scoring-blueprints-submission":
+        # Either visit_webpage or extract_text_from_url should be used, using both is also fine
         assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
         # Slack MCP related code matching
         assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (

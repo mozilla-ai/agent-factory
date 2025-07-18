@@ -3,7 +3,7 @@ from typing import Any
 
 from mcpm.utils.repository import RepositoryManager
 
-DEFAULT_REGISTRY_URL = "https://getmcp.io/api/servers.json"
+DEFAULT_REGISTRY_URL = "https://mcpm.sh/api/servers.json"
 
 KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "docker_url", "examples")
 
