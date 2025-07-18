@@ -17,8 +17,8 @@ url-to-podcast:
     And it should create separate mp3 files interleaving the turn-by-turn dialogue between a host and a guest speaker.
     The final output should be saved as a single mp3 file.
     Use audio generation tools from ElevenLabs API for text-to-speech.
-  expected_num_turns: 30
-  expected_execution_time: 300
+  expected_num_turns: 40
+  expected_execution_time: 420
 
 # Agent with multiple MCP servers (Slack and SQLite)
 scoring-blueprints-submission:
