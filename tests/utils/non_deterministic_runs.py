@@ -16,16 +16,16 @@ ExceptionType = type[Exception] | tuple[type[Exception], ...]
 
 
 def run_until_success_threshold_async(
-    max_attempts: int = 5,
-    min_successes: int = 4,
     exceptions: ExceptionType = (AssertionError, ValueError, RuntimeError, SyntaxError),
     concurrency_limit: int = 2,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Async decorator that runs a test until it passes at least min_successes times out of max_attempts.
 
+    The decorator is configured via the test function's kwargs, which SHOULD include:
+    - max_attempts: Maximum number of attempts to make (must be >= min_successes)
+    - min_successes: Minimum number of successful attempts required (must be <= max_attempts)
+
     Args:
-        max_attempts: Maximum number of attempts to make (must be >= min_successes).
-        min_successes: Minimum number of successful attempts required (must be <= max_attempts).
         exceptions: An exception or tuple of exceptions to catch and count as a failure.
         concurrency_limit: Maximum number of concurrent test runs.
 
@@ -36,14 +36,22 @@ def run_until_success_threshold_async(
         ValueError: If max_attempts < min_successes or min_successes < 1.
         Exception: The last exception raised by the test if it fails to meet the success threshold.
     """
-    if max_attempts < min_successes:
-        raise ValueError(f"max_attempts ({max_attempts}) must be >= min_successes ({min_successes})")
-    if min_successes < 1:
-        raise ValueError(f"min_successes ({min_successes}) must be >= 1")
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> T:
+            if "max_attempts" not in kwargs or "min_successes" not in kwargs:
+                raise ValueError(
+                    "Both 'max_attempts' and 'min_successes' must be provided in the test function's kwargs"
+                )
+
+            max_attempts = kwargs["max_attempts"]
+            min_successes = kwargs["min_successes"]
+
+            if max_attempts < min_successes:
+                raise ValueError(f"max_attempts ({max_attempts}) must be >= min_successes ({min_successes})")
+            if min_successes < 1:
+                raise ValueError(f"min_successes ({min_successes}) must be >= 1")
             semaphore = asyncio.Semaphore(concurrency_limit)
             max_failures_allowed = max_attempts - min_successes
 

@@ -40,33 +40,47 @@ def artifacts_dir(request):
     return path
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
+def prompt_id(request):
+    return request.config.getoption("--prompt-id")
+
+
+@pytest.fixture(scope="session")
+def max_attempts(request, use_cases):
+    """Fixture to provide max_attempts from the use case YAML based on --prompt-id."""
+    prompt_id = request.config.getoption("--prompt-id")
+    return use_cases[prompt_id]["max_attempts"]
+
+
+@pytest.fixture(scope="session")
+def min_successes(request, use_cases):
+    """Fixture to provide min_successes from the use case YAML based on --prompt-id."""
+    prompt_id = request.config.getoption("--prompt-id")
+    return use_cases[prompt_id]["min_successes"]
+
+
+@pytest.fixture(scope="session")
 def agent_file(artifacts_dir, prompt_id):
     """Fixture to get the agent file path for the current prompt."""
     return artifacts_dir / prompt_id / "agent.py"
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def generated_agent_code(agent_file):
     """Fixture to read the agent code."""
     return agent_file.read_text()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def agent_factory_trace_file(artifacts_dir: Path, prompt_id: str) -> Path:
     """Fixture to get the trace file path for the current prompt."""
     return artifacts_dir / prompt_id / "agent_factory_trace.json"
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def agent_factory_trace(agent_factory_trace_file: Path) -> AgentTrace:
     """Fixture to load and validate the trace for the current prompt."""
     return AgentTrace.model_validate_json(agent_factory_trace_file.read_text())
-
-
-@pytest.fixture(scope="session")
-def prompt_id(request):
-    return request.config.getoption("--prompt-id")
 
 
 @pytest.fixture(scope="module")

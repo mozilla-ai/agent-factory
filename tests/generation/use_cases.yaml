@@ -1,6 +1,8 @@
 # Add new use cases for testing agent generation here
 # expected_num_turns: the threshold max number of turns for the agent to complete the task
 # expected_execution_time: the threshold max execution time (in seconds) for the agent to complete the task
+# max_attempts: the maximum number of attempts to run the test in CI
+# min_successes: the minimum number of successes for the test to be considered as pass
 
 # Agent with no MCP tools needed
 summarize-url-content:
@@ -9,6 +11,8 @@ summarize-url-content:
     Do not search for or assign MCP servers among the tools.
   expected_num_turns: 15
   expected_execution_time: 120
+  max_attempts: 5
+  min_successes: 4
 
 # Agent with MCP single MCP server (ElevenLabs)
 url-to-podcast:
@@ -19,6 +23,8 @@ url-to-podcast:
     Use audio generation tools from ElevenLabs API for text-to-speech.
   expected_num_turns: 40
   expected_execution_time: 420
+  max_attempts: 5
+  min_successes: 3
 
 # Agent with multiple MCP servers (Slack and SQLite)
 scoring-blueprints-submission:
@@ -34,3 +40,5 @@ scoring-blueprints-submission:
     along with only the necessary subset of tools required for the task at hand.
   expected_num_turns: 40
   expected_execution_time: 420
+  max_attempts: 5
+  min_successes: 3
