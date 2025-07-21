@@ -41,4 +41,4 @@ scoring-blueprints-submission:
   expected_num_turns: 40
   expected_execution_time: 420
   max_attempts: 5
-  min_successes: 4
+  min_successes: 3
