@@ -1,6 +1,9 @@
 import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
+from any_agent.callbacks import get_default_callbacks
+from any_agent.callbacks.base import Callback
+from any_agent.callbacks.context import Context
 from any_agent.serving import A2AServingConfig
 from any_agent.tools import search_tavily, visit_webpage
 from factory_tools import read_file, search_mcp_servers
@@ -10,8 +13,21 @@ from schemas import AgentFactoryOutputs
 dotenv.load_dotenv()
 
 
-def main(
-    framework: str = "openai",
+class LimitLLMCalls(Callback):
+    def __init__(self, max_calls: int):
+        self.max_calls = max_calls
+
+    def before_llm_call(self, context: Context, *args, **kwargs) -> Context:
+        if "n_llm_calls" not in context.shared:
+            context.shared["n_llm_calls"] = 0
+        context.shared["n_llm_calls"] += 1
+        if context.shared["n_llm_calls"] > self.max_calls:
+            raise RuntimeError("Reached limit of tool calls")
+        return context
+
+
+async def main(
+    framework: str = "tinyagent",
     model: str = "o3",
     host: str = "localhost",
     port: int = 8080,
@@ -33,7 +49,7 @@ def main(
             f"Invalid framework '{framework}'. Allowed values are: {[f.name.lower() for f in AgentFramework]}"
         ) from err
 
-    agent = AnyAgent.create(
+    agent = await AnyAgent.create_async(
         framework,
         AgentConfig(
             model_id=model,
@@ -42,10 +58,17 @@ def main(
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             model_args={"tool_choice": "auto"},  # Ensure tool choice is required
             output_type=AgentFactoryOutputs,
+            callbacks=[LimitLLMCalls(max_calls=10), *get_default_callbacks()],
         ),
     )
 
-    agent.serve(A2AServingConfig(host=host, port=port, log_level=log_level))
+    server_handle = await agent.serve_async(A2AServingConfig(host=host, port=port, log_level=log_level))
+
+    try:
+        # Keep the server running
+        await server_handle.task
+    except KeyboardInterrupt:
+        await server_handle.shutdown()
 
 
 if __name__ == "__main__":

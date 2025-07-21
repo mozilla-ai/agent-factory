@@ -185,6 +185,9 @@ generated_workflows
 
 # chainlit
 .chainlit/translations
+src/playground/.chainlit/translations
+src/playground/chainlit.md
+src/playground/.chainlit/config.toml
 
 # VS Code
 .vscode/
