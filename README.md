@@ -117,15 +117,6 @@ python -m eval.run_generated_agent_evaluation  generated_workflows/latest
 ```
 This will display the evaluation criteria and show how the agent performed on each.
 
-
-## How to run the API
-
-See detailed instructions in [api/README.md](api/README.md).
-
-## How to run the UI
-
-See detailed instructions in [ui/README.md](ui/README.md).
-
 ## Multi-turn Agent Building with Chainlit
 
 You can interact with the agent-factory using [Chainlit](https://docs.chainlit.io/get-started/overview) for multi-turn conversations:
