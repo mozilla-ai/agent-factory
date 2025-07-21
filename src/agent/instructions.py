@@ -10,6 +10,7 @@ TOOLS_REMINDER = """Use appropriate tools in the agent configuration:
 - Select relevant tools from `tools/README.md`.
 - Use the `search_mcp_servers` tool to discover and add MCP servers that provide relevant tools
     to the configuration.
+- Always start your planning process using `sequentialthinking_tools` to obtain intelligent tool suggestions.
 
 Always use the simplest and most efficient tools available for the task.
 """
@@ -439,7 +440,7 @@ Any-agent library enables you to:
 - Implement comprehensive tracing and evaluation capabilities
 
 **Any-agent Code Generation Instructions**
-
+Always start by using sequentialthinking_tools to plan the code generation process.
 {{ code_generation_instructions }}
 
 {{ agent_code_template }}

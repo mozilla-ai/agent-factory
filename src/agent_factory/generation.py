@@ -5,6 +5,7 @@ import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AgentRunError, AnyAgent
 from any_agent.callbacks.span_print import ConsolePrintSpan
+from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
 from any_agent.tracing.agent_trace import AgentTrace
 
@@ -20,11 +21,24 @@ dotenv.load_dotenv()
 
 
 async def create_agent(disable_printspan_callback: bool = False):
+    TOOLS = [
+        search_tavily,
+        visit_webpage,
+        search_mcp_servers,
+        read_file,
+        MCPStdio(
+            command="npx",
+            args=["-y", "mcp-sequentialthinking-tools"],
+            env={
+                "MAX_HISTORY_SIZE": "1000",
+            },
+        ),
+    ]
     framework = AgentFramework.OPENAI
     agent_config = AgentConfig(
         model_id="o3",
         instructions=load_system_instructions(for_cli_agent=True),
-        tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
+        tools=TOOLS,
         output_type=AgentFactoryOutputs,
         model_args={"tool_choice": "required"},  # Ensure tool choice is required
     )
