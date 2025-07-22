@@ -9,17 +9,17 @@ license = {text = "Apache-2.0"}
 readme = "README.md"
 requires-python = ">=3.13"
 dynamic = ["version"]
-dependencies = [
-    "any-agent[all]==0.24.0",
-    "jinja2>=3.1.2",
-    "fire>=0.7.0",
-    "dotenv>=0.9.9",
-    "pyyaml>=6.0.2",
-    "mcpm>=1.0.3", # installing a newer version of mcpm conflicts with the current version of chainlit (2.6.0), see dependency-groups below
-    "pre-commit>=4.2.0",
-    "rich>=14.0.0",
-    "autoflake>=2.3.1",
-]
+
+[tool.poetry.dependencies]
+any-agent = { version = "0.24.0", extras = ["all"] }
+jinja2 = ">=3.1.2"
+fire = ">=0.7.0"
+dotenv = ">=0.9.9"
+pyyaml = ">=6.0.2"
+pre-commit = ">=4.2.0"
+rich = ">=14.0.0"
+autoflake = ">=2.3.1"
+mcpd = { git = "https://github.com/mozilla-ai/mcpd-sdk-python.git", branch = "kostis-s-z/endpoint" }
 
 [project.urls]
 Documentation = "https://mozilla-ai.github.io/agent-factory/"
@@ -35,6 +35,9 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools_scm]
+
+[tool.uv.sources]
+mcpd = { git = "https://github.com/mozilla-ai/mcpd-sdk-python.git", rev = "kostis-s-z/endpoint" }
 
 [dependency-groups]
 dev = [
