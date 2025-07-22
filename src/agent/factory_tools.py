@@ -1,14 +1,14 @@
 from pathlib import Path
 from typing import Any
 
-from mcpm.utils.repository import RepositoryManager
+from mcpd import McpdClient
 
 DEFAULT_REGISTRY_URL = "https://getmcp.io/api/servers.json"
 
 KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "docker_url", "examples")
 
 
-def _cleanup_mcp_server_info(server_info):
+def _cleanup_mcp_server_info(server_info: dict[str, Any]) -> dict[str, Any]:
     for k in KEYS_TO_DROP:
         server_info.pop(k, None)
 
@@ -18,11 +18,34 @@ def _cleanup_mcp_server_info(server_info):
     return server_info
 
 
+def _filter_servers_by_keyphrase(servers: dict[str, dict[str, Any]], keyphrase: str) -> list[dict[str, Any]]:
+    filtered_results = []
+
+    for server_name, metadata in servers.items():
+        if (
+            keyphrase in server_name.lower()
+            or keyphrase in metadata.get("description", "").lower()
+            or keyphrase in metadata.get("display_name", "").lower()
+        ):
+            filtered_results.append({"name": server_name} | metadata)
+            continue
+
+        if "tags" in metadata and any(keyphrase in tag.lower() for tag in metadata["tags"]):
+            filtered_results.append({"name": server_name} | metadata)
+            continue
+
+        if "categories" in metadata and any(keyphrase in cat.lower() for cat in metadata["categories"]):
+            filtered_results.append({"name": server_name} | metadata)
+            continue
+
+    return filtered_results
+
+
 def search_mcp_servers(keyphrase: str, is_official: bool = False) -> list[dict[str, Any]]:
     """Search for available MCP servers based on a single keyphrase (one or more words separated by spaces).
 
     This function queries the MCP server registry and filters the results based on the provided
-    keyphrase. The keyphrase can be a part of the server name, description, or tags.
+    keyphrase. The keyphrase can be a part of the server name or other metadata.
 
     It returns a list of matching servers, and if no servers match the criteria, it returns an empty
     list.
@@ -40,6 +63,8 @@ def search_mcp_servers(keyphrase: str, is_official: bool = False) -> list[dict[s
 
     Returns:
         A list of server descriptions that match the search criteria.
+        Each server description is in the format
+            'server1': {'name': 'Tool1', 'description': 'This is...', tools: [{...}, ...], ...}
         If no servers match, returns an empty list.
         Returns official servers if `is_official` is set to `True`.
 
@@ -49,8 +74,12 @@ def search_mcp_servers(keyphrase: str, is_official: bool = False) -> list[dict[s
     if not keyphrase.strip() or any(sep in keyphrase for sep in [","]):
         raise ValueError("Keyphrase must be a single word (no commas)")
 
-    repository_manager = RepositoryManager(repo_url=DEFAULT_REGISTRY_URL)
-    servers = repository_manager.search_servers(keyphrase.strip().lower())
+    keyphrase_norm = keyphrase.strip().lower()
+
+    client = McpdClient(api_endpoint=DEFAULT_REGISTRY_URL)
+    servers_with_metadata = client.servers()
+
+    servers = _filter_servers_by_keyphrase(servers_with_metadata, keyphrase_norm)  # type: ignore
 
     if is_official:
         servers = filter(lambda server: server.get("is_official", False), servers)
