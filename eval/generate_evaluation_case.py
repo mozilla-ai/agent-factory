@@ -6,9 +6,8 @@ import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from any_agent.tools import search_tavily, visit_webpage
-from pydantic import BaseModel, Field
-
 from eval.instructions import get_instructions
+from pydantic import BaseModel, Field
 
 dotenv.load_dotenv()
 

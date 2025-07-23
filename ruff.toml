@@ -31,8 +31,6 @@ exclude = [
   "venv",
   "archive",
   "bazel-*",
-  "api/.*",
-  "ui/.*",
 ]
 
 line-length = 120
@@ -54,7 +52,6 @@ select = [
 
 # Avoid trying to fix flake8-bugbear (`B`) violations.
 unfixable = ["B", "SIM", "TRY", "RUF"]
-
 
 ignore = [
   # TODO:  remove D101, D102, D103 after we get settled
@@ -111,7 +108,6 @@ known-first-party = ["mzai"]
 ignore-variadic-names = true
 
 [format]
-
 # Like Black, use double quotes for strings.
 quote-style = "double"
 
@@ -123,6 +119,5 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
-
 
 docstring-code-format = true
