@@ -13,7 +13,7 @@ help:
 	@echo "Available targets:"
 	@echo "  build           - Build the Docker image for Agent Factory A2A server"
 	@echo "  run             - Run the A2A server in Docker"
-	@echo "  stop            - Stop the running container"
+	@echo "  stop            - Stop the running agent-factory-a2a container"
 	@echo "  clean           - Remove Docker containers and images"
 
 # Build the Docker image
@@ -35,12 +35,10 @@ run: build
 		$(DOCKER_IMAGE):$(DOCKER_TAG)
 	@echo "Server running at http://$(A2A_SERVER_HOST):$(A2A_SERVER_PORT)"
 
-# Stop the running container
 .PHONY: stop
 stop:
 	@docker stop $(DOCKER_CONTAINER) 2>/dev/null || true
 
-# Clean up Docker resources
 .PHONY: clean
 clean: stop
 	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG) 2>/dev/null || true
