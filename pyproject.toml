@@ -24,7 +24,7 @@ requires = ["setuptools>=48", "setuptools_scm[toml]>=6.3.1"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-agent-factory = "agent_factory.test_client:main"
+agent-factory = "agent_factory.agent_generation:main"
 
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]

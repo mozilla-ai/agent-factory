@@ -17,7 +17,7 @@ PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
 
 
-async def generate(
+async def generate_target_agent(
     message: str,
     output_dir: Path | None = None,
     host: str = "localhost",
@@ -52,7 +52,7 @@ async def generate(
 
 
 def main():
-    fire.Fire(generate)
+    fire.Fire(generate_target_agent)
 
 
 if __name__ == "__main__":
