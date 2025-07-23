@@ -85,9 +85,9 @@ In addition to `host` and `port`, you can also pass the following arguments:
 > Visit the any-agent [documentation](https://mozilla-ai.github.io/any-agent/) for more details on the supported
 > frameworks.
 
-#### Using Makefile
+#### Using Docker
 
-The Makefile enables you to run the server using Docker.
+The Makefile enables you to run the server using Docker. Before starting, make sure that [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed and running.
 
 **Run the server** (this will also build the image if needed):
    ```bash

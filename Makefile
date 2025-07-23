@@ -5,7 +5,7 @@ DOCKER_IMAGE = agent-factory
 DOCKER_CONTAINER = agent-factory-a2a
 DOCKER_TAG = latest
 A2A_SERVER_HOST = localhost
-A2A_SERVER_PORT = 8080
+A2A_SERVER_LOCAL_PORT = 8080
 
 # Default target
 .PHONY: help
@@ -30,18 +30,20 @@ run: build
 	fi
 	docker run --rm -d \
 		--name $(DOCKER_CONTAINER) \
-		-p $(A2A_SERVER_PORT):8080 \
+		-p $(A2A_SERVER_LOCAL_PORT):8080 \
 		--env-file .env \
 		$(DOCKER_IMAGE):$(DOCKER_TAG)
-	@echo "Server running at http://$(A2A_SERVER_HOST):$(A2A_SERVER_PORT)"
+	@echo "Server running at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)"
 
 .PHONY: stop
 stop:
-	@docker stop $(DOCKER_CONTAINER) 2>/dev/null || true
+	@docker stop $(DOCKER_CONTAINER)
+	@echo "Successfully stopped $(DOCKER_CONTAINER) container"
 
 .PHONY: clean
 clean: stop
-	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG) 2>/dev/null || true
+	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
+	@echo "Successfully removed $(DOCKER_IMAGE):$(DOCKER_TAG) image"
 
 # Default target
 .DEFAULT_GOAL := help
