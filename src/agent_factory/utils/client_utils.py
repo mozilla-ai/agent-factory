@@ -33,6 +33,8 @@ async def get_a2a_agent_card(resolver: A2ACardResolver) -> AgentCard:
 
 def create_message_request(message: str) -> SendMessageRequest:
     """Create a message request to send to the agent."""
+    if not message or not message.strip():
+        raise ValueError("Message cannot be empty or whitespace only")
     send_message_payload = {
         "message": {
             "role": "user",
