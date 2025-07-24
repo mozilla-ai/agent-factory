@@ -17,6 +17,8 @@ swap between Agent frameworks with minimal code changes.
   files.
 * **Agent Evaluation:** Evaluate the generated agents against automatically or manually defined criteria to ensure they
   meet the desired performance standards.
+* **Multi-Turn and One-Shot Workflows:** Support for both multi-turn conversations and one-shot tasks, enabling flexible
+  interaction patterns.
 
 ## Getting Started
 
@@ -77,9 +79,11 @@ The server will be available at `http://localhost:8080`.
 
 In addition to `host` and `port`, you can also pass the following arguments:
 
--   `framework`: The Agent framework to use (default: `openai`).
--   `model`: The model ID to use (default: `o3`).
--   `log_level`: The logging level (default: `info`).
+-  `chat` vs `nochat`: `chat` mode enables multi-turn conversations, while `nochat` mode is for one-shot tasks (default:
+   `chat`).
+-  `framework`: The Agent framework to use (default: `openai`).
+-  `model`: The model ID to use (default: `o3`).
+-  `log_level`: The logging level (default: `info`).
 
 > [!NOTE]
 > Visit the any-agent [documentation](https://mozilla-ai.github.io/any-agent/) for more details on the supported
@@ -96,7 +100,15 @@ The Makefile enables you to run the server using Docker. Before starting, make s
    The server will be available at `http://localhost:8080`.
 
 > [!NOTE]
-> Before running the server, make sure to create a `.env` file in the project root with your required environment variables, including your `OPENAI_API_KEY`:
+> You can modify the behavior of the server by passing environment variables to the `make run` command. For example, to
+> run the server with the `tinyagent` framework and a specific model, in chat mode, you can use:
+> ```bash
+> make run FRAMEWORK=tinyagent MODEL=mistral/mistral-small-latest CHAT=1
+> ```
+
+> [!NOTE]
+> Before running the server, make sure to create a `.env` file in the project root with your required environment
+> variables, including your `OPENAI_API_KEY`:
 > ```
 > OPENAI_API_KEY=sk-...
 > ```
@@ -108,6 +120,10 @@ The Makefile enables you to run the server using Docker. Before starting, make s
 > ```
 
 ### Generate an Agentic Workflow
+
+> [!IMPORTANT]
+> Always run the server in non-chat mode (`--nochat`) when generating agents using the `agent-factory` command.
+> For multi-turn conversations, see the section on [Multi-Turn Conversations](#multi-turn-conversations).
 
 Once the server is running, run the `agent-factory` CLI tool with your desired workflow prompt:
 
@@ -153,6 +169,15 @@ uv run -m eval.run_generated_agent_evaluation path/to/the/generated/agent
 ```
 
 This command will display the evaluation criteria and show how the agent performed on each.
+
+## Multi-Turn Conversations
+
+Agent Factory supports multi-turn conversations. You can run the Chainlit application to interact with the Agent server
+in a conversational manner:
+
+```bash
+uv run chainlit run src/agent_factory/chainlit.py
+```
 
 ## License
 

@@ -7,6 +7,14 @@ DOCKER_TAG = latest
 A2A_SERVER_HOST = localhost
 A2A_SERVER_LOCAL_PORT = 8080
 
+# Default environment variables
+FRAMEWORK?=openai
+MODEL?=o3
+HOST?=0.0.0.0
+PORT?=8080
+LOG_LEVEL?=info
+CHAT?=1
+
 # Default target
 .PHONY: help
 help:
@@ -28,10 +36,16 @@ run: build
 		echo "Error: .env file not found. Please create one with your API keys."; \
 		exit 1; \
 	fi
-	docker run --rm -d \
+	docker run --rm \
 		--name $(DOCKER_CONTAINER) \
 		-p $(A2A_SERVER_LOCAL_PORT):8080 \
 		--env-file .env \
+		-e FRAMEWORK=$(FRAMEWORK) \
+		-e MODEL=$(MODEL) \
+		-e HOST=$(HOST) \
+		-e PORT=$(PORT) \
+		-e LOG_LEVEL=$(LOG_LEVEL) \
+		-e CHAT=$(CHAT) \
 		$(DOCKER_IMAGE):$(DOCKER_TAG)
 	@echo "Server running at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)"
 
