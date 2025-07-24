@@ -87,32 +87,25 @@ In addition to `host` and `port`, you can also pass the following arguments:
 
 #### Using Docker
 
-To run the server in a Docker container, follow these steps.
+The Makefile enables you to run the server using Docker. Before starting, make sure that [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed and running.
 
-1.  **Build the Docker image:**
+**Run the server** (this will also build the image if needed):
+   ```bash
+   make run
+   ```
+   The server will be available at `http://localhost:8080`.
 
-    From the root of the project, run the following commands to build the Docker image:
+> [!NOTE]
+> Before running the server, make sure to create a `.env` file in the project root with your required environment variables, including your `OPENAI_API_KEY`:
+> ```
+> OPENAI_API_KEY=sk-...
+> ```
 
-    ```bash
-    export VER=$(git describe --tags --dirty)
-    docker build --build-arg APP_VERSION=$VER  -t agent-factory .
-    ```
-
-2.  **Run the Docker container:**
-
-    Create a `.env` file in the project root with your `OPENAI_API_KEY`:
-
-    ```
-    OPENAI_API_KEY=sk-...
-    ```
-
-    Then, run the container, passing the `.env` file:
-
-    ```bash
-    docker run --rm -p 8080:8080 --env-file .env agent-factory
-    ```
-
-    The server will be available at `http://localhost:8080`.
+> [!NOTE]
+> After generating your agents using the `agent-factory` command (described below), don't forget to stop the server using:
+> ```bash
+> make stop
+> ```
 
 ### Generate an Agentic Workflow
 
