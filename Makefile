@@ -37,9 +37,14 @@ run: build
 
 .PHONY: stop
 stop:
-	@docker stop $(DOCKER_CONTAINER)
-	@echo "Successfully stopped $(DOCKER_CONTAINER) container"
+	@if [ "$$(docker ps -q -f name=$(DOCKER_CONTAINER))" ]; then \
+        docker stop $(DOCKER_CONTAINER) && \
+        echo "Successfully stopped $(DOCKER_CONTAINER) container"; \
+    else \
+        echo "No $(DOCKER_CONTAINER) container running"; \
+    fi
 
+# Remove Docker containers and images
 .PHONY: clean
 clean: stop
 	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
