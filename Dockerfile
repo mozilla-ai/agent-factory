@@ -4,6 +4,7 @@ FROM python:3.13-slim
 WORKDIR /app
 
 ENV FRAMEWORK=openai
+ENV CHAT=1
 ENV MODEL=o3
 ENV HOST=0.0.0.0
 ENV PORT=8080
@@ -30,5 +31,8 @@ WORKDIR /app/src/agent_factory
 # Expose the port the app runs on
 EXPOSE 8000
 
+# Create startup script
+RUN chmod +x start.sh
+
 # Run the application
-CMD ["sh", "-c", "uv run . --framework ${FRAMEWORK} --model ${MODEL} --host ${HOST} --port ${PORT} --log-level ${LOG_LEVEL}"]
+CMD ["./start.sh"]
