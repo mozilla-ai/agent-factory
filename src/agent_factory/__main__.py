@@ -7,12 +7,14 @@ from any_agent.tools import search_tavily, visit_webpage
 from agent_factory.factory_tools import read_file, search_mcp_servers
 from agent_factory.instructions import load_system_instructions
 from agent_factory.schemas import AgentFactoryOutputs
+from agent_factory.utils import logger
 
 dotenv.load_dotenv()
 
 
 async def main(
     framework: str = "openai",
+    chat: bool = True,
     model: str = "o3",
     host: str = "localhost",
     port: int = 8080,
@@ -34,14 +36,16 @@ async def main(
             f"Invalid framework '{framework}'. Allowed values are: {[f.name.lower() for f in AgentFramework]}"
         ) from err
 
+    logger.info(f"Starting the server in {'chat' if chat else 'non-chat'} mode.")
+
     agent = await AnyAgent.create_async(
         framework,
         AgentConfig(
             model_id=model,
-            instructions=load_system_instructions(),
+            instructions=load_system_instructions(chat=chat),
             description="Agent for generating agentic workflows based on user prompts.",
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
-            model_args={"tool_choice": "required"},  # Ensure tool choice is required
+            model_args={"tool_choice": "auto"},
             output_type=AgentFactoryOutputs,
         ),
     )

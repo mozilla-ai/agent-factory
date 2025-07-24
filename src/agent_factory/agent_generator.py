@@ -33,7 +33,7 @@ async def generate_target_agent(
         port: The port for the agent server (default: 8080).
         timeout: The timeout for the request in seconds (default: 600).
     """
-    http_client, base_url = await create_a2a_http_client(host, port)
+    http_client, base_url = await create_a2a_http_client(host, port, timeout)
     async with http_client as client:
         resolver = A2ACardResolver(httpx_client=client, base_url=base_url)
         agent_card = await get_a2a_agent_card(resolver)
