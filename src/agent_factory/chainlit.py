@@ -1,4 +1,3 @@
-import json
 from uuid import uuid4
 
 import chainlit as cl
@@ -8,11 +7,12 @@ from a2a.types import (
     AgentCard,
 )
 
-from agent_factory.schemas import AgentFactoryOutputs
+from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
     create_message_request,
     get_a2a_agent_card,
+    process_a2a_agent_response,
     save_agent_outputs,
     setup_output_directory,
 )
@@ -55,15 +55,14 @@ async def create_agent(message: cl.Message):
 
     try:
         result = await client.send_message(request, http_kwargs={"timeout": TIMEOUT})
-        response_data = json.loads(result.root.result.status.message.parts[0].root.text)
-        response = AgentFactoryOutputs(**response_data)
+        response = process_a2a_agent_response(result)
 
-        if response.code_ready:
+        if response.status == Status.COMPLETED:
             output_dir = setup_output_directory()
             save_agent_outputs(response.model_dump(), output_dir)
 
         await cl.Message(
-            content=response.answer,
+            content=response.message,
             author="assistant",
         ).send()
 
