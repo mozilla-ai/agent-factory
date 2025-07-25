@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-from agent_factory.instructions import AGENT_CODE_TEMPLATE, AGENT_CODE_TEMPLATE_RUN
+from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.utils import clean_python_code_with_autoflake
 from agent_factory.utils.logging import logger
 
@@ -45,7 +45,7 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
         requirements_path = output_dir / "requirements.txt"
         tools_dir_path = output_dir / "tools"
         tools_dir_path.mkdir(exist_ok=True)
-        agent_code = f"{AGENT_CODE_TEMPLATE.format(**result)} \n{AGENT_CODE_TEMPLATE_RUN.format(**result)}"
+        agent_code = f"{AGENT_CODE_TEMPLATE.format(**result)}"
 
         clean_agent_code = clean_python_code_with_autoflake(agent_code)
 

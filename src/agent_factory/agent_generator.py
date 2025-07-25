@@ -3,6 +3,7 @@ from pathlib import Path
 import fire
 from a2a.client import A2ACardResolver, A2AClient
 
+from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
     create_message_request,
@@ -33,7 +34,7 @@ async def generate_target_agent(
         port: The port for the agent server (default: 8080).
         timeout: The timeout for the request in seconds (default: 600).
     """
-    http_client, base_url = await create_a2a_http_client(host, port)
+    http_client, base_url = await create_a2a_http_client(host, port, timeout)
     async with http_client as client:
         resolver = A2ACardResolver(httpx_client=client, base_url=base_url)
         agent_card = await get_a2a_agent_card(resolver)
@@ -46,9 +47,16 @@ async def generate_target_agent(
         response = await client.send_message(request, http_kwargs={"timeout": timeout})
 
         # Process response
-        result = process_a2a_agent_response(response)
-        output_dir = setup_output_directory(output_dir)
-        save_agent_outputs(result, output_dir)
+        response = process_a2a_agent_response(response)
+        if response.status == Status.COMPLETED:
+            output_dir = setup_output_directory(output_dir)
+            save_agent_outputs(response.model_dump(), output_dir)
+        elif response.status == Status.INPUT_REQUIRED:
+            logger.info(
+                f"Please try again and be more specific with your request. Agent's response: {response.message}"
+            )
+        else:
+            logger.error(f"Agent encountered an error: {response.message}")
 
 
 def main():

@@ -129,7 +129,13 @@ DELIVERABLES_INSTRUCTIONS = f"""
 The final expected output is a dictionary with the following structure:
 
 {{
-   "imports": "The python code snippet needed to import the required tools.",
+    "message": "The message to be displayed to the user. Use this field to return simple text answers to the user.",
+    "status": "Set this to `completed`, if the agent has completed the user assigned task and provided the
+        `imports`, `agent_instructions`, `tools`, `structured_outputs`, `cli_args`, `agent_description`,
+        `prompt_template`, `readme` and `dependencies`. Set this to `input_required` if the agent is not ready to
+        provide the final output, and needs more information from the user. Set this to `error` if the agent
+        encountered an error while executing the task.",
+    "imports": "The python code snippet needed to import the required tools.",
     "agent_instructions": "The instructions passed to the generated agent.",
     "tools": "The python code that defines the tools to be used by the generated agent.",
     "structured_outputs": "The Pydantic v2 models used to structure the agent's final output. The class that
@@ -143,25 +149,34 @@ The final expected output is a dictionary with the following structure:
 
 ## Values to assign to dictionary keys
 
-1. `imports` is Python code containing all the required imports for the selected tools.
+1. `message` is the response to be displayed the user, which can be a simple text or a more complex
+    response with additional information. If the agent is not ready to provide the final output,
+    set this to a message asking the user for more information or clarifying the task (type str).
+2. `status` is a literal value that indicates whether the agent has completed the task
+    and is ready to provide the final output. Set this to `completed` if the agent has completed the task
+    and provided the `agent_instructions`, `tools`, `imports`, `structured_outputs`, `cli_args`,
+    `agent_description`, `prompt_template`, `readme` and `dependencies`. Set this to `input_required` if the agent is
+    not ready to provide the final output, and needs more information from the user. Set this to `error` if the agent
+    encountered an error while executing the task.",
+3. `imports` is Python code containing all the required imports for the selected tools.
    This code replaces the {{imports}} placeholder in the agent code template.
-2. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).
+4. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).
    This string replaces the {{agent_instructions}} placeholder in the agent code template.
-3. `tools` is Python code that assigns the `TOOLS` variable with the list of tools required by the generated agent.
+5. `tools` is Python code that assigns the `TOOLS` variable with the list of tools required by the generated agent.
    This code replaces the {{tools}} placeholder in the agent code template.
-4. `structured_outputs` is Python code that defines the class `StructuredOutput(BaseModel)` defining the agent's output
+6. `structured_outputs` is Python code that defines the class `StructuredOutput(BaseModel)` defining the agent's output
    schema as a Pydantic v2 model. While you can build many Pydantic v2 models to create a hierarchy, the final class
    that defines the structured output of the agent should be named `StructuredOutput`.
    This code replaces the {{structured_outputs}} placeholder in the agent code template.
-5. `cli_args` are the arguments to be passed to the `main` function. Each of them is specified as
+7. `cli_args` are the arguments to be passed to the `main` function. Each of them is specified as
    argument_name: type = argument_value.
    These will replace the {{cli_args}} placeholder in the agent code template.
-6. `agent_description` is a string to be provided as the description of the `main` function.
+8. `agent_description` is a string to be provided as the description of the `main` function.
     This string replaces the {{agent_description}} placeholder in the agent code template.
-7. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to
+9. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to
     the generated agent.
     This string replaces the {{prompt_template}} placeholder in the agent code template.
-8. `readme` should contain clear and concise setup instructions:
+10. `readme` should contain clear and concise setup instructions:
     - Environment variables: Instruct the user to create a `.env` file to set environment variables; specify exactly
       which environment variables are required
     - Always include the following instructions to install Python package manager `uv` (the end user decides which
@@ -171,8 +186,8 @@ The final expected output is a dictionary with the following structure:
     - Run instructions for `agent.py` using `uv run` with specification of `requirements.txt` and Python 3.13:
       `uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1 "value1"`
     It will be used to generate the `README.md` file, so it should be in Markdown format.
-9. `dependencies` should list all the python libraries (including the ones required by the tools) as dependencies to be
-   installed. It will be used to generate the `requirements.txt` file:
+11. `dependencies` should list all the python libraries (including the ones required by the tools) as dependencies to be
+    installed. It will be used to generate the `requirements.txt` file:
     - The first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using `any-agent` to
       run the agent workflow.
     - Only if the `agent_code` uses `uvx` to spin up any MCP server, include "uv" as a dependency in the
@@ -212,10 +227,6 @@ INSTRUCTIONS='''
 # ========== Tools definition ===========
 {tools}
 
-"""  # noqa: E501
-
-
-AGENT_CODE_TEMPLATE_RUN = """
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
     "openai",
@@ -350,6 +361,70 @@ If the code corresponds to running the agent via CLI, use the following instruct
 
 """  # noqa: E501
 
+
+SINGLE_STEP_INSTRUCTIONS = """
+You will be provided with a task description and a set of tools to use. Read the task description carefully to
+understand what the user wants you to do. Read the following instructions and code examples, and then generate the agent
+code that will solve the task. Fill the `message` field with a confirmation saying "✅ Done! Your agent is ready!", and
+set `status` to `completed`.
+"""
+
+
+MULTI_STEP_INSTRUCTIONS = """
+You will be provided with a task description and a set of tools to use. Here's a numbered list of
+steps to follow to generate the agent code, in order:
+
+1. Before starting the agent code generation, you should read the task description carefully to
+   understand what the user wants you to do. Only if you think the user has missed providing some
+   critical requirements should you initially ask them a clarifying question. To ask the user, fill
+   the `message` field with your questions in Markdown, and set `status` to `input_required`. This should
+   be the response you will return to the user.
+2. If you have enough information about the task, you can proceed with generating the plan you will
+   follow to generate the agent code. If you need more information, ask the user again, by following
+   the process described in the first step. To compile your plan, you should research the tools
+   available to you by the any-agent library, the built-in Python functions under the `tools`
+   directory, or search for relevant MCP servers. Then decide which tools you will make available to
+   the agent you will generate. Do not suggest to define any new tools or helper functions yourself.
+   Do not make up new tools. Use only what's available through the options listed before, and if
+   there's no relevant tool available, ask the user for more info. Finally, always provide a summary
+   of the steps you will take to generate the agent code by filling the `message` field with your
+   plan in Markdown, and set `status` to `input_required`. Here is a template for the summary you will provide to the
+   user:
+   ```markdown
+   ### Plan
+    - One-sentence summary of what the agent will do.
+
+   ### Steps
+    1. High-level steps (numbered list, 3-6 bullets max, keep text very concise).
+
+   ### Tools to be used
+    - `tool_name_1` - one-line purpose, 3rd person singular
+    - `tool_name_2` - one-line purpose, 3rd person singular
+
+   ### API Keys / Tokens You'll Need
+    - `SERVICE_OR_TOOL` - why it's needed.
+    - `ANOTHER_SERVICE` - why it's needed.
+
+    Please confirm that the above Plan, Steps, Tools are sufficient and I will proceed with
+    creating the agent.
+    ```
+   This should be the response you will return to the user.
+3. If the user confirms your plan, you can proceed with generating the agent code. If the user does
+   not confirm your plan, you can either ask for clarification or amend your plan by filling the
+   `message` field with your amended plan, and set `status` to `input_required`. In the second case,
+   this should be the response you will return to the user.
+4. If you are ready to generate the agent code, you can fill the `message` field with a confirmation
+   saying "✅ Done! Your agent is ready!", and set `status` to `completed`. Also fill the
+   `agent_instructions`, `tools`, `imports`, `structured_outputs`, `cli_args`, `agent_description`, `prompt_template`,
+   `readme`, and `dependencies` fields with the appropriate values. This should be the response you will
+   return to the user.
+
+General notes:
+- Always format the `message` field in Markdown format, so that it is easy to read and understand.
+- Do not include any code snippets in the `message` field.
+"""  # noqa: E501
+
+
 # Define the template with Jinja2 syntax
 INSTRUCTIONS_TEMPLATE = """
 You are an expert software developer with a deep understanding of Mozilla AI's any-agent Python library.
@@ -361,13 +436,13 @@ Any-agent library enables you to:
 - Leverage built-in tools like web search and webpage visiting as well as MCP servers
 - Implement comprehensive tracing and evaluation capabilities
 
+{{ flow_instructions}}
+
 **Any-agent Code Generation Instructions**
 
 {{ code_generation_instructions }}
 
 {{ agent_code_template }}
-
-{{ agent_code_template_run_option}}
 
 As input to the `AgentConfig`, you are required to provide the parameters `model_id`,
 `instructions`, `tools`, and `output_type`.
@@ -383,12 +458,12 @@ agent:
 """  # noqa: E501
 
 
-def load_system_instructions():
+def load_system_instructions(chat: bool = False) -> str:
     template = Template(INSTRUCTIONS_TEMPLATE)
     return template.render(
+        flow_instructions=MULTI_STEP_INSTRUCTIONS if chat else SINGLE_STEP_INSTRUCTIONS,
         code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
         agent_code_template=AGENT_CODE_TEMPLATE,
-        agent_code_template_run_option=AGENT_CODE_TEMPLATE,
         code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
         code_example_run_option=CODE_EXAMPLE_RUN,
         deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
