@@ -91,11 +91,14 @@ async def test_create_a2a_http_client_constructs_correct_url():
     """Test that the base URL is constructed correctly."""
     host = "test-host"
     port = 1234
+    timeout = 600
+
     expected_url = f"http://{host}:{port}"
 
-    client, base_url = await create_a2a_http_client(host, port)
+    client, base_url = await create_a2a_http_client(host, port, timeout)
 
     assert isinstance(client, httpx.AsyncClient)
+    assert client.timeout.connect == timeout
     assert base_url == expected_url
     await client.aclose()
 
