@@ -8,6 +8,7 @@ import httpx
 from a2a.client import A2ACardResolver
 from a2a.types import AgentCard, MessageSendParams, SendStreamingMessageRequest
 
+from agent_factory.schemas import AgentFactoryOutputs
 from agent_factory.utils.logging import logger
 
 
@@ -48,9 +49,9 @@ def create_message_request(
     )
 
 
-def process_a2a_agent_response(response: Any) -> dict:
+def process_a2a_agent_response(response: Any) -> AgentFactoryOutputs:
     """Process the response from the agent."""
     logger.info(response.model_dump(mode="json", exclude_none=True))
-    result = json.loads(response.root.result.status.message.parts[0].root.text)
-    logger.info(f"Received response from agent: {result}")
-    return result
+    response_data = json.loads(response.root.result.status.message.parts[0].root.text)
+    logger.info(f"Received response from agent: {response_data}")
+    return AgentFactoryOutputs(**response_data)
