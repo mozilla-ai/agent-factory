@@ -5,10 +5,10 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "any-agent[all,a2a]==0.25.0",
+    "any-agent[a2a,all]==0.25.0",
     "fire~=0.7.0",
     "dotenv>=0.9.9",
-    "mcpm>=1.0.3",  # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
+    "mcpm>=1.0.3", # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
     "loguru>=0.7.3",
     "pre-commit>=4.2.0",
     "autoflake==2.3.1",
@@ -32,6 +32,9 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools_scm]
+
+[tool.uv.sources]
+any-agent = { git = "https://github.com/mozilla-ai/any-agent.git", rev = "232-a2a-streaming-support" }
 
 [dependency-groups]
 dev = [

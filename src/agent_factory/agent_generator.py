@@ -43,10 +43,14 @@ async def generate_target_agent(
         logger.info("A2AClient initialized.")
 
         request = create_message_request(message)
-        response = await client.send_message(request, http_kwargs={"timeout": timeout})
+
+        responses = []
+        async for response in client.send_message_streaming(request, http_kwargs={"timeout": timeout}):
+            responses.append(response)
 
         # Process response
-        result = process_a2a_agent_response(response)
+        final_response = responses[-1]
+        result = process_a2a_agent_response(final_response)
         output_dir = setup_output_directory(output_dir)
         save_agent_outputs(result, output_dir)
 

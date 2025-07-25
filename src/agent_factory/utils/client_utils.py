@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 import httpx
 from a2a.client import A2ACardResolver
-from a2a.types import AgentCard, MessageSendParams, SendMessageRequest
+from a2a.types import AgentCard, MessageSendParams, SendStreamingMessageRequest
 
 from agent_factory.utils.logging import logger
 
@@ -33,7 +33,7 @@ async def get_a2a_agent_card(resolver: A2ACardResolver) -> AgentCard:
 
 def create_message_request(
     message: str, context_id: UUID | None = None, request_id: UUID | None = None, message_id: UUID | None = None
-) -> SendMessageRequest:
+) -> SendStreamingMessageRequest:
     """Create a message request to send to the agent."""
     send_message_payload: dict[str, Any] = {
         "message": {
@@ -43,7 +43,7 @@ def create_message_request(
             "contextId": context_id.hex if context_id else uuid4().hex,
         },
     }
-    return SendMessageRequest(
+    return SendStreamingMessageRequest(
         id=request_id.hex if request_id else uuid4().hex, params=MessageSendParams(**send_message_payload)
     )
 

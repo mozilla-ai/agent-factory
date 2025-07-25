@@ -69,7 +69,7 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["all", "a2a"], specifier = "==0.25.0" },
+    { name = "any-agent", extras = ["a2a", "all"], git = "https://github.com/mozilla-ai/any-agent.git?rev=232-a2a-streaming-support" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = "~=0.7.0" },
@@ -234,8 +234,8 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "0.25.0"
-source = { registry = "https://pypi.org/simple" }
+version = "0.25.2.dev6+g423783d"
+source = { git = "https://github.com/mozilla-ai/any-agent.git?rev=232-a2a-streaming-support#423783d1af7a341a01920e0cd0cd8e5df4d685ea" }
 dependencies = [
     { name = "duckduckgo-search" },
     { name = "fire" },
@@ -248,10 +248,6 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
     { name = "tavily-python" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8e/5e/e9efb97dc6e1a95ad71515eccbc0affb9243ec94e51fe7b9be0d7caf2646/any_agent-0.25.0.tar.gz", hash = "sha256:cf020efebcb1875608073b2034f567ed923acca63f4d9843acb0de7dfc566a7c", size = 348972 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c2/e3/00f68dbf89ff0bba71150def2cc8ce6ca977c2418f4addd310f6cc48b424/any_agent-0.25.0-py3-none-any.whl", hash = "sha256:215421b1e98cc49fbf28228f6d2e08b3187c7a823404c36a5ff172d53459ab6f", size = 100358 },
 ]
 
 [package.optional-dependencies]
