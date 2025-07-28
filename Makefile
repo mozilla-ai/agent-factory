@@ -105,14 +105,20 @@ wait-for-server: ## Helper to wait for the server to be ready (internal use)
 	done;
 	@echo " Server is ready!"
 
-.PHONY: test-single-turn-generation
-test-single-turn-generation: ## Run the single-turn generation tests
-	@echo "Running single turn generation tests..."
+
+test-single-turn-generation:
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Usage: make test-single-turn-generation PROMPT_ID=<prompt-id> [UPDATE_ARTIFACTS=--update-artifacts]"; \
+		exit 1; \
+	fi
+	@echo "Running single turn generation tests for prompt-id: $(PROMPT_ID) $(UPDATE_ARTIFACTS) ..."
 	@uv sync --quiet --group tests
-	@pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=url-to-podcast
+	@pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=$(PROMPT_ID) $(UPDATE_ARTIFACTS)
 
 .PHONY: test-local
-test-local: wait-for-server test-single-turn-generation ## Run all tests against an existing container
+test-local: UPDATE_ARTIFACTS=--update-artifacts
+test-local: wait-for-server
+	$(MAKE) test-single-turn-generation PROMPT_ID=$(PROMPT_ID) UPDATE_ARTIFACTS=$(UPDATE_ARTIFACTS)
 
 .PHONY: test
 test: ## Run all tests in a clean, automated environment (for CI)
