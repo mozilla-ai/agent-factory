@@ -1,5 +1,6 @@
 import hashlib
 import importlib
+import shutil
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -31,7 +32,7 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
 
     original_load_tools = AnyAgent._load_tools
 
-    async def logging_load_tools(self, tools):
+    async def mocking_load_tools(self, tools):
         logger.info(f"AnyAgent._load_tools called with {len(tools)} tools:")
         for i, tool in enumerate(tools):
             logger.info(f"    Tool {i}: {type(tool)} - {tool}")
@@ -61,100 +62,76 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
                     logger.info(f"Mock text_to_speech called with text: '{text[:50]}...', voice_name: {voice_name}")
                     text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
                     output_file = Path(f"/tmp/mock_audio_{text_hash}.mp3")
+                    input_file = Path(ARTIFACTS_PATH) / "silent_1000.mp3"
 
                     # Check if file already exists
                     if output_file.exists():
                         logger.warning(f"File already exists: {output_file}")
                         return output_file
 
-                    # Create a minimal valid MP3 file (silent audio, ~0.1 seconds)
-                    # This is a minimal MP3 header for a silent audio file
-                    minimal_mp3_data = bytes(
-                        [
-                            0xFF,
-                            0xFB,
-                            0x90,
-                            0x00,  # MP3 header
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                            0x00,
-                        ]
-                    )
-
-                    try:
-                        # Write the minimal MP3 data to file
-                        with output_file.open("wb") as f:
-                            f.write(minimal_mp3_data)
-                        logger.info(f"Created mock MP3 file: {output_file}")
-                    except Exception as e:
-                        logger.error(f"Failed to create MP3 file: {e}")
-                        raise
+                    # Create a minimal valid MP3 file (silent audio, ~1 seconds)
+                    shutil.copy(input_file, output_file)
+                    logger.info(f"Created mock MP3 file: {output_file}")
 
                     return f"Success. File saved as: {output_file}. Voice used: {voice_name}"
 
                 # Add the mock function with the right name
                 mock_text_to_speech.__name__ = "text_to_speech"
+
+                # Mock MCP (uv)
+                # mock_text_to_speech = MCPStdio(
+                #     command="uv",
+                #     args=[
+                #         "--directory",
+                #         "/Users/mala/workspace/elevenlabs-mcp",
+                #         "run",
+                #         "--with",
+                #         "mcp",
+                #         "mcp",
+                #         "run",
+                #         "elevenlabs_mcp/server.py"
+                #     ],
+                #     env={
+                #         "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
+                #     },
+                #     tools=[
+                #         "text_to_speech",
+                #     ],
+                # )
+
+                # Original MCP (uvx)
+                # mock_text_to_speech = MCPStdio(
+                #     command="uvx",
+                #     args=[
+                #         "elevenlabs-mcp",
+                #     ],
+                #     env={
+                #         "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
+                #     },
+                #     tools=[
+                #         "text_to_speech",
+                #     ],
+                # )
+
+                # Original MCP (docker - broken)
+                # mock_text_to_speech = MCPStdio(
+                #     command="docker",
+                #     args=[
+                #         "run",
+                #         "-i",
+                #         "--rm",
+                #         "-e",
+                #         "ELEVENLABS_API_KEY",
+                #         "mcp/elevenlabs",
+                #     ],
+                #     env={
+                #         "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
+                #     },
+                #     tools=[
+                #         "text_to_speech",
+                #     ],
+                # )
+
                 modified_tools.append(mock_text_to_speech)
                 logger.info("Replaced ElevenLabs MCP with mock function")
                 for i, tool in enumerate(modified_tools):
@@ -171,7 +148,7 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
 
     try:
         # Patch _load_tools before importing agent
-        with patch.object(AnyAgent, "_load_tools", logging_load_tools) as mock_load_tools:
+        with patch.object(AnyAgent, "_load_tools", mocking_load_tools):
             logger.info("Patched AnyAgent._load_tools")
 
             # Import the agent module
@@ -182,7 +159,7 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
 
             logger.info("Agent module imported successfully")
 
-            yield agent, mock_load_tools
+            yield agent
 
     finally:
         # Clean up
@@ -192,8 +169,8 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
 
 
 def test_agent_mocked_execution(generated_agent_module_with_mocks):
-    """Test agent execution with _load_tools logging"""
-    agent, mock_load_tools = generated_agent_module_with_mocks
+    """Test agent execution with _load_tools mocking"""
+    agent = generated_agent_module_with_mocks
 
     logger.info("Starting agent execution...")
 
