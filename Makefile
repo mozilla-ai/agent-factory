@@ -1,4 +1,6 @@
-.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-local test
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e
+
+#est-local test
 
 # ====================================================================================
 # Configuration
@@ -24,7 +26,7 @@ CHAT ?= 0
 # ====================================================================================
 .DEFAULT_GOAL := help
 help: ## Display this help message
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "%-25s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "%-40s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 # ====================================================================================
 # Docker Lifecycle
@@ -83,7 +85,7 @@ clean: stop ## Remove the Docker image
 # ====================================================================================
 # Testing
 # ====================================================================================
-wait-for-server: ## Helper to wait for the server to be ready (internal use)
+wait-for-server:
 	@echo -n "Waiting for server at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT) to be ready..."
 	@count=0; \
 	while ! curl -s --fail http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)/.well-known/agent.json >/dev/null; \
@@ -109,11 +111,12 @@ test-single-turn-generation:
 	@uv sync --quiet --group tests
 	@pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=$(PROMPT_ID) $(UPDATE_ARTIFACTS)
 
-test-local: UPDATE_ARTIFACTS=--update-artifacts
-test-local: wait-for-server
-	$(MAKE) test-single-turn-generation PROMPT_ID=$(PROMPT_ID) UPDATE_ARTIFACTS=$(UPDATE_ARTIFACTS)
+test-single-turn-generation-local: UPDATE_ARTIFACTS=--update-artifacts
+test-single-turn-generation-local: ## Run test-single-turn-generation with already running A2A server
+	@$(MAKE) wait-for-server
+	@$(MAKE) test-single-turn-generation PROMPT_ID=$(PROMPT_ID) UPDATE_ARTIFACTS=$(UPDATE_ARTIFACTS)
 
-test: ## Run all tests in a clean, automated environment (for CI)
+test-single-turn-generation-e2e: ## Run all tests in a clean, automated environment (for CI)
 	@$(MAKE) stop
 	@$(MAKE) run-detached
 	@$(MAKE) wait-for-server
