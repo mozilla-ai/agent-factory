@@ -37,9 +37,11 @@ jobs:
           python-version: 3.13
           activate-environment: true
 
+      - name: Create .env file from GitHub secrets
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
+
       - name: Run Generation Test - ${{ matrix.prompt_id }}
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: make test-single-turn-generation-e2e PROMPT_ID=${{ matrix.prompt_id }}
 
   run-agent-evaluation-tests:
