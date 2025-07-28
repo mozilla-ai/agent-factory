@@ -106,9 +106,9 @@ async def test_create_a2a_http_client_constructs_correct_url():
 
 
 @pytest.mark.asyncio
-async def test_get_a2a_agent_card_success(mock_a2a_agent_card):
+async def test_get_a2a_agent_card_success(sample_a2a_agent_card):
     """Test successful retrieval of agent card."""
-    expected_card = AgentCard(**mock_a2a_agent_card)
+    expected_card = AgentCard(**sample_a2a_agent_card)
 
     mock_resolver = AsyncMock()
     mock_resolver.get_agent_card.return_value = expected_card
