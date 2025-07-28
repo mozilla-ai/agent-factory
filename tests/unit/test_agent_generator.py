@@ -50,7 +50,9 @@ async def test_generate_target_agent_error(mock_agent_generator_dependencies):
         await generate_target_agent("test message")
 
     mocks["logger"].info.assert_called_with("A2AClient initialized.")
-    mocks["logger"].error.assert_called_with("Agent encountered an error: Agent error.")
+    mocks["logger"].error.assert_called_with(
+        "An unexpected error occurred during agent generation: Agent encountered an error: Agent error."
+    )
 
 
 @pytest.mark.asyncio
