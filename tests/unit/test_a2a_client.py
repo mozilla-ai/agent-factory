@@ -106,9 +106,9 @@ async def test_create_a2a_http_client_constructs_correct_url():
 
 
 @pytest.mark.asyncio
-async def test_get_a2a_agent_card_success(mock_agent_card):
+async def test_get_a2a_agent_card_success(mock_a2a_agent_card):
     """Test successful retrieval of agent card."""
-    expected_card = AgentCard(**mock_agent_card)
+    expected_card = AgentCard(**mock_a2a_agent_card)
 
     mock_resolver = AsyncMock()
     mock_resolver.get_agent_card.return_value = expected_card
@@ -166,9 +166,9 @@ def test_create_message_request_empty_string_throws_error():
         assert str(exc_info.value) == expected_error
 
 
-def test_process_a2a_agent_response_valid(mock_agent_response):
+def test_process_a2a_agent_response_valid(mock_a2a_agent_response):
     """Test processing a valid agent response."""
-    result = process_a2a_agent_response(mock_agent_response)
+    result = process_a2a_agent_response(mock_a2a_agent_response)
 
     assert isinstance(result, AgentFactoryOutputs)
     assert result.message == "✅ Done! Your agent is ready!"
@@ -176,14 +176,14 @@ def test_process_a2a_agent_response_valid(mock_agent_response):
     assert "from any_agent.tools import search_tavily" in result.imports
 
 
-def test_process_a2a_agent_response_missing_fields(mock_agent_response):
+def test_process_a2a_agent_response_missing_fields(mock_a2a_agent_response):
     """Test processing a response with missing required fields."""
     invalid_response = {"message": "Test"}  # Missing other required fields
 
-    mock_agent_response.root.result.status.message.parts[0].root.text = json.dumps(invalid_response)
+    mock_a2a_agent_response.root.result.status.message.parts[0].root.text = json.dumps(invalid_response)
 
     with pytest.raises(ValueError) as exc_info:
-        process_a2a_agent_response(mock_agent_response)
+        process_a2a_agent_response(mock_a2a_agent_response)
 
     assert "validation error" in str(exc_info.value).lower()
     assert "field required" in str(exc_info.value).lower()
