@@ -1,3 +1,5 @@
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-local test
+
 # ====================================================================================
 # Configuration
 # ====================================================================================
@@ -20,7 +22,6 @@ CHAT ?= 0
 # ====================================================================================
 # Help Target
 # ====================================================================================
-.PHONY: help
 .DEFAULT_GOAL := help
 help: ## Display this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "%-25s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -28,11 +29,9 @@ help: ## Display this help message
 # ====================================================================================
 # Docker Lifecycle
 # ====================================================================================
-.PHONY: build
 build: ## Build the Docker image for the server
 	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "dev") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
-.PHONY: run
 run: build ## Run the server interactively in the foreground
 	@if [ ! -f .env ]; then \
 		echo "Error: .env file not found. Please create one with your API keys."; \
@@ -51,7 +50,6 @@ run: build ## Run the server interactively in the foreground
 		-e CHAT=$(CHAT) \
 		$(DOCKER_IMAGE):$(DOCKER_TAG)
 
-.PHONY: run-detached
 run-detached: build ## Run the server in the background (detached mode)
 	@if [ ! -f .env ]; then \
 		echo "Error: .env file not found. Please create one with your API keys."; \
@@ -70,7 +68,6 @@ run-detached: build ## Run the server in the background (detached mode)
 		-e CHAT=$(CHAT) \
 		$(DOCKER_IMAGE):$(DOCKER_TAG)
 
-.PHONY: stop
 stop: ## Stop the running Docker container
 	@if [ "$$(docker ps -q -f name=$(DOCKER_CONTAINER))" ]; then \
 		echo "Stopping $(DOCKER_CONTAINER) container..."; \
@@ -79,7 +76,6 @@ stop: ## Stop the running Docker container
 		echo "No $(DOCKER_CONTAINER) container running."; \
 	fi
 
-.PHONY: clean
 clean: stop ## Remove the Docker image
 	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
 	@echo "Successfully removed $(DOCKER_IMAGE):$(DOCKER_TAG) image"
@@ -87,7 +83,6 @@ clean: stop ## Remove the Docker image
 # ====================================================================================
 # Testing
 # ====================================================================================
-.PHONY: wait-for-server
 wait-for-server: ## Helper to wait for the server to be ready (internal use)
 	@echo -n "Waiting for server at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT) to be ready..."
 	@count=0; \
@@ -105,7 +100,6 @@ wait-for-server: ## Helper to wait for the server to be ready (internal use)
 	done;
 	@echo " Server is ready!"
 
-
 test-single-turn-generation:
 	@if [ -z "$(PROMPT_ID)" ]; then \
 		echo "Error: PROMPT_ID is required. Usage: make test-single-turn-generation PROMPT_ID=<prompt-id> [UPDATE_ARTIFACTS=--update-artifacts]"; \
@@ -115,17 +109,15 @@ test-single-turn-generation:
 	@uv sync --quiet --group tests
 	@pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=$(PROMPT_ID) $(UPDATE_ARTIFACTS)
 
-.PHONY: test-local
 test-local: UPDATE_ARTIFACTS=--update-artifacts
 test-local: wait-for-server
 	$(MAKE) test-single-turn-generation PROMPT_ID=$(PROMPT_ID) UPDATE_ARTIFACTS=$(UPDATE_ARTIFACTS)
 
-.PHONY: test
 test: ## Run all tests in a clean, automated environment (for CI)
 	@$(MAKE) stop
 	@$(MAKE) run-detached
 	@$(MAKE) wait-for-server
-	@$(MAKE) test-single-turn-generation; \
+	@$(MAKE) test-single-turn-generation PROMPT_ID=$(PROMPT_ID); \
 	EXIT_CODE=$$?; \
 	echo "Tests finished. Stopping server..."; \
 	$(MAKE) stop; \
