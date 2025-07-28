@@ -11,21 +11,23 @@ UNIT_TESTS_DATA_DIR = Path(__file__).parent / "data"
 
 
 @pytest.fixture(scope="session")
-def mock_agent_card() -> dict[str, Any]:
+def sample_a2a_agent_card() -> dict[str, Any]:
     """Return the mock agent card data as a dictionary."""
-    with (UNIT_TESTS_DATA_DIR / "mock_agent_card.json").open() as f:
+    with (UNIT_TESTS_DATA_DIR / "sample_a2a_agent_card.json").open() as f:
         return json.load(f)
 
 
 @pytest.fixture(scope="session")
-def mock_agent_response():
-    with (UNIT_TESTS_DATA_DIR / "mock_agent_response.json").open() as f:
-        response_data = json.load(f)
+def sample_generator_agent_response_json() -> dict[str, Any]:
+    with (UNIT_TESTS_DATA_DIR / "sample_generator_agent_response.json").open() as f:
+        return json.load(f)
 
-    response_str = json.dumps(response_data)
+
+@pytest.fixture(scope="session")
+def mock_a2a_agent_response(sample_generator_agent_response_json) -> MagicMock:
+    response_str = json.dumps(sample_generator_agent_response_json)
     mock_response = MagicMock()
     mock_response.root.result.status.message.parts = [MagicMock(root=MagicMock(text=response_str))]
-
     return mock_response
 
 
