@@ -34,6 +34,19 @@ class StructuredOutput(BaseModel):
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
 You are a podcast-production assistant that follows this precise multi-step workflow to create a 1-minute podcast from a webpage URL:
+STEP 1 – Extract Source Text
+•   Receive the webpage URL from the user.
+•   Call `extract_text_from_url(url=<user URL>)` to fetch and return the main textual content (ignore navigation, ads, etc.).
+
+STEP 2 – Draft Podcast Script
+•   Call `generate_podcast_script_with_llm` with arguments:
+    – `text`  = extracted content from STEP 1
+    – `num_speakers` = 2
+    – `style` = "friendly interview"
+    – `max_words` ≈ 160 (≈1-minute spoken audio)
+•   The tool returns a JSON list of dialogue turns in order, each turn containing:
+        {"speaker": "Host"|"Guest", "text": "…"}
+•   Ensure the list alternates speakers starting with Host and ending with Host or Guest such that total script length ≈ 1 minute.
 
 STEP 3 – Text-to-Speech for Each Turn
 •   For each dialogue turn i (preserve order):
@@ -70,8 +83,8 @@ from tools.generate_podcast_script_with_llm import generate_podcast_script_with_
 from tools.combine_mp3_files_for_podcast import combine_mp3_files_for_podcast
 
 TOOLS = [
-    # extract_text_from_url,
-    # generate_podcast_script_with_llm,
+    extract_text_from_url,
+    generate_podcast_script_with_llm,
     combine_mp3_files_for_podcast,
     # ElevenLabs text-to-speech via MCP
     MCPStdio(
@@ -109,50 +122,7 @@ agent = AnyAgent.create(
 
 def main(url: str):
     """Generate a 1-minute podcast mp3 from the textual content of the provided webpage URL, using interleaved dialogue between a Host and a Guest, and return paths of generated audio files in structured form."""
-    input_prompt = """
-Create a 1-minute podcast mp3 from the following script:
-
-Podcast Title: The Web Craft Diaries                                                                                                                                                                          │ │
-Episode Title: Embracing Simplicity with Hugo                                                                                                                                                                 │ │
-
-[INTRO MUSIC FADES]                                                                                                                                                                                           │ │
-
-Host 1 (Emily):                                                                                                                                                                                               │ │
-Hey everyone, welcome back to The Web Craft Diaries! I’m Emily.                                                                                                                                               │ │
-
-Host 2 (Jake):                                                                                                                                                                                                │ │
-And I’m Jake! Today, we have an intriguing topic that many creators can relate to—the art of building a static website with Hugo.                                                                             │ │
-
-Emily:                                                                                                                                                                                                        │ │
-Exactly, Jake! We’re diving into the experience of an author who tackled this challenge head-on. You know, it’s interesting because they often find themselves over-engineering simple projects.              │ │
-
-Jake:                                                                                                                                                                                                         │ │
-Totally relatable! But they’ve chosen Hugo for its simplicity and expressiveness. It’s a great platform, even though it doesn’t have the reach of something like Gopher, which they’ve loved for its          │ │
-straightforwardness.                                                                                                                                                                                          │ │
-
-Emily:                                                                                                                                                                                                        │ │
-Right! Their plans are pretty clear-cut—they’re aiming for a minimal theme with features like RSS and images. Plus, they want to bridge their Gopher content to the web.                                      │ │
-
-Jake:                                                                                                                                                                                                         │ │
-And let’s not forget the task of migrating old WordPress posts! That’s a journey in itself.                                                                                                                   │ │
-
-Emily:                                                                                                                                                                                                        │ │
-For sure! The goal here is to embrace a single, text-based format. It’s all about simplifying things and making it a real learning experience.                                                                │ │
-
-Jake:                                                                                                                                                                                                         │ │
-Exactly, that’s the beauty of projects like these—they teach us so much while we create.                                                                                                                      │ │
-
-Emily:                                                                                                                                                                                                        │ │
-So, if you’re thinking about a web project or feeling the urge to overthink things, take a cue from our author and start simple.                                                                              │ │
-
-Jake:                                                                                                                                                                                                         │ │
-Well said, Emily! Thanks for tuning in, everyone. If you enjoyed today’s episode, don’t forget to subscribe and share!                                                                                        │ │
-
-Emily:                                                                                                                                                                                                        │ │
-We’ll catch you next time on The Web Craft Diaries!                                                                                                                                                           │ │
-
-[OUTRO MUSIC FADES]
-    """
+    input_prompt = f"Create a 1-minute podcast based on the content at this URL: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
