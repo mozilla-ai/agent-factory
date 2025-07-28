@@ -57,6 +57,7 @@ async def generate_target_agent(
             )
         else:
             logger.error(f"Agent encountered an error: {response.message}")
+            raise Exception(f"Agent encountered an error: {response.message}")
 
 
 def main():
