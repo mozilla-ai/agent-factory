@@ -1,42 +1,45 @@
-# Makefile for Agent Factory
-
+# ====================================================================================
 # Configuration
-DOCKER_IMAGE = agent-factory
-DOCKER_CONTAINER = agent-factory-a2a
-DOCKER_TAG = latest
-A2A_SERVER_HOST = localhost
-A2A_SERVER_LOCAL_PORT = 8080
+# ====================================================================================
+DOCKER_IMAGE := agent-factory
+DOCKER_CONTAINER := agent-factory-a2a
+DOCKER_TAG := latest
 
-# Default environment variables
-FRAMEWORK?=openai
-MODEL?=o3
-HOST?=0.0.0.0
-PORT?=8080
-LOG_LEVEL?=info
-CHAT?=1
+# Server Configuration
+A2A_SERVER_HOST ?= localhost
+A2A_SERVER_LOCAL_PORT ?= 8080
 
-# Default target
+# Default environment variables for the container
+FRAMEWORK ?= openai
+MODEL ?= o3
+HOST ?= 0.0.0.0
+PORT ?= 8080
+LOG_LEVEL ?= info
+CHAT ?= 0
+
+# ====================================================================================
+# Help Target
+# ====================================================================================
 .PHONY: help
-help:
-	@echo "Available targets:"
-	@echo "  build           - Build the Docker image for Agent Factory A2A server"
-	@echo "  run             - Run the A2A server in Docker"
-	@echo "  stop            - Stop the running agent-factory-a2a container"
-	@echo "  clean           - Remove Docker containers and images"
+.DEFAULT_GOAL := help
+help: ## Display this help message
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "%-25s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# Build the Docker image
+# ====================================================================================
+# Docker Lifecycle
+# ====================================================================================
 .PHONY: build
-build:
-	docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "dev") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+build: ## Build the Docker image for the server
+	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "dev") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
-# Run the server in Docker
 .PHONY: run
-run: build
+run: build ## Run the server interactively in the foreground
 	@if [ ! -f .env ]; then \
 		echo "Error: .env file not found. Please create one with your API keys."; \
 		exit 1; \
 	fi
-	docker run --rm \
+	@echo "Starting server interactively on http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)"
+	@docker run --rm \
 		--name $(DOCKER_CONTAINER) \
 		-p $(A2A_SERVER_LOCAL_PORT):8080 \
 		--env-file .env \
@@ -47,22 +50,77 @@ run: build
 		-e LOG_LEVEL=$(LOG_LEVEL) \
 		-e CHAT=$(CHAT) \
 		$(DOCKER_IMAGE):$(DOCKER_TAG)
-	@echo "Server running at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)"
+
+.PHONY: run-detached
+run-detached: build ## Run the server in the background (detached mode)
+	@if [ ! -f .env ]; then \
+		echo "Error: .env file not found. Please create one with your API keys."; \
+		exit 1; \
+	fi
+	@echo "Starting server in detached mode..."
+	@docker run -d --rm \
+		--name $(DOCKER_CONTAINER) \
+		-p $(A2A_SERVER_LOCAL_PORT):8080 \
+		--env-file .env \
+		-e FRAMEWORK=$(FRAMEWORK) \
+		-e MODEL=$(MODEL) \
+		-e HOST=$(HOST) \
+		-e PORT=$(PORT) \
+		-e LOG_LEVEL=$(LOG_LEVEL) \
+		-e CHAT=$(CHAT) \
+		$(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: stop
-stop:
+stop: ## Stop the running Docker container
 	@if [ "$$(docker ps -q -f name=$(DOCKER_CONTAINER))" ]; then \
-        docker stop $(DOCKER_CONTAINER) && \
-        echo "Successfully stopped $(DOCKER_CONTAINER) container"; \
-    else \
-        echo "No $(DOCKER_CONTAINER) container running"; \
-    fi
+		echo "Stopping $(DOCKER_CONTAINER) container..."; \
+		docker stop $(DOCKER_CONTAINER); \
+	else \
+		echo "No $(DOCKER_CONTAINER) container running."; \
+	fi
 
-# Remove Docker containers and images
 .PHONY: clean
-clean: stop
+clean: stop ## Remove the Docker image
 	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
 	@echo "Successfully removed $(DOCKER_IMAGE):$(DOCKER_TAG) image"
 
-# Default target
-.DEFAULT_GOAL := help
+# ====================================================================================
+# Testing
+# ====================================================================================
+.PHONY: wait-for-server
+wait-for-server: ## Helper to wait for the server to be ready (internal use)
+	@echo -n "Waiting for server at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT) to be ready..."
+	@count=0; \
+	while ! curl -s --fail http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)/.well-known/agent.json >/dev/null; \
+	do \
+		sleep 1; \
+		count=$$((count+1)); \
+		if [ $$count -ge 30 ]; then \
+			echo; \
+			echo "Error: Timed out waiting for server to be ready after 30 seconds."; \
+			echo "Run 'docker logs $(DOCKER_CONTAINER)' to see server logs for errors."; \
+			exit 1; \
+		fi; \
+		printf "."; \
+	done;
+	@echo " Server is ready!"
+
+.PHONY: test-single-turn-generation
+test-single-turn-generation: ## Run the single-turn generation tests
+	@echo "Running single turn generation tests..."
+	@uv sync --quiet --group tests
+	@pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=url-to-podcast
+
+.PHONY: test-local
+test-local: wait-for-server test-single-turn-generation ## Run all tests against an existing container
+
+.PHONY: test
+test: ## Run all tests in a clean, automated environment (for CI)
+	@$(MAKE) stop
+	@$(MAKE) run-detached
+	@$(MAKE) wait-for-server
+	@$(MAKE) test-single-turn-generation; \
+	EXIT_CODE=$$?; \
+	echo "Tests finished. Stopping server..."; \
+	$(MAKE) stop; \
+	exit $$EXIT_CODE

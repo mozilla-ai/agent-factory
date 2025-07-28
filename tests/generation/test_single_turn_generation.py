@@ -11,7 +11,7 @@ from requirements_validators import (
 )
 from utils.non_deterministic_runs import run_until_success_threshold_async
 
-from agent_factory.agent_generation import generate_target_agent
+from agent_factory.agent_generator import generate_target_agent
 
 
 def _assert_generated_files(workflow_dir: Path):
