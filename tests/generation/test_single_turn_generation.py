@@ -11,6 +11,7 @@ from requirements_validators import (
 from utils.non_deterministic_runs import run_until_success_threshold_async
 
 from agent_factory.agent_generator import generate_target_agent
+from agent_factory.utils.client_utils import is_server_live
 
 
 def _assert_generated_files(workflow_dir: Path):
@@ -50,8 +51,7 @@ async def test_single_turn_generation(
 
     test_case = use_cases[prompt_id]
 
-    # TODO: Assert that server is running on localhost:8080
-    # Generate the agent
+    assert is_server_live("localhost", 8080), "Agent server is not live on localhost:8080"
     full_path = tmp_path / prompt_id
     await generate_target_agent(message=test_case["prompt"], output_dir=full_path)
 
