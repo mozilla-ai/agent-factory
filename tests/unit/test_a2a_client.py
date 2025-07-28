@@ -1,9 +1,11 @@
+import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
 from a2a.types import AgentCard
 
+from agent_factory.schemas import AgentFactoryOutputs, Status
 from agent_factory.utils.client_utils import (
     create_a2a_http_client,
     create_message_request,
@@ -162,3 +164,26 @@ def test_create_message_request_empty_string_throws_error():
         with pytest.raises(ValueError) as exc_info:
             create_message_request(message)
         assert str(exc_info.value) == expected_error
+
+
+def test_process_a2a_agent_response_valid(mock_agent_response):
+    """Test processing a valid agent response."""
+    result = process_a2a_agent_response(mock_agent_response)
+
+    assert isinstance(result, AgentFactoryOutputs)
+    assert result.message == "✅ Done! Your agent is ready!"
+    assert result.status == Status.COMPLETED
+    assert "from any_agent.tools import search_tavily" in result.imports
+
+
+def test_process_a2a_agent_response_missing_fields(mock_agent_response):
+    """Test processing a response with missing required fields."""
+    invalid_response = {"message": "Test"}  # Missing other required fields
+
+    mock_agent_response.root.result.status.message.parts[0].root.text = json.dumps(invalid_response)
+
+    with pytest.raises(ValueError) as exc_info:
+        process_a2a_agent_response(mock_agent_response)
+
+    assert "validation error" in str(exc_info.value).lower()
+    assert "field required" in str(exc_info.value).lower()
