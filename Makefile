@@ -32,7 +32,7 @@ help: ## Display this help message
 # Docker Lifecycle
 # ====================================================================================
 build: ## Build the Docker image for the server
-	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "dev") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
 run: build ## Run the server interactively in the foreground
 	@if [ ! -f .env ]; then \
