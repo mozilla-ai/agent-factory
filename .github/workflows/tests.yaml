@@ -67,3 +67,24 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pytest -v tests/generated_agent_evaluation
+
+
+  run-generated-artifacts-tests:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout @v4
+
+      - name: Install the latest version of uv and set the python version to 3.13
+        uses: astral-sh/setup-uv @v6
+        with:
+          python-version: 3.13
+          activate-environment: true
+
+      - name: Run Generated Artifacts tests
+        run: |
+          make test-generated-artifacts PROMPT_ID=summarize-url-content
+          make test-generated-artifacts PROMPT_ID=url-to-podcast
+          make test-generated-artifacts PROMPT_ID=scoring-blueprints-submission
