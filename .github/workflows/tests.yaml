@@ -1,5 +1,6 @@
 name: Tests
 
+
 on:
   push:
     branches: [main]
@@ -13,6 +14,7 @@ on:
       - 'eval/**'
       - 'tests/**'
   workflow_dispatch:
+
 
 jobs:
   run-unit-tests:
@@ -29,15 +31,11 @@ jobs:
           python-version: 3.13
           activate-environment: true
 
-      - name: Install Python dependencies
-        run: |
-          uv sync --group tests
-
       - name: Run Agent Factory unit tests
-        run: pytest -v tests/unit
+        run: make test-unit
 
 
-  run-generation-tests:
+run-generation-tests:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     runs-on: ubuntu-latest
@@ -67,7 +65,8 @@ jobs:
       - name: Run Generation Test - ${{ matrix.prompt_id }}
         run: make test-single-turn-generation-e2e PROMPT_ID=${{ matrix.prompt_id }}
 
-  run-agent-evaluation-tests:
+
+run-agent-evaluation-tests:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 10
     runs-on: ubuntu-latest
