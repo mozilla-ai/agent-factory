@@ -24,9 +24,12 @@ swap between Agent frameworks with minimal code changes.
 
 ### Prerequisites
 
-- Python 3.13+
+- [curl](https://curl.se/)
+- [jq](https://jqlang.org/)
+- [Python 3.13+](https://www.python.org/downloads/)
 - [uv](https://github.com/astral-sh/uv)
-- Docker (for containerized deployment)
+- [Docker](https://www.docker.com/products/docker-desktop/) (for containerized deployment)
+- [mcpd](https://github.com/mozilla-ai/mcpd/releases) added to `PATH`, e.g. `/usr/local/bin` (for local deployment)
 
 ### Installation
 
@@ -75,7 +78,7 @@ To run the server locally, execute the following command from the `src/agent_fac
 cd src/agent_factory && uv run . --host 0.0.0.0 --port 8080
 ```
 
-The server will be available at `http://localhost:8080`.
+The server will be available at `http://localhost:8080/.well-known/agent.json`.
 
 In addition to `host` and `port`, you can also pass the following arguments:
 
@@ -97,7 +100,7 @@ The Makefile enables you to run the server using Docker. Before starting, make s
    ```bash
    make run
    ```
-   The server will be available at `http://localhost:8080`.
+   The server will be available at `http://localhost:8080/.well-known/agent.json`.
 
 > [!NOTE]
 > You can modify the behavior of the server by passing environment variables to the `make run` command. For example, to

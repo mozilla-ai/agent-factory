@@ -37,16 +37,17 @@ def test_search_mcp_servers_validate_single_word(invalid_keyphrase):
 
 def test_search_mcp_servers_normalizes_keyphrase():
     """Test that search_mcp_servers applies strip() and lower() to the keyphrase."""
-    mock_repo = Mock()
-    mock_repo.search_servers.return_value = []
-
     test_cases = [
         ("  GITHUB  ", "github"),
         ("GitHub", "github"),
     ]
 
     for input_kw, expected_kw in test_cases:
-        with patch("agent_factory.factory_tools.RepositoryManager", return_value=mock_repo):
-            search_mcp_servers(input_kw)
-            mock_repo.search_servers.assert_called_with(expected_kw)
-            mock_repo.reset_mock()
+        with patch("agent_factory.factory_tools.run_binary") as mock_run:
+            mock_run.return_value = {"results": []}
+            search_mcp_servers(keyphrase=input_kw)
+            assert mock_run.call_args is not None
+            assert len(mock_run.call_args.args) > 1
+            args = mock_run.call_args.args[1]  # element 0 should be the cmd, element 1 should be the 'args'.
+            assert expected_kw in args
+            assert expected_kw == args[1]  # should be the 2nd element (after the subcommand).

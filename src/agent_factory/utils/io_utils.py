@@ -1,3 +1,5 @@
+import json
+import subprocess
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -5,6 +7,8 @@ from pathlib import Path
 from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.utils import clean_python_code_with_autoflake
 from agent_factory.utils.logging import logger
+
+BINARY_NAME_MCPD = "mcpd"
 
 
 def setup_output_directory(output_dir: Path | None = None) -> Path:
@@ -69,3 +73,104 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
 
     except Exception as e:
         logger.warning(f"Warning: Failed to parse and save agent outputs: {str(e)}")
+
+
+def run_binary(path: str, args: list[str], ignore_response: bool = False) -> dict:
+    """Run a compiled binary and parse its JSON output from STDOUT.
+
+    Uses subprocess to execute the specified binary with arguments.
+    Unless `ignore_response` is `True`, captures STDOUT, and attempts to decode it as JSON.
+
+    Args:
+        path: Path to the executable binary.
+        args: List of arguments to pass to the binary.
+        ignore_response: If `True`, STDOUT response is ignored and an empty response is returned.
+
+    Returns:
+        Parsed JSON output as a Python dictionary.
+
+    Raises:
+        RuntimeError: If the subprocess fails (e.g., non-zero exit code).
+        ValueError: If the STDOUT response cannot be parsed as valid JSON when response is not being ignored.
+    """
+    try:
+        result = subprocess.run([path, *args], capture_output=True, text=True, check=True)
+        if ignore_response:
+            logger.info(f"Ignoring binary ({path}) STDOUT response, return code: {result.returncode}")
+            return {}
+        return json.loads(result.stdout)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command '{e.cmd}' failed with code {e.returncode}")
+        logger.error(f"Stderr: {e.stderr}")
+        raise RuntimeError("Subprocess failed") from e
+    except json.JSONDecodeError as e:
+        logger.error("Failed to parse JSON from subprocess output")
+        logger.error(f"Output was: {result.stdout.strip()}")
+        raise ValueError("Invalid JSON output") from e
+    except FileNotFoundError as e:
+        logger.error(f"Binary not found at path: {path}")
+        raise RuntimeError(f"Binary not found: {path}") from e
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        raise RuntimeError("An unexpected error occurred during binary execution") from e
+
+
+def initialize_mcp_config(config_path: Path):
+    """Initialize the config file used by mcpd.
+
+    Example:
+        ```python
+        initialize_mcp_config(config_path=Path("/tmp/.mcpd.toml"))
+        ```
+
+    Args:
+        config_path: Path to the configuration file that should be created.
+
+    Raises:
+        RuntimeError: If initialization fails (e.g., non-zero exit code).
+    """
+    args = ["init", f"--config-file={config_path}"]
+    run_binary(BINARY_NAME_MCPD, args, ignore_response=True)
+
+
+def register_mcp_server(config_path: Path, name: str, version: str | None = None, tools: list[str] | None = None):
+    """Register an MCP server that will be required by the generated agent.
+
+    This function registers an MCP server using its `name` and `version`, writing to a declarative configuration file.
+
+    If only a subset of the available tools for the server are required, they can be specified via the `tools` argument.
+    If tools are not specified then 'all' the currently available tools will be allowed.
+
+    Example:
+        ```python
+        register_mcp_server(
+            config_path=Path("/tmp/.mcpd.toml"), name="github", tools=["get_pull_request_status", "push_files"]
+        )
+        register_mcp_server(config_path=Path("/tmp/.mcpd.toml"), name="github", version="v1.2.3")
+        register_mcp_server(
+            config_path=Path("/tmp/.mcpd.toml"),
+            name="github",
+            version="v4.5.6",
+            tools=["get_pull_request_status", "update_pull_request_branch"],
+        )
+        ```
+
+    Args:
+        config_path: Path to the initialized configuration file.
+        name: A string which is the ID/name of the MCP server to be registered.
+        version: Optional version to pin for this MCP server (if known).
+        tools: Optional list (subset) of allowed tools to pin for this server.
+
+    Raises:
+         RuntimeError: If server registration fails (e.g., non-zero exit code).
+    """
+    args = ["add", name, f"--config-file={config_path}"]
+
+    if version is not None:
+        args.extend(["--version", version])
+
+    if tools:
+        for tool in tools:
+            args.extend(["--tool", tool])
+
+    run_binary(BINARY_NAME_MCPD, args, ignore_response=True)
