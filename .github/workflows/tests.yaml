@@ -85,6 +85,13 @@ jobs:
 
       - name: Run Generated Artifacts tests
         run: |
-          make test-generated-artifacts PROMPT_ID=summarize-url-content
-          make test-generated-artifacts PROMPT_ID=url-to-podcast
-          make test-generated-artifacts PROMPT_ID=scoring-blueprints-submission
+          PROMPT_IDS=(
+            summarize-url-content
+            url-to-podcast
+            scoring-blueprints-submission
+          )
+          for prompt_id in "${PROMPT_IDS[@]}"; do
+            echo "::group::Running tests for PROMPT_ID: $prompt_id"
+            make test-generated-artifacts PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
+            echo "::endgroup::"
+          done
