@@ -57,3 +57,16 @@ def process_a2a_agent_response(response: Any) -> AgentFactoryOutputs:
     response_data = json.loads(response.root.result.status.message.parts[0].root.text)
     logger.info(f"Received response from agent: {response_data}")
     return AgentFactoryOutputs(**response_data)
+
+
+def is_server_live(host: str, port: int, timeout: float = 2.0) -> bool:
+    """Check if the server at the given host and port is live by attempting a TCP connection.
+    Returns True if connection is successful, False otherwise.
+    """
+    import socket
+
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (OSError, ConnectionRefusedError, TimeoutError):
+        return False
