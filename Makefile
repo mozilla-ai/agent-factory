@@ -1,4 +1,4 @@
-.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-generated-artifacts
 
 #est-local test
 
@@ -125,3 +125,13 @@ test-single-turn-generation-e2e: ## Run all tests in a clean, automated environm
 	echo "Tests finished. Stopping server..."; \
 	$(MAKE) stop; \
 	exit $$EXIT_CODE
+
+test-generated-artifacts: ## Run artifact validation tests
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Usage: make test-generated-artifacts PROMPT_ID=<prompt-id>"; \
+		exit 1; \
+	fi
+	@echo "Running artifact validation tests for prompt-id: $(PROMPT_ID)..."
+	@uv sync --quiet --group tests
+	@pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
+	@echo "Artifact validation tests completed successfully!"
