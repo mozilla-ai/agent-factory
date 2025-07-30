@@ -21,7 +21,7 @@ dotenv.load_dotenv()
 
 
 async def main(
-    framework: str = "openai",
+    framework: str = "llama_index",
     chat: bool = True,
     model: str = "o3",
     host: str = "localhost",
