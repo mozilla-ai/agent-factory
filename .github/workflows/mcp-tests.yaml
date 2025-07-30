@@ -14,7 +14,7 @@ on:
 
 jobs:
   run-mcp-server-tests:
-    timeout-minutes: 30
+    timeout-minutes: 6
     runs-on: ubuntu-latest
 
     steps:
