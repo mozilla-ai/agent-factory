@@ -8,9 +8,15 @@ on:
         required: true
         type: string
   pull_request:
+    branches-ignore:
+      - main
     paths:
       - 'docs/scripts/mcp-servers.json'
-      - '.github/workflows/mcp-tests.yaml'
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - 'docs/scripts/mcp-servers.json'
 
 jobs:
   run-mcp-server-tests:
