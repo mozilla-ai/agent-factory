@@ -1,0 +1,31 @@
+name: MCP Server Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-mcp-server-tests:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install the latest version of uv and set the python version to 3.13
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: 3.13
+          activate-environment: true
+
+      - name: Install Python dependencies
+        run: |
+          uv sync --group tests
+
+      - name: Run MCP server tests
+        run: |
+          python docs/scripts/test_mcp_servers.py
+
+      - name: Generate MCP documentation
+        run: |
+          python docs/scripts/generate_mcp_table.py

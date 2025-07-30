@@ -23,6 +23,8 @@ help:
 	@echo "  run             - Run the A2A server in Docker"
 	@echo "  stop            - Stop the running agent-factory-a2a container"
 	@echo "  clean           - Remove Docker containers and images"
+	@echo "  test-mcps       - Run MCP server tests"
+	@echo "  update-docs     - Update MCP documentation (depends on test-mcps)"
 
 # Build the Docker image
 .PHONY: build
@@ -63,6 +65,18 @@ stop:
 clean: stop
 	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
 	@echo "Successfully removed $(DOCKER_IMAGE):$(DOCKER_TAG) image"
+
+# MCP Testing and Documentation
+.PHONY: test-mcps
+test-mcps:
+	@echo "Running MCP server tests..."
+	uv run python docs/scripts/test_mcp_servers.py
+
+.PHONY: update-docs
+update-docs: test-mcps
+	@echo "Generating MCP documentation..."
+	uv run python docs/scripts/generate_mcp_table.py
+	@echo "Documentation updated successfully!"
 
 # Default target
 .DEFAULT_GOAL := help
