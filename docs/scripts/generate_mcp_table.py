@@ -37,16 +37,13 @@ def create_table_row(server_name: str, server_config: dict[str, Any]) -> str:
     command_str = f"`{command} {' '.join(args)}`"
     description = server_config.get("description", "")
 
-    return (
-        f"| **{server_name.title()}** | `{command}` | {command_str} | stdio | "
-        f"{status_icon} | {status_text} | {description} |"
-    )
+    return f"| **{server_name.title()}** | `{command}` | {command_str} | stdio | {status_text} | {description} |"
 
 
 def generate_table_content(servers: dict[str, Any]) -> str:
     """Generate the complete table content."""
-    header = "| Server Name | Command | Installation | Protocol | Tested | Status | Description |"
-    separator = "| --- | --- | --- | --- | --- | --- | --- |"
+    header = "| Server Name | Command | Installation | Protocol | Status | Description |"
+    separator = "| --- | --- | --- | --- | --- | --- |"
 
     rows = [create_table_row(name, config) for name, config in servers.items()]
 
