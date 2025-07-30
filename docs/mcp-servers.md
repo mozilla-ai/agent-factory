@@ -1,37 +1,46 @@
 # MCP Servers
 
-This page provides a comprehensive list of Model Context Protocol (MCP) servers that have been tested and curated for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
+*Last updated: 2025-07-30T00:13:30.050377+00:00*
+*Test results: 5 working, 7 failed, 2 skipped out of 14 total servers*
+
+*Last updated: 2025-07-30T00:07:56.494287*
+*Test results: 5 working, 7 failed, 2 skipped out of 14 total servers*
+
+*Last updated: 2025-07-30T00:06:31.403330*
+*Test results: 5 working, 7 failed, 2 skipped out of 14 total servers*
+
+*Last updated: 2025-07-29T23:54:37.731991*
+*Test results: 5 working, 7 failed, 2 skipped out of 14 total servers*
+
+This page provides a list of Model Context Protocol (MCP) servers unders test for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
 
 ## Server Status Legend
 
 - ✅ **Confirmed**: Server has been tested and confirmed working
-- ⏳ **Testing**: Server is currently under testing
-- ❌ **Not Tested**: Server has not been tested yet
+- ⏭️ **Skipped**: Server was skipped during the latest test
+- ❌ **Not Tested**: Server failed the latest test
 
 ## Quick Reference Table
 
-The following table provides a quick overview of all available MCP servers. For detailed information about each server, see the sections below.
+The following table provides a quick overview of tested MCP servers. For detailed information about each server, see the sections below.
 
 <!-- MCP_SERVERS_TABLE_START -->
-
 | Server Name | Command | Installation | Protocol | Tested | Status | Description |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Github** | `docker` | `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN mcp/github` | stdio | ✅ | ✅ Confirmed | GitHub integration for repository management, issues, and code search |
-| **Filesystem** | `npx` | `npx -y @modelcontextprotocol/server-filesystem /path/to/your/directory /path/to/your/directory` | stdio | ✅ | ✅ Confirmed | Local file system operations and management |
-| **Duckduckgo Mcp** | `uvx` | `uvx duckduckgo-mcp-server` | stdio | ✅ | ✅ Confirmed | Web search capabilities using DuckDuckGo |
-| **Mcp Obsidian** | `npx` | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"/path/to/your/obsidian/vault\"}"` | stdio | ✅ | ✅ Confirmed | Obsidian vault integration for note management |
-| **Mcp Discord** | `docker` | `docker run --rm -it -e DISCORD_TOKEN=$DISCORD_TOKEN -p 8080:8080 barryy625/mcp-discord` | stdio | ✅ | ✅ Confirmed | Discord messaging and server management |
-| **Memory** | `npx` | `npx -y @modelcontextprotocol/server-memory` | stdio |  | ⏳ Testing | Memory management and persistence for MCP servers |
+| **Github** | `docker` | `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN mcp/github` | stdio | ⏭️ | ⏭️ Skipped | GitHub integration for repository management, issues, and code search |
+| **Filesystem** | `npx` | `npx -y @modelcontextprotocol/server-filesystem . .` | stdio | ✅ | ✅ Confirmed | Local file system operations and management |
+| **Duckduckgo-Mcp** | `uvx` | `uvx duckduckgo-mcp-server` | stdio | ✅ | ✅ Confirmed | Web search capabilities using DuckDuckGo |
+| **Mcp-Obsidian** | `npx` | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ✅ | ✅ Confirmed | Obsidian vault integration for note management |
+| **Mcp-Discord** | `docker` | `docker run --rm -it -e DISCORD_TOKEN=$DISCORD_TOKEN -p 8080:8080 barryy625/mcp-discord` | stdio | ⏭️ | ⏭️ Skipped | Discord messaging and server management |
+| **Memory** | `npx` | `npx -y @modelcontextprotocol/server-memory` | stdio | ✅ | ✅ Confirmed | Memory management and persistence for MCP servers |
 | **Notion** | `npx` | `npx -y @notionhq/notion-mcp-server` | stdio | ✅ | ✅ Confirmed | Notion workspace integration for page management |
-| **Googlemaps** | `npx` | `npx -y @modelcontextprotocol/server-googlemaps` | stdio |  | ⏳ Testing | Google Maps integration for location services |
-| **Perplexity** | `npx` | `npx -y @modelcontextprotocol/server-perplexity` | stdio |  | ⏳ Testing | AI-powered search and information retrieval |
-| **Linkedin** | `npx` | `npx -y @modelcontextprotocol/server-linkedin` | stdio |  | ⏳ Testing | LinkedIn professional networking integration |
-| **Reddit** | `npx` | `npx -y @modelcontextprotocol/server-reddit` | stdio |  | ⏳ Testing | Reddit community engagement and content discovery |
-| **Salesforce** | `npx` | `npx -y @modelcontextprotocol/server-salesforce` | stdio |  | ⏳ Testing | Salesforce CRM integration |
-| **Youtube** | `npx` | `npx -y @modelcontextprotocol/server-youtube` | stdio |  | ⏳ Testing | YouTube video content management |
-| **Elasticsearch** | `npx` | `npx -y @modelcontextprotocol/server-elasticsearch` | stdio |  | ⏳ Testing | Elasticsearch search and analytics |
-
-
+| **Googlemaps** | `npx` | `npx -y @modelcontextprotocol/server-googlemaps` | stdio | ❌ | ❌ Failed | Google Maps integration for location services |
+| **Perplexity** | `npx` | `npx -y @modelcontextprotocol/server-perplexity` | stdio | ❌ | ❌ Failed | AI-powered search and information retrieval |
+| **Linkedin** | `npx` | `npx -y @modelcontextprotocol/server-linkedin` | stdio | ❌ | ❌ Failed | LinkedIn professional networking integration |
+| **Reddit** | `npx` | `npx -y @modelcontextprotocol/server-reddit` | stdio | ❌ | ❌ Failed | Reddit community engagement and content discovery |
+| **Salesforce** | `npx` | `npx -y @modelcontextprotocol/server-salesforce` | stdio | ❌ | ❌ Failed | Salesforce CRM integration |
+| **Youtube** | `npx` | `npx -y @modelcontextprotocol/server-youtube` | stdio | ❌ | ❌ Failed | YouTube video content management |
+| **Elasticsearch** | `npx` | `npx -y @modelcontextprotocol/server-elasticsearch` | stdio | ❌ | ❌ Failed | Elasticsearch search and analytics |
 <!-- MCP_SERVERS_TABLE_END -->
 
 ## Content Processing
@@ -113,7 +122,6 @@ To add a new MCP server to this documentation:
 ## References
 
 - [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
-- [MCP Server Registry](https://mcp-registry.vercel.app/)
 - [Agent Factory GitHub Repository](https://github.com/mozilla-ai/agent-factory)
 
 ---

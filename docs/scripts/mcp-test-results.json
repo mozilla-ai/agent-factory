@@ -1,0 +1,228 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "mcp/github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN_HERE"
+      },
+      "description": "GitHub integration for repository management, issues, and code search",
+      "test_status": "skipped",
+      "test_error": "Docker-based servers skipped in CI environment",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:14.721381+00:00"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        ".",
+        "."
+      ],
+      "description": "Local file system operations and management",
+      "test_status": "success",
+      "test_error": null,
+      "tools_count": 12,
+      "tested_at": "2025-07-30T00:13:14.721613+00:00"
+    },
+    "duckduckgo-mcp": {
+      "command": "uvx",
+      "args": [
+        "duckduckgo-mcp-server"
+      ],
+      "description": "Web search capabilities using DuckDuckGo",
+      "test_status": "success",
+      "test_error": null,
+      "tools_count": 2,
+      "tested_at": "2025-07-30T00:13:15.643821+00:00"
+    },
+    "mcp-obsidian": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "mcp-obsidian",
+        "--config",
+        "\"{\\\"vaultPath\\\":\\\"./test-vault\\\"}\""
+      ],
+      "description": "Obsidian vault integration for note management",
+      "test_status": "success",
+      "test_error": null,
+      "tools_count": 2,
+      "tested_at": "2025-07-30T00:13:16.513308+00:00"
+    },
+    "mcp-discord": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-it",
+        "-e",
+        "DISCORD_TOKEN=$DISCORD_TOKEN",
+        "-p",
+        "8080:8080",
+        "barryy625/mcp-discord"
+      ],
+      "env": {
+        "DISCORD_TOKEN": "YOUR_DISCORD_TOKEN_HERE"
+      },
+      "description": "Discord messaging and server management",
+      "test_status": "skipped",
+      "test_error": "Docker-based servers skipped in CI environment",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:18.973484+00:00"
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "description": "Memory management and persistence for MCP servers",
+      "test_status": "success",
+      "test_error": null,
+      "tools_count": 9,
+      "tested_at": "2025-07-30T00:13:18.973532+00:00"
+    },
+    "notion": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@notionhq/notion-mcp-server"
+      ],
+      "env": {
+        "NOTION_API_KEY": "YOUR_NOTION_API_KEY_HERE"
+      },
+      "description": "Notion workspace integration for page management",
+      "test_status": "success",
+      "test_error": null,
+      "tools_count": 19,
+      "tested_at": "2025-07-30T00:13:19.527343+00:00"
+    },
+    "googlemaps": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-googlemaps"
+      ],
+      "env": {
+        "GOOGLE_MAPS_API_KEY": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+      },
+      "description": "Google Maps integration for location services",
+      "test_status": "failed",
+      "test_error": "unhandled errors in a TaskGroup (1 sub-exception)",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:20.035216+00:00"
+    },
+    "perplexity": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-perplexity"
+      ],
+      "env": {
+        "PERPLEXITY_API_KEY": "YOUR_PERPLEXITY_API_KEY_HERE"
+      },
+      "description": "AI-powered search and information retrieval",
+      "test_status": "failed",
+      "test_error": "unhandled errors in a TaskGroup (1 sub-exception)",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:21.637702+00:00"
+    },
+    "linkedin": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-linkedin"
+      ],
+      "env": {
+        "LINKEDIN_ACCESS_TOKEN": "YOUR_LINKEDIN_TOKEN_HERE"
+      },
+      "description": "LinkedIn professional networking integration",
+      "test_status": "failed",
+      "test_error": "unhandled errors in a TaskGroup (1 sub-exception)",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:22.067498+00:00"
+    },
+    "reddit": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-reddit"
+      ],
+      "env": {
+        "REDDIT_CLIENT_ID": "YOUR_REDDIT_CLIENT_ID_HERE",
+        "REDDIT_CLIENT_SECRET": "YOUR_REDDIT_CLIENT_SECRET_HERE"
+      },
+      "description": "Reddit community engagement and content discovery",
+      "test_status": "failed",
+      "test_error": "unhandled errors in a TaskGroup (1 sub-exception)",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:23.652533+00:00"
+    },
+    "salesforce": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-salesforce"
+      ],
+      "env": {
+        "SALESFORCE_USERNAME": "YOUR_SALESFORCE_USERNAME_HERE",
+        "SALESFORCE_PASSWORD": "YOUR_SALESFORCE_PASSWORD_HERE",
+        "SALESFORCE_SECURITY_TOKEN": "YOUR_SALESFORCE_SECURITY_TOKEN_HERE"
+      },
+      "description": "Salesforce CRM integration",
+      "test_status": "failed",
+      "test_error": "unhandled errors in a TaskGroup (1 sub-exception)",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:25.280346+00:00"
+    },
+    "youtube": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-youtube"
+      ],
+      "env": {
+        "YOUTUBE_API_KEY": "YOUR_YOUTUBE_API_KEY_HERE"
+      },
+      "description": "YouTube video content management",
+      "test_status": "failed",
+      "test_error": "unhandled errors in a TaskGroup (1 sub-exception)",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:26.829127+00:00"
+    },
+    "elasticsearch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-elasticsearch"
+      ],
+      "env": {
+        "ELASTICSEARCH_URL": "YOUR_ELASTICSEARCH_URL_HERE",
+        "ELASTICSEARCH_API_KEY": "YOUR_ELASTICSEARCH_API_KEY_HERE"
+      },
+      "description": "Elasticsearch search and analytics",
+      "test_status": "failed",
+      "test_error": "unhandled errors in a TaskGroup (1 sub-exception)",
+      "tools_count": 0,
+      "tested_at": "2025-07-30T00:13:28.448498+00:00"
+    }
+  },
+  "test_run": {
+    "timestamp": "2025-07-30T00:13:30.050377+00:00",
+    "total_servers": 14,
+    "successful": 5,
+    "failed": 7,
+    "skipped": 2
+  }
+}
