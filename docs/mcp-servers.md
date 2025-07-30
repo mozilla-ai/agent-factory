@@ -1,16 +1,8 @@
 # MCP Servers
 
-*Last updated: 2025-07-30T00:13:30.050377+00:00*
-*Test results: 5 working, 7 failed, 2 skipped out of 14 total servers*
 
-*Last updated: 2025-07-30T00:07:56.494287*
-*Test results: 5 working, 7 failed, 2 skipped out of 14 total servers*
-
-*Last updated: 2025-07-30T00:06:31.403330*
-*Test results: 5 working, 7 failed, 2 skipped out of 14 total servers*
-
-*Last updated: 2025-07-29T23:54:37.731991*
-*Test results: 5 working, 7 failed, 2 skipped out of 14 total servers*
+*Last updated: 2025-07-30T00:26:43.537594+00:00*
+*Test results: 9 working, 0 failed, 2 skipped out of 11 total servers*
 
 This page provides a list of Model Context Protocol (MCP) servers unders test for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
 
@@ -34,13 +26,10 @@ The following table provides a quick overview of tested MCP servers. For detaile
 | **Mcp-Discord** | `docker` | `docker run --rm -it -e DISCORD_TOKEN=$DISCORD_TOKEN -p 8080:8080 barryy625/mcp-discord` | stdio | ⏭️ | ⏭️ Skipped | Discord messaging and server management |
 | **Memory** | `npx` | `npx -y @modelcontextprotocol/server-memory` | stdio | ✅ | ✅ Confirmed | Memory management and persistence for MCP servers |
 | **Notion** | `npx` | `npx -y @notionhq/notion-mcp-server` | stdio | ✅ | ✅ Confirmed | Notion workspace integration for page management |
-| **Googlemaps** | `npx` | `npx -y @modelcontextprotocol/server-googlemaps` | stdio | ❌ | ❌ Failed | Google Maps integration for location services |
-| **Perplexity** | `npx` | `npx -y @modelcontextprotocol/server-perplexity` | stdio | ❌ | ❌ Failed | AI-powered search and information retrieval |
-| **Linkedin** | `npx` | `npx -y @modelcontextprotocol/server-linkedin` | stdio | ❌ | ❌ Failed | LinkedIn professional networking integration |
-| **Reddit** | `npx` | `npx -y @modelcontextprotocol/server-reddit` | stdio | ❌ | ❌ Failed | Reddit community engagement and content discovery |
-| **Salesforce** | `npx` | `npx -y @modelcontextprotocol/server-salesforce` | stdio | ❌ | ❌ Failed | Salesforce CRM integration |
-| **Youtube** | `npx` | `npx -y @modelcontextprotocol/server-youtube` | stdio | ❌ | ❌ Failed | YouTube video content management |
-| **Elasticsearch** | `npx` | `npx -y @modelcontextprotocol/server-elasticsearch` | stdio | ❌ | ❌ Failed | Elasticsearch search and analytics |
+| **Google-Maps** | `npx` | `npx -y @modelcontextprotocol/server-google-maps` | stdio | ✅ | ✅ Confirmed | Google Maps integration for location services |
+| **Perplexity** | `npx` | `npx -y server-perplexity-ask` | stdio | ✅ | ✅ Confirmed | AI-powered search and information retrieval using Perplexity |
+| **Salesforce** | `uvx` | `uvx --from mcp-salesforce-connector salesforce` | stdio | ✅ | ✅ Confirmed | Salesforce CRM integration |
+| **Elasticsearch** | `uvx` | `uvx elasticsearch-mcp-server` | stdio | ✅ | ✅ Confirmed | Elasticsearch search and analytics |
 <!-- MCP_SERVERS_TABLE_END -->
 
 ## Content Processing

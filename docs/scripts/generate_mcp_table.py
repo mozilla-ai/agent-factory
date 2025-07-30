@@ -54,7 +54,7 @@ def generate_table_content(servers: dict[str, Any]) -> str:
 
 
 def add_test_summary(content: str, test_data: dict[str, Any]) -> str:
-    """Add test run summary to the content."""
+    """Add test run summary to the content, replacing any existing summaries."""
     test_info = f"\n\n*Last updated: {test_data['test_run']['timestamp']}*  \n"
     test_info += (
         f"*Test results: {test_data['test_run']['successful']} working, "
@@ -62,22 +62,30 @@ def add_test_summary(content: str, test_data: dict[str, Any]) -> str:
         f"out of {test_data['test_run']['total_servers']} total servers*"
     )
 
-    return re.sub(r"(\n\n|\n##|\n$)", test_info + r"\1", content, count=1, flags=re.DOTALL)
+    # Remove any existing test summary entries (lines starting with *Last updated:)
+    # This pattern matches the entire block of test summary entries
+    content = re.sub(
+        r"\n\*Last updated:.*?\*\s*\n\*Test results:.*?\*\s*\n(\*Last updated:.*?\*\s*\n\*Test results:.*?\*\s*\n)*",
+        "\n",
+        content,
+        flags=re.DOTALL,
+    )
+
+    # Add the new test summary at the beginning (after the title)
+    return re.sub(r"(# MCP Servers\n)", r"\1" + test_info, content, count=1)
 
 
 def update_markdown_file(
     markdown_file: str = "docs/mcp-servers.md", results_file: str = "docs/scripts/mcp-test-results.json"
 ):
     """Update the markdown file with the new table."""
-    # Load data
     test_data = load_test_results(results_file)
     servers = test_data["mcpServers"]
 
-    # Read markdown file
     with Path(markdown_file).open("r") as f:
         content = f.read()
 
-    # Find table markers
+    # We are embedding the table, so we need these markers
     start_marker = "<!-- MCP_SERVERS_TABLE_START -->"
     end_marker = "<!-- MCP_SERVERS_TABLE_END -->"
 
@@ -88,21 +96,16 @@ def update_markdown_file(
         print("Could not find table markers in markdown file")
         return
 
-    # Generate new table
     table_content = generate_table_content(servers)
     new_table = f"{start_marker}{table_content}\n{end_marker}"
 
-    # Replace table section
     new_content = content[:start_pos] + new_table + content[end_pos + len(end_marker) :]
 
-    # Add test summary
     new_content = add_test_summary(new_content, test_data)
 
-    # Write updated content
     with Path(markdown_file).open("w") as f:
         f.write(new_content)
 
-    # Print summary
     test_run = test_data["test_run"]
     print(f"Updated {markdown_file} with test results")
     print(

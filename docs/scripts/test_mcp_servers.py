@@ -48,37 +48,32 @@ async def test_server(server_name: str, server_config: dict[str, Any]) -> dict[s
     print(f"Testing {server_name}...")
 
     # Start with the original server config
+    # And add test result fields, for the output json file that will feed the markdown table
     result = server_config.copy()
-
-    # Add test result fields
     result["test_status"] = "failed"  # "success", "failed", or "skipped"
     result["test_error"] = None
     result["tools_count"] = 0
     result["tested_at"] = datetime.now(UTC).isoformat()
 
-    # Skip Docker-based servers
+    # Skip Docker-based servers - TODO: add a streamable http test
     if server_config["command"] == "docker":
         result["test_status"] = "skipped"
         result["test_error"] = "Docker-based servers skipped in CI environment"
         print("  ⏭️  Skipping Docker-based server")
         return result
 
-    # Set up temporary environment variables if needed
     env_vars = {}
     if "env" in server_config:
         for env_var, _ in server_config["env"].items():
             if not os.getenv(env_var):
-                # Set a fake value for testing
                 env_vars[env_var] = f"fake_{env_var.lower()}"
                 print(f"  🔧 Setting fake {env_var}")
 
-    # Create server parameters
     server_params = StdioServerParameters(
         command=server_config["command"], args=server_config["args"], env=server_config.get("env", {})
     )
 
     try:
-        # Run test with temporary environment variables
         with temporary_env_vars(env_vars):
             async with stdio_client(server_params) as streams:
                 async with ClientSession(*streams) as session:
@@ -125,7 +120,6 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
         },
     }
 
-    # Ensure the directory exists
     output_path = Path(output_file)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -141,7 +135,7 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
 
 async def main():
     """Main function to run all tests and save results."""
-    # Create test vault directory for mcp-obsidian
+    # Some MCP servers need vaults (e.g. mcp-obsidian)
     test_vault = Path("test-vault")
     if not test_vault.exists():
         test_vault.mkdir()
@@ -150,7 +144,6 @@ async def main():
         results = await run_all_tests()
         save_results(results)
     finally:
-        # Clean up test vault
         if test_vault.exists():
             shutil.rmtree(test_vault)
 
