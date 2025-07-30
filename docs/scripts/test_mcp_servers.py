@@ -17,6 +17,11 @@ from typing import Any
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+# Configuration constants
+INITIALIZE_TIMEOUT = 30  # seconds
+LIST_TOOLS_TIMEOUT = 30  # seconds
+MAX_CONCURRENT_SERVERS = 3  # Limit parallelism to avoid overwhelming system
+
 
 def load_mcp_servers() -> dict[str, Any]:
     """Load MCP servers from JSON file."""
@@ -45,7 +50,7 @@ def temporary_env_vars(env_vars: dict[str, str]):
 
 async def test_server(server_name: str, server_config: dict[str, Any]) -> dict[str, Any]:
     """Test a single MCP server and return results."""
-    print(f"Testing {server_name}...")
+    print(f"🔍 Testing {server_name}...")
 
     # Start with the original server config
     # And add test result fields, for the output json file that will feed the markdown table
@@ -75,19 +80,27 @@ async def test_server(server_name: str, server_config: dict[str, Any]) -> dict[s
 
     try:
         with temporary_env_vars(env_vars):
+            print(f"  🔄 Connecting to {server_name}...")
             async with stdio_client(server_params) as streams:
                 async with ClientSession(*streams) as session:
-                    await session.initialize()
-                    response = await session.list_tools()
+                    print(f"  🔄 Initializing {server_name}...")
+                    await asyncio.wait_for(session.initialize(), timeout=INITIALIZE_TIMEOUT)
+
+                    print(f"  🔄 Listing tools for {server_name}...")
+                    response = await asyncio.wait_for(session.list_tools(), timeout=LIST_TOOLS_TIMEOUT)
                     tools = response.tools
                     result["test_status"] = "success"
                     result["tools_count"] = len(tools)
-                    print(f"  ✅ Found {len(tools)} tools")
+                    print(f"  ✅ {server_name}: Found {len(tools)} tools")
 
+    except TimeoutError:
+        result["test_status"] = "failed"
+        result["test_error"] = f"Timeout after {INITIALIZE_TIMEOUT + LIST_TOOLS_TIMEOUT} seconds"
+        print(f"  ⏰ {server_name}: Timeout - server unresponsive")
     except Exception as e:
         result["test_status"] = "failed"
         result["test_error"] = str(e)
-        print(f"  ❌ Failed: {str(e)}")
+        print(f"  ❌ {server_name}: Failed - {str(e)}")
 
     return result
 
@@ -98,10 +111,31 @@ async def run_all_tests() -> dict[str, Any]:
 
     print("MCP Server Testing")
     print("=" * 50)
+    print(f"Testing {len(servers)} servers with max {MAX_CONCURRENT_SERVERS} concurrent")
+    print(f"Timeouts: Initialize={INITIALIZE_TIMEOUT}s, ListTools={LIST_TOOLS_TIMEOUT}s")
+    print()
 
+    # Create semaphore to limit concurrent servers
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_SERVERS)
+
+    async def test_server_with_semaphore(server_name: str, server_config: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+        async with semaphore:
+            result = await test_server(server_name, server_config)
+            return server_name, result
+
+    # Run tests in parallel with limited concurrency
+    tasks = [test_server_with_semaphore(server_name, server_config) for server_name, server_config in servers.items()]
+
+    # Wait for all tasks to complete
+    results_tuples = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # Convert results back to dictionary
     results = {}
-    for server_name, server_config in servers.items():
-        result = await test_server(server_name, server_config)
+    for result_tuple in results_tuples:
+        if isinstance(result_tuple, Exception):
+            print(f"  💥 Unexpected error: {result_tuple}")
+            continue
+        server_name, result = result_tuple
         results[server_name] = result
 
     return results
@@ -117,6 +151,11 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
             "successful": sum(1 for r in results.values() if r["test_status"] == "success"),
             "failed": sum(1 for r in results.values() if r["test_status"] == "failed"),
             "skipped": sum(1 for r in results.values() if r["test_status"] == "skipped"),
+            "timeouts": {
+                "initialize": INITIALIZE_TIMEOUT,
+                "list_tools": LIST_TOOLS_TIMEOUT,
+            },
+            "max_concurrent": MAX_CONCURRENT_SERVERS,
         },
     }
 
@@ -126,11 +165,12 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
     with Path(output_file).open("w") as f:
         json.dump(output_data, f, indent=2)
 
-    print(f"\nResults saved to {output_file}")
-    print(f"Total servers: {len(results)}")
-    print(f"Successful: {output_data['test_run']['successful']}")
-    print(f"Failed: {output_data['test_run']['failed']}")
-    print(f"Skipped: {output_data['test_run']['skipped']}")
+    print("\n📊 Results Summary:")
+    print(f"  📁 Results saved to {output_file}")
+    print(f"  📈 Total servers: {len(results)}")
+    print(f"  ✅ Successful: {output_data['test_run']['successful']}")
+    print(f"  ❌ Failed: {output_data['test_run']['failed']}")
+    print(f"  ⏭️  Skipped: {output_data['test_run']['skipped']}")
 
 
 async def main():
