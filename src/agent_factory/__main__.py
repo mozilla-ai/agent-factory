@@ -13,7 +13,7 @@ dotenv.load_dotenv()
 
 
 async def main(
-    framework: str = "openai",
+    framework: str = "tinyagent",
     chat: bool = True,
     model: str = "o3",
     host: str = "localhost",
