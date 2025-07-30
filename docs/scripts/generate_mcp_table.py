@@ -47,12 +47,12 @@ def generate_table_content(servers: dict[str, Any]) -> str:
 
     rows = [create_table_row(name, config) for name, config in servers.items()]
 
-    return f"\n{header}\n{separator}\n" + "\n".join(rows)
+    return f"{header}\n{separator}\n" + "\n".join(rows)
 
 
 def add_test_summary(content: str, test_data: dict[str, Any]) -> str:
     """Add test run summary to the content, replacing any existing summaries."""
-    test_info = f"\n\n*Last updated: {test_data['test_run']['timestamp']}*  \n"
+    test_info = f"\n\n*Last updated: {test_data['test_run']['timestamp']}*\n"
     test_info += (
         f"*Test results: {test_data['test_run']['successful']} working, "
         f"{test_data['test_run']['failed']} failed, {test_data['test_run']['skipped']} skipped "

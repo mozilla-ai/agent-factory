@@ -1,7 +1,7 @@
 # MCP Servers
 
 
-*Last updated: 2025-07-30T02:22:29.938574+00:00*
+*Last updated: 2025-07-30T19:12:51.163540+00:00*
 *Test results: 9 working, 0 failed, 2 skipped out of 11 total servers*
 
 This page provides a list of Model Context Protocol (MCP) servers configured for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
@@ -16,20 +16,19 @@ This page provides a list of Model Context Protocol (MCP) servers configured for
 
 The following table provides a quick overview of tested MCP servers. For detailed information about each server, see the sections below.
 
-<!-- MCP_SERVERS_TABLE_START -->
-| Server Name | Command | Installation | Protocol | Status | Description |
-| --- | --- | --- | --- | --- | --- |
-| **Github** | `docker` | `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN mcp/github` | stdio | ⏭️ Skipped | GitHub integration for repository management, issues, and code search |
-| **Filesystem** | `npx` | `npx -y @modelcontextprotocol/server-filesystem . .` | stdio | ✅ Confirmed | Local file system operations and management |
-| **Duckduckgo-Mcp** | `uvx` | `uvx duckduckgo-mcp-server` | stdio | ✅ Confirmed | Web search capabilities using DuckDuckGo |
-| **Mcp-Obsidian** | `npx` | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ✅ Confirmed | Obsidian vault integration for note management |
-| **Mcp-Discord** | `docker` | `docker run --rm -it -e DISCORD_TOKEN=$DISCORD_TOKEN -p 8080:8080 barryy625/mcp-discord` | stdio | ⏭️ Skipped | Discord messaging and server management |
-| **Memory** | `npx` | `npx -y @modelcontextprotocol/server-memory` | stdio | ✅ Confirmed | Memory management and persistence for MCP servers |
-| **Notion** | `npx` | `npx -y @notionhq/notion-mcp-server` | stdio | ✅ Confirmed | Notion workspace integration for page management |
-| **Google-Maps** | `npx` | `npx -y @modelcontextprotocol/server-google-maps` | stdio | ✅ Confirmed | Google Maps integration for location services |
-| **Perplexity** | `npx` | `npx -y server-perplexity-ask` | stdio | ✅ Confirmed | AI-powered search and information retrieval using Perplexity |
-| **Salesforce** | `uvx` | `uvx --from mcp-salesforce-connector salesforce` | stdio | ✅ Confirmed | Salesforce CRM integration |
-| **Elasticsearch** | `uvx` | `uvx elasticsearch-mcp-server` | stdio | ✅ Confirmed | Elasticsearch search and analytics |
+<!-- MCP_SERVERS_TABLE_START -->| Server Name | Installation | Protocol | Status | Description |
+| --- | --- | --- | --- | --- |
+| **Github** | `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN mcp/github` | stdio | ⏭️ Skipped | GitHub integration for repository management, issues, and code search |
+| **Filesystem** | `npx -y @modelcontextprotocol/server-filesystem . .` | stdio | ✅ Confirmed | Local file system operations and management |
+| **Duckduckgo-Mcp** | `uvx duckduckgo-mcp-server` | stdio | ✅ Confirmed | Web search capabilities using DuckDuckGo |
+| **Mcp-Obsidian** | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ✅ Confirmed | Obsidian vault integration for note management |
+| **Mcp-Discord** | `docker run --rm -it -e DISCORD_TOKEN=$DISCORD_TOKEN -p 8080:8080 barryy625/mcp-discord` | stdio | ⏭️ Skipped | Discord messaging and server management |
+| **Memory** | `npx -y @modelcontextprotocol/server-memory` | stdio | ✅ Confirmed | Memory management and persistence for MCP servers |
+| **Notion** | `npx -y @notionhq/notion-mcp-server` | stdio | ✅ Confirmed | Notion workspace integration for page management |
+| **Google-Maps** | `npx -y @modelcontextprotocol/server-google-maps` | stdio | ✅ Confirmed | Google Maps integration for location services |
+| **Perplexity** | `npx -y server-perplexity-ask` | stdio | ✅ Confirmed | AI-powered search and information retrieval using Perplexity |
+| **Salesforce** | `uvx --from mcp-salesforce-connector salesforce` | stdio | ✅ Confirmed | Salesforce CRM integration |
+| **Elasticsearch** | `uvx elasticsearch-mcp-server` | stdio | ✅ Confirmed | Elasticsearch search and analytics |
 <!-- MCP_SERVERS_TABLE_END -->
 
 ## Content Processing
