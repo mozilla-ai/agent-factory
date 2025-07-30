@@ -3,12 +3,20 @@ import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.serving import A2AServingConfig
 from any_agent.tools import search_tavily, visit_webpage
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.trace import get_tracer_provider
 
 from agent_factory.factory_tools import read_file, search_mcp_servers
 from agent_factory.instructions import load_system_instructions
 from agent_factory.schemas import AgentFactoryOutputs
-from agent_factory.utils import logger
+from agent_factory.utils import LoggerExporter, logger
 
+"""
+import opentelemetry.instrumentation.starlette as otel_starlette
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+"""
 dotenv.load_dotenv()
 
 
@@ -53,7 +61,14 @@ async def main(
     server_handle = await agent.serve_async(
         A2AServingConfig(host=host, port=port, log_level=log_level, stream_tool_usage=True)
     )
-
+    tp = get_tracer_provider()
+    logger_exporter = LoggerExporter(logger)
+    tp.add_span_processor(SimpleSpanProcessor(logger_exporter))
+    """
+    otel_starlette.StarletteInstrumentor.instrument_app(server_handle.server.app)
+    # Add another trace exporter
+    http_exporter = OTLPSpanExporter(endpoint="http://localhost:4318/v1/traces")
+    """
     try:
         # Keep the server running
         await server_handle.task
