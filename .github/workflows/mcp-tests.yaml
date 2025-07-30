@@ -2,6 +2,15 @@ name: MCP Server Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests on (required for manual dispatch)'
+        required: true
+        type: string
+  pull_request:
+    paths:
+      - 'docs/scripts/**'
+      - '.github/workflows/mcp-tests.yaml'
 
 jobs:
   run-mcp-server-tests:
@@ -11,6 +20,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.head_ref || github.ref }}
 
       - name: Install the latest version of uv and set the python version to 3.13
         uses: astral-sh/setup-uv@v6
@@ -29,3 +40,16 @@ jobs:
       - name: Generate MCP documentation
         run: |
           python docs/scripts/generate_mcp_table.py
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/mcp-servers.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            echo "Committing and pushing to branch: $(git branch --show-current)"
+            git commit -m "docs(mcps): gha-update of MCP server results"
+            git push origin HEAD
+          fi
