@@ -1,12 +1,11 @@
-import hashlib
 import importlib
-import shutil
 import sys
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from loguru import logger
+from mock_tools import find_matching_mock
 
 ARTIFACTS_PATH = Path(__file__).parent.parent / "artifacts"
 
@@ -32,112 +31,37 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
 
     original_load_tools = AnyAgent._load_tools
 
+    def tool_type_checker(tool, type_name):
+        """Check if a tool matches a given type"""
+        if type_name == "MCPStdio":
+            return isinstance(tool, MCPStdio)
+        elif type_name == "function":
+            # as we match the mock to (a substring of) the function name,
+            # we expect the function to have one
+            return callable(tool) and hasattr(tool, "__name__")
+        return False
+
     async def mocking_load_tools(self, tools):
         logger.info(f"AnyAgent._load_tools called with {len(tools)} tools:")
         for i, tool in enumerate(tools):
             logger.info(f"    Tool {i}: {type(tool)} - {tool}")
 
-        # Find and replace MCPStdio tools with mcp/elevenlabs in args
+        # Process tools and replace with mocks where applicable
         modified_tools = []
         for tool in tools:
-            if isinstance(tool, MCPStdio) and any("mcp/elevenlabs" in str(arg) for arg in tool.args):
-                logger.info(f"Found ElevenLabs MCP tool: {tool}")
+            # Try to find a matching mock
+            mock_function = find_matching_mock(tool, tool_type_checker)
 
-                # Create a mock function to replace it
-                def mock_text_to_speech(text: str, voice_name: str = None) -> str:
-                    """Mocks elevenlab's text_to_speech tool with a smaller amount of parameters as not all are needed.
-
-                    Original description:
-                    Convert text to speech with a given voice and save the output audio file to a given directory.
-                    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
-                    Only one of voice_id or voice_name can be provided. If none are provided, the default voice will be used.
-
-                    Args:
-                      text (str): The text to convert to speech.
-                      voice_name (str, optional): The name of the voice to use.
-
-                    Returns:
-                      Text content with the path to the output file and name of the voice used.
-                    """
-                    logger.info(f"Mock text_to_speech called with text: '{text[:50]}...', voice_name: {voice_name}")
-                    text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
-                    output_file = Path(f"/tmp/mock_audio_{text_hash}.mp3")
-                    input_file = Path(ARTIFACTS_PATH) / "silent_1000.mp3"
-
-                    # Check if file already exists
-                    if output_file.exists():
-                        logger.warning(f"File already exists: {output_file}")
-                        return output_file
-
-                    # Create a minimal valid MP3 file (silent audio, ~1 seconds)
-                    shutil.copy(input_file, output_file)
-                    logger.info(f"Created mock MP3 file: {output_file}")
-
-                    return f"Success. File saved as: {output_file}. Voice used: {voice_name}"
-
-                # Add the mock function with the right name
-                mock_text_to_speech.__name__ = "text_to_speech"
-
-                # Mock MCP (uv)
-                # mock_text_to_speech = MCPStdio(
-                #     command="uv",
-                #     args=[
-                #         "--directory",
-                #         "/Users/mala/workspace/elevenlabs-mcp",
-                #         "run",
-                #         "--with",
-                #         "mcp",
-                #         "mcp",
-                #         "run",
-                #         "elevenlabs_mcp/server.py"
-                #     ],
-                #     env={
-                #         "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
-                #     },
-                #     tools=[
-                #         "text_to_speech",
-                #     ],
-                # )
-
-                # Original MCP (uvx)
-                # mock_text_to_speech = MCPStdio(
-                #     command="uvx",
-                #     args=[
-                #         "elevenlabs-mcp",
-                #     ],
-                #     env={
-                #         "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
-                #     },
-                #     tools=[
-                #         "text_to_speech",
-                #     ],
-                # )
-
-                # Original MCP (docker - broken)
-                # mock_text_to_speech = MCPStdio(
-                #     command="docker",
-                #     args=[
-                #         "run",
-                #         "-i",
-                #         "--rm",
-                #         "-e",
-                #         "ELEVENLABS_API_KEY",
-                #         "mcp/elevenlabs",
-                #     ],
-                #     env={
-                #         "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
-                #     },
-                #     tools=[
-                #         "text_to_speech",
-                #     ],
-                # )
-
-                modified_tools.append(mock_text_to_speech)
-                logger.info("Replaced ElevenLabs MCP with mock function")
-                for i, tool in enumerate(modified_tools):
-                    logger.info(f"  Tool {i}: {type(tool)} - {tool}")
+            if mock_function:
+                logger.info(f"Replacing tool {tool} with mock {mock_function.__name__}")
+                modified_tools.append(mock_function)
             else:
+                # No mock found, keep original tool
                 modified_tools.append(tool)
+
+        logger.info(f"Modified tools count: {len(modified_tools)}")
+        for i, tool in enumerate(modified_tools):
+            logger.info(f"  Tool {i}: {type(tool)} - {tool}")
 
         # Call original method with modified tools
         result = await original_load_tools(self, modified_tools)
