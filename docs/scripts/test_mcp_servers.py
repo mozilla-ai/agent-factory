@@ -20,7 +20,6 @@ from mcp.client.stdio import stdio_client
 # Configuration constants
 INITIALIZE_TIMEOUT = 30  # seconds
 LIST_TOOLS_TIMEOUT = 30  # seconds
-MAX_CONCURRENT_SERVERS = 3  # Limit parallelism to avoid overwhelming system
 
 
 def load_mcp_servers() -> dict[str, Any]:
@@ -111,31 +110,13 @@ async def run_all_tests() -> dict[str, Any]:
 
     print("MCP Server Testing")
     print("=" * 50)
-    print(f"Testing {len(servers)} servers with max {MAX_CONCURRENT_SERVERS} concurrent")
+    print(f"Testing {len(servers)} servers sequentially")
     print(f"Timeouts: Initialize={INITIALIZE_TIMEOUT}s, ListTools={LIST_TOOLS_TIMEOUT}s")
     print()
 
-    # Create semaphore to limit concurrent servers
-    semaphore = asyncio.Semaphore(MAX_CONCURRENT_SERVERS)
-
-    async def test_server_with_semaphore(server_name: str, server_config: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-        async with semaphore:
-            result = await test_server(server_name, server_config)
-            return server_name, result
-
-    # Run tests in parallel with limited concurrency
-    tasks = [test_server_with_semaphore(server_name, server_config) for server_name, server_config in servers.items()]
-
-    # Wait for all tasks to complete
-    results_tuples = await asyncio.gather(*tasks, return_exceptions=True)
-
-    # Convert results back to dictionary
     results = {}
-    for result_tuple in results_tuples:
-        if isinstance(result_tuple, Exception):
-            print(f"  💥 Unexpected error: {result_tuple}")
-            continue
-        server_name, result = result_tuple
+    for server_name, server_config in servers.items():
+        result = await test_server(server_name, server_config)
         results[server_name] = result
 
     return results
@@ -155,7 +136,6 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
                 "initialize": INITIALIZE_TIMEOUT,
                 "list_tools": LIST_TOOLS_TIMEOUT,
             },
-            "max_concurrent": MAX_CONCURRENT_SERVERS,
         },
     }
 
