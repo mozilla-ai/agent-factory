@@ -1,16 +1,16 @@
 # MCP Servers
 
 
-*Last updated: 2025-07-30T00:26:43.537594+00:00*
+*Last updated: 2025-07-30T00:34:11.016623+00:00*
 *Test results: 9 working, 0 failed, 2 skipped out of 11 total servers*
 
-This page provides a list of Model Context Protocol (MCP) servers unders test for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
+This page provides a list of Model Context Protocol (MCP) servers configured for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
 
 ## Server Status Legend
 
 - ✅ **Confirmed**: Server has been tested and confirmed working
-- ⏭️ **Skipped**: Server was skipped during the latest test
-- ❌ **Not Tested**: Server failed the latest test
+- ⏭️ **Skipped**: Server was skipped during testing (Docker-based servers)
+- ❌ **Failed**: Server failed the latest test
 
 ## Quick Reference Table
 
@@ -67,13 +67,35 @@ Before installing MCP servers, ensure you have:
 - Review individual server documentation for specific troubleshooting steps
 - Join our community discussions for support
 
+## Testing and Maintenance
+
+### Automated Testing Workflow
+
+The MCP servers are automatically tested using the following workflow:
+
+1. **Manual Trigger**: Tests are run manually via GitHub Actions workflow dispatch
+2. **Server Testing**: The `docs/scripts/test_mcp_servers.py` script tests each server by:
+   - Attempting to connect to each MCP server
+   - Listing available tools
+   - Recording success/failure status and tool count
+3. **Results Storage**: Test results are saved to `docs/scripts/mcp-test-results.json`
+4. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script updates this markdown file with current test results
+
+### Running Tests Locally
+
+To test MCP servers locally:
+
+```bash
+# Run the test script
+uv run python docs/scripts/test_mcp_servers.py
+
+# Update the documentation
+uv run python docs/scripts/generate_mcp_table.py
+```
+
 ## Contributing
 
-We welcome contributions to expand our MCP server coverage! If you've tested a server not listed here or have improvements to existing entries, please:
-
-### Adding New MCP Servers
-
-To add a new MCP server to this documentation:
+We welcome contributions to expand our MCP server coverage! To add a new MCP server:
 
 1. **Edit the JSON configuration**: Add a new entry to `docs/mcp-servers.json` in the `mcpServers` object:
    ```json
@@ -82,31 +104,12 @@ To add a new MCP server to this documentation:
      "args": ["-y", "@package/name"],
      "env": {
        "API_KEY": "YOUR_API_KEY_HERE"
-     }
+     },
+     "description": "Description of what this server does"
    }
    ```
 
-2. **Update the status mapping**: Edit the `status_mapping` in `docs/generate_mcp_table.py` to set the server status:
-   ```python
-   status_mapping = {
-       "new-server-name": "✅ Confirmed",  # or "⏳ Testing" or "❌ Not Tested"
-       # ... existing mappings
-   }
-   ```
-
-3. **Update the description mapping**: Add a description in the `description_mapping`:
-   ```python
-   description_mapping = {
-       "new-server-name": "Description of what this server does",
-       # ... existing mappings
-   }
-   ```
-
-4. **Regenerate the table**: Run `make docs-update` to update the documentation
-
-5. **Test the server thoroughly** and update the status accordingly
-
-6. **Submit a pull request** with your changes
+2. **Test the server**: Run the test script via the manually triggered Github Action.
 
 ## References
 
