@@ -23,7 +23,7 @@ MODEL?=o3
 HOST?=0.0.0.0
 PORT?=8080
 LOG_LEVEL?=info
-CHAT?=0
+CHAT?=1
 
 # Default target
 .PHONY: help
