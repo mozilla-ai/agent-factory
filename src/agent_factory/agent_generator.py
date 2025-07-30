@@ -2,6 +2,7 @@ from pathlib import Path
 
 import fire
 from a2a.client import A2ACardResolver, A2AClient
+from a2a.types import TaskState
 
 from agent_factory.schemas import Status
 from agent_factory.utils import (
@@ -47,7 +48,33 @@ async def generate_target_agent(
 
         responses = []
         async for response in client.send_message_streaming(request, http_kwargs={"timeout": timeout}):
-            responses.append(response)
+            try:
+                response_data = response.model_dump(mode="json", exclude_none=True)
+
+                # TastState is an enum with values:
+                # submitted, working, completed, failed, input-required, canceled, unknown
+                # See: https://www.a2aprotocol.net/docs/specification
+                # Using a subset of these states to log different messages
+                if response.root.result.status.state == TaskState.submitted:
+                    logger.info("Manufacturing agent has received the message and is processing it.")
+                elif response.root.result.status.state == TaskState.working and response.root.result.status.message:
+                    message_data = response.root.result.status.message.parts[0].root.data
+                    if "payload" in message_data:
+                        tool_call_info_to_log = {
+                            k: v for k, v in message_data["payload"].items() if k in ["name", "args"]
+                        }
+                        logger.info(f"Making a tool call ... \nTool call info: \n{tool_call_info_to_log}")
+                elif response.root.result.status.state == TaskState.completed:
+                    logger.info("Manufacturing agent has completed the assigned task.")
+                responses.append(response)
+
+            except Exception as e:
+                logger.error(
+                    f"Error processing response: {str(e)}\nResponse data: {
+                        str(response_data) if 'response_data' in locals() else 'N/A'
+                    }"
+                )
+                continue
 
         # Process response
         final_response = responses[-1]
