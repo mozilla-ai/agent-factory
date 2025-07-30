@@ -9,7 +9,7 @@ on:
         type: string
   pull_request:
     paths:
-      - 'docs/scripts/**'
+      - 'docs/scripts/mcp-servers.json'
       - '.github/workflows/mcp-tests.yaml'
 
 jobs:
