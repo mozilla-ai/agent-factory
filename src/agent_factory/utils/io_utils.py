@@ -39,6 +39,7 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
             - agent_code: The Python code for the agent.
             - readme: The instructions for running the agent in Markdown format.
             - dependencies: A string containing the dependencies required by the agent, one per line.
+        output_dir: The output directory to save the agent outputs.
 
     Raises:
         Exception: If there is an error while writing the files to the output directory.
@@ -131,6 +132,36 @@ def initialize_mcp_config(config_path: Path):
     """
     args = ["init", f"--config-file={config_path}"]
     run_binary(BINARY_NAME_MCPD, args, ignore_response=True)
+
+
+def export_mcp_config(config_path: Path, export_path: Path):
+    """Export mcpd configuration artifacts.
+
+    Example:
+        ```python
+        export_mcp_config(config_path=Path("/tmp/.mcpd.toml"), export_path=Path(output_dir))
+        ```
+
+    Args:
+        config_path: Path to the initialized configuration file.
+        export_path: Path to the folder where config should be exported.
+
+    Raises:
+        RuntimeError: If export fails (e.g., non-zero exit code).
+    """
+    args = [
+        "config",
+        "export",
+        f"--config-file={config_path}",
+        "--format=dotenv",
+        f"--context-output={export_path / 'secrets.prod.toml'}",
+        f"--contract-output={export_path / '.env'}",
+    ]
+    run_binary(BINARY_NAME_MCPD, args, ignore_response=True)
+    # TODO: Copy the .mcpd.toml file to the output directory if it's not already there.
+    # dest = f"{export_path}/.mcpd.toml"
+    # if config_path != dest:
+    #     run_binary("cp", ["-f", f"{config_path}", dest])
 
 
 def register_mcp_server(config_path: Path, name: str, version: str | None = None, tools: list[str] | None = None):
