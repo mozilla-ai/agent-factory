@@ -38,7 +38,7 @@ namespaces = false
 [tool.setuptools_scm]
 
 [tool.uv.sources]
-any-agent = { git = "https://github.com/mozilla-ai/any-agent.git", rev = "232-a2a-streaming-support" }
+any-agent = { git = "https://github.com/mozilla-ai/any-agent.git", rev = "7f8a03e45e61e595fcaa7a81db647fe6af5edf35" }
 
 [dependency-groups]
 dev = [
