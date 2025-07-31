@@ -1,10 +1,14 @@
 # MCP Servers
 
+> **⚠️ Note: This page is automatically generated and should not be manually edited.**
+> To add a new MCP server, edit the `docs/mcp-servers.json` file. Tests will be run automatically and results will be published in the table below.
 
 *Last updated: 2025-07-30T19:12:51.163540+00:00*
 *Test results: 9 working, 0 failed, 2 skipped out of 11 total servers*
 
 This page provides a list of Model Context Protocol (MCP) servers configured for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
+
+
 
 ## Server Status Legend
 
