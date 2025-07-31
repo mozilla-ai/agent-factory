@@ -1,4 +1,6 @@
 any-agent[all,a2a]==0.25.0
-python-dotenv
-fire
 beautifulsoup4
+fire
+litellm
+python-dotenv
+requests

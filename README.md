@@ -1,141 +1,169 @@
 # Agent Factory
-A tool for generating Python code for agentic workflows using `any-agent` library. Describe your workflow in natural language, and the agent will generate the necessary code to implement that workflow using available tools (Python functions or via MCP servers).
+
+Agent Factory is an **Agent2Agent (A2A) protocol-compatible server** designed to simplify agent creation and evaluation.
+Describe your workflow in natural language, and the agent will generate the necessary code to implement that workflow
+using available tools (Python functions or via MCP servers).
+
+Under the hood, it leverages the [`any-agent`](https://github.com/mozilla-ai/any-agent) library, allowing you to easily
+swap between Agent frameworks with minimal code changes.
 
 ## Key Capabilities
 
-- Generate Python code for agentic workflows from natural language prompts
-- Automatically create runnable agents and instructions using the `any-agent` library and available tools
-- (Manually) Execute generated workflows save agent trace
-- Generate evaluation cases and JSON configs for automated testing
-- (Manually) Run automated evaluations and view detailed criteria-based results
-
-## Setup
-
-### Option A: GitHub Codespaces
-
-[![Try on Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=984695018&skip_quickstart=true&machine=standardLinux32gb&geo=EuropeWest&devcontainer_path=.devcontainer%2Fdevcontainer.json)
-
-
-Activate the virtual environment. All the dependencies are preinstalled for this codespaces demo, but it's recommended to run all commands below to ensure everything it's up to date (and also, to activate the virtual env!)
-
-```bash
-source .venv/bin/activate
-uv sync --dev
-```
-### Option B: Local installation
-
-#### Prerequisites:
-- Python 3.13 or higher
-- Docker should be up and running in the background (for filesystemMCP operations) - download and install [from here](https://www.docker.com/products/docker-desktop)
-
-Install dependencies using your preferred Python package manager:
-
-```bash
-uv venv
-source .venv/bin/activate
-uv sync --dev
-uv pip install -e .
-```
-
-Install pre-commit hooks:
-
-```bash
-pre-commit install
-```
+* **Natural Language to Code:** Transform natural language prompts directly into executable Python code for agentic
+  workflows, powered by the `any-agent` library.
+* **Smart Tooling & Integration:** Automatically identify the most relevant tools or MCP servers for your generated
+  agents.
+* **Agent Execution:** Effortlessly create runnable agents complete with their operational instructions and dependency
+  files.
+* **Agent Evaluation:** Evaluate the generated agents against automatically or manually defined criteria to ensure they
+  meet the desired performance standards.
+* **Multi-Turn and One-Shot Workflows:** Support for both multi-turn conversations and one-shot tasks, enabling flexible
+  interaction patterns.
 
 ## Getting Started
 
-Follow these steps to generate, run, trace, and evaluate an agentic workflow:
+### Prerequisites
 
-Before running the agent factory, you need to set up your OpenAI API key (required):
-> Set it as an environment variable:
-> ```bash
-> export OPENAI_API_KEY=sk-...
-> ```
+- Python 3.13+
+- [uv](https://github.com/astral-sh/uv)
+- Docker (for containerized deployment)
 
-You will need a Tavily API key to use the `search_tavily` tool. You can get a free API key by signing up at [Tavily](https://app.tavily.com/).
-> Set it as an environment variable:
-> ```bash
-> export TAVILY_API_KEY=tvly_...
-> ```
+### Installation
 
-> [!TIP]
-> If you do not want to create an API key for web search, you can specify in your workflow definition that you want to use DuckDuckGo as the search tool (e.g., "use DuckDuckGo for web search"). This does not require an API key. However, please note that for complex workflows, you may hit the cap of searches per minute with DuckDuckGo.
+1. Clone the repository and navigate to the agent's source directory:
+   ```bash
+   git clone https://github.com/mozilla-ai/agent-factory.git && cd agent-factory
+   ```
 
-### 1. Generate the workflow
+2. Install the dependencies using `uv`:
+   ```bash
+   uv sync --dev
+   ```
 
+3. Activate the virtual environment:
+   ```bash
+   source .venv/bin/activate
+   ```
 
-Run the agent-factory with your desired workflow prompt:
+4. Install pre-commit hooks:
+   ```bash
+   pre-commit install
+   ```
 
-```bash
-agent-factory "Summarize text content from a given webpage URL" "generated_workflows/latest"
-```
+5. Create a `.env` file in the project root and add your OpenAI API key and Tavily API key (required). You can get a free Tavily API key by signing up [here](https://www.tavily.com/).
+   ```bash
+   OPENAI_API_KEY=sk-...
+   TAVILY_API_KEY=tvly_...
+   ```
 
-This will generate Python code for an agentic workflow that can summarize text content from a given webpage URL. The generated code will be saved in the `generated_workflows/latest` directory.
-The three files generated are:
+### Run the Server
 
-1. `agent.py`: The Python code for the agentic workflow
-2. `README.md`: Setup and run instructions for the generated workflow
-3. `requirements.txt`: Python dependencies required to run the agent
+You can run the server either locally or using Docker.
 
-> [!NOTE]
-> You might need to add additional API keys, depending on the generated agent and the tools it uses, for example if it uses the elevenlabs-mcp:
+#### Locally
 
-> Set it as an environment variable:
-> ```bash
-> export ELEVENLABS_API_KEY=sk_...
-> ```
-
-### 2. Run the Generated Workflow
-
-Note: The generated agent.py will reference tools from tools/ directory. Hence, you would need to run the agent from the root directory as:
+To run the server locally, execute the following command from the `src/agent_factory` directory:
 
 ```bash
-uv run --with-requirements generated_workflows/latest/requirements.txt --python 3.13 python generated_workflows/latest/agent.py --arg1 "value1"
+cd src/agent_factory && uv run . --host 0.0.0.0 --port 8080
 ```
 
-This will run the agent and save the agent trace as `agent_eval_trace.json` in the `generated_workflows/latest` directory.
+The server will be available at `http://localhost:8080/.well-known/agent.json`.
+
+In addition to `host` and `port`, you can also pass the following arguments:
+
+-  `chat` vs `nochat`: `chat` mode enables multi-turn conversations, while `nochat` mode is for one-shot tasks (default:
+   `chat`).
+-  `framework`: The Agent framework to use (default: `openai`).
+-  `model`: The model ID to use (default: `o3`).
+-  `log_level`: The logging level (default: `info`).
 
 > [!NOTE]
-> The agent-factory has been instructed to set the `max_turns` (the max number of steps that the generated agent can take to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see the generated agent run failing due to `AgentRunError` caused by `MaxTurnsExceeded`).
+> Visit the any-agent [documentation](https://mozilla-ai.github.io/any-agent/) for more details on the supported
+> frameworks.
 
-### 3. Generate Evaluation Case JSON
+#### Using Docker
+
+The Makefile enables you to run the server using Docker. Before starting, make sure that [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed and running.
+
+**Run the server** (this will also build the image if needed):
+   ```bash
+   make run
+   ```
+   The server will be available at `http://localhost:8080/.well-known/agent.json`.
+
+> [!NOTE]
+> You can modify the behavior of the server by passing environment variables to the `make run` command. For example, to
+> run the server with the `tinyagent` framework and a specific model, in chat mode, you can use:
+> ```bash
+> make run FRAMEWORK=tinyagent MODEL=mistral/mistral-small-latest CHAT=1
+> ```
+
+> [!NOTE]
+> After generating your agents using the `agent-factory` command (described below), don't forget to stop the server using:
+> ```bash
+> make stop
+> ```
+
+### Generate an Agentic Workflow
+
+> [!IMPORTANT]
+> Always run the server in non-chat mode (`--nochat`) when generating agents using the `agent-factory` command.
+> For multi-turn conversations, see the section on [Multi-Turn Conversations](#multi-turn-conversations).
+
+Once the server is running, run the `agent-factory` CLI tool with your desired workflow prompt:
+
+```bash
+uv run agent-factory "Summarize text content from a given webpage URL"
+```
+
+The client will send the message to the server, print the response, and save the generated agent's files (`agent.py`,
+`README.md`, and `requirements.txt`) into a new directory inside the `generated_workflows` directory.
+
+### Run the Generated Workflow
+
+To run the generated agent, navigate to the directory where the agent was saved and execute:
+
+```bash
+uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1 "value1"
+```
+
+Replace `--arg1 "value1"` with the actual arguments required by the generated agent. The command will execute the agent
+and save the agent trace as `agent_trace.json` in the agent's directory.
+
+> [!NOTE]
+> You can append the `--help` flag to the command to see the available options for the generated agent.
+
+> [!NOTE]
+> The agent-factory has been instructed to set the max_turns (the max number of steps that the generated agent can take
+> to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see
+> the generated agent run failing due to AgentRunError caused by MaxTurnsExceeded).
+
+## Evaluate the Generated Agent
 
 Run the evaluation case generator agent with your desired evaluation case prompt:
-```bash
-python -m eval.generate_evaluation_case generated_workflows/latest
-```
-
-This will generate a JSON file in the `generated_workflows/latest` directory with evaluation criteria.
-
-### 4. Run Evaluation Script
-
-Evaluate the agent's execution trace against the generated evaluation case:
 
 ```bash
-python -m eval.run_generated_agent_evaluation  generated_workflows/latest
+uv run -m eval.generate_evaluation_case path/to/the/generated/agent
 ```
-This will display the evaluation criteria and show how the agent performed on each.
 
-## Multi-turn Agent Building with Chainlit
+This will generate a JSON file in the generated agent's directory with evaluation criteria. Next, evaluate the agent's
+execution trace against the generated evaluation case:
 
-You can interact with the agent-factory using [Chainlit](https://docs.chainlit.io/get-started/overview) for multi-turn conversations:
-
-A sample Chainlit app is provided in `src/agent_factory/chainlit_playground.py` for interactive workflow building and testing. It uses any-agent under the hood to generate the agent code.
-
-To launch the Chainlit UI for your agent workflow, run:
 ```bash
-uv sync --group chainlit-demo
-chainlit run src/agent_factory/chainlit_playground.py
-# or for interactive mode - to hot reload the app on code changes
-chainlit run src/agent_factory/chainlit_playground.py - w
+uv run -m eval.run_generated_agent_evaluation path/to/the/generated/agent
 ```
 
-This will start a local web server on `http://localhost:8000`. Open the URL in your browser to interact with your agent in a chat-like interface.
+This command will display the evaluation criteria and show how the agent performed on each.
 
-## Sample Agents: Manual End-to-End Regression Tests
+## Multi-Turn Conversations
 
-The [`sample_agents/`](sample_agents/) folder contains end-to-end example scripts that serve as manual regression tests for the Agent Factory system. Each script demonstrates the full workflow: from generating an agent based on a natural language prompt, to running the generated agent in a clean, isolated environment. See [`sample_agents/README.md`](sample_agents/README.md) for details on their purpose, usage, and how they help ensure the reliability of agent generation and execution.
+Agent Factory supports multi-turn conversations. You can run the Chainlit application to interact with the Agent server
+in a conversational manner:
+
+```bash
+uv run chainlit run src/agent_factory/chainlit.py
+```
 
 ## License
 

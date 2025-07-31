@@ -9,7 +9,7 @@ import functools
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from agent.utils.logging import logger
+from agent_factory.utils.logging import logger
 
 T = TypeVar("T")
 ExceptionType = type[Exception] | tuple[type[Exception], ...]
