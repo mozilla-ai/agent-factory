@@ -11,21 +11,38 @@ import os
 import shutil
 from contextlib import contextmanager
 from datetime import UTC, datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from loguru import logger
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-# Configuration constants
-INITIALIZE_TIMEOUT = 30  # seconds
-LIST_TOOLS_TIMEOUT = 30  # seconds
+
+class TestStatus(Enum):
+    """Enum for test status values."""
+
+    SUCCESS = "success"
+    FAILED = "failed"
+    SKIPPED = "skipped"
 
 
-def load_mcp_servers() -> dict[str, Any]:
-    """Load MCP servers from JSON file."""
-    json_path = Path("docs/mcp-servers.json")
-    with json_path.open() as f:
+INITIALIZE_TIMEOUT = 30
+LIST_TOOLS_TIMEOUT = 30
+
+
+def load_mcp_servers(json_path: str | Path = "docs/mcp-servers.json") -> dict[str, Any]:
+    """Load MCP servers from JSON file.
+
+    Args:
+        json_path: Path to the JSON file containing MCP servers. Defaults to "docs/mcp-servers.json".
+
+    Returns:
+        Dictionary containing MCP servers data.
+    """
+    path = Path(json_path)
+    with path.open() as f:
         data = json.load(f)
     return data["mcpServers"]
 
@@ -49,29 +66,29 @@ def temporary_env_vars(env_vars: dict[str, str]):
 
 async def test_server(server_name: str, server_config: dict[str, Any]) -> dict[str, Any]:
     """Test a single MCP server and return results."""
-    print(f"🔍 Testing {server_name}...")
+    logger.info(f"🔍 Testing {server_name}...")
 
     # Start with the original server config
     # And add test result fields, for the output json file that will feed the markdown table
     result = server_config.copy()
-    result["test_status"] = "failed"  # "success", "failed", or "skipped"
+    result["test_status"] = TestStatus.FAILED.value
     result["test_error"] = None
     result["tools_count"] = 0
     result["tested_at"] = datetime.now(UTC).isoformat()
 
-    # Skip Docker-based servers - TODO: add a streamable http test
+    # Skip Docker-based servers - not used in the platform
     if server_config["command"] == "docker":
-        result["test_status"] = "skipped"
+        result["test_status"] = TestStatus.SKIPPED.value
         result["test_error"] = "Docker-based servers skipped in CI environment"
-        print("  ⏭️  Skipping Docker-based server")
+        logger.warning("  ⏭️  Skipping Docker-based server")
         return result
 
     env_vars = {}
     if "env" in server_config:
         for env_var, _ in server_config["env"].items():
-            if not os.getenv(env_var):
+            if os.getenv(env_var) is None:
                 env_vars[env_var] = f"fake_{env_var.lower()}"
-                print(f"  🔧 Setting fake {env_var}")
+                logger.info(f"  🔧 Setting fake {env_var}")
 
     server_params = StdioServerParameters(
         command=server_config["command"], args=server_config["args"], env=server_config.get("env", {})
@@ -79,27 +96,27 @@ async def test_server(server_name: str, server_config: dict[str, Any]) -> dict[s
 
     try:
         with temporary_env_vars(env_vars):
-            print(f"  🔄 Connecting to {server_name}...")
+            logger.info(f"  🔄 Connecting to {server_name}...")
             async with stdio_client(server_params) as streams:
                 async with ClientSession(*streams) as session:
-                    print(f"  🔄 Initializing {server_name}...")
+                    logger.info(f"  🔄 Initializing {server_name}...")
                     await asyncio.wait_for(session.initialize(), timeout=INITIALIZE_TIMEOUT)
 
-                    print(f"  🔄 Listing tools for {server_name}...")
+                    logger.info(f"  🔄 Listing tools for {server_name}...")
                     response = await asyncio.wait_for(session.list_tools(), timeout=LIST_TOOLS_TIMEOUT)
                     tools = response.tools
-                    result["test_status"] = "success"
+                    result["test_status"] = TestStatus.SUCCESS.value
                     result["tools_count"] = len(tools)
-                    print(f"  ✅ {server_name}: Found {len(tools)} tools")
+                    logger.success(f"  ✅ {server_name}: Found {len(tools)} tools")
 
     except TimeoutError:
-        result["test_status"] = "failed"
+        result["test_status"] = TestStatus.FAILED.value
         result["test_error"] = f"Timeout after {INITIALIZE_TIMEOUT + LIST_TOOLS_TIMEOUT} seconds"
-        print(f"  ⏰ {server_name}: Timeout - server unresponsive")
+        logger.error(f"  ⏰ {server_name}: Timeout - server unresponsive")
     except Exception as e:
-        result["test_status"] = "failed"
+        result["test_status"] = TestStatus.FAILED.value
         result["test_error"] = str(e)
-        print(f"  ❌ {server_name}: Failed - {str(e)}")
+        logger.error(f"  ❌ {server_name}: Failed - {str(e)}")
 
     return result
 
@@ -108,11 +125,11 @@ async def run_all_tests() -> dict[str, Any]:
     """Run tests for all MCP servers and return results in the same structure as input."""
     servers = load_mcp_servers()
 
-    print("MCP Server Testing")
-    print("=" * 50)
-    print(f"Testing {len(servers)} servers sequentially")
-    print(f"Timeouts: Initialize={INITIALIZE_TIMEOUT}s, ListTools={LIST_TOOLS_TIMEOUT}s")
-    print()
+    logger.info("MCP Server Testing")
+    logger.info("=" * 50)
+    logger.info(f"Testing {len(servers)} servers sequentially")
+    logger.info(f"Timeouts: Initialize={INITIALIZE_TIMEOUT}s, ListTools={LIST_TOOLS_TIMEOUT}s")
+    logger.info("")
 
     results = {}
     for server_name, server_config in servers.items():
@@ -129,9 +146,9 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
         "test_run": {
             "timestamp": datetime.now(UTC).isoformat(),
             "total_servers": len(results),
-            "successful": sum(1 for r in results.values() if r["test_status"] == "success"),
-            "failed": sum(1 for r in results.values() if r["test_status"] == "failed"),
-            "skipped": sum(1 for r in results.values() if r["test_status"] == "skipped"),
+            "successful": sum(1 for r in results.values() if r["test_status"] == TestStatus.SUCCESS.value),
+            "failed": sum(1 for r in results.values() if r["test_status"] == TestStatus.FAILED.value),
+            "skipped": sum(1 for r in results.values() if r["test_status"] == TestStatus.SKIPPED.value),
             "timeouts": {
                 "initialize": INITIALIZE_TIMEOUT,
                 "list_tools": LIST_TOOLS_TIMEOUT,
@@ -145,12 +162,12 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
     with Path(output_file).open("w") as f:
         json.dump(output_data, f, indent=2)
 
-    print("\n📊 Results Summary:")
-    print(f"  📁 Results saved to {output_file}")
-    print(f"  📈 Total servers: {len(results)}")
-    print(f"  ✅ Successful: {output_data['test_run']['successful']}")
-    print(f"  ❌ Failed: {output_data['test_run']['failed']}")
-    print(f"  ⏭️  Skipped: {output_data['test_run']['skipped']}")
+    logger.info("\n📊 Results Summary:")
+    logger.info(f"  📁 Results saved to {output_file}")
+    logger.info(f"  📈 Total servers: {len(results)}")
+    logger.info(f"  ✅ Successful: {output_data['test_run']['successful']}")
+    logger.info(f"  ❌ Failed: {output_data['test_run']['failed']}")
+    logger.info(f"  ⏭️  Skipped: {output_data['test_run']['skipped']}")
 
 
 async def main():
