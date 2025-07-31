@@ -13,9 +13,10 @@ from agent_factory.utils import (
     create_message_request,
     get_a2a_agent_card,
     process_a2a_agent_response,
-    save_agent_outputs,
     setup_output_directory,
 )
+from agent_factory.utils.io_utils import prepare_agent_artifacts
+from agent_factory.utils.storage import get_storage_backend
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
@@ -59,7 +60,9 @@ async def create_agent(message: cl.Message):
 
         if response.status == Status.COMPLETED:
             output_dir = setup_output_directory()
-            save_agent_outputs(response.model_dump(), output_dir)
+            prepared_files = prepare_agent_artifacts(response.model_dump())
+            storage_backend = get_storage_backend()
+            storage_backend.save(prepared_files, output_dir)
 
         await cl.Message(
             content=response.message,
@@ -121,4 +124,8 @@ async def on_message(message: cl.Message):
 
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+
+    load_dotenv(".default.env")
+    load_dotenv(".env", override=True)
     chainlit.cli.run_chainlit(__file__)
