@@ -50,7 +50,7 @@ swap between Agent frameworks with minimal code changes.
    pre-commit install
    ```
 
-5. Create a `.env` file in the project root and add your OpenAI API key and Tavily API key (required):
+5. Create a `.env` file in the project root and add your OpenAI API key and Tavily API key (required). You can get a free Tavily API key by signing up [here](https://www.tavily.com/).
    ```bash
    OPENAI_API_KEY=sk-...
    TAVILY_API_KEY=tvly_...
