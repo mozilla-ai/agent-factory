@@ -72,7 +72,7 @@ tests = [
 requires-dist = [
     { name = "any-agent", extras = ["all", "a2a"], specifier = "==0.25.0" },
     { name = "autoflake", specifier = "==2.3.1" },
-    { name = "boto3", specifier = ">=1.34.0" },
+    { name = "boto3", specifier = ">=1.39.2" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = "~=0.7.0" },
     { name = "loguru", specifier = ">=0.7.3" },
