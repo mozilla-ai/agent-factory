@@ -125,6 +125,34 @@
           "ELASTIC_PASSWORD": "YOUR_ELASTIC_PASSWORD_HERE"
         },
         "description": "Elasticsearch search and analytics"
-      }
+      },
+    "monday-api-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mondaydotcomorg/monday-api-mcp",
+        "-t",
+        "$MONDAY_API_TOKEN",
+        "--enable-dynamic-api-tools",
+        "true"
+      ],
+      "env": {
+        "MONDAY_API_TOKEN": "YOUR_MONDAY_API_TOKEN_HERE"
+      },
+      "description": "Monday.com integration with dynamic API tools enabled"
+    },
+    "slack-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@zencoderai/slack-mcp-server"
+      ],
+      "env": {
+        "SLACK_BOT_TOKEN": "YOUR_SLACK_BOT_TOKEN_HERE",
+        "SLACK_TEAM_ID": "YOUR_SLACK_TEAM_ID_HERE",
+        "SLACK_CHANNEL_IDS": "general,random"
+      },
+      "description": "Slack workspace integration for channel, message, reaction and user management"
     }
   }
+}

@@ -11,15 +11,15 @@ The following table provides a quick overview of tested MCP servers. For detaile
 
 <!-- MCP_SERVERS_TABLE_START -->
 
-*Last updated: 2025-08-01T15:24:35.151191+00:00*
-*Test results: 9 working, 1 failed, 1 skipped out of 11 total servers*
+*Last updated: 2025-08-01T15:42:43.322620+00:00*
+*Test results: 12 working, 0 failed, 1 skipped out of 13 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |
 | --- | --- | --- | --- | --- |
 | **Github** | `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN mcp/github` | stdio | ⏭️ Skipped | GitHub integration for repository management, issues, and code search |
 | **Filesystem** | `npx -y @modelcontextprotocol/server-filesystem . .` | stdio | ✅ Confirmed | Local file system operations and management |
 | **Duckduckgo-Mcp** | `uvx duckduckgo-mcp-server` | stdio | ✅ Confirmed | Web search capabilities using DuckDuckGo |
-| **Mcp-Obsidian** | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ❌ Failed | Obsidian vault integration for note management |
+| **Mcp-Obsidian** | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ✅ Confirmed | Obsidian vault integration for note management |
 | **Mcp-Discord** | `npx -y mcp-discord --config $DISCORD_TOKEN` | stdio | ✅ Confirmed | Discord messaging and server management |
 | **Memory** | `npx -y @modelcontextprotocol/server-memory` | stdio | ✅ Confirmed | Memory management and persistence for MCP servers |
 | **Notion** | `npx -y @notionhq/notion-mcp-server` | stdio | ✅ Confirmed | Notion workspace integration for page management |
@@ -27,6 +27,8 @@ The following table provides a quick overview of tested MCP servers. For detaile
 | **Perplexity** | `npx -y server-perplexity-ask` | stdio | ✅ Confirmed | AI-powered search and information retrieval using Perplexity |
 | **Salesforce** | `uvx --from mcp-salesforce-connector salesforce` | stdio | ✅ Confirmed | Salesforce CRM integration |
 | **Elasticsearch** | `uvx elasticsearch-mcp-server` | stdio | ✅ Confirmed | Elasticsearch search and analytics |
+| **Monday-Api-Mcp** | `npx -y @mondaydotcomorg/monday-api-mcp -t $MONDAY_API_TOKEN --enable-dynamic-api-tools true` | stdio | ✅ Confirmed | Monday.com integration with dynamic API tools enabled |
+| **Slack-Mcp** | `npx -y @zencoderai/slack-mcp-server` | stdio | ✅ Confirmed | Slack workspace integration for channel, message, reaction and user management |
 <!-- MCP_SERVERS_TABLE_END -->
 
 ## Server Status Legend
