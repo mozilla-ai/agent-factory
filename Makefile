@@ -1,44 +1,47 @@
-# Makefile for Agent Factory
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit test-generated-artifacts test-mcps update-docs
 
+
+# ====================================================================================
 # Configuration
-DOCKER_IMAGE = agent-factory
-DOCKER_CONTAINER = agent-factory-a2a
-DOCKER_TAG = latest
-A2A_SERVER_HOST = localhost
-A2A_SERVER_LOCAL_PORT = 8080
+# ====================================================================================
+DOCKER_IMAGE := agent-factory
+DOCKER_CONTAINER := agent-factory-a2a
+DOCKER_TAG := latest
 
-# Default environment variables
-FRAMEWORK?=openai
-MODEL?=o3
-HOST?=0.0.0.0
-PORT?=8080
-LOG_LEVEL?=info
-CHAT?=1
+# Server Configuration
+A2A_SERVER_HOST ?= localhost
+A2A_SERVER_LOCAL_PORT ?= 8080
 
-# Default target
-.PHONY: help
-help:
-	@echo "Available targets:"
-	@echo "  build           - Build the Docker image for Agent Factory A2A server"
-	@echo "  run             - Run the A2A server in Docker"
-	@echo "  stop            - Stop the running agent-factory-a2a container"
-	@echo "  clean           - Remove Docker containers and images"
-	@echo "  test-mcps       - Run MCP server tests"
-	@echo "  update-docs     - Update MCP documentation (depends on test-mcps)"
+# Default environment variables for the container
+FRAMEWORK ?= openai
+MODEL ?= o3
+HOST ?= 0.0.0.0
+PORT ?= 8080
+LOG_LEVEL ?= info
+CHAT ?= 0
 
-# Build the Docker image
-.PHONY: build
-build:
-	docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "dev") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
-# Run the server in Docker
-.PHONY: run
-run: build
+# ====================================================================================
+# Help Target
+# ====================================================================================
+.DEFAULT_GOAL := help
+help: ## Display this help message
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "%-40s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+
+# ====================================================================================
+# Docker Lifecycle
+# ====================================================================================
+build: ## Build the Docker image for the server
+	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+
+run: build ## Run the server interactively in the foreground
 	@if [ ! -f .env ]; then \
 		echo "Error: .env file not found. Please create one with your API keys."; \
 		exit 1; \
 	fi
-	docker run --rm \
+	@echo "Starting server interactively on http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)"
+	@docker run --rm \
 		--name $(DOCKER_CONTAINER) \
 		-p $(A2A_SERVER_LOCAL_PORT):8080 \
 		--env-file .env \
@@ -49,34 +52,108 @@ run: build
 		-e LOG_LEVEL=$(LOG_LEVEL) \
 		-e CHAT=$(CHAT) \
 		$(DOCKER_IMAGE):$(DOCKER_TAG)
-	@echo "Server running at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)"
 
-.PHONY: stop
-stop:
+run-detached: build ## Run the server in the background (detached mode)
+	@if [ ! -f .env ]; then \
+		echo "Error: .env file not found. Please create one with your API keys."; \
+		exit 1; \
+	fi
+	@echo "Starting server in detached mode..."
+	@docker run -d --rm \
+		--name $(DOCKER_CONTAINER) \
+		-p $(A2A_SERVER_LOCAL_PORT):8080 \
+		--env-file .env \
+		-e FRAMEWORK=$(FRAMEWORK) \
+		-e MODEL=$(MODEL) \
+		-e HOST=$(HOST) \
+		-e PORT=$(PORT) \
+		-e LOG_LEVEL=$(LOG_LEVEL) \
+		-e CHAT=$(CHAT) \
+		$(DOCKER_IMAGE):$(DOCKER_TAG)
+
+stop: ## Stop the running Docker container
 	@if [ "$$(docker ps -q -f name=$(DOCKER_CONTAINER))" ]; then \
-        docker stop $(DOCKER_CONTAINER) && \
-        echo "Successfully stopped $(DOCKER_CONTAINER) container"; \
-    else \
-        echo "No $(DOCKER_CONTAINER) container running"; \
-    fi
+		echo "Stopping $(DOCKER_CONTAINER) container..."; \
+		docker stop $(DOCKER_CONTAINER); \
+	else \
+		echo "No $(DOCKER_CONTAINER) container running."; \
+	fi
 
-# Remove Docker containers and images
-.PHONY: clean
-clean: stop
+clean: stop ## Remove the Docker image
 	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
 	@echo "Successfully removed $(DOCKER_IMAGE):$(DOCKER_TAG) image"
 
+
+# ====================================================================================
+# Testing
+# ====================================================================================
+
+test-unit: ## Run unit tests
+	@uv sync --quiet --group tests
+	@pytest -v tests/unit/
+	@echo "Unit tests completed successfully!"
+
+wait-for-server:
+	@echo -n "Waiting for server at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT) to be ready..."
+	@count=0; \
+	while ! curl -s --fail http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)/.well-known/agent.json >/dev/null; \
+	do \
+		sleep 1; \
+		count=$$((count+1)); \
+		if [ $$count -ge 30 ]; then \
+			echo; \
+			echo "Error: Timed out waiting for server to be ready after 30 seconds."; \
+			echo "Run 'docker logs $(DOCKER_CONTAINER)' to see server logs for errors."; \
+			exit 1; \
+		fi; \
+		printf "."; \
+	done;
+	@echo " Server is ready!"
+
+test-single-turn-generation:
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Usage: make test-single-turn-generation PROMPT_ID=<prompt-id> [UPDATE_ARTIFACTS=--update-artifacts]"; \
+		exit 1; \
+	fi
+	@echo "Running single turn generation tests for prompt-id: $(PROMPT_ID) $(UPDATE_ARTIFACTS) ..."
+	@uv sync --quiet --group tests
+	@pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=$(PROMPT_ID) $(UPDATE_ARTIFACTS)
+
+test-single-turn-generation-local: UPDATE_ARTIFACTS=--update-artifacts
+test-single-turn-generation-local: ## Run test-single-turn-generation with already running A2A server
+	@$(MAKE) wait-for-server
+	@$(MAKE) test-single-turn-generation PROMPT_ID=$(PROMPT_ID) UPDATE_ARTIFACTS=$(UPDATE_ARTIFACTS)
+
+test-single-turn-generation-e2e: ## Run all tests in a clean, automated environment (for CI)
+	@$(MAKE) stop
+	@$(MAKE) run-detached
+	@$(MAKE) wait-for-server
+	@$(MAKE) test-single-turn-generation PROMPT_ID=$(PROMPT_ID); \
+	EXIT_CODE=$$?; \
+	echo "Tests finished. Stopping server..."; \
+	$(MAKE) stop; \
+	exit $$EXIT_CODE
+
+test-generated-artifacts: ## Run artifact validation tests
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Usage: make test-generated-artifacts PROMPT_ID=<prompt-id>"; \
+		exit 1; \
+	fi
+	@echo "Running artifact validation tests for prompt-id: $(PROMPT_ID)..."
+	@uv sync --quiet --group tests
+	@pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
+	@echo "Artifact validation tests completed successfully!"
+
+
+# ====================================================================================
 # MCP Testing and Documentation
-.PHONY: test-mcps
-test-mcps:
+# ====================================================================================
+
+test-mcps: ## Run MCP server tests
 	@echo "Running MCP server tests..."
 	uv run python docs/scripts/test_mcp_servers.py
 
-.PHONY: update-docs
-update-docs: test-mcps
+update-docs: test-mcps ## Update MCP documentation
 	@echo "Generating MCP documentation..."
 	uv run python docs/scripts/generate_mcp_table.py
 	@echo "Documentation updated successfully!"
-
-# Default target
-.DEFAULT_GOAL := help
