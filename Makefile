@@ -1,6 +1,4 @@
-.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit
-
-#est-local test
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit test-mcps update-docs
 
 # ====================================================================================
 # Configuration
@@ -131,3 +129,16 @@ test-single-turn-generation-e2e: ## Run all tests in a clean, automated environm
 	echo "Tests finished. Stopping server..."; \
 	$(MAKE) stop; \
 	exit $$EXIT_CODE
+
+# ====================================================================================
+# MCP Testing and Documentation
+# ====================================================================================
+
+test-mcps: ## Run MCP server tests
+	@echo "Running MCP server tests..."
+	uv run python docs/scripts/test_mcp_servers.py
+
+update-docs: test-mcps ## Update MCP documentation
+	@echo "Generating MCP documentation..."
+	uv run python docs/scripts/generate_mcp_table.py
+	@echo "Documentation updated successfully!"
