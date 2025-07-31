@@ -1,27 +1,20 @@
 # MCP Servers
 
-
-*Last updated: 2025-07-30T19:12:51.163540+00:00*
-*Test results: 9 working, 0 failed, 2 skipped out of 11 total servers*
-
 > **⚠️ Note: This page is automatically generated and should not be manually edited.**
 > To add a new MCP server, edit the `docs/mcp-servers.json` file. Tests will be run automatically and results will be published in the table below.
 
 This page provides a list of Model Context Protocol (MCP) servers configured for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
 
-
-
-## Server Status Legend
-
-- ✅ **Confirmed**: Server has been tested and confirmed working
-- ⏭️ **Skipped**: Server was skipped during testing (Docker-based servers)
-- ❌ **Failed**: Server failed the latest test
-
 ## Quick Reference Table
 
 The following table provides a quick overview of tested MCP servers. For detailed information about each server, see the sections below.
 
-<!-- MCP_SERVERS_TABLE_START -->| Server Name | Installation | Protocol | Status | Description |
+<!-- MCP_SERVERS_TABLE_START -->
+
+*Last updated: 2025-07-31T16:27:49.873005+00:00*
+*Test results: 10 working, 0 failed, 2 skipped out of 12 total servers*
+
+| Server Name | Installation | Protocol | Status | Description |
 | --- | --- | --- | --- | --- |
 | **Github** | `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN mcp/github` | stdio | ⏭️ Skipped | GitHub integration for repository management, issues, and code search |
 | **Filesystem** | `npx -y @modelcontextprotocol/server-filesystem . .` | stdio | ✅ Confirmed | Local file system operations and management |
@@ -34,7 +27,14 @@ The following table provides a quick overview of tested MCP servers. For detaile
 | **Perplexity** | `npx -y server-perplexity-ask` | stdio | ✅ Confirmed | AI-powered search and information retrieval using Perplexity |
 | **Salesforce** | `uvx --from mcp-salesforce-connector salesforce` | stdio | ✅ Confirmed | Salesforce CRM integration |
 | **Elasticsearch** | `uvx elasticsearch-mcp-server` | stdio | ✅ Confirmed | Elasticsearch search and analytics |
+| **Slack** | `npx -y @modelcontextprotocol/server-slack` | stdio | ✅ Confirmed | Official Slack integration for channel management and messaging |
 <!-- MCP_SERVERS_TABLE_END -->
+
+## Server Status Legend
+
+- ✅ **Confirmed**: Server has been tested and confirmed working
+- ⏭️ **Skipped**: Server was skipped during testing (Docker-based servers)
+- ❌ **Failed**: Server failed the latest test
 
 ## Content Processing
 
@@ -54,7 +54,6 @@ Before installing MCP servers, ensure you have:
 2. **Docker** (for containerized servers)
 3. **uv** (for uvx installations)
 4. **Proper API keys** for the services you want to use
-
 
 ## Troubleshooting
 
