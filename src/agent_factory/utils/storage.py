@@ -78,7 +78,7 @@ class S3Storage(StorageBackend):
     def _save_as_zip(self, artifacts_to_save: dict[str, str], output_dir: str):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
-            zip_path = temp_path / "agent_outputs.zip"
+            zip_path = temp_path / "agent_artifacts.zip"
             with zipfile.ZipFile(zip_path, "w") as zipf:
                 for filename, content in artifacts_to_save.items():
                     file_path = temp_path / filename
@@ -88,10 +88,12 @@ class S3Storage(StorageBackend):
                     zipf.write(file_path, arcname=filename)
 
             try:
-                self.s3_client.upload_file(str(zip_path), self.bucket_name, f"{output_dir}/agent_outputs.zip")
-                logger.info(f"Successfully uploaded agent outputs to bucket {self.bucket_name} to folder {output_dir}")
+                self.s3_client.upload_file(str(zip_path), self.bucket_name, f"{output_dir}/agent_artifacts.zip")
+                logger.info(
+                    f"Successfully uploaded agent artifacts to S3 bucket {self.bucket_name} to folder {output_dir}"
+                )
             except Exception as e:
-                logger.error(f"Failed to upload to bucket {self.bucket_name}. Error: {e}")
+                logger.error(f"Failed to upload to S3 bucket {self.bucket_name}. Error: {e}")
 
 
 def get_storage_backend() -> StorageBackend:
