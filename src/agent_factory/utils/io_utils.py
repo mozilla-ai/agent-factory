@@ -6,6 +6,8 @@ from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.utils import clean_python_code_with_autoflake
 from agent_factory.utils.logging import logger
 
+TOOLS_DIR = Path(__file__).parent.parent / "tools"
+
 
 def setup_output_directory(output_dir: Path | None = None) -> Path:
     if output_dir is None:
@@ -58,8 +60,7 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
         with requirements_path.open("w", encoding="utf-8") as f:
             f.write(result["dependencies"])
 
-        tools_dir = Path("src/agent_factory/tools")
-        for tool_file in tools_dir.iterdir():
+        for tool_file in TOOLS_DIR.iterdir():
             if tool_file.is_file() and (tool_file.stem in agent_code or tool_file.name == "__init__.py"):
                 tool_destination = tools_dir_path / tool_file.name
                 # Copy the tool file to the output directory

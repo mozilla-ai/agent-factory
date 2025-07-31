@@ -24,11 +24,11 @@ class LocalStorage(StorageBackend):
 
 class S3Storage(StorageBackend):
     def __init__(self):
-        self.aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID", "agent-factory")
-        self.aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY", "agent-factory")
-        self.aws_region = os.environ.get("AWS_DEFAULT_REGION", "us-east-2")
+        self.aws_access_key_id = os.environ["AWS_ACCESS_KEY_ID"]
+        self.aws_secret_access_key = os.environ["AWS_SECRET_ACCESS_KEY"]
+        self.aws_region = os.environ["AWS_DEFAULT_REGION"]
         self.endpoint_url = os.environ.get("AWS_ENDPOINT_URL")
-        self.bucket_name = os.environ.get("S3_BUCKET", "agent-factory-outputs")
+        self.bucket_name = os.environ["S3_BUCKET"]
 
         self.s3_client = boto3.client(
             "s3",

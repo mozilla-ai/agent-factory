@@ -123,15 +123,25 @@ The Makefile enables you to run the server using Docker. Before starting, make s
 
 By default, agent outputs are saved to the local filesystem. You can configure the agent factory to use AWS S3 or a local MinIO instance for storage.
 
+#### Configuration
+
+The application uses a hierarchical configuration system. The order of precedence is as follows:
+
+1.  **Environment Variables:** Highest priority.
+2.  **`.env` File:** A local file for user-specific overrides (not checked into version control).
+3.  **`.default.env` File:** Contains the default values and is checked into version control.
+
+To customize the configuration, you can create a `.env` file in the project root and override the values from `.default.env`.
+
 #### S3 & MinIO Configuration
 
-To use either AWS S3 or MinIO, you will need to set the following environment variables. The `AWS_ENDPOINT_URL` variable is used to differentiate between the two services.
+To use either AWS S3 or MinIO, you will need to set the following environment variables in your `.env` file or as shell environment variables. The `AWS_ENDPOINT_URL` variable is used to differentiate between the two services.
 
 -   `STORAGE_BACKEND`: Set to `s3` for AWS S3 or `minio` for MinIO.
--   `AWS_ACCESS_KEY_ID`: Your AWS or MinIO access key. Defaults to `agent-factory`.
--   `AWS_SECRET_ACCESS_KEY`: Your AWS or MinIO secret key. Defaults to `agent-factory`.
--   `AWS_DEFAULT_REGION`: The AWS region for your S3 bucket. Defaults to `us-east-2`.
--   `S3_BUCKET`: The name of the S3 or MinIO bucket. Defaults to `agent-factory-outputs`.
+-   `AWS_ACCESS_KEY_ID`: Your AWS or MinIO access key.
+-   `AWS_SECRET_ACCESS_KEY`: Your AWS or MinIO secret key.
+-   `AWS_DEFAULT_REGION`: The AWS region for your S3 bucket.
+-   `S3_BUCKET`: The name of the S3 or MinIO bucket.
 -   `AWS_ENDPOINT_URL`: **(For MinIO only)** The URL of your MinIO instance (e.g., `http://localhost:9000`).
 
 When using these settings, the application will automatically create the specified bucket if it does not already exist.
@@ -151,6 +161,7 @@ docker run -p 9000:9000 -p 9091:9091 \
 Once the container is running, you can access the MinIO console at `http://localhost:9091`.
 
 ### Generate an Agentic Workflow
+
 
 
 
