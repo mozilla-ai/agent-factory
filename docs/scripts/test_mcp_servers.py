@@ -9,6 +9,7 @@ import asyncio
 import json
 import os
 import shutil
+from collections import Counter
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from enum import Enum
@@ -86,7 +87,7 @@ async def test_server(server_name: str, server_config: dict[str, Any]) -> dict[s
     env_vars = {}
     if "env" in server_config:
         for env_var, _ in server_config["env"].items():
-            if os.getenv(env_var) is None:
+            if not os.getenv(env_var):
                 env_vars[env_var] = f"fake_{env_var.lower()}"
                 logger.info(f"  🔧 Setting fake {env_var}")
 
@@ -122,7 +123,7 @@ async def test_server(server_name: str, server_config: dict[str, Any]) -> dict[s
 
 
 async def run_all_tests() -> dict[str, Any]:
-    """Run tests for all MCP servers and return results in the same structure as input."""
+    """Run tests for all MCP servers and return results."""
     servers = load_mcp_servers()
 
     logger.info("MCP Server Testing")
@@ -132,6 +133,7 @@ async def run_all_tests() -> dict[str, Any]:
     logger.info("")
 
     results = {}
+
     for server_name, server_config in servers.items():
         result = await test_server(server_name, server_config)
         results[server_name] = result
@@ -141,14 +143,21 @@ async def run_all_tests() -> dict[str, Any]:
 
 def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-test-results.json"):
     """Save test results to JSON file with the same structure as input plus test data."""
+    # Calculate status counts from results
+    status_counts = Counter(result["test_status"] for result in results.values())
+
+    successful = status_counts[TestStatus.SUCCESS.value]
+    failed = status_counts[TestStatus.FAILED.value]
+    skipped = status_counts[TestStatus.SKIPPED.value]
+
     output_data = {
         "mcpServers": results,
         "test_run": {
             "timestamp": datetime.now(UTC).isoformat(),
             "total_servers": len(results),
-            "successful": sum(1 for r in results.values() if r["test_status"] == TestStatus.SUCCESS.value),
-            "failed": sum(1 for r in results.values() if r["test_status"] == TestStatus.FAILED.value),
-            "skipped": sum(1 for r in results.values() if r["test_status"] == TestStatus.SKIPPED.value),
+            "successful": successful,
+            "failed": failed,
+            "skipped": skipped,
             "timeouts": {
                 "initialize": INITIALIZE_TIMEOUT,
                 "list_tools": LIST_TOOLS_TIMEOUT,
@@ -156,8 +165,7 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
         },
     }
 
-    output_path = Path(output_file)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
 
     with Path(output_file).open("w") as f:
         json.dump(output_data, f, indent=2)
@@ -165,9 +173,9 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-t
     logger.info("\n📊 Results Summary:")
     logger.info(f"  📁 Results saved to {output_file}")
     logger.info(f"  📈 Total servers: {len(results)}")
-    logger.info(f"  ✅ Successful: {output_data['test_run']['successful']}")
-    logger.info(f"  ❌ Failed: {output_data['test_run']['failed']}")
-    logger.info(f"  ⏭️  Skipped: {output_data['test_run']['skipped']}")
+    logger.info(f"  ✅ Successful: {successful}")
+    logger.info(f"  ❌ Failed: {failed}")
+    logger.info(f"  ⏭️  Skipped: {skipped}")
 
 
 async def main():
