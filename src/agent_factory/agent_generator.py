@@ -2,7 +2,7 @@ from pathlib import Path
 
 import fire
 from a2a.client import A2ACardResolver, A2AClient
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from agent_factory.schemas import Status
 from agent_factory.utils import (
@@ -64,9 +64,8 @@ async def generate_target_agent(
 
 
 def main():
-    # Load default and user-specific .env files
-    load_dotenv(".default.env")
-    load_dotenv(".env", override=True)
+    load_dotenv(find_dotenv(".default.env", usecwd=True))
+    load_dotenv(find_dotenv(".env", usecwd=True), override=True)
     fire.Fire(generate_target_agent)
 
 

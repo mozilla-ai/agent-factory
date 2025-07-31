@@ -124,8 +124,8 @@ async def on_message(message: cl.Message):
 
 
 if __name__ == "__main__":
-    from dotenv import load_dotenv
+    from dotenv import find_dotenv, load_dotenv
 
-    load_dotenv(".default.env")
-    load_dotenv(".env", override=True)
+    load_dotenv(find_dotenv(".default.env", usecwd=True))
+    load_dotenv(find_dotenv(".env", usecwd=True), override=True)
     chainlit.cli.run_chainlit(__file__)
