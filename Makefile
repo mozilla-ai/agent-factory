@@ -1,4 +1,4 @@
-.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-mcps update-docs
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit test-mcps update-docs
 
 # ====================================================================================
 # Configuration
@@ -83,6 +83,12 @@ clean: stop ## Remove the Docker image
 # ====================================================================================
 # Testing
 # ====================================================================================
+
+test-unit: ## Run unit tests
+	@uv sync --quiet --group tests
+	@pytest -v tests/unit/
+	@echo "Unit tests completed successfully!"
+
 wait-for-server:
 	@echo -n "Waiting for server at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT) to be ready..."
 	@count=0; \
