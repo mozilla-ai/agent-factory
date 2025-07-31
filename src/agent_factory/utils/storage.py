@@ -44,8 +44,8 @@ class S3Storage(StorageBackend):
         self.aws_access_key_id = os.environ["AWS_ACCESS_KEY_ID"]
         self.aws_secret_access_key = os.environ["AWS_SECRET_ACCESS_KEY"]
         self.aws_region = os.environ["AWS_DEFAULT_REGION"]
-        self.endpoint_url = os.environ.get("AWS_ENDPOINT_URL")
         self.bucket_name = os.environ["S3_BUCKET"]
+        self.endpoint_url = os.environ.get("AWS_ENDPOINT_URL") or None
 
         self.s3_client = boto3.client(
             "s3",
