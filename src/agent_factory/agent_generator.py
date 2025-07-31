@@ -2,17 +2,18 @@ from pathlib import Path
 
 import fire
 from a2a.client import A2ACardResolver, A2AClient
+from dotenv import find_dotenv, load_dotenv
 
 from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
     create_message_request,
     get_a2a_agent_card,
+    get_storage_backend,
+    logger,
+    prepare_agent_artifacts,
     process_a2a_agent_response,
-    save_agent_outputs,
-    setup_output_directory,
 )
-from agent_factory.utils.logging import logger
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
@@ -49,8 +50,9 @@ async def generate_target_agent(
         # Process response
         response = process_a2a_agent_response(response)
         if response.status == Status.COMPLETED:
-            output_dir = setup_output_directory(output_dir)
-            save_agent_outputs(response.model_dump(), output_dir)
+            prepared_artifacts = prepare_agent_artifacts(response.model_dump())
+            storage_backend = get_storage_backend()
+            storage_backend.save(prepared_artifacts, output_dir)
         elif response.status == Status.INPUT_REQUIRED:
             logger.info(
                 f"Please try again and be more specific with your request. Agent's response: {response.message}"
@@ -60,6 +62,8 @@ async def generate_target_agent(
 
 
 def main():
+    load_dotenv(find_dotenv(".default.env", usecwd=True))
+    load_dotenv(find_dotenv(".env", usecwd=True), override=True)
     fire.Fire(generate_target_agent)
 
 
