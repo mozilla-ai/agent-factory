@@ -1,4 +1,5 @@
-.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit test-mcps update-docs
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit test-generated-artifacts test-mcps update-docs
+
 
 # ====================================================================================
 # Configuration
@@ -19,12 +20,14 @@ PORT ?= 8080
 LOG_LEVEL ?= info
 CHAT ?= 0
 
+
 # ====================================================================================
 # Help Target
 # ====================================================================================
 .DEFAULT_GOAL := help
 help: ## Display this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "%-40s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
 
 # ====================================================================================
 # Docker Lifecycle
@@ -80,6 +83,7 @@ clean: stop ## Remove the Docker image
 	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
 	@echo "Successfully removed $(DOCKER_IMAGE):$(DOCKER_TAG) image"
 
+
 # ====================================================================================
 # Testing
 # ====================================================================================
@@ -129,6 +133,17 @@ test-single-turn-generation-e2e: ## Run all tests in a clean, automated environm
 	echo "Tests finished. Stopping server..."; \
 	$(MAKE) stop; \
 	exit $$EXIT_CODE
+
+test-generated-artifacts: ## Run artifact validation tests
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Usage: make test-generated-artifacts PROMPT_ID=<prompt-id>"; \
+		exit 1; \
+	fi
+	@echo "Running artifact validation tests for prompt-id: $(PROMPT_ID)..."
+	@uv sync --quiet --group tests
+	@pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
+	@echo "Artifact validation tests completed successfully!"
+
 
 # ====================================================================================
 # MCP Testing and Documentation

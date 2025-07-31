@@ -1,6 +1,5 @@
 name: Tests
 
-
 on:
   push:
     branches: [main]
@@ -14,7 +13,6 @@ on:
       - 'eval/**'
       - 'tests/**'
   workflow_dispatch:
-
 
 jobs:
   run-unit-tests:
@@ -35,7 +33,7 @@ jobs:
         run: make test-unit
 
 
-run-generation-tests:
+  run-generation-tests:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     runs-on: ubuntu-latest
@@ -50,10 +48,10 @@ run-generation-tests:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout @v4
+        uses: actions/checkout@v4
 
       - name: Install the latest version of uv and set the python version to 3.13
-        uses: astral-sh/setup-uv @v6
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: 3.13
           activate-environment: true
@@ -65,8 +63,7 @@ run-generation-tests:
       - name: Run Generation Test - ${{ matrix.prompt_id }}
         run: make test-single-turn-generation-e2e PROMPT_ID=${{ matrix.prompt_id }}
 
-
-run-agent-evaluation-tests:
+  run-agent-evaluation-tests:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 10
     runs-on: ubuntu-latest
@@ -90,3 +87,31 @@ run-agent-evaluation-tests:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pytest -v tests/generated_agent_evaluation
+
+
+  run-generated-artifacts-tests:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install the latest version of uv and set the python version to 3.13
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: 3.13
+          activate-environment: true
+
+      - name: Run Generated Artifacts tests
+        run: |
+          PROMPT_IDS=(
+            summarize-url-content
+            url-to-podcast
+            scoring-blueprints-submission
+          )
+          for prompt_id in "${PROMPT_IDS[@]}"; do
+            echo "::group::Running tests for PROMPT_ID: $prompt_id"
+            make test-generated-artifacts PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
+            echo "::endgroup::"
+          done
