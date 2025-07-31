@@ -7,8 +7,17 @@ for mcp-servers.md with current test status.
 
 import json
 import re
+from enum import Enum
 from pathlib import Path
 from typing import Any
+
+
+class TestStatus(Enum):
+    """Enum for MCP server test status values."""
+
+    SUCCESS = "success"
+    SKIPPED = "skipped"
+    FAILED = "failed"
 
 
 def load_test_results(results_file: str = "docs/scripts/mcp-test-results.json") -> dict[str, Any]:
@@ -17,27 +26,27 @@ def load_test_results(results_file: str = "docs/scripts/mcp-test-results.json") 
         return json.load(f)
 
 
-def get_status_display(test_status: str) -> tuple[str, str]:
-    """Get status icon and text for display."""
+def get_status_display(test_status: str) -> str:
+    """Get status display string with emoji and text."""
     status_map = {
-        "success": ("✅", "✅ Confirmed"),
-        "skipped": ("⏭️", "⏭️ Skipped"),
-        "failed": ("❌", "❌ Failed"),
+        TestStatus.SUCCESS.value: "✅ Confirmed",
+        TestStatus.SKIPPED.value: "⏭️ Skipped",
+        TestStatus.FAILED.value: "❌ Failed",
     }
-    return status_map.get(test_status, ("❌", "❌ Failed"))
+    return status_map.get(test_status, "❌ Failed")
 
 
 def create_table_row(server_name: str, server_config: dict[str, Any]) -> str:
     """Create a single table row for a server."""
     test_status = server_config.get("test_status", "failed")
-    status_icon, status_text = get_status_display(test_status)
+    status_display = get_status_display(test_status)
 
     command = server_config["command"]
     args = server_config.get("args", [])
     command_str = f"`{command} {' '.join(args)}`"
     description = server_config.get("description", "")
 
-    return f"| **{server_name.title()}** | {command_str} | stdio | {status_text} | {description} |"
+    return f"| **{server_name.title()}** | {command_str} | stdio | {status_display} | {description} |"
 
 
 def generate_table_content(servers: dict[str, Any]) -> str:
