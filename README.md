@@ -121,21 +121,11 @@ The Makefile enables you to run the server using Docker. Before starting, make s
 
 ### (Optional) Setting Up Storage Backends
 
-By default, agent outputs are saved to the local filesystem. You can configure the agent factory to use AWS S3 or a local MinIO instance for storage.
-
-#### Configuration
-
-The application uses a hierarchical configuration system. The order of precedence is as follows:
-
-1.  **Environment Variables:** Highest priority.
-2.  **`.env` File:** A local file for user-specific overrides (not checked into version control).
-3.  **`.default.env` File:** Contains the default values and is checked into version control.
-
-To customize the configuration, you can create a `.env` file in the project root and override the values from `.default.env`.
+By default, agent outputs are **saved to the local filesystem**. You can configure the agent factory to use AWS S3 or a local MinIO instance for storage.
 
 #### S3 & MinIO Configuration
 
-To use either AWS S3 or MinIO, you will need to set the following environment variables in your `.env` file or as shell environment variables. The `AWS_ENDPOINT_URL` variable is used to differentiate between the two services.
+To customize the S3/MinIO configuration, you can create a `.env` file in the project root and override the following values from `.default.env`:
 
 -   `STORAGE_BACKEND`: Set to `s3` for AWS S3 or `minio` for MinIO.
 -   `AWS_ACCESS_KEY_ID`: Your AWS or MinIO access key.
