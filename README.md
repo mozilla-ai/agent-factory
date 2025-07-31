@@ -50,18 +50,11 @@ swap between Agent frameworks with minimal code changes.
    pre-commit install
    ```
 
-5. Set up your OpenAI API key (required):
+5. Create a `.env` file in the project root and add your OpenAI API key and Tavily API key (required):
    ```bash
-   export OPENAI_API_KEY=sk-...
+   OPENAI_API_KEY=sk-...
+   TAVILY_API_KEY=tvly_...
    ```
-
-6. Set up your [Tavily](https://www.tavily.com/) API key (required):
-   ```bash
-   export TAVILY_API_KEY=tvly_...
-   ```
-
-> [!NOTE]
-> Alternatively, you can create a `.env` file in the project root with your keys. This is the recommended approach.
 
 ### Run the Server
 
@@ -104,13 +97,6 @@ The Makefile enables you to run the server using Docker. Before starting, make s
 > run the server with the `tinyagent` framework and a specific model, in chat mode, you can use:
 > ```bash
 > make run FRAMEWORK=tinyagent MODEL=mistral/mistral-small-latest CHAT=1
-> ```
-
-> [!NOTE]
-> Before running the server, make sure to create a `.env` file in the project root with your required environment
-> variables, including your `OPENAI_API_KEY`:
-> ```
-> OPENAI_API_KEY=sk-...
 > ```
 
 > [!NOTE]
