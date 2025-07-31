@@ -16,10 +16,16 @@ class StorageBackend(ABC):
 
 
 class LocalStorage(StorageBackend):
-    def save(self, result: dict[str, str], output_dir: Path) -> None:
-        from agent_factory.utils.io_utils import save_agent_outputs
-
-        save_agent_outputs(result, output_dir)
+    def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
+        try:
+            for file_path_str, content in artifacts_to_save.items():
+                full_path = output_dir / file_path_str
+                full_path.parent.mkdir(parents=True, exist_ok=True)
+                with full_path.open("w", encoding="utf-8") as f:
+                    f.write(content)
+            logger.info(f"Agent files saved to {output_dir}")
+        except Exception as e:
+            logger.warning(f"Warning: Failed to save agent outputs: {str(e)}")
 
 
 class S3Storage(StorageBackend):
@@ -54,15 +60,15 @@ class S3Storage(StorageBackend):
             else:
                 raise
 
-    def save(self, result: dict[str, str], output_dir: Path) -> None:
-        self._save_as_zip(result, output_dir)
+    def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
+        self._save_as_zip(artifacts_to_save, output_dir)
 
-    def _save_as_zip(self, result: dict[str, str], output_dir: Path):
+    def _save_as_zip(self, artifacts_to_save: dict[str, str], output_dir: Path):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             zip_path = temp_path / "agent_outputs.zip"
             with zipfile.ZipFile(zip_path, "w") as zipf:
-                for filename, content in result.items():
+                for filename, content in artifacts_to_save.items():
                     file_path = temp_path / filename
                     with Path(file_path).open("w", encoding="utf-8") as f:
                         f.write(content)
