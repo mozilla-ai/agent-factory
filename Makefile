@@ -1,6 +1,5 @@
-.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-generated-artifacts
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit test-generated-artifacts test-mcps update-docs
 
-#est-local test
 
 # ====================================================================================
 # Configuration
@@ -21,12 +20,14 @@ PORT ?= 8080
 LOG_LEVEL ?= info
 CHAT ?= 0
 
+
 # ====================================================================================
 # Help Target
 # ====================================================================================
 .DEFAULT_GOAL := help
 help: ## Display this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "%-40s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
 
 # ====================================================================================
 # Docker Lifecycle
@@ -82,9 +83,16 @@ clean: stop ## Remove the Docker image
 	@docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
 	@echo "Successfully removed $(DOCKER_IMAGE):$(DOCKER_TAG) image"
 
+
 # ====================================================================================
 # Testing
 # ====================================================================================
+
+test-unit: ## Run unit tests
+	@uv sync --quiet --group tests
+	@pytest -v tests/unit/
+	@echo "Unit tests completed successfully!"
+
 wait-for-server:
 	@echo -n "Waiting for server at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT) to be ready..."
 	@count=0; \
@@ -135,3 +143,17 @@ test-generated-artifacts: ## Run artifact validation tests
 	@uv sync --quiet --group tests
 	@pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
 	@echo "Artifact validation tests completed successfully!"
+
+
+# ====================================================================================
+# MCP Testing and Documentation
+# ====================================================================================
+
+test-mcps: ## Run MCP server tests
+	@echo "Running MCP server tests..."
+	uv run python docs/scripts/test_mcp_servers.py
+
+update-docs: test-mcps ## Update MCP documentation
+	@echo "Generating MCP documentation..."
+	uv run python docs/scripts/generate_mcp_table.py
+	@echo "Documentation updated successfully!"
