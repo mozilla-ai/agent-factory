@@ -8,18 +8,9 @@ from agent_factory.utils import clean_python_code_with_autoflake
 TOOLS_DIR = Path(__file__).parent.parent / "tools"
 
 
-def setup_output_directory(output_dir: Path | None = None) -> Path:
-    if output_dir is None:
-        output_dir = Path.cwd()
-        uid = datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + str(uuid.uuid4())[:8]
-        # store in a unique dir under generated_workflows by default
-        output_dir = output_dir / "generated_workflows" / uid
-    else:
-        # guarantee output_dir is PosixPath
-        output_dir = Path(output_dir)
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir
+def generate_run_id() -> str:
+    """Generates run ID (to name the folder in which the agent artifacts are saved)"""
+    return datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + str(uuid.uuid4())[:8]
 
 
 def prepare_agent_artifacts(agent_factory_outputs: dict[str, str]) -> dict[str, str]:

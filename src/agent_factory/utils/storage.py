@@ -6,26 +6,37 @@ from pathlib import Path
 
 import boto3
 
+from agent_factory.utils.io_utils import generate_run_id
 from agent_factory.utils.logging import logger
 
 
 class StorageBackend(ABC):
     @abstractmethod
-    def save(self, result: dict[str, str], output_dir: Path) -> None:
+    def save(self, artifacts_to_save: dict[str, str], output_dir: Path | None) -> None:
         pass
 
 
 class LocalStorage(StorageBackend):
-    def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
+    def save(self, artifacts_to_save: dict[str, str], output_dir: Path | None) -> None:
+        output_path = self._setup_output_directory(output_dir)
         try:
             for file_path_str, content in artifacts_to_save.items():
-                full_path = output_dir / file_path_str
+                full_path = output_path / file_path_str
                 full_path.parent.mkdir(parents=True, exist_ok=True)
                 with full_path.open("w", encoding="utf-8") as f:
                     f.write(content)
-            logger.info(f"Agent files saved to {output_dir}")
+            logger.info(f"Agent files saved to {output_path}")
         except Exception as e:
             logger.warning(f"Warning: Failed to save agent outputs: {str(e)}")
+
+    def _setup_output_directory(self, output_dir: Path | None = None) -> Path:
+        if output_dir is None:
+            output_dir = Path.cwd() / "generated_workflows" / generate_run_id()
+        else:
+            output_dir = Path(output_dir)
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        return output_dir
 
 
 class S3Storage(StorageBackend):
@@ -60,23 +71,25 @@ class S3Storage(StorageBackend):
             else:
                 raise
 
-    def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
+    def save(self, artifacts_to_save: dict[str, str], output_dir: Path | None) -> None:
+        output_dir = output_dir.name if output_dir else generate_run_id()
         self._save_as_zip(artifacts_to_save, output_dir)
 
-    def _save_as_zip(self, artifacts_to_save: dict[str, str], output_dir: Path):
+    def _save_as_zip(self, artifacts_to_save: dict[str, str], output_dir: str):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             zip_path = temp_path / "agent_outputs.zip"
             with zipfile.ZipFile(zip_path, "w") as zipf:
                 for filename, content in artifacts_to_save.items():
                     file_path = temp_path / filename
+                    file_path.parent.mkdir(parents=True, exist_ok=True)
                     with Path(file_path).open("w", encoding="utf-8") as f:
                         f.write(content)
                     zipf.write(file_path, arcname=filename)
 
             try:
                 self.s3_client.upload_file(str(zip_path), self.bucket_name, f"{output_dir}/agent_outputs.zip")
-                logger.info(f"Successfully uploaded agent outputs to bucket {self.bucket_name}")
+                logger.info(f"Successfully uploaded agent outputs to bucket {self.bucket_name} to folder {output_dir}")
             except Exception as e:
                 logger.error(f"Failed to upload to bucket {self.bucket_name}. Error: {e}")
 

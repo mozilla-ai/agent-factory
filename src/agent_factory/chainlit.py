@@ -12,11 +12,10 @@ from agent_factory.utils import (
     create_a2a_http_client,
     create_message_request,
     get_a2a_agent_card,
+    get_storage_backend,
+    prepare_agent_artifacts,
     process_a2a_agent_response,
-    setup_output_directory,
 )
-from agent_factory.utils.io_utils import prepare_agent_artifacts
-from agent_factory.utils.storage import get_storage_backend
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
@@ -59,10 +58,9 @@ async def create_agent(message: cl.Message):
         response = process_a2a_agent_response(result)
 
         if response.status == Status.COMPLETED:
-            output_dir = setup_output_directory()
-            prepared_files = prepare_agent_artifacts(response.model_dump())
+            prepared_artifacts = prepare_agent_artifacts(response.model_dump())
             storage_backend = get_storage_backend()
-            storage_backend.save(prepared_files, output_dir)
+            storage_backend.save(prepared_artifacts)
 
         await cl.Message(
             content=response.message,
