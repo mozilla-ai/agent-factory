@@ -9,10 +9,10 @@ from agent_factory.utils import (
     create_message_request,
     get_a2a_agent_card,
     process_a2a_agent_response,
-    save_agent_outputs,
     setup_output_directory,
 )
 from agent_factory.utils.logging import logger
+from agent_factory.utils.storage import get_storage_backend
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
@@ -50,7 +50,8 @@ async def generate_target_agent(
         response = process_a2a_agent_response(response)
         if response.status == Status.COMPLETED:
             output_dir = setup_output_directory(output_dir)
-            save_agent_outputs(response.model_dump(), output_dir)
+            storage_backend = get_storage_backend()
+            storage_backend.save(response.model_dump(), output_dir)
         elif response.status == Status.INPUT_REQUIRED:
             logger.info(
                 f"Please try again and be more specific with your request. Agent's response: {response.message}"
