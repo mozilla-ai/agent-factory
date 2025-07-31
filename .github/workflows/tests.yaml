@@ -15,9 +15,38 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-agent-evaluation-tests:
+  run-generation-tests:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        prompt_id:
+          - summarize-url-content
+          - url-to-podcast
+          - scoring-blueprints-submission
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout @v4
+
+      - name: Install the latest version of uv and set the python version to 3.13
+        uses: astral-sh/setup-uv @v6
+        with:
+          python-version: 3.13
+          activate-environment: true
+
+      - name: Create .env file from GitHub secrets
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
+
+      - name: Run Generation Test - ${{ matrix.prompt_id }}
+        run: make test-single-turn-generation-e2e PROMPT_ID=${{ matrix.prompt_id }}
+
+  run-agent-evaluation-tests:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     steps:

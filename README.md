@@ -50,18 +50,11 @@ swap between Agent frameworks with minimal code changes.
    pre-commit install
    ```
 
-5. Set up your OpenAI API key (required):
+5. Create a `.env` file in the project root and add your OpenAI API key and Tavily API key (required). You can get a free Tavily API key by signing up [here](https://www.tavily.com/).
    ```bash
-   export OPENAI_API_KEY=sk-...
+   OPENAI_API_KEY=sk-...
+   TAVILY_API_KEY=tvly_...
    ```
-
-6. Set up your [Tavily](https://www.tavily.com/) API key (required):
-   ```bash
-   export TAVILY_API_KEY=tvly_...
-   ```
-
-> [!NOTE]
-> Alternatively, you can create a `.env` file in the project root with your keys. This is the recommended approach.
 
 ### Run the Server
 
@@ -75,7 +68,7 @@ To run the server locally, execute the following command from the `src/agent_fac
 cd src/agent_factory && uv run . --host 0.0.0.0 --port 8080
 ```
 
-The server will be available at `http://localhost:8080`.
+The server will be available at `http://localhost:8080/.well-known/agent.json`.
 
 In addition to `host` and `port`, you can also pass the following arguments:
 
@@ -97,20 +90,13 @@ The Makefile enables you to run the server using Docker. Before starting, make s
    ```bash
    make run
    ```
-   The server will be available at `http://localhost:8080`.
+   The server will be available at `http://localhost:8080/.well-known/agent.json`.
 
 > [!NOTE]
 > You can modify the behavior of the server by passing environment variables to the `make run` command. For example, to
 > run the server with the `tinyagent` framework and a specific model, in chat mode, you can use:
 > ```bash
 > make run FRAMEWORK=tinyagent MODEL=mistral/mistral-small-latest CHAT=1
-> ```
-
-> [!NOTE]
-> Before running the server, make sure to create a `.env` file in the project root with your required environment
-> variables, including your `OPENAI_API_KEY`:
-> ```
-> OPENAI_API_KEY=sk-...
 > ```
 
 > [!NOTE]
