@@ -5,22 +5,15 @@ from unittest.mock import patch
 
 import pytest
 from loguru import logger
-from mock_tools import find_matching_mock
+from mock_tools import find_matching_mock, find_matching_validation
 
 ARTIFACTS_PATH = Path(__file__).parent.parent / "artifacts"
 
 
-@pytest.fixture(
-    # params=list(ARTIFACTS_PATH.rglob("*agent.py")),
-    params=[x for x in list(ARTIFACTS_PATH.rglob("*agent.py")) if "podcast" in str(x)],
-    ids=lambda x: x.parent.name,
-)
-def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
+@pytest.fixture
+def generated_agent_module_with_mocks(agent_dir: str, prompt_id: str):
     """Import the agent module dynamically with mocks in place"""
-    agent_file = request.param
-    agent_dir = agent_file.parent
-
-    logger.info(f"Testing agent from: {agent_dir}")
+    logger.debug(f"Testing agent from: {agent_dir}")
 
     # Add the agent directory to sys.path
     sys.path.insert(0, str(agent_dir))
@@ -31,8 +24,17 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
 
     original_load_tools = AnyAgent._load_tools
 
-    def tool_type_checker(tool, type_name):
-        """Check if a tool matches a given type"""
+    def tool_type_checker(tool: any, type_name: str) -> bool:
+        """Check if a tool matches a given type (specified as a string).
+
+        Parameters:
+        - tool: one of the tools defined in the agent configuration
+        - type_name: MCPStdio or function
+
+        Returns:
+        - bool: whether the tool matches the type and satisfies
+                some type-related checks
+        """
         if type_name == "MCPStdio":
             return isinstance(tool, MCPStdio)
         elif type_name == "function":
@@ -42,38 +44,54 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
         return False
 
     async def mocking_load_tools(self, tools):
-        logger.info(f"AnyAgent._load_tools called with {len(tools)} tools:")
+        """A version of AnyAgent's _load_tools that mocks tool calls.
+
+        Parameters:
+        - tools: a list of tools provided in the agent's configuration
+
+        Returns:
+        - a patched version of _load_tools' output, where some specific
+          tools are mocked by those provided in `mock_tools.py`
+        """
+        logger.debug(f"AnyAgent._load_tools called with {len(tools)} tools:")
         for i, tool in enumerate(tools):
-            logger.info(f"    Tool {i}: {type(tool)} - {tool}")
+            logger.debug(f"    Tool {i}: {type(tool)} - {tool}")
 
         # Process tools and replace with mocks where applicable
         modified_tools = []
         for tool in tools:
+            # first validate the tool
+            validation_function = find_matching_validation(tool, tool_type_checker, prompt_id)
+
+            if validation_function:
+                logger.debug(f"Validating tool {tool} with {validation_function.__name__}")
+                validation_function(tool, prompt_id)
+
             # Try to find a matching mock
-            mock_function = find_matching_mock(tool, tool_type_checker)
+            mock_function = find_matching_mock(tool, tool_type_checker, prompt_id)
 
             if mock_function:
-                logger.info(f"Replacing tool {tool} with mock {mock_function.__name__}")
+                logger.debug(f"Replacing tool {tool} with mock {mock_function.__name__}")
                 modified_tools.append(mock_function)
             else:
                 # No mock found, keep original tool
                 modified_tools.append(tool)
 
-        logger.info(f"Modified tools count: {len(modified_tools)}")
+        logger.debug(f"Modified tools count: {len(modified_tools)}")
         for i, tool in enumerate(modified_tools):
-            logger.info(f"  Tool {i}: {type(tool)} - {tool}")
+            logger.debug(f"  Tool {i}: {type(tool)} - {tool}")
 
         # Call original method with modified tools
         result = await original_load_tools(self, modified_tools)
 
-        logger.info(f"Original _load_tools returned: {len(result[0])} tools, {len(result[1])} mcp_servers")
+        logger.debug(f"Original _load_tools returned: {len(result[0])} tools, {len(result[1])} mcp_servers")
 
         return result
 
     try:
         # Patch _load_tools before importing agent
         with patch.object(AnyAgent, "_load_tools", mocking_load_tools):
-            logger.info("Patched AnyAgent._load_tools")
+            logger.debug("Patched AnyAgent._load_tools")
 
             # Import the agent module
             if "agent" in sys.modules:
@@ -81,7 +99,7 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
             else:
                 import agent
 
-            logger.info("Agent module imported successfully")
+            logger.debug("Agent module imported successfully")
 
             yield agent
 
@@ -92,15 +110,21 @@ def generated_agent_module_with_mocks(request: pytest.FixtureRequest):
             del sys.modules["agent"]
 
 
-def test_agent_mocked_execution(generated_agent_module_with_mocks):
+def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: str):
     """Test agent execution with _load_tools mocking"""
     agent = generated_agent_module_with_mocks
 
-    logger.info("Starting agent execution...")
+    logger.debug("Starting agent execution...")
 
     try:
-        result = agent.main("https://aittalam.github.io/posts/2023-12-31-setting-up-hugo/")
-        logger.info(f"Agent execution completed with result: {type(result)}")
+        if "url-to-podcast" in prompt_id:
+            result = agent.main("https://en.wikipedia.org/wiki/Alan_Turing_Life")
+        else:
+            # we are not testing other use-cases atm, but we can expect they will be
+            # called with different parameters so we'll have an if...elif...else here
+            result = True
+
+        logger.debug(f"Agent execution completed with result: {type(result)}")
 
     except Exception as e:
         logger.error(f"Exception occurred: {type(e).__name__}: {e}")

@@ -41,9 +41,15 @@ def artifacts_dir(request):
 
 
 @pytest.fixture
-def agent_file(artifacts_dir, prompt_id):
+def agent_dir(artifacts_dir, prompt_id):
+    """Fixture to get the agent directory path for the current prompt."""
+    return artifacts_dir / prompt_id
+
+
+@pytest.fixture
+def agent_file(agent_dir):
     """Fixture to get the agent file path for the current prompt."""
-    return artifacts_dir / prompt_id / "agent.py"
+    return agent_dir / "agent.py"
 
 
 @pytest.fixture
@@ -60,6 +66,16 @@ def prompt_id(request):
 @pytest.fixture(scope="module")
 def common_eval_testing_data_path():
     return Path("tests/generated_agent_evaluation/data/")
+
+
+@pytest.fixture(scope="module")
+def generated_artifacts_data_path():
+    return Path("tests/generated_artifacts/data/")
+
+
+@pytest.fixture(scope="module")
+def sample_webpage_result(generated_artifacts_data_path):
+    return (generated_artifacts_data_path / "turing.md").read_text()
 
 
 @pytest.fixture(scope="module")
