@@ -16,7 +16,7 @@ from agent_factory.utils.client_utils import is_server_live
 
 def _assert_generated_files(workflow_dir: Path):
     existing_files = [f.name for f in workflow_dir.iterdir()]
-    expected_files = ["agent.py", "README.md", "requirements.txt"]
+    expected_files = ["agent.py", "README.md", "requirements.txt", "agent_arguments.json"]
 
     for expected_file in expected_files:
         assert expected_file in existing_files, f"{expected_file} was not generated."

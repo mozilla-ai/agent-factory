@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -7,6 +8,14 @@ class Status(Enum):
     COMPLETED = "completed"
     INPUT_REQUIRED = "input_required"
     ERROR = "error"
+
+
+class AgentParameters(BaseModel):
+    """Schema for agent_parameters.json file that defines CLI arguments for generated agents."""
+
+    params: dict[str, Literal["string", "integer", "number", "boolean"]] = Field(
+        ..., description="Dictionary mapping CLI parameter names (with -- prefix) to their JSON schema types"
+    )
 
 
 class AgentFactoryOutputs(BaseModel):

@@ -118,7 +118,7 @@ uv run agent-factory "Summarize text content from a given webpage URL"
 ```
 
 The client will send the message to the server, print the response, and save the generated agent's files (`agent.py`,
-`README.md`, and `requirements.txt`) into a new directory inside the `generated_workflows` directory.
+`README.md`, `requirements.txt`, and `agent_arguments.json`) into a new directory inside the `generated_workflows` directory.
 
 ### Run the Generated Workflow
 
