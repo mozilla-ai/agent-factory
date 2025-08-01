@@ -46,16 +46,12 @@
         "description": "Obsidian vault integration for note management"
       },
       "mcp-discord": {
-        "command": "docker",
+        "command": "npx",
         "args": [
-          "run",
-          "--rm",
-          "-it",
-          "-e",
-          "DISCORD_TOKEN=$DISCORD_TOKEN",
-          "-p",
-          "8080:8080",
-          "barryy625/mcp-discord"
+          "-y",
+          "mcp-discord",
+          "--config",
+          "$DISCORD_TOKEN"
         ],
         "env": {
           "DISCORD_TOKEN": "YOUR_DISCORD_TOKEN_HERE"
