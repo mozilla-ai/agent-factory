@@ -11,15 +11,15 @@ The following table provides a quick overview of tested MCP servers. For detaile
 
 <!-- MCP_SERVERS_TABLE_START -->
 
-*Last updated: 2025-08-01T15:22:06.136133+00:00*
-*Test results: 10 working, 0 failed, 1 skipped out of 11 total servers*
+*Last updated: 2025-08-01T15:24:35.151191+00:00*
+*Test results: 9 working, 1 failed, 1 skipped out of 11 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |
 | --- | --- | --- | --- | --- |
 | **Github** | `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN mcp/github` | stdio | ⏭️ Skipped | GitHub integration for repository management, issues, and code search |
 | **Filesystem** | `npx -y @modelcontextprotocol/server-filesystem . .` | stdio | ✅ Confirmed | Local file system operations and management |
 | **Duckduckgo-Mcp** | `uvx duckduckgo-mcp-server` | stdio | ✅ Confirmed | Web search capabilities using DuckDuckGo |
-| **Mcp-Obsidian** | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ✅ Confirmed | Obsidian vault integration for note management |
+| **Mcp-Obsidian** | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ❌ Failed | Obsidian vault integration for note management |
 | **Mcp-Discord** | `npx -y mcp-discord --config $DISCORD_TOKEN` | stdio | ✅ Confirmed | Discord messaging and server management |
 | **Memory** | `npx -y @modelcontextprotocol/server-memory` | stdio | ✅ Confirmed | Memory management and persistence for MCP servers |
 | **Notion** | `npx -y @notionhq/notion-mcp-server` | stdio | ✅ Confirmed | Notion workspace integration for page management |
