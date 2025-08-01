@@ -5,25 +5,16 @@ repos:
       - id: detect-secrets
         exclude: |
           (?x)^(
-            api/.*|
-            ui/.*|
             docs/.*|
-            .*/tests/data/.*\.json|
-            tests/artifacts/.*
           )$
-
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: check-merge-conflict
-        exclude: ^(tests/artifacts)
       - id: trailing-whitespace
-        exclude: ^(tests/artifacts)
       - id: end-of-file-fixer
-        exclude: ^(docs/source/specs/openapi.json|tests/artifacts)
       - id: requirements-txt-fixer
-        exclude: ^(requirements_lock.txt|tests/artifacts)
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
@@ -35,15 +26,14 @@ repos:
           - --config
           - ruff.toml
           - --fix
-        exclude: ^(api/|ui/|tests/artifacts)  # matches paths starting with api/ or ui/
+        exclude: ^(tests/artifacts)
 
       # Run the formatter.
       - id: ruff-format
         args:
           - --config
           - ruff.toml
-        exclude: ^(api/|ui/|tests/artifacts)  # matches paths starting with api/ or ui/
-
+        exclude: ^(tests/artifacts)
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.

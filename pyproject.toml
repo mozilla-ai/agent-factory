@@ -1,24 +1,17 @@
-[build-system]
-requires = ["setuptools>=48", "setuptools_scm[toml]>=6.3.1"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "agent-factory"
-description = "Agent Factory"
-license = {text = "Apache-2.0"}
+description = "A factory for automatically creating agentic workflows."
+version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.13"
-dynamic = ["version"]
 dependencies = [
-    "any-agent[all]==0.25.0",
-    "jinja2>=3.1.2",
-    "fire>=0.7.0",
+    "any-agent[all,a2a]==0.25.0",
+    "fire~=0.7.0",
     "dotenv>=0.9.9",
-    "pyyaml>=6.0.2",
-    "mcpm>=1.0.3", # installing a newer version of mcpm conflicts with the current version of chainlit (2.6.0), see dependency-groups below
+    "mcpm>=1.0.3",  # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
+    "loguru>=0.7.3",
     "pre-commit>=4.2.0",
-    "rich>=14.0.0",
-    "autoflake>=2.3.1",
+    "autoflake==2.3.1",
 ]
 
 [project.urls]
@@ -26,8 +19,12 @@ Documentation = "https://mozilla-ai.github.io/agent-factory/"
 Issues = "https://github.com/mozilla-ai/agent-factory/issues"
 Source = "https://github.com/mozilla-ai/agent-factory"
 
+[build-system]
+requires = ["setuptools>=48", "setuptools_scm[toml]>=6.3.1"]
+build-backend = "setuptools.build_meta"
+
 [project.scripts]
-agent-factory = "agent_factory.generation:main"
+agent-factory = "agent_factory.agent_generator:main"
 
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]
@@ -38,9 +35,14 @@ namespaces = false
 
 [dependency-groups]
 dev = [
+  { include-group = "chainlit" },
   { include-group = "docs" },
   { include-group = "lint" },
   { include-group = "tests" },
+]
+
+chainlit = [
+  "chainlit~=2.6.0",
 ]
 
 docs = [
@@ -60,7 +62,4 @@ tests = [
   "pytest-timeout>=2.4.0",
   "syrupy>=4.9.1",
   "pytest-asyncio>=1.0.0",
-]
-chainlit-demo = [
-  "chainlit==2.6.0",
 ]

@@ -1,0 +1,135 @@
+{
+    "_comment": "To add a new MCP server, add an entry to mcpServers with: command (npx/uvx/docker), args (array of arguments), and optional env (environment variables). See existing entries for examples.",
+    "mcpServers": {
+      "github": {
+        "command": "docker",
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "GITHUB_PERSONAL_ACCESS_TOKEN",
+          "mcp/github"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN_HERE"
+        },
+        "description": "GitHub integration for repository management, issues, and code search"
+      },
+      "filesystem": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          ".",
+          "."
+        ],
+        "description": "Local file system operations and management"
+      },
+      "duckduckgo-mcp": {
+        "command": "uvx",
+        "args": [
+          "duckduckgo-mcp-server"
+        ],
+        "description": "Web search capabilities using DuckDuckGo"
+      },
+      "mcp-obsidian": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "mcp-obsidian",
+          "--config",
+          "\"{\\\"vaultPath\\\":\\\"./test-vault\\\"}\""
+        ],
+        "description": "Obsidian vault integration for note management"
+      },
+      "mcp-discord": {
+        "command": "docker",
+        "args": [
+          "run",
+          "--rm",
+          "-it",
+          "-e",
+          "DISCORD_TOKEN=$DISCORD_TOKEN",
+          "-p",
+          "8080:8080",
+          "barryy625/mcp-discord"
+        ],
+        "env": {
+          "DISCORD_TOKEN": "YOUR_DISCORD_TOKEN_HERE"
+        },
+        "description": "Discord messaging and server management"
+      },
+      "memory": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-memory"
+        ],
+        "description": "Memory management and persistence for MCP servers"
+      },
+      "notion": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@notionhq/notion-mcp-server"
+        ],
+        "env": {
+          "NOTION_API_KEY": "YOUR_NOTION_API_KEY_HERE"
+        },
+        "description": "Notion workspace integration for page management"
+      },
+      "google-maps": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-google-maps"
+        ],
+        "env": {
+          "GOOGLE_MAPS_API_KEY": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+        },
+        "description": "Google Maps integration for location services"
+      },
+      "perplexity": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "server-perplexity-ask"
+        ],
+        "env": {
+          "PERPLEXITY_API_KEY": "YOUR_PERPLEXITY_API_KEY_HERE"
+        },
+        "description": "AI-powered search and information retrieval using Perplexity"
+      },
+
+      "salesforce": {
+        "command": "uvx",
+        "args": [
+          "--from",
+          "mcp-salesforce-connector",
+          "salesforce"
+        ],
+        "env": {
+          "SALESFORCE_USERNAME": "YOUR_SALESFORCE_USERNAME_HERE",
+          "SALESFORCE_PASSWORD": "YOUR_SALESFORCE_PASSWORD_HERE",
+          "SALESFORCE_SECURITY_TOKEN": "YOUR_SALESFORCE_SECURITY_TOKEN_HERE"
+        },
+        "description": "Salesforce CRM integration"
+      },
+
+      "elasticsearch": {
+        "command": "uvx",
+        "args": [
+          "elasticsearch-mcp-server"
+        ],
+        "env": {
+          "ELASTIC_HOST": "YOUR_ELASTIC_HOST_HERE",
+          "ELASTIC_USERNAME": "YOUR_ELASTIC_USERNAME_HERE",
+          "ELASTIC_PASSWORD": "YOUR_ELASTIC_PASSWORD_HERE"
+        },
+        "description": "Elasticsearch search and analytics"
+      }
+    }
+  }
