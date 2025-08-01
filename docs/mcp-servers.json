@@ -118,7 +118,6 @@
         },
         "description": "Salesforce CRM integration"
       },
-
       "elasticsearch": {
         "command": "uvx",
         "args": [

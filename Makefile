@@ -151,9 +151,9 @@ test-generated-artifacts: ## Run artifact validation tests
 
 test-mcps: ## Run MCP server tests
 	@echo "Running MCP server tests..."
-	uv run python docs/scripts/test_mcp_servers.py
+	uv run python -m docs.scripts.test_mcp_servers
 
 update-docs: test-mcps ## Update MCP documentation
 	@echo "Generating MCP documentation..."
-	uv run python docs/scripts/generate_mcp_table.py
+	uv run python -m docs.scripts.generate_mcp_table
 	@echo "Documentation updated successfully!"
