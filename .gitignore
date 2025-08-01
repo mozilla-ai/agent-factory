@@ -197,4 +197,4 @@ node_modules/
 test_results
 
 # MCP test results
-docs/scripts/mcp-test-results.json
+.cache/mcp-test-results.json

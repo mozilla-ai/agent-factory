@@ -11,8 +11,8 @@ The following table provides a quick overview of tested MCP servers. For detaile
 
 <!-- MCP_SERVERS_TABLE_START -->
 
-*Last updated: 2025-07-31T16:52:25.607682+00:00*
-*Test results: 10 working, 0 failed, 2 skipped out of 12 total servers*
+*Last updated: 2025-08-01T13:28:06.953251+00:00*
+*Test results: 9 working, 0 failed, 2 skipped out of 11 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |
 | --- | --- | --- | --- | --- |
@@ -27,7 +27,6 @@ The following table provides a quick overview of tested MCP servers. For detaile
 | **Perplexity** | `npx -y server-perplexity-ask` | stdio | ✅ Confirmed | AI-powered search and information retrieval using Perplexity |
 | **Salesforce** | `uvx --from mcp-salesforce-connector salesforce` | stdio | ✅ Confirmed | Salesforce CRM integration |
 | **Elasticsearch** | `uvx elasticsearch-mcp-server` | stdio | ✅ Confirmed | Elasticsearch search and analytics |
-| **Slack** | `npx -y @modelcontextprotocol/server-slack` | stdio | ✅ Confirmed | Official Slack integration for channel management and messaging |
 <!-- MCP_SERVERS_TABLE_END -->
 
 ## Server Status Legend
@@ -81,7 +80,7 @@ The MCP servers are automatically tested using the following workflow:
    - Attempting to connect to each MCP server
    - Listing available tools
    - Recording success/failure status and tool count
-3. **Results Storage**: Test results are saved to `docs/scripts/mcp-test-results.json`
+3. **Results Storage**: Test results are saved to `.cache/mcp-test-results.json`
 4. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script updates this markdown file with current test results
 
 ### Running Tests Locally
@@ -90,10 +89,10 @@ To test MCP servers locally:
 
 ```bash
 # Run the test script
-uv run python docs/scripts/test_mcp_servers.py
+uv run python -m docs.scripts.test_mcp_servers
 
 # Update the documentation
-uv run python docs/scripts/generate_mcp_table.py
+uv run python -m docs.scripts.generate_mcp_table
 ```
 
 ## Contributing

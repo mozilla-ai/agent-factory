@@ -12,7 +12,6 @@ import shutil
 from collections import Counter
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -20,14 +19,7 @@ from loguru import logger
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-
-class TestStatus(Enum):
-    """Enum for test status values."""
-
-    SUCCESS = "success"
-    FAILED = "failed"
-    SKIPPED = "skipped"
-
+from . import TestStatus
 
 INITIALIZE_TIMEOUT = 30
 LIST_TOOLS_TIMEOUT = 30
@@ -141,7 +133,7 @@ async def run_all_tests() -> dict[str, Any]:
     return results
 
 
-def save_results(results: dict[str, Any], output_file: str = "docs/scripts/mcp-test-results.json"):
+def save_results(results: dict[str, Any], output_file: str = ".cache/mcp-test-results.json"):
     """Save test results to JSON file with the same structure as input plus test data."""
     # Calculate status counts from results
     status_counts = Counter(result["test_status"] for result in results.values())

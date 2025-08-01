@@ -6,25 +6,17 @@ for mcp-servers.md with current test status.
 """
 
 import json
-from enum import Enum
 from pathlib import Path
 from typing import Any
 
-
-class TestStatus(Enum):
-    """Enum for MCP server test status values."""
-
-    SUCCESS = "success"
-    SKIPPED = "skipped"
-    FAILED = "failed"
-
+from . import TestStatus
 
 # Markers for identifying the dynamic content
 START_MARKER = "<!-- MCP_SERVERS_TABLE_START -->"
 END_MARKER = "<!-- MCP_SERVERS_TABLE_END -->"
 
 
-def load_test_results(results_file: str = "docs/scripts/mcp-test-results.json") -> dict[str, Any]:
+def load_test_results(results_file: str = ".cache/mcp-test-results.json") -> dict[str, Any]:
     """Load test results from JSON file."""
     with Path(results_file).open("r") as f:
         return json.load(f)
@@ -101,7 +93,7 @@ def reconstruct_file(intro: str, dynamic_content: str, outro: str) -> str:
 
 
 def update_markdown_file(
-    markdown_file: str = "docs/mcp-servers.md", results_file: str = "docs/scripts/mcp-test-results.json"
+    markdown_file: str = "docs/mcp-servers.md", results_file: str = ".cache/mcp-test-results.json"
 ):
     """Update the markdown file with new test results."""
     test_data = load_test_results(results_file)
