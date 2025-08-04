@@ -54,7 +54,7 @@ def mock_extract_text_from_url(url: str) -> str:
         A string containing the extracted text. If an error occurs (e.g.,
         network issue, invalid URL), it returns an error message string.
     """
-    return (Path(__file__) / "data" / "turing.md").read_text()
+    return (Path(__file__).parent / "data" / "turing.md").read_text()
 
 
 # ----------------------------------------------------------------------------

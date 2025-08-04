@@ -69,16 +69,6 @@ def common_eval_testing_data_path():
 
 
 @pytest.fixture(scope="module")
-def generated_artifacts_data_path():
-    return Path("tests/generated_artifacts/data/")
-
-
-@pytest.fixture(scope="module")
-def sample_webpage_result(generated_artifacts_data_path):
-    return (generated_artifacts_data_path / "turing.md").read_text()
-
-
-@pytest.fixture(scope="module")
 def sample_evaluation_json_file(common_eval_testing_data_path):
     return (common_eval_testing_data_path / "sample_evaluation_case.json").read_text()
 
