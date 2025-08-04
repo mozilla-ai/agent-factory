@@ -3,7 +3,7 @@ from typing import Any
 
 from agent_factory.utils.io_utils import BINARY_NAME_MCPD, run_binary
 
-KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "docker_url", "examples")
+KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "examples")
 
 
 def _cleanup_mcp_server_info(server_info):
