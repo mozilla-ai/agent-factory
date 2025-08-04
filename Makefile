@@ -18,7 +18,7 @@ DOCKER_TAG := latest
 
 # MCPD Configuration
 MCPD_VERSION ?= $(shell curl -s https://api.github.com/repos/mozilla-ai/mcpd/releases/latest | jq -r .tag_name)
-MCPD_ARCH ?= $(shell uname -m | sed 's/x86_64/x86_64/; s/arm64/arm64/')
+MCPD_ARCH ?= $(shell uname -m)
 MCPD_TAR = mcpd_Linux_$(MCPD_ARCH).tar.gz
 MCPD_URL = https://github.com/mozilla-ai/mcpd/releases/download/$(MCPD_VERSION)/$(MCPD_TAR)
 MCPD_BIN_PATH = bin
