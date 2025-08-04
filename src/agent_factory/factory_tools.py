@@ -23,23 +23,32 @@ def search_mcp_servers(
     tags: list[str] | None = None,
     is_official: bool = False,
 ) -> list[dict[str, Any]]:
-    """Search for available MCP servers based on a single keyphrase (one or more words separated by spaces).
+    """Search for MCP servers using a keyphrase and optional filters.
 
-    This function queries the MCP server registry and filters the results based on the provided
-    keyphrase. The keyphrase can be a part of the server name, description, or tags.
+    This function queries the MCP server registry and returns servers matching the provided keyphrase.
+    The keyphrase may appear in the server name or description. If set to "*", all servers are returned.
 
-    It returns a list of matching servers, and if no servers match the criteria, it returns an empty
-    list.
+    Optional filters include `license`, `categories`, `tags`, and an `is_official` flag, which narrow results by:
+    - license name (partial match),
+    - declared categories (all supplied substrings must match),
+    - declared tags (all supplied substrings must match),
+    - whether the server is marked as official.
+
+    If no servers match, an empty list is returned.
 
     Example:
     ```python
-    search_mcp_servers(keyphrase="github", is_official=True)
     search_mcp_servers(keyphrase="google calendar")
+    search_mcp_servers(keyphrase="github", is_official=True)
+    search_mcp_servers(keyphrase="github", license="MIT")
+    search_mcp_servers(keyphrase="github", categories=["Dev Tools"])
+    search_mcp_servers(keyphrase="mcp", tags=["automation", "llm"])
     ```
 
     Args:
         keyphrase: A string to search for in the MCP server registry.
                 Must be a single keyphrase consisting of one or more words separated by spaces (no commas).
+                When "*" acts as a wildcard returning all search results.
         license: Optional string which describes a full or partial match of the license for any MCP server.
                 e.g. Apache, MIT.
         categories: Optional list of one or more strings to use to filter by categories the MCP server has declared to
