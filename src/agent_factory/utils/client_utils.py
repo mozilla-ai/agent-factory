@@ -36,6 +36,17 @@ def create_message_request(
     message: str, context_id: UUID | None = None, request_id: UUID | None = None, message_id: UUID | None = None
 ) -> SendMessageRequest:
     """Create a message request to send to the agent."""
+    if not request_id:
+        logger.info("No request ID provided, generating a new one")
+        request_id = uuid4()
+    elif isinstance(request_id, str):
+        try:
+            request_id = UUID(request_id)
+        except (ValueError, AttributeError):
+            logger.warning(f"Invalid UUID string: {request_id}, generating a new one")
+            request_id = uuid4()
+    logger.info(f"Request ID: {request_id}")
+
     send_message_payload: dict[str, Any] = {
         "message": {
             "role": "user",
@@ -44,9 +55,7 @@ def create_message_request(
             "contextId": context_id.hex if context_id else uuid4().hex,
         },
     }
-    return SendMessageRequest(
-        id=request_id.hex if request_id else uuid4().hex, params=MessageSendParams(**send_message_payload)
-    )
+    return SendMessageRequest(id=request_id.hex, params=MessageSendParams(**send_message_payload))
 
 
 def process_a2a_agent_response(response: Any) -> AgentFactoryOutputs:

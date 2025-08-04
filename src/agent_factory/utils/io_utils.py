@@ -1,16 +1,9 @@
-import uuid
-from datetime import datetime
 from pathlib import Path
 
 from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.utils import clean_python_code_with_autoflake
 
 TOOLS_DIR = Path(__file__).parent.parent / "tools"
-
-
-def generate_run_id() -> str:
-    """Generates run ID (to name the folder in which the agent artifacts are saved)"""
-    return datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + "_" + str(uuid.uuid4())[:8]
 
 
 def prepare_agent_artifacts(agent_factory_outputs: dict[str, str]) -> dict[str, str]:

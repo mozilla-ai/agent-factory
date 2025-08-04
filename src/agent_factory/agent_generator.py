@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import UUID
 
 import fire
 from a2a.client import A2ACardResolver, A2AClient
@@ -22,6 +23,7 @@ EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
 async def generate_target_agent(
     message: str,
     output_dir: Path | None = None,
+    request_id: UUID | None = None,
     host: str = "localhost",
     port: int = 8080,
     timeout: int = 600,
@@ -31,6 +33,7 @@ async def generate_target_agent(
     Args:
         message: The message to send to the agent.
         output_dir: Directory to save agent outputs. If None, a default is used.
+        request_id: The request ID for the message.
         host: The host address for the agent server (default: "localhost").
         port: The port for the agent server (default: 8080).
         timeout: The timeout for the request in seconds (default: 600).
@@ -44,15 +47,17 @@ async def generate_target_agent(
         client = A2AClient(httpx_client=client, agent_card=agent_card)
         logger.info("A2AClient initialized.")
 
-        request = create_message_request(message)
+        request = create_message_request(message, request_id=request_id)
         response = await client.send_message(request, http_kwargs={"timeout": timeout})
 
         # Process response
         response = process_a2a_agent_response(response)
         if response.status == Status.COMPLETED:
             prepared_artifacts = prepare_agent_artifacts(response.model_dump())
+            output_dir = output_dir if output_dir else request.id
             storage_backend = get_storage_backend()
-            storage_backend.save(prepared_artifacts, output_dir)
+            logger.info(f"Saving agent artifacts to {output_dir}")
+            storage_backend.save(prepared_artifacts, Path(output_dir))
         elif response.status == Status.INPUT_REQUIRED:
             logger.info(
                 f"Please try again and be more specific with your request. Agent's response: {response.message}"

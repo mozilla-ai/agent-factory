@@ -6,18 +6,17 @@ from pathlib import Path
 
 import boto3
 
-from agent_factory.utils.io_utils import generate_run_id
 from agent_factory.utils.logging import logger
 
 
 class StorageBackend(ABC):
     @abstractmethod
-    def save(self, artifacts_to_save: dict[str, str], output_dir: Path | None) -> None:
+    def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
         pass
 
 
 class LocalStorage(StorageBackend):
-    def save(self, artifacts_to_save: dict[str, str], output_dir: Path | None) -> None:
+    def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
         output_path = self._setup_output_directory(output_dir)
         try:
             for file_path_str, content in artifacts_to_save.items():
@@ -29,12 +28,7 @@ class LocalStorage(StorageBackend):
         except Exception as e:
             logger.warning(f"Warning: Failed to save agent outputs: {str(e)}")
 
-    def _setup_output_directory(self, output_dir: Path | None = None) -> Path:
-        if output_dir is None:
-            output_dir = Path.cwd() / "generated_workflows" / generate_run_id()
-        else:
-            output_dir = Path(output_dir)
-
+    def _setup_output_directory(self, output_dir: Path) -> Path:
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
 
@@ -71,9 +65,8 @@ class S3Storage(StorageBackend):
             else:
                 raise
 
-    def save(self, artifacts_to_save: dict[str, str], output_dir: Path | None) -> None:
-        output_dir = output_dir.name if output_dir else generate_run_id()
-        self._save_as_zip(artifacts_to_save, output_dir)
+    def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
+        self._save_as_zip(artifacts_to_save, output_dir.name)
 
     def _save_as_zip(self, artifacts_to_save: dict[str, str], output_dir: str):
         with tempfile.TemporaryDirectory() as temp_dir:
