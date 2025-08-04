@@ -1,9 +1,13 @@
+from pathlib import Path
+
 import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
+from any_agent.callbacks import get_default_callbacks
 from any_agent.serving import A2AServingConfig
 from any_agent.tools import search_tavily, visit_webpage
 
+from agent_factory.callbacks import SaveAgentTraceCallback
 from agent_factory.factory_tools import read_file, search_mcp_servers
 from agent_factory.instructions import load_system_instructions
 from agent_factory.schemas import AgentFactoryOutputs
@@ -47,6 +51,7 @@ async def main(
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             model_args={"tool_choice": "auto"},
             output_type=AgentFactoryOutputs,
+            callbacks=[SaveAgentTraceCallback(output_dir=Path("manufacturing_agent_traces")), *get_default_callbacks()],
         ),
     )
 
