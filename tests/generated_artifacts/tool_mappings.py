@@ -1,79 +1,7 @@
-import hashlib
-import shutil
-from pathlib import Path
-
-from any_agent.config import MCPStdio
+from generated_artifacts.tool_mocks import mock_extract_text_from_url, mock_text_to_speech
+from generated_artifacts.tool_validations import no_docker_mcp
 
 from agent_factory.utils.logging import logger
-
-# Path to artifacts directory (adjust as needed)
-ARTIFACTS_PATH = Path(__file__).parent.parent / "artifacts"
-
-
-def mock_text_to_speech(text: str, voice_name: str = None) -> str:
-    """Mocks elevenlab's text_to_speech tool with a smaller amount of parameters as not all are needed.
-
-    Original description:
-    Convert text to speech with a given voice and save the output audio file to a given directory.
-    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
-    Only one of voice_id or voice_name can be provided. If none are provided, the default voice will be used.
-
-    Args:
-      text (str): The text to convert to speech.
-      voice_name (str, optional): The name of the voice to use.
-
-    Returns:
-      Text content with the path to the output file and name of the voice used.
-    """
-    logger.debug(f"Mock text_to_speech called with text: '{text[:50]}...', voice_name: {voice_name}")
-    text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
-    output_file = Path(f"/tmp/mock_audio_{text_hash}.mp3")
-    input_file = Path(ARTIFACTS_PATH) / "silent_1000.mp3"
-
-    # Check if file already exists (just log for internal use, but still return success)
-    if output_file.exists():
-        logger.warning(f"File already exists: {output_file}")
-        return f"Success. File saved as: {output_file}. Voice used: {voice_name}"
-
-    # Create a minimal valid MP3 file (silent audio, ~1 seconds)
-    shutil.copy(input_file, output_file)
-    logger.debug(f"Created mock MP3 file: {output_file}")
-
-    return f"Success. File saved as: {output_file}. Voice used: {voice_name}"
-
-
-def mock_extract_text_from_url(url: str) -> str:
-    """Extracts all text content from a given URL.
-
-    This function fetches the HTML content of the URL and uses BeautifulSoup
-    to parse and extract all human-readable text.
-
-    Args:
-        url: The URL from which to extract text (e.g., "https://example.com").
-
-    Returns:
-        A string containing the extracted text. If an error occurs (e.g.,
-        network issue, invalid URL), it returns an error message string.
-    """
-    url_hash = hashlib.md5(url.encode("utf-8")).hexdigest()
-    content_file = Path(__file__).parent / "data" / f"{url_hash}.md"
-
-    if content_file.exists():
-        # Return file content
-        return content_file.read_text()
-
-    return "Error: URL not accessible"
-
-
-# ----------------------------------------------------------------------------
-
-
-def no_docker_mcp(MCPStdio_tool_config: MCPStdio, prompt_id: str):
-    """Makes sure that MCPStdio tool is not running on docker."""
-    assert "docker" not in MCPStdio_tool_config.command.lower(), f"Docker MCP cannot be used in {prompt_id}"
-
-
-# ----------------------------------------------------------------------------
 
 # Each entry defines how to identify a tool and what mock to use
 TOOL_MOCKS = [
@@ -110,7 +38,6 @@ TOOL_VALIDATIONS = [
         "validation_function": no_docker_mcp,
     }
 ]
-
 
 # ----------------------------------------------------------------------------
 

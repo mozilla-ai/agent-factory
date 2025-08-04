@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from mock_tools import find_matching_mock, find_matching_validation
+from generated_artifacts.tool_mappings import find_matching_mock, find_matching_validation
 
 from agent_factory.utils.logging import logger
 
