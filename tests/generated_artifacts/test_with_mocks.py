@@ -4,10 +4,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from loguru import logger
 from mock_tools import find_matching_mock, find_matching_validation
 
-ARTIFACTS_PATH = Path(__file__).parent.parent / "artifacts"
+from agent_factory.utils.logging import logger
 
 
 @pytest.fixture

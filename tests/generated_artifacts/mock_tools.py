@@ -3,7 +3,8 @@ import shutil
 from pathlib import Path
 
 from any_agent.config import MCPStdio
-from loguru import logger
+
+from agent_factory.utils.logging import logger
 
 # Path to artifacts directory (adjust as needed)
 ARTIFACTS_PATH = Path(__file__).parent.parent / "artifacts"
