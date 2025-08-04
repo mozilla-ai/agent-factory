@@ -2,7 +2,7 @@ import hashlib
 import shutil
 from pathlib import Path
 
-from loguru import logger
+from agent_factory.utils.logging import logger
 
 # Path to artifacts directory (adjust as needed)
 ARTIFACTS_PATH = Path(__file__).parent.parent / "artifacts"
