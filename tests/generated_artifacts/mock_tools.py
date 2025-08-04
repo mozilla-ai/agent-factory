@@ -55,7 +55,14 @@ def mock_extract_text_from_url(url: str) -> str:
         A string containing the extracted text. If an error occurs (e.g.,
         network issue, invalid URL), it returns an error message string.
     """
-    return (Path(__file__).parent / "data" / "turing.md").read_text()
+    url_hash = hashlib.md5(url.encode("utf-8")).hexdigest()
+    content_file = Path(__file__).parent / "data" / f"{url_hash}.md"
+
+    if content_file.exists():
+        # Return file content
+        return content_file.read_text()
+
+    return "Error: URL not accessible"
 
 
 # ----------------------------------------------------------------------------
