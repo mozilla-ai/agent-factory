@@ -48,7 +48,7 @@ prepare: ## Prepare mcpd binary for Docker container
 	@if [ ! -f $(MCPD_BIN_PATH_ARCH) ]; then \
 		echo "Downloading mcpd binary for $(MCPD_ARCH)..."; \
 		curl -sSL $(MCPD_URL) -o "$(MCPD_BIN_PATH)/$(MCPD_TAR)"; \
-		tar -xzf $(MCPD_TAR) $(MCPD_BASE_NAME); \
+		tar -xzf $(MCPD_BIN_PATH)/$(MCPD_TAR) $(MCPD_BASE_NAME); \
 		mv mcpd $(MCPD_BIN_PATH_ARCH); \
 		chmod +x $(MCPD_BIN_PATH_ARCH); \
 		rm -f "$(MCPD_BIN_PATH)/$(MCPD_TAR)"; \
