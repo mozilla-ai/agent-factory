@@ -196,10 +196,8 @@ node_modules/
 # test results
 test_results
 
-<<<<<<< HEAD
 # MCP test results
 .cache/mcp-test-results.json
-=======
+
 # Binaries
 bin/
->>>>>>> da2b35a (Agent uses mcpd binary to execute the tools search)
