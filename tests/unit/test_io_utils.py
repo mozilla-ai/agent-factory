@@ -52,7 +52,7 @@ def test_save_agent_outputs_success(tmp_path, sample_generator_agent_response_js
     agent_path = output_dir / "agent.py"
     readme_path = output_dir / "README.md"
     req_path = output_dir / "requirements.txt"
-    agent_args_path = output_dir / "agent_arguments.json"
+    agent_params_path = output_dir / "agent_parameters.json"
 
     with patch("agent_factory.utils.io_utils.clean_python_code_with_autoflake", side_effect=lambda x: x) as mock_clean:
         save_agent_outputs(sample_generator_agent_response_json, output_dir)
@@ -61,31 +61,31 @@ def test_save_agent_outputs_success(tmp_path, sample_generator_agent_response_js
         assert agent_path.exists()
         assert readme_path.exists()
         assert req_path.exists()
-        assert agent_args_path.exists()
+        assert agent_params_path.exists()
 
 
-def test_agent_arguments_json_creation_and_validation(tmp_path, sample_generator_agent_response_json):
-    """Test that agent_arguments.json is created correctly and validates against AgentParameters schema."""
+def test_agent_parameters_json_creation_and_validation(tmp_path, sample_generator_agent_response_json):
+    """Test that agent_parameters.json is created correctly and validates against AgentParameters schema."""
     output_dir = tmp_path
-    agent_args_path = output_dir / "agent_arguments.json"
+    agent_params_path = output_dir / "agent_parameters.json"
 
     with patch("agent_factory.utils.io_utils.clean_python_code_with_autoflake", side_effect=lambda x: x):
         save_agent_outputs(sample_generator_agent_response_json, output_dir)
 
-        assert agent_args_path.exists()
+        assert agent_params_path.exists()
 
-        with agent_args_path.open("r", encoding="utf-8") as f:
-            agent_args = json.load(f)
+        with agent_params_path.open("r", encoding="utf-8") as f:
+            agent_params = json.load(f)
 
         # Validate that the JSON can be parsed by AgentParameters (which validates the schema)
-        agent_parameters = AgentParameters(**agent_args)
+        agent_parameters = AgentParameters(**agent_params)
         assert agent_parameters.params["--url"] == "string"
 
 
-def test_agent_arguments_with_multiple_types(tmp_path, sample_generator_agent_response_json):
-    """Test that agent_arguments.json handles multiple CLI arguments with different types (string and integer)."""
+def test_agent_parameters_with_multiple_types(tmp_path, sample_generator_agent_response_json):
+    """Test that agent_parameters.json handles multiple CLI parameters with different types (string and integer)."""
     output_dir = tmp_path
-    agent_args_path = output_dir / "agent_arguments.json"
+    agent_params_path = output_dir / "agent_parameters.json"
 
     # Create a modified version of the sample data with multiple CLI args (like podcast use case)
     podcast_data = sample_generator_agent_response_json.copy()
@@ -94,11 +94,11 @@ def test_agent_arguments_with_multiple_types(tmp_path, sample_generator_agent_re
     with patch("agent_factory.utils.io_utils.clean_python_code_with_autoflake", side_effect=lambda x: x):
         save_agent_outputs(podcast_data, output_dir)
 
-        assert agent_args_path.exists()
+        assert agent_params_path.exists()
 
-        with agent_args_path.open("r", encoding="utf-8") as f:
-            agent_args = json.load(f)
+        with agent_params_path.open("r", encoding="utf-8") as f:
+            agent_params = json.load(f)
 
-        agent_parameters = AgentParameters(**agent_args)
+        agent_parameters = AgentParameters(**agent_params)
         assert agent_parameters.params["--url"] == "string"
         assert agent_parameters.params["--num_hosts"] == "integer"

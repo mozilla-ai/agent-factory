@@ -31,7 +31,7 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
         - agent.py: Contains the agent code.
         - README.md: Contains the run instructions in Markdown format.
         - requirements.txt: Contains the dependencies line by line.
-        - agent_arguments.json: Contains the CLI arguments as JSON.
+        - agent_parameters.json: Contains the CLI parameters as JSON.
 
     Args:
         result: A dictionary containing the agent outputs. It should include the following keys:
@@ -47,7 +47,7 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
         agent_path = output_dir / "agent.py"
         readme_path = output_dir / "README.md"
         requirements_path = output_dir / "requirements.txt"
-        agent_arguments_path = output_dir / "agent_arguments.json"
+        agent_parameters_path = output_dir / "agent_parameters.json"
         tools_dir_path = output_dir / "tools"
         tools_dir_path.mkdir(exist_ok=True)
         agent_code = f"{AGENT_CODE_TEMPLATE.format(**result)}"
@@ -90,7 +90,7 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
 
         agent_parameters = AgentParameters(params=params_dict)
 
-        with agent_arguments_path.open("w", encoding="utf-8") as f:
+        with agent_parameters_path.open("w", encoding="utf-8") as f:
             json.dump(agent_parameters.model_dump(), f, indent=2)
 
         tools_dir = Path("src/agent_factory/tools")
