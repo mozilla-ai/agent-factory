@@ -1,5 +1,6 @@
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
+from uuid import UUID, uuid4
 
 import httpx
 import pytest
@@ -122,6 +123,31 @@ def test_create_message_request_empty_string_throws_error():
         with pytest.raises(ValueError) as exc_info:
             create_message_request(message)
         assert str(exc_info.value) == expected_error
+
+
+@pytest.mark.parametrize(
+    "request_id_input, is_valid_request_id",
+    [
+        (uuid4(), True),
+        (str(uuid4()), True),
+        ("not-a-uuid", False),
+        (None, False),
+    ],
+)
+def test_create_message_request_handles_request_id(request_id_input, is_valid_request_id):
+    """Test that create_message_request handles request_id correctly."""
+    test_message = "User prompt for the agent"
+
+    expected_id = None
+    if is_valid_request_id:
+        expected_id = UUID(str(request_id_input))
+
+    request = create_message_request(test_message, request_id=request_id_input)
+
+    request_id = UUID(request.id)
+    assert isinstance(request_id, UUID)
+    if expected_id:
+        assert request_id == expected_id
 
 
 def test_process_a2a_agent_response_valid(mock_a2a_agent_response):
