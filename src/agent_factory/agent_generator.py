@@ -49,23 +49,24 @@ async def generate_target_agent(
             client = A2AClient(httpx_client=client, agent_card=agent_card)
             logger.info("A2AClient initialized.")
 
-        request = create_message_request(message, request_id=request_id)
-        response = await client.send_message(request, http_kwargs={"timeout": timeout})
+            request = create_message_request(message, request_id=request_id)
+            response = await client.send_message(request, http_kwargs={"timeout": timeout})
 
-        # Process response
-        response = process_a2a_agent_response(response)
-        if response.status == Status.COMPLETED:
-            prepared_artifacts = prepare_agent_artifacts(response.model_dump())
-            output_dir = output_dir if output_dir else request.id
-            storage_backend = get_storage_backend()
-            logger.info(f"Saving agent artifacts to {output_dir}")
-            storage_backend.save(prepared_artifacts, Path(output_dir))
-        elif response.status == Status.INPUT_REQUIRED:
-            logger.info(
-                f"Please try again and be more specific with your request. Agent's response: {response.message}"
-            )
-        else:
-            logger.error(f"Agent encountered an error: {response.message}")
+            # Process response
+            response = process_a2a_agent_response(response)
+            if response.status == Status.COMPLETED:
+                prepared_artifacts = prepare_agent_artifacts(response.model_dump())
+                output_dir = output_dir if output_dir else request.id
+                storage_backend = get_storage_backend()
+                logger.info(f"Saving agent artifacts to {output_dir}")
+                storage_backend.save(prepared_artifacts, Path(output_dir))
+            elif response.status == Status.INPUT_REQUIRED:
+                logger.info(
+                    f"Please try again and be more specific with your request. Agent's response: {response.message}"
+                )
+            else:
+                logger.error(f"Agent encountered an error: {response.message}")
+                raise Exception(f"Agent encountered an error: {response.message}")
 
     except httpx.ConnectError as e:
         logger.error(f"Failed to connect to the agent server at {host}:{port}. Error: {e}")
