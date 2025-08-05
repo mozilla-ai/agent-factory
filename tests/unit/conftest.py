@@ -1,6 +1,7 @@
 """Configuration and fixtures for unit tests."""
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -64,3 +65,18 @@ def mock_agent_generator_dependencies():
         }
 
         yield mocks
+
+
+@pytest.fixture
+def mock_s3_environ():
+    """Mock S3 environment variables."""
+    with patch.dict(
+        os.environ,
+        {
+            "AWS_ACCESS_KEY_ID": "test-key",  # pragma: allowlist secret
+            "AWS_SECRET_ACCESS_KEY": "test-secret",  # pragma: allowlist secret
+            "AWS_DEFAULT_REGION": "us-east-1",
+            "S3_BUCKET": "test-bucket",
+        },
+    ) as patched_environ:
+        yield patched_environ
