@@ -13,38 +13,6 @@ from agent_factory.utils.client_utils import (
     get_a2a_agent_card,
     process_a2a_agent_response,
 )
-from agent_factory.utils.io_utils import setup_output_directory
-
-
-def test_setup_output_directory_with_none_creates_unique_directory(tmp_path):
-    """Ensures that passing None as output_dir creates a unique directory."""
-    with patch("agent_factory.utils.io_utils.Path.cwd", return_value=tmp_path):
-        with patch("agent_factory.utils.io_utils.datetime") as mock_datetime:
-            mock_datetime.now.return_value.strftime.return_value = "2025-01-01_12:00:00"
-            with patch("agent_factory.utils.io_utils.uuid.uuid4") as mock_uuid:
-                mock_uuid.return_value.hex = "1234567890abcdef"  # pragma: allowlist secret
-
-                result = setup_output_directory()
-
-                # Check the directory structure pattern
-                assert "generated_workflows" in str(result)
-                assert "2025-01-01_12:00:00_" in str(result)
-                assert result.exists()
-
-
-def test_setup_output_directory_with_existing_dir_returns_same_dir(tmp_path):
-    """Ensures that passing an existing directory as output_dir returns the same directory."""
-    result = setup_output_directory(tmp_path)
-    assert result == tmp_path
-    assert result.exists()
-
-
-def test_setup_output_directory_creates_nonexistent_parents(tmp_path):
-    """Verifies that the function creates parent directories if they don't exist."""
-    target_dir = tmp_path / "nonexistent" / "subdir"
-    result = setup_output_directory(target_dir)
-    assert result == target_dir
-    assert result.exists()
 
 
 @pytest.mark.asyncio
