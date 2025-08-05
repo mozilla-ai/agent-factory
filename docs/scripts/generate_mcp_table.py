@@ -93,17 +93,20 @@ def reconstruct_file(intro: str, dynamic_content: str, outro: str) -> str:
 
 
 def update_markdown_file(
-    markdown_file: str = "docs/mcp-servers.md", results_file: str = ".cache/mcp-test-results.json"
+    markdown_file: str = "docs/user-guide/mcp-servers.md",
+    template_file: str = "docs/user-guide/mcp-servers.template.md",
+    results_file: str = ".cache/mcp-test-results.json",
 ):
     """Update the markdown file with new test results."""
     test_data = load_test_results(results_file)
 
-    with Path(markdown_file).open("r") as f:
+    # Read from template file instead of existing markdown file
+    with Path(template_file).open("r") as f:
         content = f.read()
 
     try:
         # We now have a static section before the marker and another after the end marker - we reuse all
-        # this from the existing file. There is only one part that needs to be generated and placed between
+        # this from the template file. There is only one part that needs to be generated and placed between
         # the two markers.
         intro, outro = extract_static_file_sections(content)
     except ValueError as e:
