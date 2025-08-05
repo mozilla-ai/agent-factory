@@ -1,4 +1,5 @@
 import json
+import subprocess
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -7,6 +8,8 @@ from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.schemas import AgentParameters
 from agent_factory.utils import clean_python_code_with_autoflake
 from agent_factory.utils.logging import logger
+
+BINARY_NAME_MCPD = "mcpd"
 
 
 def setup_output_directory(output_dir: Path | None = None) -> Path:
@@ -39,6 +42,7 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
             - readme: The instructions for running the agent in Markdown format.
             - dependencies: A string containing the dependencies required by the agent, one per line.
             - cli_args: The CLI arguments for the agent.
+        output_dir: The output directory to save the agent outputs.
 
     Raises:
         Exception: If there is an error while writing the files to the output directory.
@@ -104,3 +108,43 @@ def save_agent_outputs(result: dict[str, str], output_dir: Path) -> None:
 
     except Exception as e:
         logger.warning(f"Warning: Failed to parse and save agent outputs: {str(e)}")
+
+
+def run_binary(path: str, args: list[str], ignore_response: bool = False) -> dict:
+    """Run a compiled binary and parse its JSON output from STDOUT.
+
+    Uses subprocess to execute the specified binary with arguments.
+    Unless `ignore_response` is `True`, captures STDOUT, and attempts to decode it as JSON.
+
+    Args:
+        path: Path to the executable binary.
+        args: List of arguments to pass to the binary.
+        ignore_response: If `True`, STDOUT response is ignored and an empty response is returned.
+
+    Returns:
+        Parsed JSON output as a Python dictionary.
+
+    Raises:
+        RuntimeError: If the subprocess fails (e.g., non-zero exit code).
+        ValueError: If the STDOUT response cannot be parsed as valid JSON when response is not being ignored.
+    """
+    try:
+        result = subprocess.run([path, *args], capture_output=True, text=True, check=True)
+        if ignore_response:
+            logger.info(f"Ignoring binary ({path}) STDOUT response, return code: {result.returncode}")
+            return {}
+        return json.loads(result.stdout)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command '{e.cmd}' failed with code {e.returncode}")
+        logger.error(f"Stderr: {e.stderr}")
+        raise RuntimeError("Subprocess failed") from e
+    except json.JSONDecodeError as e:
+        logger.error("Failed to parse JSON from subprocess output")
+        logger.error(f"Output was: {result.stdout.strip()}")
+        raise ValueError("Invalid JSON output") from e
+    except FileNotFoundError as e:
+        logger.error(f"Binary not found at path: {path}")
+        raise RuntimeError(f"Binary not found: {path}") from e
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        raise RuntimeError("An unexpected error occurred during binary execution") from e

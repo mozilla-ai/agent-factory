@@ -24,9 +24,12 @@ swap between Agent frameworks with minimal code changes.
 
 ### Prerequisites
 
-- Python 3.13+
+- [curl](https://curl.se/)
+- [jq](https://jqlang.org/)
+- [Python 3.13+](https://www.python.org/downloads/)
 - [uv](https://github.com/astral-sh/uv)
-- Docker (for containerized deployment)
+- [Docker](https://www.docker.com/products/docker-desktop/) (for containerized deployment)
+- [mcpd](https://github.com/mozilla-ai/mcpd/releases) added to `PATH`, e.g. `/usr/local/bin` (for local deployment)
 
 ### Installation
 
