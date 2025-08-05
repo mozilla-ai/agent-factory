@@ -185,11 +185,16 @@ generated_workflows
 
 # chainlit
 .chainlit/translations
+**/chainlit.md
 
 # VS Code
 .vscode/
 
 # node
 node_modules/
+
 # test results
 test_results
+
+# MCP test results
+.cache/mcp-test-results.json

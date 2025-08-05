@@ -1,0 +1,62 @@
+name: MCP Server Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests on (required for manual dispatch)'
+        required: true
+        type: string
+  pull_request:
+    branches-ignore:
+      - main
+    paths:
+      - 'docs/mcp-servers.json'
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - 'docs/mcp-servers.json'
+
+jobs:
+  run-mcp-server-tests:
+    timeout-minutes: 6
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.head_ref || github.ref }}
+          token: ${{ secrets.GHA_PAT }}
+
+      - name: Install the latest version of uv and set the python version to 3.13
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: 3.13
+          activate-environment: true
+
+      - name: Install Python dependencies
+        run: |
+          uv sync --group tests
+
+      - name: Run MCP server tests
+        run: |
+          python -m docs.scripts.test_mcp_servers
+
+      - name: Generate MCP documentation
+        run: |
+          python -m docs.scripts.generate_mcp_table
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/mcp-servers.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            echo "Committing and pushing to branch: $(git branch --show-current)"
+            git commit -m "docs(mcps): gha-update of MCP server results"
+            git push origin HEAD
+          fi
