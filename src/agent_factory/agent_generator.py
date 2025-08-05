@@ -2,6 +2,7 @@ from pathlib import Path
 from uuid import UUID
 
 import fire
+import httpx
 from a2a.client import A2ACardResolver, A2AClient
 from dotenv import find_dotenv, load_dotenv
 
@@ -38,14 +39,15 @@ async def generate_target_agent(
         port: The port for the agent server (default: 8080).
         timeout: The timeout for the request in seconds (default: 600).
     """
-    http_client, base_url = await create_a2a_http_client(host, port, timeout)
-    async with http_client as client:
-        resolver = A2ACardResolver(httpx_client=client, base_url=base_url)
-        agent_card = await get_a2a_agent_card(resolver)
+    try:
+        http_client, base_url = await create_a2a_http_client(host, port, timeout)
+        async with http_client as client:
+            resolver = A2ACardResolver(httpx_client=client, base_url=base_url)
+            agent_card = await get_a2a_agent_card(resolver)
 
-        # Initialize client and send message
-        client = A2AClient(httpx_client=client, agent_card=agent_card)
-        logger.info("A2AClient initialized.")
+            # Initialize client and send message
+            client = A2AClient(httpx_client=client, agent_card=agent_card)
+            logger.info("A2AClient initialized.")
 
         request = create_message_request(message, request_id=request_id)
         response = await client.send_message(request, http_kwargs={"timeout": timeout})
@@ -64,6 +66,16 @@ async def generate_target_agent(
             )
         else:
             logger.error(f"Agent encountered an error: {response.message}")
+
+    except httpx.ConnectError as e:
+        logger.error(f"Failed to connect to the agent server at {host}:{port}. Error: {e}")
+        raise RuntimeError(f"Connection to agent server failed: {e}") from e
+    except httpx.TimeoutException as e:
+        logger.error(f"Request to the agent server timed out after {timeout} seconds. Error: {e}")
+        raise RuntimeError(f"Request to agent server timed out: {e}") from e
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during agent generation: {e}")
+        raise
 
 
 def main():

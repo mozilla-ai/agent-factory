@@ -36,6 +36,8 @@ def create_message_request(
     message: str, context_id: UUID | None = None, request_id: UUID | None = None, message_id: UUID | None = None
 ) -> SendMessageRequest:
     """Create a message request to send to the agent."""
+    if not message or not message.strip():
+        raise ValueError("Message cannot be empty or whitespace only")
     if not request_id:
         logger.info("No request ID provided, generating a new one")
         request_id = uuid4()
@@ -46,7 +48,6 @@ def create_message_request(
             logger.warning(f"Invalid UUID string: {request_id}, generating a new one")
             request_id = uuid4()
     logger.info(f"Request ID: {request_id}")
-
     send_message_payload: dict[str, Any] = {
         "message": {
             "role": "user",
@@ -64,3 +65,16 @@ def process_a2a_agent_response(response: Any) -> AgentFactoryOutputs:
     response_data = json.loads(response.root.result.status.message.parts[0].root.text)
     logger.info(f"Received response from agent: {response_data}")
     return AgentFactoryOutputs(**response_data)
+
+
+def is_server_live(host: str, port: int, timeout: float = 2.0) -> bool:
+    """Check if the server at the given host and port is live by attempting a TCP connection.
+    Returns True if connection is successful, False otherwise.
+    """
+    import socket
+
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (OSError, ConnectionRefusedError, TimeoutError):
+        return False
