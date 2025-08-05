@@ -93,7 +93,7 @@ def reconstruct_file(intro: str, dynamic_content: str, outro: str) -> str:
 
 
 def update_markdown_file(
-    markdown_file: str = "docs/mcp-servers.md", results_file: str = ".cache/mcp-test-results.json"
+    markdown_file: str = "docs/user-guide/mcp-servers.md", results_file: str = ".cache/mcp-test-results.json"
 ):
     """Update the markdown file with new test results."""
     test_data = load_test_results(results_file)
