@@ -144,6 +144,15 @@ test-generated-artifacts: ## Run artifact validation tests
 	@pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
 	@echo "Artifact validation tests completed successfully!"
 
+test-generated-artifacts-integration: ## Run artifact integration tests
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Usage: make test-generated-artifacts-integration PROMPT_ID=<prompt-id>"; \
+		exit 1; \
+	fi
+	@echo "Running artifact integration tests for prompt-id: $(PROMPT_ID)..."
+	@uv sync --quiet --group tests
+	@pytest tests/generated_artifacts/ -m artifact_integration --prompt-id=$(PROMPT_ID) -v
+	@echo "Artifact integration tests completed successfully!"
 
 # ====================================================================================
 # MCP Testing and Documentation

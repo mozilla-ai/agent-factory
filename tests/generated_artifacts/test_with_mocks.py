@@ -10,7 +10,7 @@ from agent_factory.utils.logging import logger
 
 
 @pytest.fixture
-def generated_agent_module_with_mocks(agent_dir: str, prompt_id: str):
+def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
     """Import the agent module dynamically with mocks in place"""
     logger.debug(f"Testing agent from: {agent_dir}")
 
@@ -109,6 +109,7 @@ def generated_agent_module_with_mocks(agent_dir: str, prompt_id: str):
             del sys.modules["agent"]
 
 
+@pytest.mark.artifact_integration
 def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: str):
     """Test agent execution with _load_tools mocking"""
     agent = generated_agent_module_with_mocks
