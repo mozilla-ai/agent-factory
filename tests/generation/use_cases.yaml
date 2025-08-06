@@ -37,7 +37,7 @@ scoring-blueprints-submission:
     and do BOTH of the following with it
     (1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and
     (2) log the entry to SQLite - to the already existing table named `github_repo_evaluations` in the `blueprints.db` database.
-    Use the official MCP servers for Slack and SQLite and provide suitable MCP configurations
+    Use the official MCP servers for Slack and SQLite (use the uvx installation) and provide suitable MCP configurations
     along with only the necessary subset of tools required for the task at hand.
   expected_num_turns: 40
   expected_execution_time: 420

@@ -1,9 +1,12 @@
+import json
 from pathlib import Path
 from typing import Any
 
 from agent_factory.utils.io_utils import BINARY_NAME_MCPD, run_binary
 
 KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "examples")
+
+JSON_PATH = Path(__file__).parent
 
 
 def _cleanup_mcp_server_info(server_info):
@@ -75,6 +78,10 @@ def search_mcp_servers(
 
     # Normalize and sanitize.
     keyphrase = keyphrase.strip().lower()
+
+    if keyphrase == "sqlite":
+        server = (JSON_PATH / "sqlite_mdb.json").read_text()
+        return [json.loads(server)]
 
     args = ["search", keyphrase, "--format=json"]
     if categories:
