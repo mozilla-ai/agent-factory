@@ -17,10 +17,11 @@ summarize-url-content:
 # Agent with MCP single MCP server (ElevenLabs)
 url-to-podcast:
   prompt: >
-    Workflow to generate a 1-minute podcast mp3 based on the contents of a URL provided by the user.
-    And it should create separate mp3 files interleaving the turn-by-turn dialogue between a host and a guest speaker.
+    Workflow to generate a short (tentatively less than 16 turns) podcast mp3 based on the contents of a URL provided by the user.
+    And it should create separate mp3 files interleaving the turn-by-turn dialogue between a host and a guest speaker (you can choose their names).
     The final output should be saved as a single mp3 file.
-    Use audio generation tools from ElevenLabs API for text-to-speech.
+    All files should be saved in the /tmp directory.
+    Use audio generation tools from ElevenLabs API for text-to-speech (use the uvx installation).
   expected_num_turns: 40
   expected_execution_time: 420
   max_attempts: 5
