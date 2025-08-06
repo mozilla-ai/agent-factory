@@ -131,18 +131,17 @@ If you do not have access to AWS S3, you can run a local MinIO instance using Do
 
 ```bash
 docker run -p 9000:9000 -p 9091:9091 \
-  --name minio-dev \
+  --name agent-factory-minio-dev \
   -e "MINIO_ROOT_USER=agent-factory" \
   -e "MINIO_ROOT_PASSWORD=agent-factory" \
+  -v agent-factory-minio:/data \
   quay.io/minio/minio server /data --console-address ":9091"
 ```
+The `agent-factory-minio` volume is used to persist the MinIO server's data, ensuring it is not lost when the container is stopped or removed.
 
-Once the container is running, you can access the MinIO console at `http://localhost:9091`.
+Once the container is running, you can access the MinIO console at `http://localhost:9091`. The login credentials are `agent-factory` for both the username and password.
 
 ### Generate an Agentic Workflow
-
-
-
 
 > [!IMPORTANT]
 > Always run the server in non-chat mode (`--nochat`) when generating agents using the `agent-factory` command.
