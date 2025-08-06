@@ -24,9 +24,12 @@ swap between Agent frameworks with minimal code changes.
 
 ### Prerequisites
 
-- Python 3.13+
+- [curl](https://curl.se/)
+- [jq](https://jqlang.org/)
+- [Python 3.13+](https://www.python.org/downloads/)
 - [uv](https://github.com/astral-sh/uv)
-- Docker (for containerized deployment)
+- [Docker](https://www.docker.com/products/docker-desktop/) (for containerized deployment)
+- [mcpd](https://github.com/mozilla-ai/mcpd/releases) added to `PATH`, e.g. `/usr/local/bin` (for local deployment)
 
 ### Installation
 
@@ -118,7 +121,7 @@ uv run agent-factory "Summarize text content from a given webpage URL"
 ```
 
 The client will send the message to the server, print the response, and save the generated agent's files (`agent.py`,
-`README.md`, and `requirements.txt`) into a new directory inside the `generated_workflows` directory.
+`README.md`, `requirements.txt`, and `agent_parameters.json`) into a new directory inside the `generated_workflows` directory.
 
 ### Run the Generated Workflow
 
