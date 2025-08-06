@@ -3,13 +3,27 @@ import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.serving import A2AServingConfig
 from any_agent.tools import search_tavily, visit_webpage
+from opentelemetry import trace
+from opentelemetry.instrumentation.starlette import StarletteInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (
+    SimpleSpanProcessor,
+)
 
 from agent_factory.factory_tools import read_file, search_mcp_servers
 from agent_factory.instructions import load_system_instructions
 from agent_factory.schemas import AgentFactoryOutputs
 from agent_factory.utils import logger
+from agent_factory.utils.json_exporter import JsonFileSpanExporter
 
 dotenv.load_dotenv()
+
+
+trace.set_tracer_provider(TracerProvider())
+span_processor = SimpleSpanProcessor(JsonFileSpanExporter("traces"))
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+StarletteInstrumentor().instrument()
 
 
 async def main(

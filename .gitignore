@@ -201,3 +201,6 @@ test_results
 
 # Binaries
 bin/
+
+# generated traces
+traces
