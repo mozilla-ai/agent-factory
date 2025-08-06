@@ -11,11 +11,20 @@ from agent_factory.utils.logging import logger
 
 class StorageBackend(ABC):
     @abstractmethod
+    def __str__(self) -> str:
+        """Return a string representation of the storage backend."""
+        pass
+
+    @abstractmethod
     def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
         pass
 
 
 class LocalStorage(StorageBackend):
+    def __str__(self) -> str:
+        """Human-readable string identifying the local storage."""
+        return "Local Storage"
+
     def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
         output_path = self._setup_output_directory(output_dir)
         try:
@@ -24,7 +33,7 @@ class LocalStorage(StorageBackend):
                 full_path.parent.mkdir(parents=True, exist_ok=True)
                 with full_path.open("w", encoding="utf-8") as f:
                     f.write(content)
-            logger.info(f"Agent files saved to {output_path}")
+            logger.info(f"Agent files saved to folder {output_path}")
         except Exception as e:
             logger.warning(f"Warning: Failed to save agent outputs: {str(e)}")
 
@@ -40,6 +49,7 @@ class S3Storage(StorageBackend):
         self.aws_region = os.environ["AWS_DEFAULT_REGION"]
         self.bucket_name = os.environ["S3_BUCKET"]
         self.endpoint_url = os.environ.get("AWS_ENDPOINT_URL") or None
+        self.storage_str = "S3" if self.endpoint_url is None else "MinIO"
 
         self.s3_client = boto3.client(
             "s3",
@@ -49,6 +59,10 @@ class S3Storage(StorageBackend):
             endpoint_url=self.endpoint_url,
         )
         self._create_bucket_if_not_exists()
+
+    def __str__(self) -> str:
+        """Human-readable string identifying the S3/MinIO storage with bucket name."""
+        return f"{self.storage_str} in bucket {self.bucket_name}"
 
     def _create_bucket_if_not_exists(self):
         try:
@@ -83,10 +97,11 @@ class S3Storage(StorageBackend):
             try:
                 self.s3_client.upload_file(str(zip_path), self.bucket_name, f"{output_dir}/agent_artifacts.zip")
                 logger.info(
-                    f"Successfully uploaded agent artifacts to S3 bucket {self.bucket_name} to folder {output_dir}"
+                    f"Successfully uploaded agent artifacts to {self.storage_str} bucket "
+                    f"{self.bucket_name} in folder {output_dir}"
                 )
             except Exception as e:
-                logger.error(f"Failed to upload to S3 bucket {self.bucket_name}. Error: {e}")
+                logger.error(f"Failed to upload to {self.storage_str} bucket {self.bucket_name}. Error: {e}")
 
 
 def get_storage_backend() -> StorageBackend:

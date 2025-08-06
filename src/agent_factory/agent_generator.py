@@ -59,7 +59,7 @@ async def generate_target_agent(
                 prepared_artifacts = prepare_agent_artifacts(response.model_dump())
                 output_dir = output_dir if output_dir else request.id
                 storage_backend = get_storage_backend()
-                logger.info(f"Saving agent artifacts to {output_dir} on {storage_backend}")
+                logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
                 storage_backend.save(prepared_artifacts, Path(output_dir))
             elif response.status == Status.INPUT_REQUIRED:
                 logger.info(
