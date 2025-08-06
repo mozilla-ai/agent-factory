@@ -2,7 +2,7 @@
 
 This page lists the available Model Context Protocol (MCP) servers that can be used with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
 
-> **⚠️ Note: This page is automatically generated and should not be manually edited.**
+> **⚠️ Note: This page is automatically generated, from a template and test results, and should not be manually edited.**
 > To add a new MCP server, edit the `docs/mcp-servers.json` file. Tests will be run automatically and results will be published in the table below.
 
 
@@ -20,7 +20,7 @@ The following table provides a quick overview of tested MCP servers. For detaile
 
 <!-- MCP_SERVERS_TABLE_START -->
 
-*Last updated: 2025-08-06T13:26:15.223852+00:00*
+*Last updated: 2025-08-06T18:54:30.088231+00:00*
 *Test results: 14 working, 1 failed, 1 skipped out of 16 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |
@@ -28,7 +28,7 @@ The following table provides a quick overview of tested MCP servers. For detaile
 | **Github** | `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN mcp/github` | stdio | ⏭️ Skipped | GitHub integration for repository management, issues, and code search |
 | **Filesystem** | `npx -y @modelcontextprotocol/server-filesystem . .` | stdio | ✅ Confirmed | Local file system operations and management |
 | **Duckduckgo-Mcp** | `uvx duckduckgo-mcp-server` | stdio | ✅ Confirmed | Web search capabilities using DuckDuckGo |
-| **Mcp-Obsidian** | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ✅ Confirmed | Obsidian vault integration for note management |
+| **Mcp-Obsidian** | `npx -y @smithery/cli@latest run mcp-obsidian --config "{\"vaultPath\":\"./test-vault\"}"` | stdio | ❌ Failed | Obsidian vault integration for note management |
 | **Mcp-Discord** | `npx -y mcp-discord --config $DISCORD_TOKEN` | stdio | ✅ Confirmed | Discord messaging and server management |
 | **Memory** | `npx -y @modelcontextprotocol/server-memory` | stdio | ✅ Confirmed | Memory management and persistence for MCP servers |
 | **Notion** | `npx -y @notionhq/notion-mcp-server` | stdio | ✅ Confirmed | Notion workspace integration for page management |
@@ -77,11 +77,11 @@ The MCP servers are automatically tested using the following workflow:
 
 1. **Manual Trigger**: Tests are run manually via GitHub Actions workflow dispatch
 2. **Server Testing**: The `docs/scripts/test_mcp_servers.py` script tests each server by:
-   - Attempting to connect to each MCP server
-   - Listing available tools
-   - Recording success/failure status and tool count
+    - Attempting to connect to each MCP server
+    - Listing available tools
+    - Recording success/failure status and tool count
 3. **Results Storage**: Test results are saved to `.cache/mcp-test-results.json`
-4. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script updates this markdown file with current test results
+4. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script generates this markdown file from the template with current test results
 
 ### Running Tests Locally
 
