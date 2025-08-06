@@ -12,7 +12,7 @@ dependencies = [
     "loguru>=0.7.3",
     "pre-commit>=4.2.0",
     "autoflake==2.3.1",
-    "boto3>=1.39.2",
+    "boto3>=1.40.0",
 ]
 
 [project.urls]
