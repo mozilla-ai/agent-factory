@@ -24,6 +24,10 @@ trace.set_tracer_provider(TracerProvider())
 HTTPXClientInstrumentor().instrument()
 tracer = trace.get_tracer(__name__)
 
+trace.set_tracer_provider(TracerProvider())
+HTTPXClientInstrumentor().instrument()
+tracer = trace.get_tracer(__name__)
+
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
 
