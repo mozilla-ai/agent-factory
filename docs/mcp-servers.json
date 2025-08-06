@@ -197,6 +197,41 @@
         "GITLAB_API_URL": "YOUR_GITLAB_API_URL_HERE"
       },
       "description": "GitLab API integration for project management and repository operations"
+    },
+    "intercom": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.intercom.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer YOUR_INTERCOM_API_TOKEN"
+      },
+      "description": "Intercom intergration to connect with Intercom's data such as conversations and contacts"
+    },
+    "ElevenLabs": {
+      "command": "uvx",
+      "args": ["elevenlabs-mcp"],
+      "env": {
+        "ELEVENLABS_API_KEY": "<insert-your-api-key-here>"
+      },
+      "description": "ElevenLabs text-to-speech and voice cloning integration"
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref=${SUPABASE_PROJECT_REF}"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "<personal-access-token>",
+        "SUPABASE_PROJECT_REF": "<project-ref>"
+      },
+      "description": "Supabase database integration for read-only operations"
     }
   }
 }
