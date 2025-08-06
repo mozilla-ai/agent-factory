@@ -30,6 +30,8 @@ The following table provides a quick overview of tested MCP servers. For detaile
 | **Monday-Api-Mcp** | `npx -y @mondaydotcomorg/monday-api-mcp -t $MONDAY_API_TOKEN --enable-dynamic-api-tools true` | stdio | ✅ Confirmed | Monday.com integration with dynamic API tools enabled |
 | **Slack-Mcp** | `npx -y @zencoderai/slack-mcp-server` | stdio | ✅ Confirmed | Slack workspace integration for channel, message, reaction and user management |
 | **Jira** | `uvx mcp-atlassian --confluence-url=${CONFLUENCE_URL} --confluence-username=${CONFLUENCE_USERNAME} --confluence-token=${CONFLUENCE_TOKEN} --jira-url=${JIRA_URL} --jira-username=${JIRA_USERNAME} --jira-token=${JIRA_TOKEN}` | stdio | ✅ Confirmed | Atlassian integration for Jira project management and Confluence documentation |
+| **Airtable** | `npx -y @felores/airtable-mcp-server` | stdio | ✅ Confirmed | Airtable database and spreadsheet operations |
+| **Gitlab** | `npx -y @modelcontextprotocol/server-gitlab` | stdio | ✅ Confirmed | GitLab API integration for project management and repository operations |
 <!-- MCP_SERVERS_TABLE_END -->
 
 ## Server Status Legend
