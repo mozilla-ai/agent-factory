@@ -56,9 +56,9 @@ The MCP servers are automatically tested using the following workflow:
 
 1. **Manual Trigger**: Tests are run manually via GitHub Actions workflow dispatch
 2. **Server Testing**: The `docs/scripts/test_mcp_servers.py` script tests each server by:
-   - Attempting to connect to each MCP server
-   - Listing available tools
-   - Recording success/failure status and tool count
+    - Attempting to connect to each MCP server
+    - Listing available tools
+    - Recording success/failure status and tool count
 3. **Results Storage**: Test results are saved to `.cache/mcp-test-results.json`
 4. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script generates this markdown file from the template with current test results
 
