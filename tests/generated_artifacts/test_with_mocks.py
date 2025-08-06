@@ -14,6 +14,10 @@ def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
     """Import the agent module dynamically with mocks in place"""
     logger.debug(f"Testing agent from: {agent_dir}")
 
+    # if agent_dir does not exist, break early
+    if not agent_dir.exists():
+        raise AssertionError(f"Agent directory {agent_dir} does not exist.")
+
     # Add the agent directory to sys.path
     sys.path.insert(0, str(agent_dir))
 
@@ -122,7 +126,7 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
         else:
             # we are not testing other use-cases atm, but we can expect they will be
             # called with different parameters so we'll have an if...elif...else here
-            result = True
+            raise AssertionError(f"Prompt id `{prompt_id}` is not supported by this test")
 
         logger.debug(f"Agent execution completed with result: {type(result)}")
 
