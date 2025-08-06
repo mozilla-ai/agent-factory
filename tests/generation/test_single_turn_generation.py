@@ -16,7 +16,7 @@ from agent_factory.utils.client_utils import is_server_live
 
 def _assert_generated_files(workflow_dir: Path):
     existing_files = [f.name for f in workflow_dir.iterdir()]
-    expected_files = ["agent.py", "README.md", "requirements.txt"]
+    expected_files = ["agent.py", "README.md", "requirements.txt", "agent_parameters.json"]
 
     for expected_file in expected_files:
         assert expected_file in existing_files, f"{expected_file} was not generated."
@@ -32,11 +32,13 @@ def _assert_agent_code_syntax(agent_file: Path):
 
 
 @pytest.mark.asyncio
-@run_until_success_threshold_async(max_attempts=5, min_successes=4)
+@run_until_success_threshold_async()
 async def test_single_turn_generation(
     tmp_path: Path,
     request: pytest.FixtureRequest,
     use_cases: dict,
+    max_attempts: int,
+    min_successes: int,
 ):
     """Test the generation of a single turn agent and validate the generated artifacts.
 

@@ -198,3 +198,6 @@ test_results
 
 # MCP test results
 .cache/mcp-test-results.json
+
+# Binaries
+bin/
