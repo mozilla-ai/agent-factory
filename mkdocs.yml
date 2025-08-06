@@ -57,3 +57,7 @@ nav:
     - Installation: getting-started/installation.md
   - User Guide:
     - MCP Servers: user-guide/mcp-servers.md
+    
+exclude_docs: |
+  user-guide/mcp-servers-template.md
+
