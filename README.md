@@ -108,6 +108,39 @@ The Makefile enables you to run the server using Docker. Before starting, make s
 > make stop
 > ```
 
+### (Optional) Setting Up Storage Backends
+
+By default, agent outputs are **saved to the local filesystem**. You can configure the agent factory to use AWS S3 or a local MinIO instance for storage.
+
+#### S3 & MinIO Configuration
+
+To customize the S3/MinIO configuration, you can create a `.env` file in the project root and override the following values from `.default.env`:
+
+-   `STORAGE_BACKEND`: Set to `s3` for AWS S3 or `minio` for MinIO.
+-   `AWS_ACCESS_KEY_ID`: Your AWS or MinIO access key.
+-   `AWS_SECRET_ACCESS_KEY`: Your AWS or MinIO secret key.
+-   `AWS_DEFAULT_REGION`: The AWS region for your S3 bucket.
+-   `S3_BUCKET`: The name of the S3 or MinIO bucket.
+-   `AWS_ENDPOINT_URL`: **(For MinIO only)** The URL of your MinIO instance (e.g., `http://localhost:9000`).
+
+When using these settings, the application will automatically create the specified bucket if it does not already exist.
+
+#### Running a Local MinIO Instance
+
+If you do not have access to AWS S3, you can run a local MinIO instance using Docker:
+
+```bash
+docker run -p 9000:9000 -p 9091:9091 \
+  --name agent-factory-minio-dev \
+  -e "MINIO_ROOT_USER=agent-factory" \
+  -e "MINIO_ROOT_PASSWORD=agent-factory" \
+  -v agent-factory-minio:/data \
+  quay.io/minio/minio server /data --console-address ":9091"
+```
+The `agent-factory-minio` volume is used to persist the MinIO server's data, ensuring it is not lost when the container is stopped or removed.
+
+Once the container is running, you can access the MinIO console at `http://localhost:9091`. The login credentials are `agent-factory` for both the username and password.
+
 ### Generate an Agentic Workflow
 
 > [!IMPORTANT]
