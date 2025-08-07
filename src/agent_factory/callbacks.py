@@ -10,7 +10,7 @@ class SaveAgentTraceCallback(Callback):
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def after_agent_invocation(self, context: Context, *args, **kwargs) -> Context:
-        agent_trace_save_path = self.output_dir / "factory_agent_trace.json"
+        agent_trace_save_path = self.output_dir / "agent_factory_trace.json"
         with agent_trace_save_path.open("w", encoding="utf-8") as f:
             f.write(context.trace.model_dump_json(indent=2, serialize_as_any=True))
 

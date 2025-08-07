@@ -52,7 +52,7 @@ async def main(
             tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             model_args={"tool_choice": "auto"},
             output_type=AgentFactoryOutputs,
-            callbacks=[SaveAgentTraceCallback(output_dir=Path("manufacturing_agent_traces")), *get_default_callbacks()],
+            callbacks=[SaveAgentTraceCallback(output_dir=Path("traces")), *get_default_callbacks()],
         ),
     )
 
