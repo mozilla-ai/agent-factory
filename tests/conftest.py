@@ -77,6 +77,18 @@ def generated_agent_code(agent_file):
     return agent_file.read_text()
 
 
+@pytest.fixture
+def agent_factory_trace_file(artifacts_dir: Path, prompt_id: str) -> Path:
+    """Fixture to get the trace file path for the current prompt."""
+    return artifacts_dir / prompt_id / "agent_factory_trace.json"
+
+
+@pytest.fixture
+def agent_factory_trace(agent_factory_trace_file: Path) -> AgentTrace:
+    """Fixture to load and validate the trace for the current prompt."""
+    return AgentTrace.model_validate_json(agent_factory_trace_file.read_text())
+
+
 @pytest.fixture(scope="module")
 def common_eval_testing_data_path():
     return Path("tests/generated_agent_evaluation/data/")
