@@ -15,18 +15,14 @@ from loguru import logger
 from . import TestStatus
 
 
-def load_test_results(results_file: str = "docs/scripts/output/mcp-test-results.json") -> dict[str, Any]:
+def load_test_results(results_file: str = ".cache/mcp-test-results.json") -> dict[str, Any]:
     """Load test results from JSON file."""
-    results_path = Path(results_file)
-    if not results_path.exists():
-        raise FileNotFoundError(f"Test results file not found: {results_file}")
-
-    with results_path.open("r") as f:
+    with Path(results_file).open() as f:
         return json.load(f)
 
 
 def validate_registry_schema(
-    registry: dict[str, Any], schema_path: str | Path = "docs/scripts/samples/registry-schema.json"
+    registry: dict[str, Any], schema_path: str | Path = "docs/scripts/input/registry-schema.json"
 ) -> bool:
     """Validate that the generated registry follows the required schema."""
     schema_path = Path(schema_path)
@@ -81,8 +77,12 @@ def generate_mcp_registry(results: dict[str, Any]) -> dict[str, Any]:
                     "type": install_type,
                     "command": command,
                     "version": "",  # Required but cannot determine
+                    "recommended": False,
+                    "deprecated": False,
                 }
             },
+            "isOfficial": False,  # default - we do not get this info from the MCP server
+            "deprecated": False,  # default - we do not get this info from the MCP server
         }
 
         registry[server_name] = server_info
@@ -90,9 +90,9 @@ def generate_mcp_registry(results: dict[str, Any]) -> dict[str, Any]:
     return registry
 
 
-def generate_registry_file(
-    results_file: str = "docs/scripts/output/mcp-test-results.json",
-    registry_file: str = "docs/scripts/output/custom-registry.json",
+def generate_registry(
+    results_file: str = ".cache/mcp-test-results.json",
+    output_file: str = "docs/assets/custom-registry.json",
 ):
     """Generate the MCP registry JSON file from test results."""
     try:
@@ -103,13 +103,13 @@ def generate_registry_file(
 
     registry = generate_mcp_registry(test_data["mcpServers"])
 
-    Path(registry_file).parent.mkdir(parents=True, exist_ok=True)
+    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
 
-    with Path(registry_file).open("w") as f:
+    with Path(output_file).open("w") as f:
         json.dump(registry, f, indent=2)
         f.write("\n")  # Ensure newline at end of file
 
-    logger.info(f"📋 MCP registry saved to {registry_file}")
+    logger.info(f"📋 MCP registry saved to {output_file}")
     logger.info(f"📝 Included {len(registry)} successful servers in registry")
 
     validate_registry_schema(registry)
@@ -124,4 +124,4 @@ def generate_registry_file(
 
 
 if __name__ == "__main__":
-    generate_registry_file()
+    generate_registry()

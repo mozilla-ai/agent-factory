@@ -1,8 +1,7 @@
 site_name: Agent Factory
-site_url: https://mozilla-ai.github.io/agent-factory/
 repo_name: mozilla-ai/agent-factory
 repo_url: https://github.com/mozilla-ai/agent-factory
-docs_dir: docs
+docs_dir: docs/content
 
 extra_css: []
 
@@ -60,3 +59,5 @@ nav:
 
 exclude_docs: |
   user-guide/mcp-servers-template.md
+  ../scripts/input/
+  ../scripts/output/

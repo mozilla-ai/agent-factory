@@ -25,11 +25,11 @@ INITIALIZE_TIMEOUT = 30
 LIST_TOOLS_TIMEOUT = 30
 
 
-def load_mcp_servers(json_path: str | Path = "docs/mcp-servers.json") -> dict[str, Any]:
+def load_mcp_servers(json_path: str | Path = "docs/config/mcp-servers.json") -> dict[str, Any]:
     """Load MCP servers from JSON file.
 
     Args:
-        json_path: Path to the JSON file containing MCP servers. Defaults to "docs/mcp-servers.json".
+        json_path: Path to the JSON file containing MCP servers. Defaults to "docs/config/mcp-servers.json".
 
     Returns:
         Dictionary containing MCP servers data.
@@ -98,16 +98,31 @@ async def test_server(server_name: str, server_config: dict[str, Any]) -> dict[s
                     logger.info(f"  🔄 Listing tools for {server_name}...")
                     response = await asyncio.wait_for(session.list_tools(), timeout=LIST_TOOLS_TIMEOUT)
                     tools = response.tools
+
+                    # Process tools outside try-catch (just data manipulation)
                     result["test_status"] = TestStatus.SUCCESS.value
                     result["tools_count"] = len(tools)
                     result["tools"] = [
                         {
                             "name": tool.name,
                             "description": tool.description,
-                            "inputSchema": tool.input_schema.model_dump() if tool.input_schema else None,
-                            "outputSchema": {},  # MCP doesn't provide output schema in list_tools
-                            "annotations": {},  # MCP doesn't provide annotations in list_tools
-                            "_meta": {},  # MCP doesn't provide metadata in list_tools
+                            "inputSchema": tool.inputSchema or {},
+                            "outputSchema": tool.outputSchema or {},
+                            "annotations": {
+                                "readOnlyHint": bool(
+                                    getattr(tool.annotations, "readOnlyHint", False) if tool.annotations else False
+                                ),
+                                "destructiveHint": bool(
+                                    getattr(tool.annotations, "destructiveHint", False) if tool.annotations else False
+                                ),
+                                "idempotentHint": bool(
+                                    getattr(tool.annotations, "idempotentHint", False) if tool.annotations else False
+                                ),
+                                "openWorldHint": bool(
+                                    getattr(tool.annotations, "openWorldHint", False) if tool.annotations else False
+                                ),
+                            },
+                            "_meta": tool.meta or {},
                         }
                         for tool in tools
                     ]
@@ -144,8 +159,9 @@ async def run_all_tests() -> dict[str, Any]:
     return results
 
 
-def save_results(results: dict[str, Any], output_file: str = "docs/scripts/output/mcp-test-results.json"):
+def save_results(results: dict[str, Any], output_file: str = ".cache/mcp-test-results.json"):
     """Save test results to JSON file with the same structure as input plus test data."""
+    # Calculate status counts from results
     status_counts = Counter(result["test_status"] for result in results.values())
 
     successful = status_counts[TestStatus.SUCCESS.value]
@@ -167,13 +183,14 @@ def save_results(results: dict[str, Any], output_file: str = "docs/scripts/outpu
         },
     }
 
-    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with Path(output_file).open("w") as f:
+    with output_path.open("w") as f:
         json.dump(output_data, f, indent=2)
 
     logger.info("\n📊 Results Summary:")
-    logger.info(f"  📁 Results saved to {output_file}")
+    logger.info(f"  📁 Results saved to {output_path}")
     logger.info(f"  📈 Total servers: {len(results)}")
     logger.info(f"  ✅ Successful: {successful}")
     logger.info(f"  ❌ Failed: {failed}")

@@ -11,12 +11,12 @@ on:
     branches-ignore:
       - main
     paths:
-      - 'docs/mcp-servers.json'
+      - 'docs/config/mcp-servers.json'
   push:
     branches-ignore:
       - main
     paths:
-      - 'docs/mcp-servers.json'
+      - 'docs/config/mcp-servers.json'
 
 jobs:
   run-mcp-server-tests:
@@ -53,8 +53,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add docs/user-guide/mcp-servers.md
-          git add docs/scripts/output/custom-registry.json
+          git add docs/content/user-guide/mcp-servers.md
+          git add docs/assets/custom-registry.json
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
