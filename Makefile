@@ -187,22 +187,24 @@ test-mcps: ## Run MCP server tests
 	@echo "Running MCP server tests..."
 	uv run python -m docs.scripts.test_mcp_servers
 
-update-mcps: test-mcps ## Update only the MCP doc with the results of the tests
+update-mcps: test-mcps ## Update MCP doc and registry for mcpd with the results of the tests
 	@echo "Generating MCP documentation..."
 	uv run python -m docs.scripts.generate_mcp_table
-	@echo "MCP documentation updated successfully!"
+	@echo "Generating MCP registry..."
+	uv run python -m docs.scripts.generate_mcp_registry
+	@echo "MCP documentation and registry updated successfully!"
 
 # ====================================================================================
 # Documentation
 # ====================================================================================
-
-docs-serve: ## Serve documentation locally
-	@echo "Starting MkDocs development server..."
-	@uv sync --quiet --group docs
-	@uv run mkdocs serve
 
 docs-build:
 	@echo "Building documentation..."
 	@uv sync --quiet --group docs
 	@uv run mkdocs build
 	@echo "Documentation built successfully!"
+
+docs-serve: ## Serves locally
+	@echo "Starting MkDocs development server..."
+	@uv sync --quiet --group docs
+	@uv run mkdocs serve

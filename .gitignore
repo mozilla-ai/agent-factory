@@ -196,8 +196,9 @@ node_modules/
 # test results
 test_results
 
-# MCP test results
+# MCP test results and generated files
 .cache/mcp-test-results.json
+docs/scripts/output/mcp-test-results.json
 
 # Binaries
 bin/
