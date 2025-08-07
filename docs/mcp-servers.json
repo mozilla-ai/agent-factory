@@ -46,16 +46,12 @@
         "description": "Obsidian vault integration for note management"
       },
       "mcp-discord": {
-        "command": "docker",
+        "command": "npx",
         "args": [
-          "run",
-          "--rm",
-          "-it",
-          "-e",
-          "DISCORD_TOKEN=$DISCORD_TOKEN",
-          "-p",
-          "8080:8080",
-          "barryy625/mcp-discord"
+          "-y",
+          "mcp-discord",
+          "--config",
+          "$DISCORD_TOKEN"
         ],
         "env": {
           "DISCORD_TOKEN": "YOUR_DISCORD_TOKEN_HERE"
@@ -118,7 +114,6 @@
         },
         "description": "Salesforce CRM integration"
       },
-
       "elasticsearch": {
         "command": "uvx",
         "args": [
@@ -130,6 +125,78 @@
           "ELASTIC_PASSWORD": "YOUR_ELASTIC_PASSWORD_HERE"
         },
         "description": "Elasticsearch search and analytics"
-      }
+      },
+    "monday-api-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mondaydotcomorg/monday-api-mcp",
+        "-t",
+        "$MONDAY_API_TOKEN",
+        "--enable-dynamic-api-tools",
+        "true"
+      ],
+      "env": {
+        "MONDAY_API_TOKEN": "YOUR_MONDAY_API_TOKEN_HERE"
+      },
+      "description": "Monday.com integration with dynamic API tools enabled"
+    },
+    "slack-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@zencoderai/slack-mcp-server"
+      ],
+      "env": {
+        "SLACK_BOT_TOKEN": "YOUR_SLACK_BOT_TOKEN_HERE",
+        "SLACK_TEAM_ID": "YOUR_SLACK_TEAM_ID_HERE",
+        "SLACK_CHANNEL_IDS": "general,random"
+      },
+      "description": "Slack workspace integration for channel, message, reaction and user management"
+    },
+    "jira": {
+      "command": "uvx",
+      "args": [
+        "mcp-atlassian",
+        "--confluence-url=${CONFLUENCE_URL}",
+        "--confluence-username=${CONFLUENCE_USERNAME}",
+        "--confluence-token=${CONFLUENCE_TOKEN}",
+        "--jira-url=${JIRA_URL}",
+        "--jira-username=${JIRA_USERNAME}",
+        "--jira-token=${JIRA_TOKEN}"
+      ],
+      "env": {
+        "CONFLUENCE_URL": "YOUR_CONFLUENCE_URL_HERE",
+        "CONFLUENCE_USERNAME": "YOUR_CONFLUENCE_USERNAME_HERE",
+        "CONFLUENCE_TOKEN": "YOUR_CONFLUENCE_TOKEN_HERE",
+        "JIRA_URL": "YOUR_JIRA_URL_HERE",
+        "JIRA_USERNAME": "YOUR_JIRA_USERNAME_HERE",
+        "JIRA_TOKEN": "YOUR_JIRA_TOKEN_HERE"
+      },
+      "description": "Atlassian integration for Jira project management and Confluence documentation"
+    },
+    "airtable": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@felores/airtable-mcp-server"
+      ],
+      "env": {
+        "AIRTABLE_API_KEY": "YOUR_AIRTABLE_API_KEY_HERE"
+      },
+      "description": "Airtable database and spreadsheet operations"
+    },
+    "gitlab": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-gitlab"
+      ],
+      "env": {
+        "GITLAB_PERSONAL_ACCESS_TOKEN": "YOUR_GITLAB_PERSONAL_ACCESS_TOKEN_HERE",
+        "GITLAB_API_URL": "YOUR_GITLAB_API_URL_HERE"
+      },
+      "description": "GitLab API integration for project management and repository operations"
     }
   }
+}

@@ -1,0 +1,5 @@
+any-agent[all,a2a]==0.25.0
+beautifulsoup4
+python-dotenv
+requests
+uv

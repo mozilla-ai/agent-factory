@@ -18,6 +18,10 @@ ARG APP_VERSION
 # Set the environment variable for setuptools_scm
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 
+# Copy mcpd to the container.
+COPY bin/mcpd /usr/local/bin/mcpd
+RUN chmod +x /usr/local/bin/mcpd
+
 # Install uv
 RUN pip install uv
 

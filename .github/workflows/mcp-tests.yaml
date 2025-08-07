@@ -8,9 +8,15 @@ on:
         required: true
         type: string
   pull_request:
+    branches-ignore:
+      - main
     paths:
-      - 'docs/scripts/mcp-servers.json'
-      - '.github/workflows/mcp-tests.yaml'
+      - 'docs/mcp-servers.json'
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - 'docs/mcp-servers.json'
 
 jobs:
   run-mcp-server-tests:
@@ -36,17 +42,17 @@ jobs:
 
       - name: Run MCP server tests
         run: |
-          python docs/scripts/test_mcp_servers.py
+          python -m docs.scripts.test_mcp_servers
 
       - name: Generate MCP documentation
         run: |
-          python docs/scripts/generate_mcp_table.py
+          python -m docs.scripts.generate_mcp_table
 
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add docs/mcp-servers.md
+          git add docs/user-guide/mcp-servers.md
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
