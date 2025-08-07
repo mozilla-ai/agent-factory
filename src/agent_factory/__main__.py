@@ -28,6 +28,7 @@ async def main(
 
     Args:
         framework (str): The agent framework to use (default: "openai").
+        chat (bool): Whether to enable multi-turn conversations (on by default).
         model (str): The model ID to use (default: "o3").
         host (str): The host address for the agent server (default: "localhost").
         port (int): The port for the agent server (default: 8080).
