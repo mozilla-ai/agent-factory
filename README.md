@@ -24,9 +24,12 @@ swap between Agent frameworks with minimal code changes.
 
 ### Prerequisites
 
-- Python 3.13+
+- [curl](https://curl.se/)
+- [jq](https://jqlang.org/)
+- [Python 3.13+](https://www.python.org/downloads/)
 - [uv](https://github.com/astral-sh/uv)
-- Docker (for containerized deployment)
+- [Docker](https://www.docker.com/products/docker-desktop/) (for containerized deployment)
+- [mcpd](https://github.com/mozilla-ai/mcpd/releases) added to `PATH`, e.g. `/usr/local/bin` (for local deployment)
 
 ### Installation
 
@@ -50,18 +53,11 @@ swap between Agent frameworks with minimal code changes.
    pre-commit install
    ```
 
-5. Set up your OpenAI API key (required):
+5. Create a `.env` file in the project root and add your OpenAI API key and Tavily API key (required). You can get a free Tavily API key by signing up [here](https://www.tavily.com/).
    ```bash
-   export OPENAI_API_KEY=sk-...
+   OPENAI_API_KEY=sk-...
+   TAVILY_API_KEY=tvly_...
    ```
-
-6. Set up your [Tavily](https://www.tavily.com/) API key (required):
-   ```bash
-   export TAVILY_API_KEY=tvly_...
-   ```
-
-> [!NOTE]
-> Alternatively, you can create a `.env` file in the project root with your keys. This is the recommended approach.
 
 ### Run the Server
 
@@ -75,7 +71,7 @@ To run the server locally, execute the following command from the `src/agent_fac
 cd src/agent_factory && uv run . --host 0.0.0.0 --port 8080
 ```
 
-The server will be available at `http://localhost:8080`.
+The server will be available at `http://localhost:8080/.well-known/agent.json`.
 
 In addition to `host` and `port`, you can also pass the following arguments:
 
@@ -97,7 +93,7 @@ The Makefile enables you to run the server using Docker. Before starting, make s
    ```bash
    make run
    ```
-   The server will be available at `http://localhost:8080`.
+   The server will be available at `http://localhost:8080/.well-known/agent.json`.
 
 > [!NOTE]
 > You can modify the behavior of the server by passing environment variables to the `make run` command. For example, to
@@ -107,17 +103,43 @@ The Makefile enables you to run the server using Docker. Before starting, make s
 > ```
 
 > [!NOTE]
-> Before running the server, make sure to create a `.env` file in the project root with your required environment
-> variables, including your `OPENAI_API_KEY`:
-> ```
-> OPENAI_API_KEY=sk-...
-> ```
-
-> [!NOTE]
 > After generating your agents using the `agent-factory` command (described below), don't forget to stop the server using:
 > ```bash
 > make stop
 > ```
+
+### (Optional) Setting Up Storage Backends
+
+By default, agent outputs are **saved to the local filesystem**. You can configure the agent factory to use AWS S3 or a local MinIO instance for storage.
+
+#### S3 & MinIO Configuration
+
+To customize the S3/MinIO configuration, you can create a `.env` file in the project root and override the following values from `.default.env`:
+
+-   `STORAGE_BACKEND`: Set to `s3` for AWS S3 or `minio` for MinIO.
+-   `AWS_ACCESS_KEY_ID`: Your AWS or MinIO access key.
+-   `AWS_SECRET_ACCESS_KEY`: Your AWS or MinIO secret key.
+-   `AWS_REGION`: The AWS region for your S3 bucket.
+-   `S3_BUCKET_NAME`: The name of the S3 or MinIO bucket.
+-   `AWS_ENDPOINT_URL`: **(For MinIO only)** The URL of your MinIO instance (e.g., `http://localhost:9000`).
+
+When using these settings, the application will automatically create the specified bucket if it does not already exist.
+
+#### Running a Local MinIO Instance
+
+If you do not have access to AWS S3, you can run a local MinIO instance using Docker:
+
+```bash
+docker run -p 9000:9000 -p 9091:9091 \
+  --name agent-factory-minio-dev \
+  -e "MINIO_ROOT_USER=agent-factory" \
+  -e "MINIO_ROOT_PASSWORD=agent-factory" \
+  -v agent-factory-minio:/data \
+  quay.io/minio/minio server /data --console-address ":9091"
+```
+The `agent-factory-minio` volume is used to persist the MinIO server's data, ensuring it is not lost when the container is stopped or removed.
+
+Once the container is running, you can access the MinIO console at `http://localhost:9091`. The login credentials are `agent-factory` for both the username and password.
 
 ### Generate an Agentic Workflow
 
@@ -132,7 +154,7 @@ uv run agent-factory "Summarize text content from a given webpage URL"
 ```
 
 The client will send the message to the server, print the response, and save the generated agent's files (`agent.py`,
-`README.md`, and `requirements.txt`) into a new directory inside the `generated_workflows` directory.
+`README.md`, `requirements.txt`, and `agent_parameters.json`) into a new directory inside the `generated_workflows` directory.
 
 ### Run the Generated Workflow
 
