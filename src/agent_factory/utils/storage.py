@@ -26,6 +26,7 @@ class LocalStorage(StorageBackend):
         return "Local Storage"
 
     def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
+        output_dir = Path("generated_workflows") / output_dir
         output_path = self._setup_output_directory(output_dir)
         try:
             for file_path_str, content in artifacts_to_save.items():
