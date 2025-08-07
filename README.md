@@ -119,8 +119,8 @@ To customize the S3/MinIO configuration, you can create a `.env` file in the pro
 -   `STORAGE_BACKEND`: Set to `s3` for AWS S3 or `minio` for MinIO.
 -   `AWS_ACCESS_KEY_ID`: Your AWS or MinIO access key.
 -   `AWS_SECRET_ACCESS_KEY`: Your AWS or MinIO secret key.
--   `AWS_DEFAULT_REGION`: The AWS region for your S3 bucket.
--   `S3_BUCKET`: The name of the S3 or MinIO bucket.
+-   `AWS_REGION`: The AWS region for your S3 bucket.
+-   `S3_BUCKET_NAME`: The name of the S3 or MinIO bucket.
 -   `AWS_ENDPOINT_URL`: **(For MinIO only)** The URL of your MinIO instance (e.g., `http://localhost:9000`).
 
 When using these settings, the application will automatically create the specified bucket if it does not already exist.
