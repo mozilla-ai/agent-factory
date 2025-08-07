@@ -23,12 +23,14 @@ class JsonFileSpanExporter(SpanExporter):
             all_spans = []
 
         for span in spans:
-            try:
-                span_data = json.loads(span.to_json())
-            except (json.JSONDecodeError, TypeError, AttributeError):
-                span_data = {"error": "Could not serialize span", "span_str": str(span)}
+            # We don't need a2a server events in traces
+            if not span.name.startswith("a2a.server"):
+                try:
+                    span_data = json.loads(span.to_json())
+                except (json.JSONDecodeError, TypeError, AttributeError):
+                    span_data = {"error": "Could not serialize span", "span_str": str(span)}
 
-            all_spans.append(span_data)
+                all_spans.append(span_data)
 
         output_file.write_text(json.dumps(all_spans, indent=2))
 
