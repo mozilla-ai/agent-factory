@@ -47,8 +47,8 @@ class S3Storage(StorageBackend):
     def __init__(self):
         self.aws_access_key_id = os.environ["AWS_ACCESS_KEY_ID"]
         self.aws_secret_access_key = os.environ["AWS_SECRET_ACCESS_KEY"]
-        self.aws_region = os.environ["AWS_DEFAULT_REGION"]
-        self.bucket_name = os.environ["S3_BUCKET"]
+        self.aws_region = os.environ["AWS_REGION"]
+        self.bucket_name = os.environ["S3_BUCKET_NAME"]
         self.endpoint_url = os.environ.get("AWS_ENDPOINT_URL") or None
         self.storage_str = "S3" if self.endpoint_url is None else "MinIO"
 

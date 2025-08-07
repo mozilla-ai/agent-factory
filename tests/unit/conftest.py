@@ -78,8 +78,8 @@ def mock_s3_environ():
         {
             "AWS_ACCESS_KEY_ID": "test-key",  # pragma: allowlist secret
             "AWS_SECRET_ACCESS_KEY": "test-secret",  # pragma: allowlist secret
-            "AWS_DEFAULT_REGION": "us-east-1",
-            "S3_BUCKET": "test-bucket",
+            "AWS_REGION": "us-east-1",
+            "S3_BUCKET_NAME": "test-bucket",
         },
     ) as patched_environ:
         yield patched_environ
