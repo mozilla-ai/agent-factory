@@ -442,7 +442,7 @@
     "tools": [
       {
         "name": "search",
-        "description": "\n    Search DuckDuckGo and return formatted results.\n\n    Args:\n        query: The search query string\n        max_results: Maximum number of results to return (default: 10)\n        ctx: MCP context for logging\n    ",
+        "description": "\nSearch DuckDuckGo and return formatted results.\n\nArgs:\n    query: The search query string\n    max_results: Maximum number of results to return (default: 10)\n    ctx: MCP context for logging\n",
         "inputSchema": {
           "properties": {
             "query": {
@@ -484,7 +484,7 @@
       },
       {
         "name": "fetch_content",
-        "description": "\n    Fetch and parse content from a webpage URL.\n\n    Args:\n        url: The webpage URL to fetch content from\n        ctx: MCP context for logging\n    ",
+        "description": "\nFetch and parse content from a webpage URL.\n\nArgs:\n    url: The webpage URL to fetch content from\n    ctx: MCP context for logging\n",
         "inputSchema": {
           "properties": {
             "url": {
@@ -524,78 +524,6 @@
       "default": {
         "type": "uvx",
         "command": "uvx",
-        "version": "",
-        "recommended": false,
-        "deprecated": false
-      }
-    },
-    "isOfficial": false,
-    "deprecated": false
-  },
-  "mcp-obsidian": {
-    "id": "mcp-obsidian",
-    "name": "mcp-obsidian",
-    "description": "Obsidian vault integration for note management",
-    "license": "",
-    "tools": [
-      {
-        "name": "read_notes",
-        "description": "Read the contents of multiple notes. Each note's content is returned with its path as a reference. Failed reads for individual notes won't stop the entire operation. Reading too many at once may result in an error.",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "paths": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "paths"
-          ],
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "outputSchema": {},
-        "annotations": {
-          "readOnlyHint": false,
-          "destructiveHint": false,
-          "idempotentHint": false,
-          "openWorldHint": false
-        },
-        "_meta": {}
-      },
-      {
-        "name": "search_notes",
-        "description": "Searches for a note by its name. The search is case-insensitive and matches partial names. Queries can also be a valid regex. Returns paths of the notes that match the query.",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "query": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "query"
-          ],
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "outputSchema": {},
-        "annotations": {
-          "readOnlyHint": false,
-          "destructiveHint": false,
-          "idempotentHint": false,
-          "openWorldHint": false
-        },
-        "_meta": {}
-      }
-    ],
-    "installations": {
-      "default": {
-        "type": "npx",
-        "command": "npx",
         "version": "",
         "recommended": false,
         "deprecated": false
@@ -3405,7 +3333,7 @@
       },
       {
         "name": "get_index",
-        "description": "\n            Returns information (mappings, settings, aliases) about one or more indices.\n            \n            Args:\n                index: Name of the index\n            ",
+        "description": "\nReturns information (mappings, settings, aliases) about one or more indices.\n\nArgs:\n    index: Name of the index\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3429,7 +3357,7 @@
       },
       {
         "name": "create_index",
-        "description": "\n            Create a new index.\n            \n            Args:\n                index: Name of the index\n                body: Optional index configuration including mappings and settings\n            ",
+        "description": "\nCreate a new index.\n\nArgs:\n    index: Name of the index\n    body: Optional index configuration including mappings and settings\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3466,7 +3394,7 @@
       },
       {
         "name": "delete_index",
-        "description": "\n            Delete an index.\n            \n            Args:\n                index: Name of the index\n            ",
+        "description": "\nDelete an index.\n\nArgs:\n    index: Name of the index\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3490,7 +3418,7 @@
       },
       {
         "name": "search_documents",
-        "description": "\n            Search for documents.\n            \n            Args:\n                index: Name of the index\n                body: Search query\n            ",
+        "description": "\nSearch for documents.\n\nArgs:\n    index: Name of the index\n    body: Search query\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3520,7 +3448,7 @@
       },
       {
         "name": "index_document",
-        "description": "\n            Creates or updates a document in the index.\n            \n            Args:\n                index: Name of the index\n                document: Document data\n                id: Optional document ID\n            ",
+        "description": "\nCreates or updates a document in the index.\n\nArgs:\n    index: Name of the index\n    document: Document data\n    id: Optional document ID\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3562,7 +3490,7 @@
       },
       {
         "name": "get_document",
-        "description": "\n            Get a document by ID.\n            \n            Args:\n                index: Name of the index\n                id: Document ID\n            ",
+        "description": "\nGet a document by ID.\n\nArgs:\n    index: Name of the index\n    id: Document ID\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3591,7 +3519,7 @@
       },
       {
         "name": "delete_document",
-        "description": "\n            Delete a document by ID.\n            \n            Args:\n                index: Name of the index\n                id: Document ID\n            ",
+        "description": "\nDelete a document by ID.\n\nArgs:\n    index: Name of the index\n    id: Document ID\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3620,7 +3548,7 @@
       },
       {
         "name": "delete_by_query",
-        "description": "\n            Deletes documents matching the provided query.\n            \n            Args:\n                index: Name of the index\n                body: Query to match documents for deletion\n            ",
+        "description": "\nDeletes documents matching the provided query.\n\nArgs:\n    index: Name of the index\n    body: Query to match documents for deletion\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3698,7 +3626,7 @@
       },
       {
         "name": "get_alias",
-        "description": "\n            Get alias information for a specific index.\n\n            Args:\n                index: Name of the index\n            ",
+        "description": "\nGet alias information for a specific index.\n\nArgs:\n    index: Name of the index\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3722,7 +3650,7 @@
       },
       {
         "name": "put_alias",
-        "description": "\n            Create or update an alias for a specific index.\n\n            Args:\n                index: Name of the index\n                name: Name of the alias\n                body: Alias configuration\n            ",
+        "description": "\nCreate or update an alias for a specific index.\n\nArgs:\n    index: Name of the index\n    name: Name of the alias\n    body: Alias configuration\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3757,7 +3685,7 @@
       },
       {
         "name": "delete_alias",
-        "description": "\n            Delete an alias for a specific index.\n\n            Args:\n                index: Name of the index\n                name: Name of the alias\n            ",
+        "description": "\nDelete an alias for a specific index.\n\nArgs:\n    index: Name of the index\n    name: Name of the alias\n",
         "inputSchema": {
           "properties": {
             "index": {
@@ -3786,7 +3714,7 @@
       },
       {
         "name": "general_api_request",
-        "description": "Perform a general HTTP API request.\n               Use this tool for any Elasticsearch/OpenSearch API that does not have a dedicated tool.\n            \n            Args:\n                method: HTTP method (GET, POST, PUT, DELETE, etc.)\n                path: API endpoint path\n                params: Query parameters\n                body: Request body\n            ",
+        "description": "Perform a general HTTP API request.\n   Use this tool for any Elasticsearch/OpenSearch API that does not have a dedicated tool.\n\nArgs:\n    method: HTTP method (GET, POST, PUT, DELETE, etc.)\n    path: API endpoint path\n    params: Query parameters\n    body: Request body\n",
         "inputSchema": {
           "properties": {
             "method": {
@@ -4685,7 +4613,7 @@
         "_meta": {}
       },
       {
-        "name": "list_workspace",
+        "name": "list_workspaces",
         "description": "List all workspaces available to the user. Returns up to 500 workspaces with their ID, name, and description.",
         "inputSchema": {
           "type": "object",
@@ -5081,7 +5009,7 @@
     "tools": [
       {
         "name": "jira_get_user_profile",
-        "description": "\n    Retrieve profile information for a specific Jira user.\n\n    Args:\n        ctx: The FastMCP context.\n        user_identifier: User identifier (email, username, key, or account ID).\n\n    Returns:\n        JSON string representing the Jira user profile object, or an error object if not found.\n\n    Raises:\n        ValueError: If the Jira client is not configured or available.\n    ",
+        "description": "\nRetrieve profile information for a specific Jira user.\n\nArgs:\n    ctx: The FastMCP context.\n    user_identifier: User identifier (email, username, key, or account ID).\n\nReturns:\n    JSON string representing the Jira user profile object, or an error object if not found.\n\nRaises:\n    ValueError: If the Jira client is not configured or available.\n",
         "inputSchema": {
           "properties": {
             "user_identifier": {
@@ -5106,7 +5034,7 @@
       },
       {
         "name": "jira_get_issue",
-        "description": "Get details of a specific Jira issue including its Epic links and relationship information.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n        fields: Comma-separated list of fields to return (e.g., 'summary,status,customfield_10010'), a single field as a string (e.g., 'duedate'), '*all' for all fields, or omitted for essentials.\n        expand: Optional fields to expand.\n        comment_limit: Maximum number of comments.\n        properties: Issue properties to return.\n        update_history: Whether to update issue view history.\n\n    Returns:\n        JSON string representing the Jira issue object.\n\n    Raises:\n        ValueError: If the Jira client is not configured or available.\n    ",
+        "description": "Get details of a specific Jira issue including its Epic links and relationship information.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n    fields: Comma-separated list of fields to return (e.g., 'summary,status,customfield_10010'), a single field as a string (e.g., 'duedate'), '*all' for all fields, or omitted for essentials.\n    expand: Optional fields to expand.\n    comment_limit: Maximum number of comments.\n    properties: Issue properties to return.\n    update_history: Whether to update issue view history.\n\nReturns:\n    JSON string representing the Jira issue object.\n\nRaises:\n    ValueError: If the Jira client is not configured or available.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -5115,7 +5043,7 @@
               "type": "string"
             },
             "fields": {
-              "default": "created,status,description,reporter,labels,summary,updated,assignee,issuetype,priority",
+              "default": "status,created,labels,assignee,reporter,summary,updated,description,priority,issuetype",
               "description": "(Optional) Comma-separated list of fields to return (e.g., 'summary,status,customfield_10010'). You may also provide a single field as a string (e.g., 'duedate'). Use '*all' for all fields (including custom fields), or omit for essential fields only.",
               "title": "Fields",
               "type": "string"
@@ -5177,7 +5105,7 @@
       },
       {
         "name": "jira_search",
-        "description": "Search Jira issues using JQL (Jira Query Language).\n\n    Args:\n        ctx: The FastMCP context.\n        jql: JQL query string.\n        fields: Comma-separated fields to return.\n        limit: Maximum number of results.\n        start_at: Starting index for pagination.\n        projects_filter: Comma-separated list of project keys to filter by.\n        expand: Optional fields to expand.\n\n    Returns:\n        JSON string representing the search results including pagination info.\n    ",
+        "description": "Search Jira issues using JQL (Jira Query Language).\n\nArgs:\n    ctx: The FastMCP context.\n    jql: JQL query string.\n    fields: Comma-separated fields to return.\n    limit: Maximum number of results.\n    start_at: Starting index for pagination.\n    projects_filter: Comma-separated list of project keys to filter by.\n    expand: Optional fields to expand.\n\nReturns:\n    JSON string representing the search results including pagination info.\n",
         "inputSchema": {
           "properties": {
             "jql": {
@@ -5186,7 +5114,7 @@
               "type": "string"
             },
             "fields": {
-              "default": "created,status,description,reporter,labels,summary,updated,assignee,issuetype,priority",
+              "default": "status,created,labels,assignee,reporter,summary,updated,description,priority,issuetype",
               "description": "(Optional) Comma-separated fields to return in the results. Use '*all' for all fields, or specify individual fields like 'summary,status,assignee,priority'",
               "title": "Fields",
               "type": "string"
@@ -5248,7 +5176,7 @@
       },
       {
         "name": "jira_search_fields",
-        "description": "Search Jira fields by keyword with fuzzy match.\n\n    Args:\n        ctx: The FastMCP context.\n        keyword: Keyword for fuzzy search.\n        limit: Maximum number of results.\n        refresh: Whether to force refresh the field list.\n\n    Returns:\n        JSON string representing a list of matching field definitions.\n    ",
+        "description": "Search Jira fields by keyword with fuzzy match.\n\nArgs:\n    ctx: The FastMCP context.\n    keyword: Keyword for fuzzy search.\n    limit: Maximum number of results.\n    refresh: Whether to force refresh the field list.\n\nReturns:\n    JSON string representing a list of matching field definitions.\n",
         "inputSchema": {
           "properties": {
             "keyword": {
@@ -5284,7 +5212,7 @@
       },
       {
         "name": "jira_get_project_issues",
-        "description": "Get all issues for a specific Jira project.\n\n    Args:\n        ctx: The FastMCP context.\n        project_key: The project key.\n        limit: Maximum number of results.\n        start_at: Starting index for pagination.\n\n    Returns:\n        JSON string representing the search results including pagination info.\n    ",
+        "description": "Get all issues for a specific Jira project.\n\nArgs:\n    ctx: The FastMCP context.\n    project_key: The project key.\n    limit: Maximum number of results.\n    start_at: Starting index for pagination.\n\nReturns:\n    JSON string representing the search results including pagination info.\n",
         "inputSchema": {
           "properties": {
             "project_key": {
@@ -5324,7 +5252,7 @@
       },
       {
         "name": "jira_get_transitions",
-        "description": "Get available status transitions for a Jira issue.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n\n    Returns:\n        JSON string representing a list of available transitions.\n    ",
+        "description": "Get available status transitions for a Jira issue.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n\nReturns:\n    JSON string representing a list of available transitions.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -5349,7 +5277,7 @@
       },
       {
         "name": "jira_get_worklog",
-        "description": "Get worklog entries for a Jira issue.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n\n    Returns:\n        JSON string representing the worklog entries.\n    ",
+        "description": "Get worklog entries for a Jira issue.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n\nReturns:\n    JSON string representing the worklog entries.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -5374,7 +5302,7 @@
       },
       {
         "name": "jira_download_attachments",
-        "description": "Download attachments from a Jira issue.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n        target_dir: Directory to save attachments.\n\n    Returns:\n        JSON string indicating the result of the download operation.\n    ",
+        "description": "Download attachments from a Jira issue.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n    target_dir: Directory to save attachments.\n\nReturns:\n    JSON string indicating the result of the download operation.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -5405,7 +5333,7 @@
       },
       {
         "name": "jira_get_agile_boards",
-        "description": "Get jira agile boards by name, project key, or type.\n\n    Args:\n        ctx: The FastMCP context.\n        board_name: Name of the board (fuzzy search).\n        project_key: Project key.\n        board_type: Board type ('scrum' or 'kanban').\n        start_at: Starting index.\n        limit: Maximum results.\n\n    Returns:\n        JSON string representing a list of board objects.\n    ",
+        "description": "Get jira agile boards by name, project key, or type.\n\nArgs:\n    ctx: The FastMCP context.\n    board_name: Name of the board (fuzzy search).\n    project_key: Project key.\n    board_type: Board type ('scrum' or 'kanban').\n    start_at: Starting index.\n    limit: Maximum results.\n\nReturns:\n    JSON string representing a list of board objects.\n",
         "inputSchema": {
           "properties": {
             "board_name": {
@@ -5476,7 +5404,7 @@
       },
       {
         "name": "jira_get_board_issues",
-        "description": "Get all issues linked to a specific board filtered by JQL.\n\n    Args:\n        ctx: The FastMCP context.\n        board_id: The ID of the board.\n        jql: JQL query string to filter issues.\n        fields: Comma-separated fields to return.\n        start_at: Starting index for pagination.\n        limit: Maximum number of results.\n        expand: Optional fields to expand.\n\n    Returns:\n        JSON string representing the search results including pagination info.\n    ",
+        "description": "Get all issues linked to a specific board filtered by JQL.\n\nArgs:\n    ctx: The FastMCP context.\n    board_id: The ID of the board.\n    jql: JQL query string to filter issues.\n    fields: Comma-separated fields to return.\n    start_at: Starting index for pagination.\n    limit: Maximum number of results.\n    expand: Optional fields to expand.\n\nReturns:\n    JSON string representing the search results including pagination info.\n",
         "inputSchema": {
           "properties": {
             "board_id": {
@@ -5490,7 +5418,7 @@
               "type": "string"
             },
             "fields": {
-              "default": "created,status,description,reporter,labels,summary,updated,assignee,issuetype,priority",
+              "default": "status,created,labels,assignee,reporter,summary,updated,description,priority,issuetype",
               "description": "Comma-separated fields to return in the results. Use '*all' for all fields, or specify individual fields like 'summary,status,assignee,priority'",
               "title": "Fields",
               "type": "string"
@@ -5534,7 +5462,7 @@
       },
       {
         "name": "jira_get_sprints_from_board",
-        "description": "Get jira sprints from board by state.\n\n    Args:\n        ctx: The FastMCP context.\n        board_id: The ID of the board.\n        state: Sprint state ('active', 'future', 'closed'). If None, returns all sprints.\n        start_at: Starting index.\n        limit: Maximum results.\n\n    Returns:\n        JSON string representing a list of sprint objects.\n    ",
+        "description": "Get jira sprints from board by state.\n\nArgs:\n    ctx: The FastMCP context.\n    board_id: The ID of the board.\n    state: Sprint state ('active', 'future', 'closed'). If None, returns all sprints.\n    start_at: Starting index.\n    limit: Maximum results.\n\nReturns:\n    JSON string representing a list of sprint objects.\n",
         "inputSchema": {
           "properties": {
             "board_id": {
@@ -5587,7 +5515,7 @@
       },
       {
         "name": "jira_get_sprint_issues",
-        "description": "Get jira issues from sprint.\n\n    Args:\n        ctx: The FastMCP context.\n        sprint_id: The ID of the sprint.\n        fields: Comma-separated fields to return.\n        start_at: Starting index.\n        limit: Maximum results.\n\n    Returns:\n        JSON string representing the search results including pagination info.\n    ",
+        "description": "Get jira issues from sprint.\n\nArgs:\n    ctx: The FastMCP context.\n    sprint_id: The ID of the sprint.\n    fields: Comma-separated fields to return.\n    start_at: Starting index.\n    limit: Maximum results.\n\nReturns:\n    JSON string representing the search results including pagination info.\n",
         "inputSchema": {
           "properties": {
             "sprint_id": {
@@ -5596,7 +5524,7 @@
               "type": "string"
             },
             "fields": {
-              "default": "created,status,description,reporter,labels,summary,updated,assignee,issuetype,priority",
+              "default": "status,created,labels,assignee,reporter,summary,updated,description,priority,issuetype",
               "description": "Comma-separated fields to return in the results. Use '*all' for all fields, or specify individual fields like 'summary,status,assignee,priority'",
               "title": "Fields",
               "type": "string"
@@ -5633,7 +5561,7 @@
       },
       {
         "name": "jira_get_link_types",
-        "description": "Get all available issue link types.\n\n    Args:\n        ctx: The FastMCP context.\n\n    Returns:\n        JSON string representing a list of issue link type objects.\n    ",
+        "description": "Get all available issue link types.\n\nArgs:\n    ctx: The FastMCP context.\n\nReturns:\n    JSON string representing a list of issue link type objects.\n",
         "inputSchema": {
           "properties": {},
           "type": "object"
@@ -5649,7 +5577,7 @@
       },
       {
         "name": "jira_create_issue",
-        "description": "Create a new Jira issue with optional Epic link or parent for subtasks.\n\n    Args:\n        ctx: The FastMCP context.\n        project_key: The JIRA project key.\n        summary: Summary/title of the issue.\n        issue_type: Issue type (e.g., 'Task', 'Bug', 'Story', 'Epic', 'Subtask').\n        assignee: Assignee's user identifier (string): Email, display name, or account ID (e.g., 'user@example.com', 'John Doe', 'accountid:...').\n        description: Issue description.\n        components: Comma-separated list of component names.\n        additional_fields: Dictionary of additional fields.\n\n    Returns:\n        JSON string representing the created issue object.\n\n    Raises:\n        ValueError: If in read-only mode or Jira client is unavailable.\n    ",
+        "description": "Create a new Jira issue with optional Epic link or parent for subtasks.\n\nArgs:\n    ctx: The FastMCP context.\n    project_key: The JIRA project key.\n    summary: Summary/title of the issue.\n    issue_type: Issue type (e.g., 'Task', 'Bug', 'Story', 'Epic', 'Subtask').\n    assignee: Assignee's user identifier (string): Email, display name, or account ID (e.g., 'user@example.com', 'John Doe', 'accountid:...').\n    description: Issue description.\n    components: Comma-separated list of component names.\n    additional_fields: Dictionary of additional fields.\n\nReturns:\n    JSON string representing the created issue object.\n\nRaises:\n    ValueError: If in read-only mode or Jira client is unavailable.\n",
         "inputSchema": {
           "properties": {
             "project_key": {
@@ -5739,7 +5667,7 @@
       },
       {
         "name": "jira_batch_create_issues",
-        "description": "Create multiple Jira issues in a batch.\n\n    Args:\n        ctx: The FastMCP context.\n        issues: JSON array string of issue objects.\n        validate_only: If true, only validates without creating.\n\n    Returns:\n        JSON string indicating success and listing created issues (or validation result).\n\n    Raises:\n        ValueError: If in read-only mode, Jira client unavailable, or invalid JSON.\n    ",
+        "description": "Create multiple Jira issues in a batch.\n\nArgs:\n    ctx: The FastMCP context.\n    issues: JSON array string of issue objects.\n    validate_only: If true, only validates without creating.\n\nReturns:\n    JSON string indicating success and listing created issues (or validation result).\n\nRaises:\n    ValueError: If in read-only mode, Jira client unavailable, or invalid JSON.\n",
         "inputSchema": {
           "properties": {
             "issues": {
@@ -5770,7 +5698,7 @@
       },
       {
         "name": "jira_batch_get_changelogs",
-        "description": "Get changelogs for multiple Jira issues (Cloud only).\n\n    Args:\n        ctx: The FastMCP context.\n        issue_ids_or_keys: List of issue IDs or keys.\n        fields: List of fields to filter changelogs by. None for all fields.\n        limit: Maximum changelogs per issue (-1 for all).\n\n    Returns:\n        JSON string representing a list of issues with their changelogs.\n\n    Raises:\n        NotImplementedError: If run on Jira Server/Data Center.\n        ValueError: If Jira client is unavailable.\n    ",
+        "description": "Get changelogs for multiple Jira issues (Cloud only).\n\nArgs:\n    ctx: The FastMCP context.\n    issue_ids_or_keys: List of issue IDs or keys.\n    fields: List of fields to filter changelogs by. None for all fields.\n    limit: Maximum changelogs per issue (-1 for all).\n\nReturns:\n    JSON string representing a list of issues with their changelogs.\n\nRaises:\n    NotImplementedError: If run on Jira Server/Data Center.\n    ValueError: If Jira client is unavailable.\n",
         "inputSchema": {
           "properties": {
             "issue_ids_or_keys": {
@@ -5820,7 +5748,7 @@
       },
       {
         "name": "jira_update_issue",
-        "description": "Update an existing Jira issue including changing status, adding Epic links, updating fields, etc.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n        fields: Dictionary of fields to update.\n        additional_fields: Optional dictionary of additional fields.\n        attachments: Optional JSON array string or comma-separated list of file paths.\n\n    Returns:\n        JSON string representing the updated issue object and attachment results.\n\n    Raises:\n        ValueError: If in read-only mode or Jira client unavailable, or invalid input.\n    ",
+        "description": "Update an existing Jira issue including changing status, adding Epic links, updating fields, etc.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n    fields: Dictionary of fields to update.\n    additional_fields: Optional dictionary of additional fields.\n    attachments: Optional JSON array string or comma-separated list of file paths.\n\nReturns:\n    JSON string representing the updated issue object and attachment results.\n\nRaises:\n    ValueError: If in read-only mode or Jira client unavailable, or invalid input.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -5879,7 +5807,7 @@
       },
       {
         "name": "jira_delete_issue",
-        "description": "Delete an existing Jira issue.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n\n    Returns:\n        JSON string indicating success.\n\n    Raises:\n        ValueError: If in read-only mode or Jira client unavailable.\n    ",
+        "description": "Delete an existing Jira issue.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n\nReturns:\n    JSON string indicating success.\n\nRaises:\n    ValueError: If in read-only mode or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -5904,7 +5832,7 @@
       },
       {
         "name": "jira_add_comment",
-        "description": "Add a comment to a Jira issue.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n        comment: Comment text in Markdown.\n\n    Returns:\n        JSON string representing the added comment object.\n\n    Raises:\n        ValueError: If in read-only mode or Jira client unavailable.\n    ",
+        "description": "Add a comment to a Jira issue.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n    comment: Comment text in Markdown.\n\nReturns:\n    JSON string representing the added comment object.\n\nRaises:\n    ValueError: If in read-only mode or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -5935,7 +5863,7 @@
       },
       {
         "name": "jira_add_worklog",
-        "description": "Add a worklog entry to a Jira issue.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n        time_spent: Time spent in Jira format.\n        comment: Optional comment in Markdown.\n        started: Optional start time in ISO format.\n        original_estimate: Optional new original estimate.\n        remaining_estimate: Optional new remaining estimate.\n\n\n    Returns:\n        JSON string representing the added worklog object.\n\n    Raises:\n        ValueError: If in read-only mode or Jira client unavailable.\n    ",
+        "description": "Add a worklog entry to a Jira issue.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n    time_spent: Time spent in Jira format.\n    comment: Optional comment in Markdown.\n    started: Optional start time in ISO format.\n    original_estimate: Optional new original estimate.\n    remaining_estimate: Optional new remaining estimate.\n\n\nReturns:\n    JSON string representing the added worklog object.\n\nRaises:\n    ValueError: If in read-only mode or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -6018,7 +5946,7 @@
       },
       {
         "name": "jira_link_to_epic",
-        "description": "Link an existing issue to an epic.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: The key of the issue to link.\n        epic_key: The key of the epic to link to.\n\n    Returns:\n        JSON string representing the updated issue object.\n\n    Raises:\n        ValueError: If in read-only mode or Jira client unavailable.\n    ",
+        "description": "Link an existing issue to an epic.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: The key of the issue to link.\n    epic_key: The key of the epic to link to.\n\nReturns:\n    JSON string representing the updated issue object.\n\nRaises:\n    ValueError: If in read-only mode or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -6049,7 +5977,7 @@
       },
       {
         "name": "jira_create_issue_link",
-        "description": "Create a link between two Jira issues.\n\n    Args:\n        ctx: The FastMCP context.\n        link_type: The type of link (e.g., 'Blocks').\n        inward_issue_key: The key of the source issue.\n        outward_issue_key: The key of the target issue.\n        comment: Optional comment text.\n        comment_visibility: Optional dictionary for comment visibility.\n\n    Returns:\n        JSON string indicating success or failure.\n\n    Raises:\n        ValueError: If required fields are missing, invalid input, in read-only mode, or Jira client unavailable.\n    ",
+        "description": "Create a link between two Jira issues.\n\nArgs:\n    ctx: The FastMCP context.\n    link_type: The type of link (e.g., 'Blocks').\n    inward_issue_key: The key of the source issue.\n    outward_issue_key: The key of the target issue.\n    comment: Optional comment text.\n    comment_visibility: Optional dictionary for comment visibility.\n\nReturns:\n    JSON string indicating success or failure.\n\nRaises:\n    ValueError: If required fields are missing, invalid input, in read-only mode, or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "link_type": {
@@ -6115,7 +6043,7 @@
       },
       {
         "name": "jira_create_remote_issue_link",
-        "description": "Create a remote issue link (web link or Confluence link) for a Jira issue.\n\n    This tool allows you to add web links and Confluence links to Jira issues.\n    The links will appear in the issue's \"Links\" section and can be clicked to navigate to external resources.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: The key of the issue to add the link to.\n        url: The URL to link to (can be any web page or Confluence page).\n        title: The title/name that will be displayed for the link.\n        summary: Optional description of what the link is for.\n        relationship: Optional relationship description.\n        icon_url: Optional URL to a 16x16 icon for the link.\n\n    Returns:\n        JSON string indicating success or failure.\n\n    Raises:\n        ValueError: If required fields are missing, invalid input, in read-only mode, or Jira client unavailable.\n    ",
+        "description": "Create a remote issue link (web link or Confluence link) for a Jira issue.\n\nThis tool allows you to add web links and Confluence links to Jira issues.\nThe links will appear in the issue's \"Links\" section and can be clicked to navigate to external resources.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: The key of the issue to add the link to.\n    url: The URL to link to (can be any web page or Confluence page).\n    title: The title/name that will be displayed for the link.\n    summary: Optional description of what the link is for.\n    relationship: Optional relationship description.\n    icon_url: Optional URL to a 16x16 icon for the link.\n\nReturns:\n    JSON string indicating success or failure.\n\nRaises:\n    ValueError: If required fields are missing, invalid input, in read-only mode, or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -6191,7 +6119,7 @@
       },
       {
         "name": "jira_remove_issue_link",
-        "description": "Remove a link between two Jira issues.\n\n    Args:\n        ctx: The FastMCP context.\n        link_id: The ID of the link to remove.\n\n    Returns:\n        JSON string indicating success.\n\n    Raises:\n        ValueError: If link_id is missing, in read-only mode, or Jira client unavailable.\n    ",
+        "description": "Remove a link between two Jira issues.\n\nArgs:\n    ctx: The FastMCP context.\n    link_id: The ID of the link to remove.\n\nReturns:\n    JSON string indicating success.\n\nRaises:\n    ValueError: If link_id is missing, in read-only mode, or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "link_id": {
@@ -6216,7 +6144,7 @@
       },
       {
         "name": "jira_transition_issue",
-        "description": "Transition a Jira issue to a new status.\n\n    Args:\n        ctx: The FastMCP context.\n        issue_key: Jira issue key.\n        transition_id: ID of the transition.\n        fields: Optional dictionary of fields to update during transition.\n        comment: Optional comment for the transition.\n\n    Returns:\n        JSON string representing the updated issue object.\n\n    Raises:\n        ValueError: If required fields missing, invalid input, in read-only mode, or Jira client unavailable.\n    ",
+        "description": "Transition a Jira issue to a new status.\n\nArgs:\n    ctx: The FastMCP context.\n    issue_key: Jira issue key.\n    transition_id: ID of the transition.\n    fields: Optional dictionary of fields to update during transition.\n    comment: Optional comment for the transition.\n\nReturns:\n    JSON string representing the updated issue object.\n\nRaises:\n    ValueError: If required fields missing, invalid input, in read-only mode, or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "issue_key": {
@@ -6274,7 +6202,7 @@
       },
       {
         "name": "jira_create_sprint",
-        "description": "Create Jira sprint for a board.\n\n    Args:\n        ctx: The FastMCP context.\n        board_id: Board ID.\n        sprint_name: Sprint name.\n        start_date: Start date (ISO format).\n        end_date: End date (ISO format).\n        goal: Optional sprint goal.\n\n    Returns:\n        JSON string representing the created sprint object.\n\n    Raises:\n        ValueError: If in read-only mode or Jira client unavailable.\n    ",
+        "description": "Create Jira sprint for a board.\n\nArgs:\n    ctx: The FastMCP context.\n    board_id: Board ID.\n    sprint_name: Sprint name.\n    start_date: Start date (ISO format).\n    end_date: End date (ISO format).\n    goal: Optional sprint goal.\n\nReturns:\n    JSON string representing the created sprint object.\n\nRaises:\n    ValueError: If in read-only mode or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "board_id": {
@@ -6330,7 +6258,7 @@
       },
       {
         "name": "jira_update_sprint",
-        "description": "Update jira sprint.\n\n    Args:\n        ctx: The FastMCP context.\n        sprint_id: The ID of the sprint.\n        sprint_name: Optional new name.\n        state: Optional new state (future|active|closed).\n        start_date: Optional new start date.\n        end_date: Optional new end date.\n        goal: Optional new goal.\n\n    Returns:\n        JSON string representing the updated sprint object or an error message.\n\n    Raises:\n        ValueError: If in read-only mode or Jira client unavailable.\n    ",
+        "description": "Update jira sprint.\n\nArgs:\n    ctx: The FastMCP context.\n    sprint_id: The ID of the sprint.\n    sprint_name: Optional new name.\n    state: Optional new state (future|active|closed).\n    start_date: Optional new start date.\n    end_date: Optional new end date.\n    goal: Optional new goal.\n\nReturns:\n    JSON string representing the updated sprint object or an error message.\n\nRaises:\n    ValueError: If in read-only mode or Jira client unavailable.\n",
         "inputSchema": {
           "properties": {
             "sprint_id": {
@@ -6445,7 +6373,7 @@
       },
       {
         "name": "jira_get_all_projects",
-        "description": "Get all Jira projects accessible to the current user.\n\n    Args:\n        ctx: The FastMCP context.\n        include_archived: Whether to include archived projects.\n\n    Returns:\n        JSON string representing a list of project objects accessible to the user.\n        Project keys are always returned in uppercase.\n        If JIRA_PROJECTS_FILTER is configured, only returns projects matching those keys.\n\n    Raises:\n        ValueError: If the Jira client is not configured or available.\n    ",
+        "description": "Get all Jira projects accessible to the current user.\n\nArgs:\n    ctx: The FastMCP context.\n    include_archived: Whether to include archived projects.\n\nReturns:\n    JSON string representing a list of project objects accessible to the user.\n    Project keys are always returned in uppercase.\n    If JIRA_PROJECTS_FILTER is configured, only returns projects matching those keys.\n\nRaises:\n    ValueError: If the Jira client is not configured or available.\n",
         "inputSchema": {
           "properties": {
             "include_archived": {
@@ -6468,7 +6396,7 @@
       },
       {
         "name": "jira_create_version",
-        "description": "Create a new fix version in a Jira project.\n\n    Args:\n        ctx: The FastMCP context.\n        project_key: The project key.\n        name: Name of the version.\n        start_date: Start date (optional).\n        release_date: Release date (optional).\n        description: Description (optional).\n\n    Returns:\n        JSON string of the created version object.\n    ",
+        "description": "Create a new fix version in a Jira project.\n\nArgs:\n    ctx: The FastMCP context.\n    project_key: The project key.\n    name: Name of the version.\n    start_date: Start date (optional).\n    release_date: Release date (optional).\n    description: Description (optional).\n\nReturns:\n    JSON string of the created version object.\n",
         "inputSchema": {
           "properties": {
             "project_key": {
@@ -6538,7 +6466,7 @@
       },
       {
         "name": "jira_batch_create_versions",
-        "description": "Batch create multiple versions in a Jira project.\n\n    Args:\n        ctx: The FastMCP context.\n        project_key: The project key.\n        versions: JSON array string of version objects.\n\n    Returns:\n        JSON array of results, each with success flag, version or error.\n    ",
+        "description": "Batch create multiple versions in a Jira project.\n\nArgs:\n    ctx: The FastMCP context.\n    project_key: The project key.\n    versions: JSON array string of version objects.\n\nReturns:\n    JSON array of results, each with success flag, version or error.\n",
         "inputSchema": {
           "properties": {
             "project_key": {
@@ -6569,7 +6497,7 @@
       },
       {
         "name": "confluence_search",
-        "description": "Search Confluence content using simple terms or CQL.\n\n    Args:\n        ctx: The FastMCP context.\n        query: Search query - can be simple text or a CQL query string.\n        limit: Maximum number of results (1-50).\n        spaces_filter: Comma-separated list of space keys to filter by.\n\n    Returns:\n        JSON string representing a list of simplified Confluence page objects.\n    ",
+        "description": "Search Confluence content using simple terms or CQL.\n\nArgs:\n    ctx: The FastMCP context.\n    query: Search query - can be simple text or a CQL query string.\n    limit: Maximum number of results (1-50).\n    spaces_filter: Comma-separated list of space keys to filter by.\n\nReturns:\n    JSON string representing a list of simplified Confluence page objects.\n",
         "inputSchema": {
           "properties": {
             "query": {
@@ -6615,7 +6543,7 @@
       },
       {
         "name": "confluence_get_page",
-        "description": "Get content of a specific Confluence page by its ID, or by its title and space key.\n\n    Args:\n        ctx: The FastMCP context.\n        page_id: Confluence page ID. If provided, 'title' and 'space_key' are ignored.\n        title: The exact title of the page. Must be used with 'space_key'.\n        space_key: The key of the space. Must be used with 'title'.\n        include_metadata: Whether to include page metadata.\n        convert_to_markdown: Convert content to markdown (true) or keep raw HTML (false).\n\n    Returns:\n        JSON string representing the page content and/or metadata, or an error if not found or parameters are invalid.\n    ",
+        "description": "Get content of a specific Confluence page by its ID, or by its title and space key.\n\nArgs:\n    ctx: The FastMCP context.\n    page_id: Confluence page ID. If provided, 'title' and 'space_key' are ignored.\n    title: The exact title of the page. Must be used with 'space_key'.\n    space_key: The key of the space. Must be used with 'title'.\n    include_metadata: Whether to include page metadata.\n    convert_to_markdown: Convert content to markdown (true) or keep raw HTML (false).\n\nReturns:\n    JSON string representing the page content and/or metadata, or an error if not found or parameters are invalid.\n",
         "inputSchema": {
           "properties": {
             "page_id": {
@@ -6683,7 +6611,7 @@
       },
       {
         "name": "confluence_get_page_children",
-        "description": "Get child pages of a specific Confluence page.\n\n    Args:\n        ctx: The FastMCP context.\n        parent_id: The ID of the parent page.\n        expand: Fields to expand.\n        limit: Maximum number of child pages.\n        include_content: Whether to include page content.\n        convert_to_markdown: Convert content to markdown if include_content is true.\n        start: Starting index for pagination.\n\n    Returns:\n        JSON string representing a list of child page objects.\n    ",
+        "description": "Get child pages of a specific Confluence page.\n\nArgs:\n    ctx: The FastMCP context.\n    parent_id: The ID of the parent page.\n    expand: Fields to expand.\n    limit: Maximum number of child pages.\n    include_content: Whether to include page content.\n    convert_to_markdown: Convert content to markdown if include_content is true.\n    start: Starting index for pagination.\n\nReturns:\n    JSON string representing a list of child page objects.\n",
         "inputSchema": {
           "properties": {
             "parent_id": {
@@ -6741,7 +6669,7 @@
       },
       {
         "name": "confluence_get_comments",
-        "description": "Get comments for a specific Confluence page.\n\n    Args:\n        ctx: The FastMCP context.\n        page_id: Confluence page ID.\n\n    Returns:\n        JSON string representing a list of comment objects.\n    ",
+        "description": "Get comments for a specific Confluence page.\n\nArgs:\n    ctx: The FastMCP context.\n    page_id: Confluence page ID.\n\nReturns:\n    JSON string representing a list of comment objects.\n",
         "inputSchema": {
           "properties": {
             "page_id": {
@@ -6766,7 +6694,7 @@
       },
       {
         "name": "confluence_get_labels",
-        "description": "Get labels for a specific Confluence page.\n\n    Args:\n        ctx: The FastMCP context.\n        page_id: Confluence page ID.\n\n    Returns:\n        JSON string representing a list of label objects.\n    ",
+        "description": "Get labels for a specific Confluence page.\n\nArgs:\n    ctx: The FastMCP context.\n    page_id: Confluence page ID.\n\nReturns:\n    JSON string representing a list of label objects.\n",
         "inputSchema": {
           "properties": {
             "page_id": {
@@ -6791,7 +6719,7 @@
       },
       {
         "name": "confluence_add_label",
-        "description": "Add label to an existing Confluence page.\n\n    Args:\n        ctx: The FastMCP context.\n        page_id: The ID of the page to update.\n        name: The name of the label.\n\n    Returns:\n        JSON string representing the updated list of label objects for the page.\n\n    Raises:\n        ValueError: If in read-only mode or Confluence client is unavailable.\n    ",
+        "description": "Add label to an existing Confluence page.\n\nArgs:\n    ctx: The FastMCP context.\n    page_id: The ID of the page to update.\n    name: The name of the label.\n\nReturns:\n    JSON string representing the updated list of label objects for the page.\n\nRaises:\n    ValueError: If in read-only mode or Confluence client is unavailable.\n",
         "inputSchema": {
           "properties": {
             "page_id": {
@@ -6822,7 +6750,7 @@
       },
       {
         "name": "confluence_create_page",
-        "description": "Create a new Confluence page.\n\n    Args:\n        ctx: The FastMCP context.\n        space_key: The key of the space.\n        title: The title of the page.\n        content: The content of the page (format depends on content_format).\n        parent_id: Optional parent page ID.\n        content_format: The format of the content ('markdown', 'wiki', or 'storage').\n        enable_heading_anchors: Whether to enable heading anchors (markdown only).\n\n    Returns:\n        JSON string representing the created page object.\n\n    Raises:\n        ValueError: If in read-only mode, Confluence client is unavailable, or invalid content_format.\n    ",
+        "description": "Create a new Confluence page.\n\nArgs:\n    ctx: The FastMCP context.\n    space_key: The key of the space.\n    title: The title of the page.\n    content: The content of the page (format depends on content_format).\n    parent_id: Optional parent page ID.\n    content_format: The format of the content ('markdown', 'wiki', or 'storage').\n    enable_heading_anchors: Whether to enable heading anchors (markdown only).\n\nReturns:\n    JSON string representing the created page object.\n\nRaises:\n    ValueError: If in read-only mode, Confluence client is unavailable, or invalid content_format.\n",
         "inputSchema": {
           "properties": {
             "space_key": {
@@ -6884,7 +6812,7 @@
       },
       {
         "name": "confluence_update_page",
-        "description": "Update an existing Confluence page.\n\n    Args:\n        ctx: The FastMCP context.\n        page_id: The ID of the page to update.\n        title: The new title of the page.\n        content: The new content of the page (format depends on content_format).\n        is_minor_edit: Whether this is a minor edit.\n        version_comment: Optional comment for this version.\n        parent_id: Optional new parent page ID.\n        content_format: The format of the content ('markdown', 'wiki', or 'storage').\n        enable_heading_anchors: Whether to enable heading anchors (markdown only).\n\n    Returns:\n        JSON string representing the updated page object.\n\n    Raises:\n        ValueError: If Confluence client is not configured, available, or invalid content_format.\n    ",
+        "description": "Update an existing Confluence page.\n\nArgs:\n    ctx: The FastMCP context.\n    page_id: The ID of the page to update.\n    title: The new title of the page.\n    content: The new content of the page (format depends on content_format).\n    is_minor_edit: Whether this is a minor edit.\n    version_comment: Optional comment for this version.\n    parent_id: Optional new parent page ID.\n    content_format: The format of the content ('markdown', 'wiki', or 'storage').\n    enable_heading_anchors: Whether to enable heading anchors (markdown only).\n\nReturns:\n    JSON string representing the updated page object.\n\nRaises:\n    ValueError: If Confluence client is not configured, available, or invalid content_format.\n",
         "inputSchema": {
           "properties": {
             "page_id": {
@@ -6965,7 +6893,7 @@
       },
       {
         "name": "confluence_delete_page",
-        "description": "Delete an existing Confluence page.\n\n    Args:\n        ctx: The FastMCP context.\n        page_id: The ID of the page to delete.\n\n    Returns:\n        JSON string indicating success or failure.\n\n    Raises:\n        ValueError: If Confluence client is not configured or available.\n    ",
+        "description": "Delete an existing Confluence page.\n\nArgs:\n    ctx: The FastMCP context.\n    page_id: The ID of the page to delete.\n\nReturns:\n    JSON string indicating success or failure.\n\nRaises:\n    ValueError: If Confluence client is not configured or available.\n",
         "inputSchema": {
           "properties": {
             "page_id": {
@@ -6990,7 +6918,7 @@
       },
       {
         "name": "confluence_add_comment",
-        "description": "Add a comment to a Confluence page.\n\n    Args:\n        ctx: The FastMCP context.\n        page_id: The ID of the page to add a comment to.\n        content: The comment content in Markdown format.\n\n    Returns:\n        JSON string representing the created comment.\n\n    Raises:\n        ValueError: If in read-only mode or Confluence client is unavailable.\n    ",
+        "description": "Add a comment to a Confluence page.\n\nArgs:\n    ctx: The FastMCP context.\n    page_id: The ID of the page to add a comment to.\n    content: The comment content in Markdown format.\n\nReturns:\n    JSON string representing the created comment.\n\nRaises:\n    ValueError: If in read-only mode or Confluence client is unavailable.\n",
         "inputSchema": {
           "properties": {
             "page_id": {
@@ -7021,7 +6949,7 @@
       },
       {
         "name": "confluence_search_user",
-        "description": "Search Confluence users using CQL.\n\n    Args:\n        ctx: The FastMCP context.\n        query: Search query - a CQL query string for user search.\n        limit: Maximum number of results (1-50).\n\n    Returns:\n        JSON string representing a list of simplified Confluence user search result objects.\n    ",
+        "description": "Search Confluence users using CQL.\n\nArgs:\n    ctx: The FastMCP context.\n    query: Search query - a CQL query string for user search.\n    limit: Maximum number of results (1-50).\n\nReturns:\n    JSON string representing a list of simplified Confluence user search result objects.\n",
         "inputSchema": {
           "properties": {
             "query": {
