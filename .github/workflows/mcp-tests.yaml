@@ -7,16 +7,6 @@ on:
         description: 'Branch to run tests on (required for manual dispatch)'
         required: true
         type: string
-  pull_request:
-    branches-ignore:
-      - main
-    paths:
-      - 'docs/config/mcp-servers.json'
-  push:
-    branches-ignore:
-      - main
-    paths:
-      - 'docs/config/mcp-servers.json'
 
 jobs:
   run-mcp-server-tests:

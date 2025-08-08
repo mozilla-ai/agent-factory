@@ -18,7 +18,7 @@ END_MARKER = "<!-- MCP_SERVERS_TABLE_END -->"
 
 def load_test_results(results_file: str = ".cache/mcp-test-results.json") -> dict[str, Any]:
     """Load test results from JSON file."""
-    with Path(results_file).open() as f:
+    with Path(results_file).open("r") as f:
         return json.load(f)
 
 

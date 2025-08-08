@@ -58,6 +58,5 @@ nav:
     - MCP Servers: user-guide/mcp-servers.md
 
 exclude_docs: |
-  user-guide/mcp-servers-template.md
-  ../scripts/input/
-  ../scripts/output/
+  ../scripts/
+  ../config/

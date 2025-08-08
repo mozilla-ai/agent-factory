@@ -52,26 +52,22 @@ Please note that **Docker**-based MCP servers are not supported as this time.
 
 ### Automated Testing Workflow
 
-The MCP servers are automatically tested using the following workflow:
+The MCP servers are automatically tested, but [manually triggered from GitHub Actions(https://github.com/mozilla-ai/agent-factory/actions/workflows/mcp-tests.yaml).
 
-1. **Manual Trigger**: Tests are run manually via GitHub Actions workflow dispatch
-2. **Server Testing**: The `docs/scripts/test_mcp_servers.py` script tests each server by:
+1. **Server Testing**: The `docs/scripts/test_mcp_servers.py` script tests each server by:
     - Attempting to connect to each MCP server
     - Listing available tools
     - Recording success/failure status and tool count
-3. **Results Storage**: Test results are saved to `.cache/mcp-test-results.json`
-4. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script generates this markdown file from the template with current test results
+1. **Results Storage**: Test results are saved to `.cache/mcp-test-results.json`
+1. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script generates this markdown file from the template with current test results
 
 ### Running Tests Locally
 
 To test MCP servers locally:
 
 ```bash
-# Run the test script
-uv run python -m docs.scripts.test_mcp_servers
-
-# Update the documentation
-uv run python -m docs.scripts.generate_mcp_table
+# This will also call target test-mcps
+make update-mcps
 ```
 
 ## Contributing
@@ -90,7 +86,21 @@ We welcome contributions to expand our MCP server coverage! To add a new MCP ser
    }
    ```
 
-2. **Test the server**: Run the test script via the manually triggered Github Action.
+2. **Test the server**: Manually trigger the MCP tests workflow to verify your new server works correctly:
+
+   ![MCP Tests Workflow](../assets/mcp-tests-workflow.png)
+
+   To manually trigger the tests:
+
+   1. Go to the [MCP Server Tests workflow](https://github.com/mozilla-ai/agent-factory/actions/workflows/mcp-tests.yaml)
+   2. Click the **"Run workflow"** button
+   3. Select your branch from the dropdown
+   4. Click **"Run workflow"** to start the tests
+
+   The workflow will:
+   - Test all MCP servers including your new addition
+   - Update the documentation with test results
+   - Commit the changes back to your branch
 
 ## References
 
