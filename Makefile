@@ -1,4 +1,4 @@
-.PHONY: help prepare build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit test-generated-artifacts test-mcps update-docs docs-serve docs-build
+.PHONY: help build run run-detached stop clean wait-for-server test-single-turn-generation test-single-turn-generation-local test-single-turn-generation-e2e test-unit test-generated-artifacts test-mcps update-docs docs-serve docs-build
 
 # ====================================================================================
 # Configuration
@@ -15,16 +15,6 @@ CHAT ?= 0
 DOCKER_IMAGE := agent-factory
 DOCKER_CONTAINER := agent-factory-a2a
 DOCKER_TAG := latest
-
-# MCPD Configuration
-MCPD_VERSION ?= $(shell curl -s https://api.github.com/repos/mozilla-ai/mcpd/releases/latest | jq -r .tag_name)
-MCPD_ARCH ?= $(shell uname -m)
-MCPD_TAR = mcpd_Linux_$(MCPD_ARCH).tar.gz
-MCPD_URL = https://github.com/mozilla-ai/mcpd/releases/download/$(MCPD_VERSION)/$(MCPD_TAR)
-MCPD_BIN_PATH = bin
-MCPD_BASE_NAME = mcpd
-MCPD_BIN_PATH_BASE=$(MCPD_BIN_PATH)/$(MCPD_BASE_NAME)
-MCPD_BIN_PATH_ARCH=$(MCPD_BIN_PATH)/$(MCPD_BASE_NAME)_$(MCPD_ARCH)
 
 # Server Configuration
 A2A_SERVER_HOST ?= localhost
@@ -43,20 +33,7 @@ help: ## Display this help message
 # Docker Lifecycle
 # ====================================================================================
 
-prepare: ## Prepare mcpd binary for Docker container
-	@mkdir -p bin
-	@if [ ! -f $(MCPD_BIN_PATH_ARCH) ]; then \
-		echo "Downloading mcpd binary for $(MCPD_ARCH)..."; \
-		curl -sSL $(MCPD_URL) -o "$(MCPD_BIN_PATH)/$(MCPD_TAR)"; \
-		tar -xzf $(MCPD_BIN_PATH)/$(MCPD_TAR) $(MCPD_BASE_NAME); \
-		mv mcpd $(MCPD_BIN_PATH_ARCH); \
-		chmod +x $(MCPD_BIN_PATH_ARCH); \
-		rm -f "$(MCPD_BIN_PATH)/$(MCPD_TAR)"; \
-	fi
-	@cp $(MCPD_BIN_PATH_ARCH) $(MCPD_BIN_PATH_BASE)
-
-
-build: prepare ## Build the Docker image for the server
+build: ## Build the Docker image for the server
 	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
 
