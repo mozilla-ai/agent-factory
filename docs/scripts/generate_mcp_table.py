@@ -54,8 +54,7 @@ def generate_table_content(servers: dict[str, Any]) -> str:
 def generate_dynamic_content(test_data: dict[str, Any]) -> str:
     """Generate the dynamic content that goes between the markers."""
     # Generate test summary
-    test_info = f"\n\n*Last updated: {test_data['test_run']['timestamp']}*\n"
-    test_info += (
+    test_info = (
         f"*Test results: {test_data['test_run']['successful']} working, "
         f"{test_data['test_run']['failed']} failed, {test_data['test_run']['skipped']} skipped "
         f"out of {test_data['test_run']['total_servers']} total servers*\n\n"
@@ -93,8 +92,8 @@ def reconstruct_file(intro: str, dynamic_content: str, outro: str) -> str:
 
 
 def update_markdown_file(
-    markdown_file: str = "docs/user-guide/mcp-servers.md",
-    template_file: str = "docs/user-guide/mcp-servers-template.md",
+    markdown_file: str = "docs/content/user-guide/mcp-servers.md",
+    template_file: str = "docs/scripts/input/mcp-servers-template.md",
     results_file: str = ".cache/mcp-test-results.json",
 ):
     """Update the markdown file with new test results."""
