@@ -16,23 +16,16 @@ class JsonFileSpanExporter(SpanExporter):
 
     def export(self, spans) -> None:
         # File name matches how trace_id will be formatted inside the JSON
-        output_file = self.output_dir / f"0x{format_trace_id(spans[0].context.trace_id)}.json"
-        try:
-            all_spans = json.loads(output_file.read_text())
-        except (json.JSONDecodeError, FileNotFoundError):
-            all_spans = []
+        output_file = self.output_dir / f"0x{format_trace_id(spans[0].context.trace_id)}.jsonl"
 
-        for span in spans:
-            # We don't need a2a server events in traces
-            if not span.name.startswith("a2a.server"):
-                try:
-                    span_data = json.loads(span.to_json())
-                except (json.JSONDecodeError, TypeError, AttributeError):
-                    span_data = {"error": "Could not serialize span", "span_str": str(span)}
-
-                all_spans.append(span_data)
-
-        output_file.write_text(json.dumps(all_spans, indent=2))
+        with output_file.open("a", encoding="utf-8") as f:
+            for span in spans:
+                # We don't need a2a server events in traces
+                if not span.name.startswith("a2a.server"):
+                    try:
+                        f.write(span.to_json() + "\n")
+                    except (json.JSONDecodeError, TypeError, AttributeError):
+                        f.write(json.dumps({"error": "Could not serialize span", "span_str": str(span)}) + "\n")
 
     def shutdown(self):
         pass
