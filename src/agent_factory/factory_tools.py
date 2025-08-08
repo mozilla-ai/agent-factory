@@ -14,7 +14,7 @@ def _cleanup_mcp_server_info(server_info):
         server_info.pop(k, None)
 
     for tool in server_info.get("tools", []):
-        tool.pop("inputSchema")
+        tool.pop("inputSchema", None)
 
     return server_info
 
