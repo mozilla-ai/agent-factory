@@ -60,9 +60,15 @@ def min_successes(request, use_cases):
 
 
 @pytest.fixture(scope="session")
-def agent_file(artifacts_dir, prompt_id):
+def agent_dir(artifacts_dir, prompt_id):
+    """Fixture to get the agent directory path for the current prompt."""
+    return artifacts_dir / prompt_id
+
+
+@pytest.fixture(scope="session")
+def agent_file(agent_dir):
     """Fixture to get the agent file path for the current prompt."""
-    return artifacts_dir / prompt_id / "agent.py"
+    return agent_dir / "agent.py"
 
 
 @pytest.fixture(scope="session")

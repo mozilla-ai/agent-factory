@@ -12,9 +12,9 @@ from agent_factory.utils import (
     create_a2a_http_client,
     create_message_request,
     get_a2a_agent_card,
+    get_storage_backend,
+    prepare_agent_artifacts,
     process_a2a_agent_response,
-    save_agent_outputs,
-    setup_output_directory,
 )
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
@@ -58,8 +58,9 @@ async def create_agent(message: cl.Message):
         response = process_a2a_agent_response(result)
 
         if response.status == Status.COMPLETED:
-            output_dir = setup_output_directory()
-            save_agent_outputs(response.model_dump(), output_dir)
+            prepared_artifacts = prepare_agent_artifacts(response.model_dump())
+            storage_backend = get_storage_backend()
+            storage_backend.save(prepared_artifacts)
 
         await cl.Message(
             content=response.message,
@@ -121,4 +122,8 @@ async def on_message(message: cl.Message):
 
 
 if __name__ == "__main__":
+    from dotenv import find_dotenv, load_dotenv
+
+    load_dotenv(find_dotenv(".default.env", usecwd=True))
+    load_dotenv(find_dotenv(".env", usecwd=True), override=True)
     chainlit.cli.run_chainlit(__file__)

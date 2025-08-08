@@ -1,5 +1,6 @@
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
+from uuid import UUID, uuid4
 
 import httpx
 import pytest
@@ -12,38 +13,6 @@ from agent_factory.utils.client_utils import (
     get_a2a_agent_card,
     process_a2a_agent_response,
 )
-from agent_factory.utils.io_utils import setup_output_directory
-
-
-def test_setup_output_directory_with_none_creates_unique_directory(tmp_path):
-    """Ensures that passing None as output_dir creates a unique directory."""
-    with patch("agent_factory.utils.io_utils.Path.cwd", return_value=tmp_path):
-        with patch("agent_factory.utils.io_utils.datetime") as mock_datetime:
-            mock_datetime.now.return_value.strftime.return_value = "2025-01-01_12:00:00"
-            with patch("agent_factory.utils.io_utils.uuid.uuid4") as mock_uuid:
-                mock_uuid.return_value.hex = "1234567890abcdef"  # pragma: allowlist secret
-
-                result = setup_output_directory()
-
-                # Check the directory structure pattern
-                assert "generated_workflows" in str(result)
-                assert "2025-01-01_12:00:00_" in str(result)
-                assert result.exists()
-
-
-def test_setup_output_directory_with_existing_dir_returns_same_dir(tmp_path):
-    """Ensures that passing an existing directory as output_dir returns the same directory."""
-    result = setup_output_directory(tmp_path)
-    assert result == tmp_path
-    assert result.exists()
-
-
-def test_setup_output_directory_creates_nonexistent_parents(tmp_path):
-    """Verifies that the function creates parent directories if they don't exist."""
-    target_dir = tmp_path / "nonexistent" / "subdir"
-    result = setup_output_directory(target_dir)
-    assert result == target_dir
-    assert result.exists()
 
 
 @pytest.mark.asyncio
@@ -122,6 +91,31 @@ def test_create_message_request_empty_string_throws_error():
         with pytest.raises(ValueError) as exc_info:
             create_message_request(message)
         assert str(exc_info.value) == expected_error
+
+
+@pytest.mark.parametrize(
+    "request_id_input, is_valid_request_id",
+    [
+        (uuid4(), True),
+        (str(uuid4()), True),
+        ("not-a-uuid", False),
+        (None, False),
+    ],
+)
+def test_create_message_request_handles_request_id(request_id_input, is_valid_request_id):
+    """Test that create_message_request handles request_id correctly."""
+    test_message = "User prompt for the agent"
+
+    expected_id = None
+    if is_valid_request_id:
+        expected_id = UUID(str(request_id_input))
+
+    request = create_message_request(test_message, request_id=request_id_input)
+
+    request_id = UUID(request.id)
+    assert isinstance(request_id, UUID)
+    if expected_id:
+        assert request_id == expected_id
 
 
 def test_process_a2a_agent_response_valid(mock_a2a_agent_response):

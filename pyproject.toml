@@ -14,6 +14,7 @@ dependencies = [
     "autoflake==2.3.1",
     "opentelemetry-instrumentation-httpx",
     "opentelemetry-instrumentation-starlette",
+    "boto3>=1.40.0",
 ]
 
 [project.urls]
