@@ -88,7 +88,7 @@ async def generate_target_agent(
 
     """
     This is how you can retrieve the trace after the generation is completed/interrupted
-    full_trace = json.loads((Path("traces") / trace_file).read_text())
+    full_trace = json.loads((TRACES_DIR / trace_file).read_text())
     """
 
 

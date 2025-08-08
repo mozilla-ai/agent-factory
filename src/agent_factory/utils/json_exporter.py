@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from any_agent.tracing.attributes import GenAI
+from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.export import SpanExporter
 from opentelemetry.trace import format_trace_id
 
@@ -9,7 +10,7 @@ KEEP_SPANS_WITH_ANY_AGENT_OPERATION_NAME = ["call_llm", "execute_tool", "invoke_
 
 
 class JsonFileSpanExporter(SpanExporter):
-    def __init__(self, output_dir):
+    def __init__(self, output_dir: str | Path = None):
         if output_dir:
             self.output_dir = Path(output_dir)
         else:
@@ -17,7 +18,7 @@ class JsonFileSpanExporter(SpanExporter):
         if not self.output_dir.exists():
             self.output_dir.mkdir(exist_ok=True, parents=True)
 
-    def export(self, spans) -> None:
+    def export(self, spans: list[ReadableSpan]) -> None:
         # File name matches how trace_id will be formatted inside the JSON
         output_file = self.output_dir / f"0x{format_trace_id(spans[0].context.trace_id)}.jsonl"
 
