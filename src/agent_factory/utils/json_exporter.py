@@ -1,8 +1,11 @@
 import json
 from pathlib import Path
 
+from any_agent.tracing.attributes import GenAI
 from opentelemetry.sdk.trace.export import SpanExporter
 from opentelemetry.trace import format_trace_id
+
+KEEP_SPANS_WITH_ANY_AGENT_OPERATION_NAME = ["call_llm", "execute_tool", "invoke_agent"]
 
 
 class JsonFileSpanExporter(SpanExporter):
@@ -21,7 +24,7 @@ class JsonFileSpanExporter(SpanExporter):
         with output_file.open("a", encoding="utf-8") as f:
             for span in spans:
                 # We don't need a2a server events in traces
-                if not span.name.startswith("a2a.server"):
+                if span.attributes.get(GenAI.OPERATION_NAME) in KEEP_SPANS_WITH_ANY_AGENT_OPERATION_NAME:
                     try:
                         f.write(span.to_json() + "\n")
                     except (json.JSONDecodeError, TypeError, AttributeError):
