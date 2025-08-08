@@ -47,7 +47,7 @@ async def generate_target_agent(
         timeout: The timeout for the request in seconds (default: 600).
     """
     with tracer.start_as_current_span("generate_target_agent") as span:
-        trace_file = f"0x{trace.format_trace_id(span.get_span_context().trace_id)}.json"
+        trace_file = f"0x{trace.format_trace_id(span.get_span_context().trace_id)}.jsonl"
 
         try:
             http_client, base_url = await create_a2a_http_client(host, port, timeout)
@@ -88,7 +88,7 @@ async def generate_target_agent(
 
     """
     This is how you can retrieve the trace after the generation is completed/interrupted
-    full_trace = json.loads((Path("traces") / trace_file).read_text())
+    full_trace = json.loads((TRACES_DIR / trace_file).read_text())
     """
 
 

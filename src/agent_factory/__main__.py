@@ -7,6 +7,7 @@ from opentelemetry.sdk.trace.export import (
     SimpleSpanProcessor,
 )
 
+from agent_factory.config import TRACES_DIR
 from agent_factory.factory_tools import read_file, search_mcp_servers
 from agent_factory.instructions import load_system_instructions
 from agent_factory.schemas import AgentFactoryOutputs
@@ -17,7 +18,7 @@ dotenv.load_dotenv()
 
 
 trace.set_tracer_provider(TracerProvider())
-span_processor = SimpleSpanProcessor(JsonFileSpanExporter("traces"))
+span_processor = SimpleSpanProcessor(JsonFileSpanExporter(TRACES_DIR))
 trace.get_tracer_provider().add_span_processor(span_processor)
 
 StarletteInstrumentor().instrument()

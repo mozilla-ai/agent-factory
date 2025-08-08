@@ -203,4 +203,4 @@ test_results
 bin/
 
 # generated traces
-src/agent_factory/traces
+traces/

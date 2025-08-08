@@ -11,6 +11,11 @@ ENV MODEL=o3
 ENV HOST=0.0.0.0
 ENV PORT=8080
 ENV LOG_LEVEL=info
+ENV TRACES_DIR=/traces
+
+# Create and set permissions for the traces directory
+RUN mkdir -p ${TRACES_DIR} && \
+    chmod 777 ${TRACES_DIR}
 
 # Define an argument for the version
 ARG APP_VERSION
