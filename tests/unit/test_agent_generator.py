@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -17,11 +18,12 @@ async def test_generate_target_agent_success(mock_agent_generator_dependencies):
     mocks["create_a2a_http_client"].assert_called_once()
     mocks["get_a2a_agent_card"].assert_called_once()
     mocks["a2a_client"].assert_called_once()
-    mocks["create_message_request"].assert_called_once_with("test message")
+    mocks["create_message_request"].assert_called_once_with("test message", request_id=None)
     mocks["a2a_client_instance"].send_message.assert_called_once()
     mocks["process_a2a_agent_response"].assert_called_once()
-    mocks["setup_output_directory"].assert_called_once()
-    mocks["save_agent_outputs"].assert_called_once()
+    mocks["prepare_agent_artifacts"].assert_called_once()
+    mocks["get_storage_backend"].assert_called_once()
+    mocks["storage_backend"].save.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -60,12 +62,15 @@ async def test_generate_target_agent_with_custom_output_dir(mock_agent_generator
     """Tests that a custom output directory is used when provided."""
     mocks = mock_agent_generator_dependencies
     mocks["process_a2a_agent_response"].return_value = MagicMock(status=Status.COMPLETED)
-    mocks["setup_output_directory"].return_value = "/custom/dir"
 
     await generate_target_agent("test message", output_dir="/custom/dir")
 
-    mocks["setup_output_directory"].assert_called_once_with("/custom/dir")
-    mocks["save_agent_outputs"].assert_called_once()
+    mocks["prepare_agent_artifacts"].assert_called_once()
+    mocks["get_storage_backend"].assert_called_once()
+    mocks["storage_backend"].save.assert_called_once()
+    # Verify that the output_dir was passed to the save function
+    args, kwargs = mocks["storage_backend"].save.call_args
+    assert args[1] == Path("/custom/dir")
 
 
 @pytest.mark.asyncio

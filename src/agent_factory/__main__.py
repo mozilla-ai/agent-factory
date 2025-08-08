@@ -1,8 +1,5 @@
 import dotenv
 import fire
-from any_agent import AgentConfig, AgentFramework, AnyAgent
-from any_agent.serving import A2AServingConfig
-from any_agent.tools import search_tavily, visit_webpage
 from opentelemetry import trace
 from opentelemetry.instrumentation.starlette import StarletteInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
@@ -44,6 +41,10 @@ async def main(
         port (int): The port for the agent server (default: 8080).
         log_level (str): The logging level (default: "info").
     """
+    from any_agent import AgentConfig, AgentFramework, AnyAgent
+    from any_agent.serving import A2AServingConfig
+    from any_agent.tools import search_tavily, visit_webpage
+
     try:
         AgentFramework[framework.upper()]
     except KeyError as err:
