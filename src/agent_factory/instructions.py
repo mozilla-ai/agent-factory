@@ -190,7 +190,7 @@ The final expected output is a dictionary with the following structure:
     installed. It will be used to generate the `requirements.txt` file:
     - The first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using `any-agent` to
       run the agent workflow.
-    - If (and only if) the `agent_code` uses `uvx` MCP server installation, include "uv" as a dependency in the
+    - If (and only if) the `tools` variable uses `uvx` runtime, include "uv" as a dependency in the
       `requirements.txt` file.
     - Do not provide specific versions for the dependencies except for `any-agent[all,a2a]` (see the above point).
 """  # noqa: E501
