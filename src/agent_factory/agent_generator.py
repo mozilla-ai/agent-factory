@@ -8,6 +8,7 @@ from dotenv import find_dotenv, load_dotenv
 from opentelemetry import trace
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
 from agent_factory.schemas import Status
 from agent_factory.utils import (
@@ -19,8 +20,11 @@ from agent_factory.utils import (
     prepare_agent_artifacts,
     process_a2a_agent_response,
 )
+from agent_factory.utils.logger_exporter import LoggerSpanExporter
 
 trace.set_tracer_provider(TracerProvider())
+span_processor = SimpleSpanProcessor(LoggerSpanExporter(logger))
+trace.get_tracer_provider().add_span_processor(span_processor)
 HTTPXClientInstrumentor().instrument()
 tracer = trace.get_tracer(__name__)
 
