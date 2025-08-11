@@ -7,7 +7,7 @@ from jinja2 import Template
 ANY_AGENT_VERSION = version("any_agent")
 
 
-CODE_EXAMPLE_WITH_COMMENTS = """
+CODE_EXAMPLE = """
 # agent.py
 
 # Always used imports
@@ -78,10 +78,6 @@ try:
 except McpdError as e:
     print(f"Error connecting to MCPD: {e}", file=sys.stderr)
 
-"""  # noqa: E501
-
-
-CODE_EXAMPLE_RUN = """
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
     "openai",
@@ -545,9 +541,7 @@ As input to the `AgentConfig`, you are required to provide the parameters `model
 `instructions`, `tools`, and `output_type`.
 You also need to specify the correct imports, which have to be consistent with the tools used by the
 agent:
-{{ code_example_with_comments }}
-
-{{ code_example_run_option }}
+{{ code_example }}
 
 ** Deliverables Instructions**
 
@@ -561,7 +555,6 @@ def load_system_instructions(chat: bool = False) -> str:
         flow_instructions=MULTI_STEP_INSTRUCTIONS if chat else SINGLE_STEP_INSTRUCTIONS,
         code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
         agent_code_template=AGENT_CODE_TEMPLATE,
-        code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
-        code_example_run_option=CODE_EXAMPLE_RUN,
+        code_example=CODE_EXAMPLE,
         deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
     )
