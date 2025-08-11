@@ -190,8 +190,7 @@ The final expected output is a dictionary with the following structure:
     installed. It will be used to generate the `requirements.txt` file:
     - The first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using `any-agent` to
       run the agent workflow.
-    - If (and only if) the `agent_code` uses `uvx` MCP server installation, include "uv" as a dependency in the
-      `requirements.txt` file.
+    - If (and only if) any of the MCP servers uses the `uvx` installation, then add "uv" as a dependency.
     - Do not provide specific versions for the dependencies except for `any-agent[all,a2a]` (see the above point).
 """  # noqa: E501
 
@@ -325,7 +324,7 @@ using Mozilla's any-agent library. The implementation should:
        which can be read using `read_file` tool. Each tool in `README.md` has a corresponding `.py`
        file in the `tools/` directory that implements the function.
     b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
-    c. MCP Servers: To discover a relevant MCP server, first use the `search_mcp_servers` tool,
+    c. MCP Servers: Always look for MCP servers using the `search_mcp_servers` tool,
        giving it a keyphrase that describes the task you want to accomplish.
        Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.
        Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
