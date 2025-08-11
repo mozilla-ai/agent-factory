@@ -15,6 +15,18 @@ CHAT ?= 0
 DOCKER_IMAGE := agent-factory
 DOCKER_CONTAINER := agent-factory-a2a
 DOCKER_TAG := latest
+DOCKER_RUN_ARGS = --rm \
+		--name $(DOCKER_CONTAINER) \
+		-p $(A2A_SERVER_LOCAL_PORT):8080 \
+		--env-file .env \
+		-e FRAMEWORK=$(FRAMEWORK) \
+		-e MODEL=$(MODEL) \
+		-e MAX_TURNS=$(MAX_TURNS) \
+		-e HOST=$(HOST) \
+		-e PORT=$(PORT) \
+		-e LOG_LEVEL=$(LOG_LEVEL) \
+		-e CHAT=$(CHAT) \
+		$(DOCKER_IMAGE):$(DOCKER_TAG)
 
 # Server Configuration
 A2A_SERVER_HOST ?= localhost
@@ -37,42 +49,21 @@ build: ## Build the Docker image for the server
 	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
 
-run: build ## Run the server interactively in the foreground
+check-env:
 	@if [ ! -f .env ]; then \
 		echo "Error: .env file not found. Please create one with your API keys."; \
 		exit 1; \
 	fi
+
+run: build check-env ## Run the server interactively in the foreground
 	@echo "Starting server interactively on http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)"
-	@docker run --rm \
-		--name $(DOCKER_CONTAINER) \
-		-p $(A2A_SERVER_LOCAL_PORT):8080 \
-		--env-file .env \
-		-e FRAMEWORK=$(FRAMEWORK) \
-		-e MODEL=$(MODEL) \
-		-e HOST=$(HOST) \
-		-e PORT=$(PORT) \
-		-e LOG_LEVEL=$(LOG_LEVEL) \
-		-e CHAT=$(CHAT) \
-		$(DOCKER_IMAGE):$(DOCKER_TAG)
+	@docker run $(DOCKER_RUN_ARGS)
 
 
-run-detached: build ## Run the server in the background (detached mode)
-	@if [ ! -f .env ]; then \
-		echo "Error: .env file not found. Please create one with your API keys."; \
-		exit 1; \
-	fi
+run-detached: build check-env ## Run the server in the background (detached mode)
 	@echo "Starting server in detached mode..."
-	@docker run -d --rm \
-		--name $(DOCKER_CONTAINER) \
-		-p $(A2A_SERVER_LOCAL_PORT):8080 \
-		--env-file .env \
-		-e FRAMEWORK=$(FRAMEWORK) \
-		-e MODEL=$(MODEL) \
-		-e HOST=$(HOST) \
-		-e PORT=$(PORT) \
-		-e LOG_LEVEL=$(LOG_LEVEL) \
-		-e CHAT=$(CHAT) \
-		$(DOCKER_IMAGE):$(DOCKER_TAG)
+	@docker run -d $(DOCKER_RUN_ARGS)
+
 
 stop: ## Stop the running Docker container
 	@if [ "$$(docker ps -q -f name=$(DOCKER_CONTAINER))" ]; then \
