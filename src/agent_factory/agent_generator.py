@@ -66,7 +66,7 @@ async def generate_target_agent(
                         logger.info("Manufacturing agent has received the message and is processing it.")
                     elif response.root.result.status.state == TaskState.working and response.root.result.status.message:
                         message_data = response.root.result.status.message.parts[0].root.data
-                        if "payload" in message_data:
+                        if message_data["event_type"] == "tool_started" and "payload" in message_data:
                             tool_call_info_to_log = {
                                 k: v for k, v in message_data["payload"].items() if k in ["name", "args"]
                             }
