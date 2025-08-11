@@ -3,7 +3,7 @@
 This page lists the available Model Context Protocol (MCP) servers that can be used with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
 
 > **⚠️ Note: This page is automatically generated, from a template and test results, and should not be manually edited.**
-> To add a new MCP server, edit the `docs/mcp-servers.json` file. Tests will be run automatically and results will be published in the table below.
+> To add a new MCP server, edit the `docs/config/mcp-servers.json` file. Tests will be run automatically and results will be published in the table below.
 
 
 ## Server Status Legend
@@ -18,10 +18,7 @@ This page lists the available Model Context Protocol (MCP) servers that can be u
 The following table provides a quick overview of tested MCP servers. For detailed information about each server, see the sections below.
 
 
-<!-- MCP_SERVERS_TABLE_START -->
-
-*Last updated: 2025-08-06T18:54:30.088231+00:00*
-*Test results: 14 working, 1 failed, 1 skipped out of 16 total servers*
+<!-- MCP_SERVERS_TABLE_START -->*Test results: 14 working, 1 failed, 1 skipped out of 16 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |
 | --- | --- | --- | --- | --- |
@@ -99,7 +96,7 @@ uv run python -m docs.scripts.generate_mcp_table
 
 We welcome contributions to expand our MCP server coverage! To add a new MCP server:
 
-1. **Edit the JSON configuration**: Add a new entry to `docs/mcp-servers.json` in the `mcpServers` object:
+1. **Edit the JSON configuration**: Add a new entry to `docs/config/mcp-servers.json` in the `mcpServers` object:
    ```json
    "new-server-name": {
      "command": "npx",

@@ -7,16 +7,6 @@ on:
         description: 'Branch to run tests on (required for manual dispatch)'
         required: true
         type: string
-  pull_request:
-    branches-ignore:
-      - main
-    paths:
-      - 'docs/mcp-servers.json'
-  push:
-    branches-ignore:
-      - main
-    paths:
-      - 'docs/mcp-servers.json'
 
 jobs:
   run-mcp-server-tests:
@@ -44,19 +34,21 @@ jobs:
         run: |
           python -m docs.scripts.test_mcp_servers
 
-      - name: Generate MCP documentation
+      - name: Generate MCP documentation and registry
         run: |
           python -m docs.scripts.generate_mcp_table
+          python -m docs.scripts.generate_mcp_registry
 
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add docs/user-guide/mcp-servers.md
+          git add docs/content/user-guide/mcp-servers.md
+          git add docs/assets/custom-registry.json
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
             echo "Committing and pushing to branch: $(git branch --show-current)"
-            git commit -m "docs(mcps): gha-update of MCP server results"
+            git commit -m "docs(mcps): gha-update of MCP server results and registry"
             git push origin HEAD
           fi

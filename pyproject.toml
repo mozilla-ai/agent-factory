@@ -50,6 +50,7 @@ docs = [
   "mkdocs",
   "mkdocs-material",
   "mkdocstrings-python",
+  "jsonschema>=4.0.0",
 ]
 
 lint = [
