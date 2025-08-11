@@ -7,6 +7,7 @@ from a2a.types import (
     AgentCard,
 )
 
+from agent_factory.config import DEFAULT_EXPORT_PATH
 from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
@@ -60,7 +61,7 @@ async def create_agent(message: cl.Message):
         if response.status == Status.COMPLETED:
             prepared_artifacts = prepare_agent_artifacts(response.model_dump())
             storage_backend = get_storage_backend()
-            storage_backend.save(prepared_artifacts)
+            storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
 
         await cl.Message(
             content=response.message,
