@@ -37,9 +37,8 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
     repo_root = Path.cwd()
     workflows_dir = repo_root / generated_workflow_dir
 
-    # Create a separate directory for file operations
-    file_ops_dir = "/app"
-    mount_workflows_dir = f"/app/{generated_workflow_dir}"
+    # The filesystem MCP server will work with the local directory directly
+    file_ops_dir = str(workflows_dir)
 
     framework = AgentFramework.OPENAI
     agent = AnyAgent.create(
@@ -51,18 +50,12 @@ def main(generated_workflow_dir: str = "generated_workflows/latest"):
                 visit_webpage,
                 search_tavily,
                 MCPStdio(
-                    command="docker",
+                    command="npx",
                     args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "--volume",
-                        "/app",
-                        # Mount workflows directory
-                        "--mount",
-                        f"type=bind,src={workflows_dir},dst={mount_workflows_dir}",
-                        "mcp/filesystem",
+                        "-y",
+                        "@modelcontextprotocol/server-filesystem",
                         file_ops_dir,
+                        ".",
                     ],
                     tools=[
                         "read_file",
