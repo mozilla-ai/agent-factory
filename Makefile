@@ -6,6 +6,7 @@
 # Default environment variables for the container
 FRAMEWORK ?= openai
 MODEL ?= o3
+MAX_TURNS ?= 40
 HOST ?= 0.0.0.0
 PORT ?= 8080
 LOG_LEVEL ?= info
