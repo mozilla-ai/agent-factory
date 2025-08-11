@@ -41,7 +41,7 @@ def test_specific_tool_used(generated_agent_code: str, prompt_id: str):
         assert "slack_list_channels" in generated_agent_code
         assert "slack_post_message" in generated_agent_code
         # SQLlite related code matching
-        assert "mcp/sqlite" in generated_agent_code
+        assert "mcp-server-sqlite" in generated_agent_code
         assert "write_query" in generated_agent_code
         assert "github_repo_evaluations" in generated_agent_code
         assert "blueprints.db" in generated_agent_code
