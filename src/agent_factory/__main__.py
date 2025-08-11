@@ -8,7 +8,7 @@ from opentelemetry.sdk.trace.export import (
 )
 
 from agent_factory.config import TRACES_DIR
-from agent_factory.factory_tools import read_file, search_mcp_servers
+from agent_factory.factory_tools import initialize_mcp_config, read_file, register_mcp_server, search_mcp_servers
 from agent_factory.instructions import load_system_instructions
 from agent_factory.schemas import AgentFactoryOutputs
 from agent_factory.utils import logger
@@ -59,8 +59,15 @@ async def main(
             model_id=model,
             instructions=load_system_instructions(chat=chat),
             description="Agent for generating agentic workflows based on user prompts.",
-            tools=[visit_webpage, search_tavily, search_mcp_servers, read_file],
             callbacks=[*get_default_callbacks(), LimitAgentTurns(max_turns=max_turns)],
+            tools=[
+                visit_webpage,
+                search_tavily,
+                search_mcp_servers,
+                read_file,
+                initialize_mcp_config,
+                register_mcp_server,
+            ],
             model_args={"tool_choice": "auto"},
             output_type=AgentFactoryOutputs,
         ),
