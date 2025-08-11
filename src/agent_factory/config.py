@@ -14,3 +14,4 @@ if not TRACES_DIR.is_absolute():
     TRACES_DIR = PROJECT_ROOT / TRACES_DIR
 
 DEFAULT_EXPORT_PATH = PROJECT_ROOT / "generated_workflows"
+DEFAULT_MCP_CONFIG_PATH = PROJECT_ROOT / ".mcpd.toml"
