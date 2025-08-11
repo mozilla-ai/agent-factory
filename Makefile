@@ -6,6 +6,7 @@
 # Default environment variables for the container
 FRAMEWORK ?= openai
 MODEL ?= o3
+MAX_TURNS ?= 40
 HOST ?= 0.0.0.0
 PORT ?= 8080
 LOG_LEVEL ?= info
@@ -49,6 +50,7 @@ run: build ## Run the server interactively in the foreground
 		--env-file .env \
 		-e FRAMEWORK=$(FRAMEWORK) \
 		-e MODEL=$(MODEL) \
+		-e MAX_TURNS=$(MAX_TURNS) \
 		-e HOST=$(HOST) \
 		-e PORT=$(PORT) \
 		-e LOG_LEVEL=$(LOG_LEVEL) \
@@ -68,6 +70,7 @@ run-detached: build ## Run the server in the background (detached mode)
 		--env-file .env \
 		-e FRAMEWORK=$(FRAMEWORK) \
 		-e MODEL=$(MODEL) \
+		-e MAX_TURNS=$(MAX_TURNS) \
 		-e HOST=$(HOST) \
 		-e PORT=$(PORT) \
 		-e LOG_LEVEL=$(LOG_LEVEL) \
