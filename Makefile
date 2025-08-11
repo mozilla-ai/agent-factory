@@ -81,6 +81,12 @@ clean: stop # Remove Docker containers and images
 # Testing
 # ====================================================================================
 
+check-prompt-id-present:
+	@if [ -z "$(PROMPT_ID)" ]; then \
+		echo "Error: PROMPT_ID is required. Usage: make $(MAKECMDGOALS) PROMPT_ID=<prompt-id> [UPDATE_ARTIFACTS=--update-artifacts]"; \
+		exit 1; \
+	fi
+
 test-unit: ## Run unit tests
 	@uv sync --quiet --group tests
 	@pytest -v tests/unit/
@@ -103,21 +109,17 @@ wait-for-server:
 	done;
 	@echo " Server is ready!"
 
-test-single-turn-generation:
-	@if [ -z "$(PROMPT_ID)" ]; then \
-		echo "Error: PROMPT_ID is required. Usage: make test-single-turn-generation PROMPT_ID=<prompt-id> [UPDATE_ARTIFACTS=--update-artifacts]"; \
-		exit 1; \
-	fi
+test-single-turn-generation: check-prompt-id-present ## Run single turn generation tests
 	@echo "Running single turn generation tests for prompt-id: $(PROMPT_ID) $(UPDATE_ARTIFACTS) ..."
 	@uv sync --quiet --group tests
 	@pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=$(PROMPT_ID) $(UPDATE_ARTIFACTS)
 
 test-single-turn-generation-local: UPDATE_ARTIFACTS=--update-artifacts
-test-single-turn-generation-local: ## Run test-single-turn-generation with already running A2A server
+test-single-turn-generation-local: check-prompt-id-present ## Run test-single-turn-generation with already running A2A server
 	@$(MAKE) wait-for-server
 	@$(MAKE) test-single-turn-generation PROMPT_ID=$(PROMPT_ID) UPDATE_ARTIFACTS=$(UPDATE_ARTIFACTS)
 
-test-single-turn-generation-e2e: ## Run all tests in a clean, automated environment (for CI)
+test-single-turn-generation-e2e: check-prompt-id-present ## Run all tests in a clean, automated environment (for CI)
 	@$(MAKE) stop
 	@$(MAKE) run-detached
 	@$(MAKE) wait-for-server
@@ -127,21 +129,13 @@ test-single-turn-generation-e2e: ## Run all tests in a clean, automated environm
 	$(MAKE) stop; \
 	exit $$EXIT_CODE
 
-test-generated-artifacts: ## Run artifact validation tests
-	@if [ -z "$(PROMPT_ID)" ]; then \
-		echo "Error: PROMPT_ID is required. Usage: make test-generated-artifacts PROMPT_ID=<prompt-id>"; \
-		exit 1; \
-	fi
+test-generated-artifacts: check-prompt-id-present ## Run artifact validation tests
 	@echo "Running artifact validation tests for prompt-id: $(PROMPT_ID)..."
 	@uv sync --quiet --group tests
 	@pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
 	@echo "Artifact validation tests completed successfully!"
 
-test-generated-artifacts-integration: ## Run artifact integration tests
-	@if [ -z "$(PROMPT_ID)" ]; then \
-		echo "Error: PROMPT_ID is required. Usage: make test-generated-artifacts-integration PROMPT_ID=<prompt-id>"; \
-		exit 1; \
-	fi
+test-generated-artifacts-integration: check-prompt-id-present ## Run artifact integration tests
 	@echo "Running artifact integration tests for prompt-id: $(PROMPT_ID)..."
 	@uv sync --quiet --group tests
 	@pytest tests/generated_artifacts/ -m artifact_integration --prompt-id=$(PROMPT_ID) -v
