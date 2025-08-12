@@ -7,23 +7,20 @@ from jinja2 import Template
 ANY_AGENT_VERSION = version("any_agent")
 
 
-CODE_EXAMPLE_WITH_COMMENTS = """
+CODE_EXAMPLE = """
 # agent.py
 
-# good to have
+# Always used imports
+import json  # noqa: I001
 import os
-
-# ALWAYS used
-import json
+import sys
 from pathlib import Path
-from any_agent.serving import A2AServingConfig
-from dotenv import load_dotenv
-from any_agent import AgentConfig, AnyAgent
-from pydantic import BaseModel, Field
-from fire import Fire
 
-# MCPStdio should be imported ONLY if MCP servers are used in AgentConfig
-from any_agent.config import MCPStdio
+from any_agent import AgentConfig, AgentRunError, AnyAgent
+from dotenv import load_dotenv
+from fire import Fire
+from mcpd import McpdClient, McpdError
+from pydantic import BaseModel, Field
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
 from any_agent.tools import visit_webpage
@@ -31,59 +28,56 @@ from tools.translate_text_with_llm import translate_text_with_llm
 
 load_dotenv()
 
+# Connect to mcpd daemon for accessing available tools
+MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
+MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
-# ========= Structured output definition =========
+# ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    url: str = Field(..., description="The URL of the webpage that was translated.")
-    source_language: str = Field(..., description="The source language detected on the webpage (should be 'English').")
-    extracted_text: str = Field(..., description="The main text content extracted from the original English webpage.")
-    translated_text: str = Field(..., description="The English text translated to Italian.")
+    url: str = Field(..., description="The original webpage URL provided by the user.")
+    source_language: str = Field(..., description="Detected language of the extracted text (expected 'English').")
+    extracted_text: str = Field(
+        ..., description="Main English content extracted from the webpage, trimmed to ~1000 tokens.")
+    translated_text: str = Field(
+        ..., description="The Italian translation of the extracted text or an abort message if source not English.")
 
 
 # ========= System Instructions =========
 INSTRUCTIONS = '''
-You are an assistant that translates the main text content of an English webpage to Italian, following this step-by-step workflow:
-1. Receive a webpage URL from the user. Visit the page and extract the primary and most relevant English text content. Focus on body content, main text, and important sections. Exclude navigation bars, headings not part of the content, footers, advertisements, and non-informational elements. Make sure the extracted text is concise but comprehensive and represents the actual page content.
-2. Identify and confirm that the detected source language is English. If the page is not in English, halt and output the detected language and a clear message in 'translated_text'.
+You are an assistant that translates the main text content of an English webpage to Italian, following this step-by-step
+workflow:
+1. Receive a webpage URL from the user. Visit the page and extract the primary and most relevant English text content.
+   Focus on body content, main text, and important sections. Exclude navigation bars, headings not part of the content,
+   footers, advertisements, and non-informational elements. Make sure the extracted text is concise but comprehensive
+   and represents the actual page content.
+2. Identify and confirm that the detected source language is English. If the page is not in English, halt and output the
+   detected language and a clear message in 'translated_text'.
 3. Use the translation tool to translate the extracted English text into fluent Italian.
 4. Your output must be a structured JSON object with these fields:
    - url: the provided webpage URL
    - source_language: the detected primary language (should be English)
    - extracted_text: the main English content you extracted
    - translated_text: your Italian translation of the extracted text
-Limit the output to 1000 tokens if the page is very long. Ensure the translation is accurate and clear. Do not make up or hallucinate content.
+Limit the output to 1000 tokens if the page is very long. Ensure the translation is accurate and clear. Do not make up
+or hallucinate content.
 '''
 
-
+# ========== Tools definition ===========
 TOOLS = [
-    visit_webpage,                # To fetch and extract page text
-    translate_text_with_llm,      # To translate extracted text
-    MCPStdio(                     # To search results on the web
-        command="docker",
-        args=[
-            "run",
-            "-i",
-            "--rm",
-            "-e",
-            "BRAVE_API_KEY",
-            "mcp/brave-search",
-        ],
-        # Specify necessary environment variables
-        env={
-            "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-        },
-        # From among the tools available from the MCP server
-        # list only the tools that are necessary for the solving the task at hand
-        tools=[
-            "brave_web_search",
-        ],
-    ),
+    visit_webpage,              # fetches and returns webpage content as markdown
+    translate_text_with_llm,    # translates arbitrary text to a specified target language
 ]
 
-"""  # noqa: E501
+# Connect to any running MCP servers via mcpd
+try:
+    mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
+    mcp_server_tools = mcpd_client.agent_tools()
+    if not mcp_server_tools:
+        print("No tools found via mcpd.")
+    TOOLS.extend(mcp_server_tools)
+except McpdError as e:
+    print(f"Error connecting to mcpd: {e}", file=sys.stderr)
 
-
-CODE_EXAMPLE_RUN = """
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
     "openai",
@@ -91,7 +85,7 @@ agent = AnyAgent.create(
         model_id="o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
-        output_type=StructuredOutput,
+        output_type=StructuredOutput,  # name of the Pydantic v2 model defined above
         model_args={"tool_choice": "auto"},
     ),
 )
@@ -99,21 +93,47 @@ agent = AnyAgent.create(
 
 def main(url: str):
     \"\"\"
-    Given a webpage URL, translate its main English content to Italian,
-    and return structured output.
+    Given a webpage URL, translate its main English content to Italian, and return structured output.
     \"\"\"
     input_prompt = f"Translate the main text content from the following English webpage URL to Italian: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
         agent_trace = e.trace
-        print(f"Agent execution failed: {{str(e)}}")
+        print(f"Agent execution failed: {str(e)}")
         print("Retrieved partial agent trace...")
 
+    # Extract cost information (with error handling)
+    try:
+        cost_info = agent_trace.cost
+        if cost_info.total_cost > 0:
+            cost_msg = (
+                f"input_cost=${cost_info.input_cost:.6f} + "
+                f"output_cost=${cost_info.output_cost:.6f} = "
+                f"${cost_info.total_cost:.6f}"
+            )
+            print(cost_msg)
+    except Exception:
+        class DefaultCost:
+            input_cost = 0.0
+            output_cost = 0.0
+            total_cost = 0.0
+        cost_info = DefaultCost()
+
+    # Create enriched trace data with costs as separate metadata
     script_dir = Path(__file__).resolve().parent
     output_path = script_dir / "agent_eval_trace.json"
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(agent_trace.model_dump_json(indent=2))
+
+    # Prepare the trace data with costs
+    trace_data = agent_trace.model_dump()
+    trace_data["execution_costs"] = {
+        "input_cost": cost_info.input_cost,
+        "output_cost": cost_info.output_cost,
+        "total_cost": cost_info.total_cost
+    }
+
+    with output_path.open("w", encoding="utf-8") as f:
+        f.write(json.dumps(trace_data, indent=2))
 
     return agent_trace.final_output
 
@@ -163,7 +183,8 @@ The final expected output is a dictionary with the following structure:
 4. `agent_instructions` is a string that will be assigned to the `INSTRUCTIONS` variable in the template (type: str).
    This string replaces the {{agent_instructions}} placeholder in the agent code template.
 5. `tools` is Python code that assigns the `TOOLS` variable with the list of tools required by the generated agent.
-   This code replaces the {{tools}} placeholder in the agent code template.
+   This code replaces the {{tools}} placeholder in the agent code template. If only MCP servers are used, this list
+   should be empty.
 6. `structured_outputs` is Python code that defines the class `StructuredOutput(BaseModel)` defining the agent's output
    schema as a Pydantic v2 model. While you can build many Pydantic v2 models to create a hierarchy, the final class
    that defines the structured output of the agent should be named `StructuredOutput`.
@@ -176,44 +197,100 @@ The final expected output is a dictionary with the following structure:
 9. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to
     the generated agent.
     This string replaces the {{prompt_template}} placeholder in the agent code template.
-10. `readme` should contain clear and concise setup instructions:
-    - Environment variables: Instruct the user to create a `.env` file to set environment variables; specify exactly
-      which environment variables are required
-    - Always include the following instructions to install Python package manager `uv` (the end user decides which
-      command to run based on their OS):
-        - for MacOS and Linux users: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-        - for Windows users: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
-    - Run instructions for `agent.py` using `uv run` with specification of `requirements.txt` and Python 3.13:
-      `uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1 "value1"`
+10. `readme` should contain clear and concise setup instructions. Follow this template:
+    ```markdown
+    # Title of the Agent
+
+    A short summary of the agent's purpose and functionality.
+
+    # Prerequisites
+
+    - uv
+    - mcpd
+
+    ## Install uv
+
+    - **macOS / Linux**
+        ```bash
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        ```
+    - **Windows PowerShell**
+    ```powershell
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+    ```
+
+    ## Install mcpd
+
+    Follow the mcpd installation instructions in the official documentation: https://mozilla-ai.github.io/mcpd/installation/
+
+    # Configuration
+
+    Instruct the user to create a `.env` file to set environment variables; specify exactly which environment variables
+    are required, e.g., OPENAI_API_KEY.
+
+    Also, set the requirement arguments of environment files for the MCP Server only if you've chosen to use MCP
+    servers. otherwise skip to the "Run the Agent" section:
+
+    - If the MCP server expects a specific argument or flag, use the following command:
+    ```bash
+    mcpd config args set <server-name> --runtime-file secrets.dev.toml -- --arg=value [--arg=value ...] [flags]
+    ```
+
+    - If the MCP server expects a specific environment variable, use the following command:
+    ```bash
+    mcpd config env set <server-name> --runtime-file secrets.dev.toml KEY=VALUE [KEY=VALUE ...] [flags]
+    ```
+
+    Give the user only the necessary command based on the MCP server's requirements.
+
+    # Run the Agent
+
+    Add the following step only if you've chosen to use an MCP server:
+    1. Run the mcpd daemon:
+    ```bash
+    mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.dev.toml
+    ```
+
+    2. Run the agent:
+    ```bash
+    uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1 "value1"
+    ```
+
+    ```
     It will be used to generate the `README.md` file, so it should be in Markdown format.
 11. `dependencies` should list all the python libraries (including the ones required by the tools) as dependencies to be
     installed. It will be used to generate the `requirements.txt` file:
     - The first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using `any-agent` to
       run the agent workflow.
-    - If (and only if) any of the MCP servers uses the `uvx` installation, then add "uv" as a dependency.
-    - Do not provide specific versions for the dependencies except for `any-agent[all,a2a]` (see the above point).
+    - The second line should be the "mcpd>=0.0.1" dependency, since we are using mcpd to manage MCP servers.
+    - Do not provide specific versions for the dependencies except for `any-agent[all,a2a]` and `mcpd` (see the above
+      point).
 """  # noqa: E501
 
 
 AGENT_CODE_TEMPLATE = """
 # agent.py
 
-# good to have
+# Always used imports
+import json  # noqa: I001
 import os
-
-# ALWAYS used
-import json
+import sys
 from pathlib import Path
-from any_agent.serving import A2AServingConfig
+
+from any_agent import AgentConfig, AgentRunError, AnyAgent
 from dotenv import load_dotenv
-from any_agent import AgentConfig, AnyAgent, AgentRunError
-from pydantic import BaseModel, Field
 from fire import Fire
+from mcpd import McpdClient, McpdError
+from pydantic import BaseModel, Field
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
 {imports}
 
 load_dotenv()
+
+# Connect to mcpd daemon for accessing available tools
+MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
+MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
 # ========== Structured output definition ==========
 {structured_outputs}
@@ -225,6 +302,15 @@ INSTRUCTIONS='''
 
 # ========== Tools definition ===========
 {tools}
+
+try:
+    mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
+    mcp_server_tools = mcpd_client.agent_tools()
+    if not mcp_server_tools:
+        print("No tools found via mcpd.")
+    TOOLS.extend(mcp_server_tools)
+except McpdError as e:
+    print(f"Error connecting to mcpd: {{e}}", file=sys.stderr)
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
@@ -278,7 +364,7 @@ def main({cli_args}):
         "total_cost": cost_info.total_cost
     }}
 
-    with open(output_path, "w", encoding="utf-8") as f:
+    with output_path.open("w", encoding="utf-8") as f:
         f.write(json.dumps(trace_data, indent=2))
 
     return agent_trace.final_output
@@ -327,7 +413,6 @@ using Mozilla's any-agent library. The implementation should:
     c. MCP Servers: Always look for MCP servers using the `search_mcp_servers` tool,
        giving it a keyphrase that describes the task you want to accomplish.
        Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.
-       Each MCP has a configuration that must be accurately implemented in the agent configuration via MCPStdio().
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
        If the agent is required to generate any intermediate files, you may ask it to save them in a path relative to the current working directory (do not give absolute paths).
        You must never import or assign `search_mcp_servers` to the tools list of the generated agent in `agent_code`.
@@ -366,6 +451,11 @@ You will be provided with a task description and a set of tools to use. Read the
 understand what the user wants you to do. Read the following instructions and code examples, and then generate the agent
 code that will solve the task. Fill the `message` field with a confirmation saying "✅ Done! Your agent is ready!", and
 set `status` to `completed`.
+
+If you have selected to make MCP servers available to the agent, follow the steps below:
+   a. Call the `initialize_mcp_config` tool, with the default `config_path` to initialize the MCP configuration.
+   b. Register the required MCP servers using the `register_mcp_server` tool, using the default `config_path` and
+      providing the necessary parameters (e.g., `name`, `version`, `tools`).
 """
 
 
@@ -412,11 +502,15 @@ steps to follow to generate the agent code, in order:
    not confirm your plan, you can either ask for clarification or amend your plan by filling the
    `message` field with your amended plan, and set `status` to `input_required`. In the second case,
    this should be the response you will return to the user.
-4. If you are ready to generate the agent code, you can fill the `message` field with a confirmation
-   saying "✅ Done! Your agent is ready!", and set `status` to `completed`. Also fill the
-   `agent_instructions`, `tools`, `imports`, `structured_outputs`, `cli_args`, `agent_description`, `prompt_template`,
-   `readme`, and `dependencies` fields with the appropriate values. This should be the response you will
-   return to the user.
+5. If you are ready to generate the agent code, follow the steps below:
+   1. If you have selected to make MCP servers available to the agent, follow the steps below:
+      a. Call the `initialize_mcp_config` tool, with the default `config_path` to initialize the MCP configuration.
+      b. Register the required MCP servers using the `register_mcp_server` tool, using the default `config_path` and
+         providing the necessary parameters (e.g., `name`, `version`, `tools`).
+   2. Fill the `message` field with a confirmation saying "✅ Done! Your agent is ready!", and set `status` to
+      `completed`. Fill the `agent_instructions`, `tools`, `imports`, `structured_outputs`, `cli_args`,
+      `agent_description`, `prompt_template`, `readme`, and `dependencies` fields with the appropriate values. If only
+      MCP servers are used, the `tools` list should be empty. This should be the response you will return to the user.
 
 General notes:
 - Always format the `message` field in Markdown format, so that it is easy to read and understand.
@@ -447,9 +541,7 @@ As input to the `AgentConfig`, you are required to provide the parameters `model
 `instructions`, `tools`, and `output_type`.
 You also need to specify the correct imports, which have to be consistent with the tools used by the
 agent:
-{{ code_example_with_comments }}
-
-{{ code_example_run_option }}
+{{ code_example }}
 
 ** Deliverables Instructions**
 
@@ -463,7 +555,6 @@ def load_system_instructions(chat: bool = False) -> str:
         flow_instructions=MULTI_STEP_INSTRUCTIONS if chat else SINGLE_STEP_INSTRUCTIONS,
         code_generation_instructions=CODE_GENERATION_INSTRUCTIONS,
         agent_code_template=AGENT_CODE_TEMPLATE,
-        code_example_with_comments=CODE_EXAMPLE_WITH_COMMENTS,
-        code_example_run_option=CODE_EXAMPLE_RUN,
+        code_example=CODE_EXAMPLE,
         deliverables_instructions=DELIVERABLES_INSTRUCTIONS,
     )
