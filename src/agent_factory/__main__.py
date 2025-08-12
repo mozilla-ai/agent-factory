@@ -1,17 +1,27 @@
 import dotenv
 import fire
-from any_agent import AgentConfig, AgentFramework, AnyAgent
-from any_agent.callbacks import get_default_callbacks
-from any_agent.serving import A2AServingConfig
-from any_agent.tools import search_tavily, visit_webpage
+from opentelemetry import trace
+from opentelemetry.instrumentation.starlette import StarletteInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (
+    SimpleSpanProcessor,
+)
 
-from agent_factory.callbacks import LimitAgentTurns
+from agent_factory.config import TRACES_DIR
 from agent_factory.factory_tools import read_file, search_mcp_servers
 from agent_factory.instructions import load_system_instructions
 from agent_factory.schemas import AgentFactoryOutputs
 from agent_factory.utils import logger
+from agent_factory.utils.json_exporter import JsonFileSpanExporter
 
 dotenv.load_dotenv()
+
+
+trace.set_tracer_provider(TracerProvider())
+span_processor = SimpleSpanProcessor(JsonFileSpanExporter(TRACES_DIR))
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+StarletteInstrumentor().instrument()
 
 
 async def main(
@@ -34,12 +44,12 @@ async def main(
         port (int): The port for the agent server
         log_level (str): The logging level
     """
-    try:
-        AgentFramework[framework.upper()]
-    except KeyError as err:
-        raise ValueError(
-            f"Invalid framework '{framework}'. Allowed values are: {[f.name.lower() for f in AgentFramework]}"
-        ) from err
+    from any_agent import AgentConfig, AnyAgent
+    from any_agent.callbacks import get_default_callbacks
+    from any_agent.serving import A2AServingConfig
+    from any_agent.tools import search_tavily, visit_webpage
+
+    from agent_factory.callbacks import LimitAgentTurns
 
     logger.info(f"Starting the server in {'chat' if chat else 'non-chat'} mode.")
 
