@@ -20,6 +20,7 @@ DOCKER_RUN_ARGS = --rm \
 		--name $(DOCKER_CONTAINER) \
 		-p $(A2A_SERVER_LOCAL_PORT):8080 \
 		--env-file .env \
+		-v $(shell pwd)/traces:/traces \
 		-e FRAMEWORK=$(FRAMEWORK) \
 		-e MODEL=$(MODEL) \
 		-e MAX_TURNS=$(MAX_TURNS) \

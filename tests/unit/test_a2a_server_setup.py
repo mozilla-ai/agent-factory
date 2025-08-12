@@ -8,7 +8,7 @@ from agent_factory.callbacks import LimitAgentTurns
 
 
 @pytest.mark.asyncio
-@patch("agent_factory.__main__.AnyAgent.create_async")
+@patch("any_agent.AnyAgent.create_async")
 async def test_agent_created_with_specified_callbacks(mock_create_async):
     """Test that the agent is created with the default + specified callbacks."""
     mock_agent = AsyncMock()

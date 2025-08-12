@@ -5,6 +5,9 @@ import fire
 import httpx
 from a2a.client import A2ACardResolver, A2AClient
 from dotenv import find_dotenv, load_dotenv
+from opentelemetry import trace
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
 
 from agent_factory.schemas import Status
 from agent_factory.utils import (
@@ -16,6 +19,10 @@ from agent_factory.utils import (
     prepare_agent_artifacts,
     process_a2a_agent_response,
 )
+
+trace.set_tracer_provider(TracerProvider())
+HTTPXClientInstrumentor().instrument()
+tracer = trace.get_tracer(__name__)
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
@@ -39,45 +46,50 @@ async def generate_target_agent(
         port: The port for the agent server (default: 8080).
         timeout: The timeout for the request in seconds (default: 600).
     """
-    try:
-        http_client, base_url = await create_a2a_http_client(host, port, timeout)
-        async with http_client as client:
-            resolver = A2ACardResolver(httpx_client=client, base_url=base_url)
-            agent_card = await get_a2a_agent_card(resolver)
+    with tracer.start_as_current_span("generate_target_agent") as span:
+        trace_file = f"0x{trace.format_trace_id(span.get_span_context().trace_id)}.jsonl"
 
-            # Initialize client and send message
-            client = A2AClient(httpx_client=client, agent_card=agent_card)
-            logger.info("A2AClient initialized.")
+        try:
+            http_client, base_url = await create_a2a_http_client(host, port, timeout)
+            async with http_client as client:
+                resolver = A2ACardResolver(httpx_client=client, base_url=base_url)
+                agent_card = await get_a2a_agent_card(resolver)
 
-            # request_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
-            request = create_message_request(message, request_id=request_id)
-            response = await client.send_message(request, http_kwargs={"timeout": timeout})
+                client = A2AClient(httpx_client=client, agent_card=agent_card)
+                logger.info("A2AClient initialized.")
+                logger.info(f"Trace will be saved to {trace_file}")
 
-            # Process response
-            response = process_a2a_agent_response(response)
-            if response.status == Status.COMPLETED:
-                prepared_artifacts = prepare_agent_artifacts(response.model_dump())
-                output_dir = output_dir if output_dir else request.id
-                storage_backend = get_storage_backend()
-                logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
-                storage_backend.save(prepared_artifacts, Path(output_dir))
-            elif response.status == Status.INPUT_REQUIRED:
-                logger.info(
-                    f"Please try again and be more specific with your request. Agent's response: {response.message}"
-                )
-            else:
-                logger.error(f"Agent encountered an error: {response.message}")
-                raise Exception(f"Agent encountered an error: {response.message}")
+                # request_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
+                request = create_message_request(message, request_id=request_id)
+                response = await client.send_message(request, http_kwargs={"timeout": timeout})
+                response = process_a2a_agent_response(response)
+                if response.status == Status.COMPLETED:
+                    prepared_artifacts = prepare_agent_artifacts(response.model_dump())
+                    output_dir = output_dir if output_dir else request.id
+                    storage_backend = get_storage_backend()
+                    logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
+                    storage_backend.save(prepared_artifacts, Path(output_dir))
+                elif response.status == Status.INPUT_REQUIRED:
+                    logger.info(
+                        f"Please try again and be more specific with your request. Agent's response: {response.message}"
+                    )
+                else:
+                    logger.error(f"Agent encountered an error: {response.message}")
+                    raise Exception(f"Agent encountered an error: {response.message}")
+        except httpx.ConnectError as e:
+            logger.error(f"Failed to connect to the agent server at {host}:{port}. Error: {e}")
+            raise RuntimeError(f"Connection to agent server failed: {e}") from e
+        except httpx.TimeoutException as e:
+            logger.error(f"Request to the agent server timed out after {timeout} seconds. Error: {e}")
+            raise RuntimeError(f"Request to agent server timed out: {e}") from e
+        except Exception as e:
+            logger.error(f"An unexpected error occurred during agent generation: {e}")
+            raise
 
-    except httpx.ConnectError as e:
-        logger.error(f"Failed to connect to the agent server at {host}:{port}. Error: {e}")
-        raise RuntimeError(f"Connection to agent server failed: {e}") from e
-    except httpx.TimeoutException as e:
-        logger.error(f"Request to the agent server timed out after {timeout} seconds. Error: {e}")
-        raise RuntimeError(f"Request to agent server timed out: {e}") from e
-    except Exception as e:
-        logger.error(f"An unexpected error occurred during agent generation: {e}")
-        raise
+    """
+    This is how you can retrieve the trace after the generation is completed/interrupted
+    full_trace = json.loads((TRACES_DIR / trace_file).read_text())
+    """
 
 
 def main():
