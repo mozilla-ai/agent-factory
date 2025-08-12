@@ -72,7 +72,7 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["all", "a2a"], specifier = "==1.0.0" },
+    { name = "any-agent", extras = ["all", "a2a"], specifier = "==1.0.1" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "boto3", specifier = ">=1.40.0" },
     { name = "dotenv", specifier = ">=0.9.9" },
@@ -240,7 +240,7 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "1.0.0"
+version = "1.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "duckduckgo-search" },
@@ -254,9 +254,9 @@ dependencies = [
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/62/bb/49df971614ccdc3d5b4447339cd4aa82fc647590f764eea579675fdbdaf1/any_agent-1.0.0.tar.gz", hash = "sha256:d1bf5c777f1172b2b03496a0ab97d085bc1a5ad74dd0868128da0fc8dfc35258", size = 364526, upload-time = "2025-07-22T12:24:02.797Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/32/c010d21b4870cea628acbfd48a8e73214746e3627f8ab83614d3cd08ebb6/any_agent-1.0.1.tar.gz", hash = "sha256:b49853bc4c8b4ff0fd1cdb8f0193fb2f6f64725f33105a2436ce709a4e9bedb4", size = 364281, upload-time = "2025-07-24T12:50:26.497Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/76/92c87a58796c7ee408cdf9801fd2cbb6aaeb07331f6fad52dcf227231732/any_agent-1.0.0-py3-none-any.whl", hash = "sha256:5ef797e46a43ba9a8dd4e9aaddf265762f41a0eafd4aea2d2a90250ed0eae442", size = 104254, upload-time = "2025-07-22T12:24:01.3Z" },
+    { url = "https://files.pythonhosted.org/packages/3b/21/5365f9dea8d487079bd186984992db2ba499dc37e6abafbb6257a9b8895f/any_agent-1.0.1-py3-none-any.whl", hash = "sha256:6411bccb09c0862c32b707b9a60af35680bfb567bf00de1f3f7b6328445605ea", size = 104608, upload-time = "2025-07-24T12:50:24.708Z" },
 ]
 
 [package.optional-dependencies]
