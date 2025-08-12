@@ -40,6 +40,7 @@ dependencies = [
     { name = "boto3" },
     { name = "dotenv" },
     { name = "fire" },
+    { name = "litellm" },
     { name = "loguru" },
     { name = "mcpm" },
     { name = "opentelemetry-instrumentation-httpx" },
@@ -88,6 +89,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.40.0" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = "~=0.7.0" },
+    { name = "litellm", specifier = "<1.75.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mcpm", specifier = ">=1.0.3" },
     { name = "opentelemetry-instrumentation-httpx" },
@@ -1755,7 +1757,7 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.75.3"
+version = "1.74.15.post2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1770,10 +1772,7 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/09/98/ea40c48fda5121af00e44c9c6d01a0cd8cb9987bb0ce91c6add917d9db9d/litellm-1.75.3.tar.gz", hash = "sha256:a6a0f33884f35a9391a9a4363043114d7f2513ab2e5c2e1fa54c56d695663764", size = 10104437 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/dd/1e/8ef7e7ac7d33f900ae44e9e3a33d668783034e414aa4d7191ae3e4068ec5/litellm-1.75.3-py3-none-any.whl", hash = "sha256:0ff3752b1f1c07f8a4b9a364b1595e2147ae640f1e77cd8312e6f6a5ca0f34ec", size = 8870578 },
-]
+sdist = { url = "https://files.pythonhosted.org/packages/8b/03/2a89d9280f595fe293c64adcc3bfbefe7a3677ec0210d293bfac63ae17dc/litellm-1.74.15.post2.tar.gz", hash = "sha256:8eddb1c8a6a5a7048f8ba16e652aba23d6ca996dd87cb853c874ba375aa32479", size = 9713752 }
 
 [[package]]
 name = "literalai"

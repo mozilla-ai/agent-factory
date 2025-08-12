@@ -15,6 +15,7 @@ dependencies = [
     "opentelemetry-instrumentation-httpx",
     "opentelemetry-instrumentation-starlette",
     "boto3>=1.40.0",
+    "litellm<1.75.0",
 ]
 
 [project.urls]
