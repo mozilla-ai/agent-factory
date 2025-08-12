@@ -134,6 +134,7 @@ jobs:
       - name: Run Generated Artifacts Integration tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ELEVENLABS_API_KEY: "mock" # pragma: allowlist secret
         run: |
           PROMPT_IDS=(
             url-to-podcast
