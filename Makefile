@@ -85,7 +85,7 @@ clean: stop # Remove Docker containers and images
 
 check-prompt-id-present:
 	@if [ -z "$(PROMPT_ID)" ]; then \
-		echo "Error: PROMPT_ID is required. Usage: make $(MAKECMDGOALS) PROMPT_ID=<prompt-id> [UPDATE_ARTIFACTS=--update-artifacts]"; \
+		echo "Error: PROMPT_ID is required. Usage: make $(MAKECMDGOALS) PROMPT_ID=<prompt-id>"; \
 		exit 1; \
 	fi
 
