@@ -48,8 +48,12 @@ def mock_agent_generator_dependencies():
         mock_http_client = AsyncMock()
         mock_create_a2a_http_client.return_value = (mock_http_client, "http://localhost:8080")
         mock_get_a2a_agent_card.return_value = MagicMock()
-        mock_a2a_client_instance = MagicMock(spec=["send_message"])
-        mock_a2a_client_instance.send_message = AsyncMock()
+        mock_a2a_client_instance = MagicMock(spec=["send_message", "send_message_streaming"])
+
+        async def async_generator():
+            yield MagicMock()
+
+        mock_a2a_client_instance.send_message_streaming.return_value = async_generator()
         mock_a2a_client.return_value = mock_a2a_client_instance
         mock_storage_backend = MagicMock()
         mock_get_storage_backend.return_value = mock_storage_backend

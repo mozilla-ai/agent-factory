@@ -19,7 +19,7 @@ async def test_generate_target_agent_success(mock_agent_generator_dependencies):
     mocks["get_a2a_agent_card"].assert_called_once()
     mocks["a2a_client"].assert_called_once()
     mocks["create_message_request"].assert_called_once_with("test message", request_id=None)
-    mocks["a2a_client_instance"].send_message.assert_called_once()
+    mocks["a2a_client_instance"].send_message_streaming.assert_called_once()
     mocks["process_a2a_agent_response"].assert_called_once()
     mocks["prepare_agent_artifacts"].assert_called_once()
     mocks["get_storage_backend"].assert_called_once()
