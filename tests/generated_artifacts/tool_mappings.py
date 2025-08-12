@@ -1,4 +1,11 @@
-from generated_artifacts.tool_mocks import mock_extract_text_from_url, mock_text_to_speech
+from any_agent.config import MCPStdio
+from generated_artifacts.tool_mocks import (
+    mock_extract_text_from_url,
+    mock_slack_list_channels,
+    mock_slack_post_message,
+    mock_sqlite_write_query,
+    mock_text_to_speech,
+)
 from generated_artifacts.tool_validations import no_docker_mcp
 
 from agent_factory.utils.logging import logger
@@ -8,20 +15,55 @@ TOOL_MOCKS = [
     {
         "prompt_id": "url-to-podcast",  # mocks can be specific to a use-case (identified by its prompt_id)
         "type": "MCPStdio",  # Tool type: 'mcp' for MCPStdio tools, 'function' for regular functions
-        "match_condition": "mcp/elevenlabs",  # String to match in tool args (for MCP) or function name (for functions)
+        "match_condition": {
+            "args": "mcp/elevenlabs",  # this string appears in the MCP args (server name usually)
+            "tools": "text_to_speech",  # this string appears in the tool name
+        },
         "mock_function": mock_text_to_speech,
     },
     {
         "prompt_id": "url-to-podcast",
         "type": "MCPStdio",
-        "match_condition": "elevenlabs-mcp",  # this string appears as args of uvx MCP (previous one was docker)
+        "match_condition": {
+            "args": "elevenlabs-mcp",
+            "tools": "text_to_speech",
+        },
         "mock_function": mock_text_to_speech,
     },
     {
         "prompt_id": "url-to-podcast",
         "type": "function",
-        "match_condition": "extract_text_from_url",  # this string appears as function name
+        "match_condition": {
+            "name": "extract_text_from_url",  # this string appears in the function name
+        },
         "mock_function": mock_extract_text_from_url,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "type": "MCPStdio",
+        "match_condition": {
+            "args": "modelcontextprotocol/server-slack",
+            "tools": "slack_list_channels",
+        },
+        "mock_function": mock_slack_list_channels,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "type": "MCPStdio",
+        "match_condition": {
+            "args": "modelcontextprotocol/server-slack",
+            "tools": "slack_post_message",
+        },
+        "mock_function": mock_slack_post_message,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "type": "MCPStdio",
+        "match_condition": {
+            "args": "mcp-server-sqlite",
+            "tools": "write_query",
+        },
+        "mock_function": mock_sqlite_write_query,
     },
 ]
 
@@ -42,58 +84,77 @@ TOOL_VALIDATIONS = [
 # ----------------------------------------------------------------------------
 
 
-def find_matching_validation(tool, tool_type_checker, prompt_id):
+def find_matching_validation(tool, prompt_id):
     """Find a matching validation for the given tool.
 
     Args:
         tool: The tool to check
-        tool_type_checker: Function that takes (tool, type_name) and returns True if tool matches type
+        prompt_id: The prompt_id used to filter matching configurations
 
     Returns:
-        Validation function if found, None otherwise
+        List of validation functions if found, None otherwise
     """
-    for val_config in TOOL_VALIDATIONS:
-        tool_type = val_config["type"]
-        match_prompt_id = val_config.get("prompt_id", None)
+    vals_for_this_prompt = [
+        mock_config
+        for mock_config in TOOL_VALIDATIONS
+        if not mock_config.get("prompt_id", None) or mock_config.get("prompt_id") == prompt_id
+    ]
 
-        if match_prompt_id and prompt_id != match_prompt_id:
-            continue
+    vals = []
+    if isinstance(tool, MCPStdio):
+        filtered_vals = [val for val in vals_for_this_prompt if val["type"] == "MCPStdio"]
+        for val_config in filtered_vals:
+            logger.debug(f"Found matching validation function for {prompt_id}/{val_config['type']}")
+            vals.append(val_config["validation_function"])
 
-        if tool_type_checker(tool, tool_type):
-            logger.debug(f"Found matching validation function for {match_prompt_id}/{tool_type}")
-            return val_config["validation_function"]
+    elif callable(tool) and hasattr(tool, "__name__"):
+        filtered_vals = [val for val in vals_for_this_prompt if val["type"] == "function"]
+        for val_config in filtered_vals:
+            logger.debug(f"Found matching validation function for {prompt_id}/{val_config['type']}")
+            vals.append(val_config["validation_function"])
 
-    return None
+    return vals
 
 
-def find_matching_mock(tool, tool_type_checker, prompt_id):
+def find_matching_mock(tool, prompt_id):
     """Find a matching mock for the given tool.
 
     Args:
         tool: The tool to check
-        tool_type_checker: Function that takes (tool, type_name) and returns True if tool matches type
+        prompt_id: The prompt_id used to filter matching configurations
 
     Returns:
-        Mock function if found, None otherwise
+        List of mock functions if found, None otherwise
     """
-    for mock_config in TOOL_MOCKS:
-        tool_type = mock_config["type"]
-        match_condition = mock_config["match_condition"]
-        match_prompt_id = mock_config.get("prompt_id", None)
+    mocks_for_this_prompt = [
+        mock_config
+        for mock_config in TOOL_MOCKS
+        if not mock_config.get("prompt_id", None) or mock_config.get("prompt_id") == prompt_id
+    ]
 
-        if match_prompt_id and prompt_id != match_prompt_id:
-            continue
+    mocks = []
+    if isinstance(tool, MCPStdio):
+        # if the tool is an MCPStdio server, iterate on its tools and
+        # try to match each of them with the available mocks
+        filtered_tool_mocks = [mock for mock in mocks_for_this_prompt if mock["type"] == "MCPStdio"]
 
-        if tool_type == "MCPStdio":
-            # Check if it's an MCP tool with matching args
-            if tool_type_checker(tool, tool_type) and any(match_condition in str(arg) for arg in tool.args):
-                logger.debug(f"Found matching MCP mock for: {match_condition}")
-                return mock_config["mock_function"]
+        for mcp_tool in tool.tools:
+            for mock_config in filtered_tool_mocks:
+                match_condition = mock_config["match_condition"]
 
-        elif tool_type == "function":
-            # Check if it's a function with matching name
-            if tool_type_checker(tool, tool_type) and hasattr(tool, "__name__") and match_condition in tool.__name__:
+                if any(match_condition["args"] in str(arg) for arg in tool.args) and match_condition["tools"] in str(
+                    mcp_tool
+                ):
+                    logger.debug(f"Found matching MCP mock for: {match_condition}")
+                    mocks.append(mock_config["mock_function"])
+
+    # as we match the mock to (a substring of) the function name, we expect the function to have one
+    elif callable(tool) and hasattr(tool, "__name__"):
+        filtered_tool_mocks = [mock for mock in mocks_for_this_prompt if mock["type"] == "function"]
+        for mock_config in filtered_tool_mocks:
+            match_condition = mock_config["match_condition"]
+            if match_condition["name"] in tool.__name__:
                 logger.debug(f"Found matching function mock for: {match_condition}")
-                return mock_config["mock_function"]
+                mocks.append(mock_config["mock_function"])
 
-    return None
+    return mocks
