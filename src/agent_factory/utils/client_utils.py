@@ -6,7 +6,8 @@ from uuid import UUID, uuid4
 
 import httpx
 from a2a.client import A2ACardResolver
-from a2a.types import AgentCard, MessageSendParams, SendStreamingMessageRequest
+from a2a.types import AgentCard, MessageSendParams, SendStreamingMessageRequest, TaskState
+from any_agent.tracing.attributes import GenAI
 
 from agent_factory.schemas import AgentFactoryOutputs
 from agent_factory.utils.logging import logger
@@ -59,12 +60,53 @@ def create_message_request(
     return SendStreamingMessageRequest(id=request_id.hex, params=MessageSendParams(**send_message_payload))
 
 
-def process_a2a_agent_response(response: Any) -> AgentFactoryOutputs:
-    """Process the response from the agent."""
+def process_a2a_agent_final_response(response: Any) -> AgentFactoryOutputs:
+    """Process the final response from the agent."""
     logger.info(response.model_dump(mode="json", exclude_none=True))
     response_data = json.loads(response.root.result.status.message.parts[0].root.text)
     logger.info(f"Received response from agent: {response_data}")
     return AgentFactoryOutputs(**response_data)
+
+
+def process_streaming_response_message(response: Any) -> tuple[str | None, str]:
+    """Process an agent response message and return a tuple of (log_message, log_level).
+
+    Args:
+        response: The response object from the agent.
+
+    Returns:
+        A tuple containing the log message (or None if no message should be logged)
+        and the log level ('info' or 'error').
+    """
+    try:
+        response_data = response.model_dump(mode="json", exclude_none=True)
+
+        # TastState is an enum with values:
+        # submitted, working, completed, failed, input-required, canceled, unknown
+        # See: https://www.a2aprotocol.net/docs/specification
+        # Using a subset of these states to log different messages
+        if response.root.result.status.state == TaskState.submitted:
+            return "Manufacturing agent has received the message and is processing it.", "info"
+
+        elif response.root.result.status.state == TaskState.working and response.root.result.status.message:
+            message_data = response.root.result.status.message.parts[0].root.data
+            if message_data.get("event_type") == "tool_started" and "payload" in message_data:
+                tool_call_info_to_log = {
+                    k: v for k, v in message_data["payload"].items() if k in [GenAI.TOOL_NAME, GenAI.TOOL_ARGS]
+                }
+                return f"Making a tool call ... \nTool call info: \n{tool_call_info_to_log}", "info"
+
+        elif response.root.result.status.state == TaskState.completed:
+            return "Manufacturing agent has completed the assigned task.", "info"
+
+        return None, "info"
+
+    except Exception as e:
+        error_msg = (
+            f"Error processing response: {str(e)}\nResponse data: "
+            f"{str(response_data) if 'response_data' in locals() else 'N/A'}"
+        )
+        return error_msg, "error"
 
 
 def is_server_live(host: str, port: int, timeout: float = 2.0) -> bool:
