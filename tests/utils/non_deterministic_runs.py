@@ -17,8 +17,9 @@ ExceptionType = type[Exception] | tuple[type[Exception], ...]
 
 def run_until_success_threshold_async(
     exceptions: ExceptionType = (AssertionError, ValueError, RuntimeError, SyntaxError),
-    concurrency_limit: int = 2,
+    concurrency_limit: int = 1,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    # TODO: Setting concurrency_limit>1 results in A2AClientHTTPError: HTTP Error 503: Network communication error
     """Async decorator that runs a test until it passes at least min_successes times out of max_attempts.
 
     The decorator is configured via the test function's kwargs, which SHOULD include:
