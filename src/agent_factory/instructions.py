@@ -28,7 +28,7 @@ from tools.translate_text_with_llm import translate_text_with_llm
 
 load_dotenv()
 
-# Connect to MCPD daemon for accessing available tools
+# Connect to mcpd daemon for accessing available tools
 MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
 MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
@@ -68,15 +68,15 @@ TOOLS = [
     translate_text_with_llm,    # translates arbitrary text to a specified target language
 ]
 
-# Connect to any running MCP servers via MCPD
+# Connect to any running MCP servers via mcpd
 try:
     mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
     mcp_server_tools = mcpd_client.agent_tools()
     if not mcp_server_tools:
-        print("No tools found via MCPD.")
+        print("No tools found via mcpd.")
     TOOLS.extend(mcp_server_tools)
 except McpdError as e:
-    print(f"Error connecting to MCPD: {e}", file=sys.stderr)
+    print(f"Error connecting to mcpd: {e}", file=sys.stderr)
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
@@ -262,7 +262,7 @@ The final expected output is a dictionary with the following structure:
     installed. It will be used to generate the `requirements.txt` file:
     - The first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using `any-agent` to
       run the agent workflow.
-    - The second line should be the "mcpd>=0.0.1" dependency, since we are using MCPD to manage MCP servers.
+    - The second line should be the "mcpd>=0.0.1" dependency, since we are using mcpd to manage MCP servers.
     - Do not provide specific versions for the dependencies except for `any-agent[all,a2a]` and `mcpd` (see the above
       point).
 """  # noqa: E501
@@ -288,7 +288,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-# Connect to MCPD daemon for accessing available tools
+# Connect to mcpd daemon for accessing available tools
 MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
 MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
@@ -307,10 +307,10 @@ try:
     mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
     mcp_server_tools = mcpd_client.agent_tools()
     if not mcp_server_tools:
-        print("No tools found via MCPD.")
+        print("No tools found via mcpd.")
     TOOLS.extend(mcp_server_tools)
 except McpdError as e:
-    print(f"Error connecting to MCPD: {{e}}", file=sys.stderr)
+    print(f"Error connecting to mcpd: {{e}}", file=sys.stderr)
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
