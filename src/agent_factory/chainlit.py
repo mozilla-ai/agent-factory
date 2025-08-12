@@ -15,7 +15,7 @@ from agent_factory.utils import (
     get_a2a_agent_card,
     get_storage_backend,
     prepare_agent_artifacts,
-    process_a2a_agent_response,
+    process_a2a_agent_final_response,
 )
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
@@ -56,7 +56,7 @@ async def create_agent(message: cl.Message):
 
     try:
         result = await client.send_message(request, http_kwargs={"timeout": TIMEOUT})
-        response = process_a2a_agent_response(result)
+        response = process_a2a_agent_final_response(result)
 
         if response.status == Status.COMPLETED:
             prepared_artifacts = prepare_agent_artifacts(response.model_dump())

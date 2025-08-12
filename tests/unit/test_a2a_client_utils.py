@@ -11,7 +11,7 @@ from agent_factory.utils.client_utils import (
     create_a2a_http_client,
     create_message_request,
     get_a2a_agent_card,
-    process_a2a_agent_response,
+    process_a2a_agent_final_response,
 )
 
 
@@ -118,9 +118,9 @@ def test_create_message_request_handles_request_id(request_id_input, is_valid_re
         assert request_id == expected_id
 
 
-def test_process_a2a_agent_response_valid(mock_a2a_agent_response):
+def test_process_a2a_agent_final_response_valid(mock_a2a_agent_response):
     """Test processing a valid agent response."""
-    result = process_a2a_agent_response(mock_a2a_agent_response)
+    result = process_a2a_agent_final_response(mock_a2a_agent_response)
 
     assert isinstance(result, AgentFactoryOutputs)
     assert result.message == "✅ Done! Your agent is ready!"
@@ -128,14 +128,14 @@ def test_process_a2a_agent_response_valid(mock_a2a_agent_response):
     assert "from any_agent.tools import search_tavily" in result.imports
 
 
-def test_process_a2a_agent_response_missing_fields(mock_a2a_agent_response):
+def test_process_a2a_agent_final_response_missing_fields(mock_a2a_agent_response):
     """Test processing a response with missing required fields."""
     invalid_response = {"message": "Test"}  # Missing other required fields
 
     mock_a2a_agent_response.root.result.status.message.parts[0].root.text = json.dumps(invalid_response)
 
     with pytest.raises(ValueError) as exc_info:
-        process_a2a_agent_response(mock_a2a_agent_response)
+        process_a2a_agent_final_response(mock_a2a_agent_response)
 
     assert "validation error" in str(exc_info.value).lower()
     assert "field required" in str(exc_info.value).lower()
