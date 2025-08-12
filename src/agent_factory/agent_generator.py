@@ -5,6 +5,7 @@ import fire
 import httpx
 from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import TaskState
+from any_agent.tracing.attributes import GenAI
 from dotenv import find_dotenv, load_dotenv
 
 from agent_factory.schemas import Status
@@ -68,7 +69,9 @@ async def generate_target_agent(
                         message_data = response.root.result.status.message.parts[0].root.data
                         if message_data["event_type"] == "tool_started" and "payload" in message_data:
                             tool_call_info_to_log = {
-                                k: v for k, v in message_data["payload"].items() if k in ["name", "args"]
+                                k: v
+                                for k, v in message_data["payload"].items()
+                                if k in [GenAI.TOOL_NAME, GenAI.TOOL_ARGS]
                             }
                             logger.info(f"Making a tool call ... \nTool call info: \n{tool_call_info_to_log}")
                     elif response.root.result.status.state == TaskState.completed:
