@@ -117,7 +117,7 @@ jobs:
           done
 
   run-generated-artifacts-integration-tests:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
@@ -134,10 +134,10 @@ jobs:
       - name: Run Generated Artifacts Integration tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ELEVENLABS_API_KEY: "mock" # pragma: allowlist secret
         run: |
           PROMPT_IDS=(
             url-to-podcast
+            scoring-blueprints-submission
           )
           for prompt_id in "${PROMPT_IDS[@]}"; do
             echo "::group::Running tests for PROMPT_ID: $prompt_id"
