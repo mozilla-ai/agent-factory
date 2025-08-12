@@ -5,7 +5,7 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "any-agent[a2a,all]==0.25.0",
+    "any-agent[a2a,all]==1.2.0",
     "fire~=0.7.0",
     "dotenv>=0.9.9",
     "mcpm>=1.0.3", # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
@@ -33,9 +33,6 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools_scm]
-
-[tool.uv.sources]
-any-agent = { git = "https://github.com/mozilla-ai/any-agent.git", rev = "7f8a03e45e61e595fcaa7a81db647fe6af5edf35" }
 
 [dependency-groups]
 dev = [

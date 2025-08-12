@@ -79,7 +79,7 @@ def test_create_message_request_basic():
     # Verify message ID has been set
     import re
 
-    assert re.match(r"^[0-9a-f]{32}$", message.messageId) is not None
+    assert re.match(r"^[0-9a-f]{32}$", message.message_id) is not None
 
 
 def test_create_message_request_empty_string_throws_error():
