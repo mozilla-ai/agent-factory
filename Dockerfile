@@ -8,6 +8,7 @@ ENV FRAMEWORK=openai
 # Set to 1 to enable chat mode, 0 to disable
 ENV CHAT=1
 ENV MODEL=o3
+ENV MAX_TURNS=40
 ENV HOST=0.0.0.0
 ENV PORT=8080
 ENV LOG_LEVEL=info
@@ -23,8 +24,8 @@ ARG APP_VERSION
 # Set the environment variable for setuptools_scm
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 
-# Copy mcpd to the container.
-COPY bin/mcpd /usr/local/bin/mcpd
+# Copy mcpd to the container
+COPY --from=mzdotai/mcpd:v0.0.3 /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
 
 # Install uv

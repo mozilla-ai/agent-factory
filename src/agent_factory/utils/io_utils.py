@@ -4,7 +4,7 @@ from pathlib import Path
 
 from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.schemas import AgentParameters
-from agent_factory.utils import clean_python_code_with_autoflake
+from agent_factory.utils import clean_python_code_with_autoflake, validate_dependencies
 from agent_factory.utils.logging import logger
 
 TOOLS_DIR = Path(__file__).parent.parent / "tools"
@@ -49,10 +49,11 @@ def prepare_agent_artifacts(agent_factory_outputs: dict[str, str]) -> dict[str, 
     artifacts_to_save = {}
     agent_code = AGENT_CODE_TEMPLATE.format(**agent_factory_outputs)
     clean_agent_code = clean_python_code_with_autoflake(agent_code)
+    validated_dependencies = validate_dependencies(agent_factory_outputs)
 
     artifacts_to_save["agent.py"] = clean_agent_code
     artifacts_to_save["README.md"] = agent_factory_outputs["readme"]
-    artifacts_to_save["requirements.txt"] = agent_factory_outputs["dependencies"]
+    artifacts_to_save["requirements.txt"] = validated_dependencies
 
     # Identify and read tool files
     for tool_file in TOOLS_DIR.iterdir():
