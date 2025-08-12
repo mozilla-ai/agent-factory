@@ -25,7 +25,7 @@ StarletteInstrumentor().instrument()
 
 
 async def main(
-    framework: str = "tinyagent",
+    framework: str = "openai",
     chat: bool = True,
     model: str = "o3",
     max_turns: int = 40,
