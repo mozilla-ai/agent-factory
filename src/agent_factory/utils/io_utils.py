@@ -2,6 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 
+from agent_factory.config import DEFAULT_MCP_CONFIG_PATH
 from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.schemas import AgentParameters
 from agent_factory.utils import clean_python_code_with_autoflake, validate_dependencies
@@ -62,6 +63,15 @@ def prepare_agent_artifacts(agent_factory_outputs: dict[str, str]) -> dict[str, 
 
     cli_args_str = agent_factory_outputs.get("cli_args", "")
     artifacts_to_save["agent_parameters.json"] = parse_cli_args_to_params_json(cli_args_str)
+
+    if DEFAULT_MCP_CONFIG_PATH.exists():
+        artifacts_to_save[".mcpd.toml"] = DEFAULT_MCP_CONFIG_PATH.read_text(encoding="utf-8")
+
+        # Delete mcpd config file after reading
+        DEFAULT_MCP_CONFIG_PATH.unlink(missing_ok=True)
+
+    # Add a .gitignore file for ignoring secrets
+    artifacts_to_save[".gitignore"] = "*secrets*.dev.toml\n!secrets.prod.toml"
 
     return artifacts_to_save
 

@@ -6,6 +6,7 @@
 # Default environment variables for the container
 FRAMEWORK ?= openai
 MODEL ?= o3
+MAX_TURNS ?= 40
 HOST ?= 0.0.0.0
 PORT ?= 8080
 LOG_LEVEL ?= info
@@ -47,8 +48,10 @@ run: build ## Run the server interactively in the foreground
 		--name $(DOCKER_CONTAINER) \
 		-p $(A2A_SERVER_LOCAL_PORT):8080 \
 		--env-file .env \
+		-v $(shell pwd)/traces:/traces \
 		-e FRAMEWORK=$(FRAMEWORK) \
 		-e MODEL=$(MODEL) \
+		-e MAX_TURNS=$(MAX_TURNS) \
 		-e HOST=$(HOST) \
 		-e PORT=$(PORT) \
 		-e LOG_LEVEL=$(LOG_LEVEL) \
@@ -61,13 +64,16 @@ run-detached: build ## Run the server in the background (detached mode)
 		echo "Error: .env file not found. Please create one with your API keys."; \
 		exit 1; \
 	fi
+	@mkdir -p ./traces
 	@echo "Starting server in detached mode..."
 	@docker run -d --rm \
 		--name $(DOCKER_CONTAINER) \
 		-p $(A2A_SERVER_LOCAL_PORT):8080 \
 		--env-file .env \
+		-v $(shell pwd)/traces:/traces \
 		-e FRAMEWORK=$(FRAMEWORK) \
 		-e MODEL=$(MODEL) \
+		-e MAX_TURNS=$(MAX_TURNS) \
 		-e HOST=$(HOST) \
 		-e PORT=$(PORT) \
 		-e LOG_LEVEL=$(LOG_LEVEL) \

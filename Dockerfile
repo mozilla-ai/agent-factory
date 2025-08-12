@@ -8,9 +8,15 @@ ENV FRAMEWORK=openai
 # Set to 1 to enable chat mode, 0 to disable
 ENV CHAT=1
 ENV MODEL=o3
+ENV MAX_TURNS=40
 ENV HOST=0.0.0.0
 ENV PORT=8080
 ENV LOG_LEVEL=info
+ENV TRACES_DIR=/traces
+
+# Create and set permissions for the traces directory
+RUN mkdir -p ${TRACES_DIR} && \
+    chmod 777 ${TRACES_DIR}
 
 # Define an argument for the version
 ARG APP_VERSION
