@@ -61,57 +61,60 @@ async def generate_target_agent(
                 logger.info("A2AClient initialized.")
                 logger.info(f"Trace will be saved to {trace_file}")
 
-            # request_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
-            request = create_message_request(message, request_id=request_id)
+                # request_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
+                request = create_message_request(message, request_id=request_id)
 
-            responses = []
-            async for response in client.send_message_streaming(request, http_kwargs={"timeout": timeout}):
-                try:
-                    response_data = response.model_dump(mode="json", exclude_none=True)
+                responses = []
+                async for response in client.send_message_streaming(request, http_kwargs={"timeout": timeout}):
+                    try:
+                        response_data = response.model_dump(mode="json", exclude_none=True)
 
-                    # TastState is an enum with values:
-                    # submitted, working, completed, failed, input-required, canceled, unknown
-                    # See: https://www.a2aprotocol.net/docs/specification
-                    # Using a subset of these states to log different messages
-                    if response.root.result.status.state == TaskState.submitted:
-                        logger.info("Manufacturing agent has received the message and is processing it.")
-                    elif response.root.result.status.state == TaskState.working and response.root.result.status.message:
-                        message_data = response.root.result.status.message.parts[0].root.data
-                        if message_data["event_type"] == "tool_started" and "payload" in message_data:
-                            tool_call_info_to_log = {
-                                k: v
-                                for k, v in message_data["payload"].items()
-                                if k in [GenAI.TOOL_NAME, GenAI.TOOL_ARGS]
-                            }
-                            logger.info(f"Making a tool call ... \nTool call info: \n{tool_call_info_to_log}")
-                    elif response.root.result.status.state == TaskState.completed:
-                        logger.info("Manufacturing agent has completed the assigned task.")
-                    responses.append(response)
+                        # TastState is an enum with values:
+                        # submitted, working, completed, failed, input-required, canceled, unknown
+                        # See: https://www.a2aprotocol.net/docs/specification
+                        # Using a subset of these states to log different messages
+                        if response.root.result.status.state == TaskState.submitted:
+                            logger.info("Manufacturing agent has received the message and is processing it.")
+                        elif (
+                            response.root.result.status.state == TaskState.working
+                            and response.root.result.status.message
+                        ):
+                            message_data = response.root.result.status.message.parts[0].root.data
+                            if message_data["event_type"] == "tool_started" and "payload" in message_data:
+                                tool_call_info_to_log = {
+                                    k: v
+                                    for k, v in message_data["payload"].items()
+                                    if k in [GenAI.TOOL_NAME, GenAI.TOOL_ARGS]
+                                }
+                                logger.info(f"Making a tool call ... \nTool call info: \n{tool_call_info_to_log}")
+                        elif response.root.result.status.state == TaskState.completed:
+                            logger.info("Manufacturing agent has completed the assigned task.")
+                        responses.append(response)
 
-                except Exception as e:
-                    logger.error(
-                        f"Error processing response: {str(e)}\nResponse data: {
-                            str(response_data) if 'response_data' in locals() else 'N/A'
-                        }"
+                    except Exception as e:
+                        logger.error(
+                            f"Error processing response: {str(e)}\nResponse data: {
+                                str(response_data) if 'response_data' in locals() else 'N/A'
+                            }"
+                        )
+                        continue
+
+                # Process response
+                final_response = responses[-1]
+                response = process_a2a_agent_response(final_response)
+                if response.status == Status.COMPLETED:
+                    prepared_artifacts = prepare_agent_artifacts(response.model_dump())
+                    output_dir = output_dir if output_dir else request.id
+                    storage_backend = get_storage_backend()
+                    logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
+                    storage_backend.save(prepared_artifacts, Path(output_dir))
+                elif response.status == Status.INPUT_REQUIRED:
+                    logger.info(
+                        f"Please try again and be more specific with your request. Agent's response: {response.message}"
                     )
-                    continue
-
-            # Process response
-            final_response = responses[-1]
-            response = process_a2a_agent_response(final_response)
-            if response.status == Status.COMPLETED:
-                prepared_artifacts = prepare_agent_artifacts(response.model_dump())
-                output_dir = output_dir if output_dir else request.id
-                storage_backend = get_storage_backend()
-                logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
-                storage_backend.save(prepared_artifacts, Path(output_dir))
-            elif response.status == Status.INPUT_REQUIRED:
-                logger.info(
-                    f"Please try again and be more specific with your request. Agent's response: {response.message}"
-                )
-            else:
-                logger.error(f"Agent encountered an error: {response.message}")
-                raise Exception(f"Agent encountered an error: {response.message}")
+                else:
+                    logger.error(f"Agent encountered an error: {response.message}")
+                    raise Exception(f"Agent encountered an error: {response.message}")
 
         except httpx.ConnectError as e:
             logger.error(f"Failed to connect to the agent server at {host}:{port}. Error: {e}")
