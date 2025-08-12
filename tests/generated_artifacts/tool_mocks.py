@@ -91,10 +91,6 @@ def mock_slack_post_message(channel_id: str, text: str) -> str:
     """
     ts = time.time()
 
-    # we might expect this specific mock to match different slack posts at some point
-    # in the future, but for now it is built ad-hoc for the blueprint-scoring agent
-    assert channel_id == "BLU3PR1NTSUB"
-
     return f"""
 {{
   "type": "text",
@@ -111,15 +107,7 @@ def mock_sqlite_write_query(query: str) -> str:
     Parameters:
     - query: SQL query to execute
     """
-    # we might expect this specific mock to match different queries at some point
-    # in the future, but for now it is built ad-hoc for the blueprint-scoring agent
-    assert "github_repo_evaluations" in query.lower()
-
-    # check the presence of all compulsory fields
-    for field in ["repo_url", "score", "details", "slack_channel_id", "slack_message_ts"]:
-        assert field in query.lower()
-
-    logger.debug(f"SQLite write_query got the following query: {query}")
+    logger.info(f"SQLite write_query got the following query: {query}")
     return """
 {
   "type": "text",

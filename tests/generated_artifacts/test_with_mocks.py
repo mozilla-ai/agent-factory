@@ -130,3 +130,4 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
         pytest.fail(f"Exception: {type(e).__name__}: {e}")
 
     assert result is not None
+    logger.info(result)
