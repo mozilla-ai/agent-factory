@@ -1,0 +1,217 @@
+{
+  "spans": [
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 317317533128662116977132435229754794364,
+        "span_id": 18147396565603954002,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1754996242860846341,
+      "end_time": 1754996245115130690,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 317317533128662116977132435229754794364,
+        "span_id": 13186712129611696904,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.input.messages": "[{\"role\": \"system\", \"content\": \"\\nYou are an assistant that follows this concise multi\u2013step workflow to produce a high-quality summary for any public webpage:\\n\\nSTEP-BY-STEP PLAN\\n1. Receive a webpage URL from the user.\\n2. Use the `visit_webpage` tool to download the page in Markdown.\\n3. Parse the Markdown and extract the primary textual content. Ignore navigation, ads, footers, scripts or non-informational elements. Keep focus on headings and paragraphs that convey the core message.\\n4. Produce a concise summary of the extracted content in clear English (\u2248100\u2013150 words). Capture the main ideas, arguments, and conclusions without adding external information or speculation.\\n5. Return a JSON object that follows the `StructuredOutput` schema with exactly two fields: `url` (the provided URL) and `summary` (the generated concise summary).\\n\\nADDITIONAL GUIDELINES\\n\u2022 If the page cannot be fetched or has little textual content, explain the issue briefly in the `summary` field.\\n\u2022 Do not output anything except the valid JSON that matches the schema.\\n\u2022 Stay within 1000 total tokens for any intermediate reasoning.\\n\"}, {\"content\": \"Summarize the main text content from this webpage: https://blog.mozilla.ai/introducing-any-llm-a-unified-api-to-access-any-llm-provider/\", \"role\": \"user\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"visit_webpage\", \"tool.args\": \"{\\\"url\\\":\\\"https://blog.mozilla.ai/introducing-any-llm-a-unified-api-to-access-any-llm-provider/\\\",\\\"timeout\\\":30}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 444,
+        "gen_ai.usage.output_tokens": 51,
+        "gen_ai.usage.input_cost": 0.000888,
+        "gen_ai.usage.output_cost": 0.000408
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.35.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool visit_webpage",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 317317533128662116977132435229754794364,
+        "span_id": 18147396565603954002,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1754996245116456542,
+      "end_time": 1754996245949090429,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 317317533128662116977132435229754794364,
+        "span_id": 3493183943884932610,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "visit_webpage",
+        "gen_ai.tool.description": "Visits a webpage at the given url and reads its content as a markdown string. Use this to browse webpages.",
+        "gen_ai.tool.args": "\"{\\\"url\\\":\\\"https://blog.mozilla.ai/introducing-any-llm-a-unified-api-to-access-any-llm-provider/\\\",\\\"timeout\\\":30}\"",
+        "gen_ai.output": "Introducing any-llm: A unified API to access any LLM provider\n[![Mozilla.ai](https://blog.mozilla.ai/content/images/2025/01/mozilla.white-1.png)](https://blog.mozilla.ai)\n[Sign in](#/portal/signin)\n[Subscribe](#/portal/signup)\nIntroducing any-llm: A unified API to access any LLM provider\n=============================================================\nWhen it comes to using LLMs, it\u2019s not always a question of which model to use: it\u2019s also a matter of choosing who provides the LLM and where it is deployed. Today, we announce the release of any-llm, a Python library that provides a simple unified interface to access the most popular providers.\n[![Nathan Brake](/content/images/size/w160/2025/02/Nathan.png)](/author/nathan/)\n#### [Nathan Brake](/author/nathan/)\nJul 22, 2025\n\u2014 3 min read\n![Introducing any-llm: A unified API to access any LLM provider](/content/images/size/w1200/2025/07/any-llm.jpeg)\nTom Seidmann-Freud / [\u201cWhy the Hare Has No Tail\u201d, a Zulu fairy tale](https://pdimagearchive.org/images/bfb9c099-b4f3-41b2-8b4a-99773d86d7ba/)\nWhen it comes to using Large Language Models (LLMs), it\u2019s not always a question of which model to use: it\u2019s also a matter of choosing who provides the LLM and where it is deployed. As [we\u2019ve written about previously](https://blog.mozilla.ai/running-an-open-source-llm-in-2025/), there are many options available for how to access an LLM. The provider you choose to use can have implications in terms of cost, latency, and security. Most AI labs offer their own provider platform (OpenAI, Google, Mistral, etc.), and other provider platforms (Azure, AWS, Cerebras, etc.) provide access to a wide variety of LLMs. But what if you want to build your LLM application without having to worry about being locked in to a certain provider?\nToday, we\u2019re happy to announce the release of our new Python library: [any-llm](https://github.com/mozilla-ai/any-llm?ref=blog.mozilla.ai)! any-llm provides a simple unified interface to access the most popular providers. By changing only a [single configuration parameter](https://mozilla-ai.github.io/any-llm/quickstart/?ref=blog.mozilla.ai#basic-usage), you can easily switch between providers and models.\n```\nfrom any_llm import completion\nimport os\n# Make sure you have the appropriate environment variable set\nassert os.environ.get('MISTRAL_API_KEY')\n# Basic completion\nresponse = completion(\n    model=\"mistral/mistral-small-latest\", # <provider_id>/<model_id>\n    messages=[{\"role\": \"user\", \"content\": \"Hello!\"}]\n)\nprint(response.choices[0].message.content)\n```\nany-llm fills a gap in the LLM provider interface landscape through several key design principles:\n1. **Use of provider SDKs**: any-llm leverages official provider SDKs when available, reducing the maintenance burden and ensuring compatibility.\n2. **Committed to active maintenance**: any-llm is integrated with [any-agent](https://github.com/mozilla-ai/any-agent?ref=blog.mozilla.ai), one of our most community-engaged projects, so we're motivated to maintain it.\n3. **No proxy or gateway server required**: no need to set up another service as a gateway: download the any-llm SDK, and you\u2019re good to communicate with all the supported providers, without having to send your data through another third-party provider.\nYou can view the list of our supported providers [here](https://mozilla-ai.github.io/any-llm/providers/?ref=blog.mozilla.ai).\nOpenAI API Standard\n-------------------\nThe [OpenAI API](https://openai.com/index/openai-api/?ref=blog.mozilla.ai) has become the standard for LLM provider interfaces. Although some providers provide perfect compatibility with the OpenAI API standard, others (like Mistral, Anthropic, etc.) may slightly diverge from the OpenAI standard when it comes to expected input parameters and output values.\nIn order to make it easy to switch between these providers, this creates a need for lightweight wrappers that can gracefully handle these differences while maintaining as consistent an interface as possible.\nany-llm solves this problem by normalizing outputs to return OpenAI ChatCompletion objects, regardless of which provider is used under the hood. The objects are returned as OpenAI Pydantic models, so you can access them just as you would if you were using the official OpenAI API SDK.\nYou can view the any-llm API documentation [here](https://mozilla-ai.github.io/any-llm/api/completion/?ref=blog.mozilla.ai). And to see how it relates to existing solutions, read on.\nShortcomings of Existing Solutions\n----------------------------------\nSeveral excellent open-source Python libraries already exist to address the challenge of interacting with various LLM providers, but each comes with its own set of limitations.\nOne popular solution, [LiteLLM](https://github.com/BerriAI/litellm?ref=blog.mozilla.ai), is highly valued for its wide support of different providers and modalities, making it a great choice for many developers. However, it re-implements provider interfaces rather than leveraging SDKs that are managed and released by the providers themselves. As a result, the approach can lead to compatibility issues and unexpected modifications in behavior, making it difficult to keep up with the changes happening among all the providers.\nAnother option, [AISuite](https://github.com/andrewyng/aisuite/issues?ref=blog.mozilla.ai), was created by [Andrew NG](https://www.andrewng.org/?ref=blog.mozilla.ai) and offers a clean and modular design. However, it is not actively maintained (its last release was in December of 2024) and lacks consistent Python-typed interfaces.\nFurthermore, many framework-specific solutions, such as those found in [Agno](https://github.com/agno-agi/agno/tree/main/libs/agno/agno/models?ref=blog.mozilla.ai), either depend on LiteLLM or implement their own provider integrations. These implementations may be robust, but are difficult to integrate into other software solutions since they\u2019re tightly coupled with the software already built around them.\nLastly, proxy/gateway solutions like [OpenRouter](https://openrouter.ai/?ref=blog.mozilla.ai) and [Portkey](https://github.com/Portkey-AI/portkey-python-sdk?ref=blog.mozilla.ai) require users to set up a hosted proxy server to act as an intermediary between their code and the LLM provider. Although this can effectively abstract away the complicated logic from the developer, it adds an extra layer of complexity and a dependency on external services, which might not be ideal for all use cases.\n\ud83d\udca1\nWe hope that any-llm will prove to be a useful alternative to the already available solutions. Take a look at our [repo](https://github.com/mozilla-ai/any-llm?ref=blog.mozilla.ai) and [documentation](https://mozilla-ai.github.io/any-llm/?ref=blog.mozilla.ai) and give it a try today!\nRead more\n---------\n[![Wasm-agents: AI agents running in your browser](/content/images/size/w600/2025/07/WASM-Agents.jpeg)\n### Wasm-agents: AI agents running in your browser\nOne of the main barriers to a wider adoption of open-source agents is the dependency on extra tools and frameworks that need to be installed before the agents can be run. In this post, we show how to write agents as HTML files, which can just be opened and run in a browser.\nBy Davide Eynard\nJul 3, 2025](/wasm-agents-ai-agents-running-in-your-browser/)\n[![Smarter Prompts for Better Responses: Exploring Prompt Optimization and Interpretability for LLMs](/content/images/size/w600/2025/05/RP-P-OB-6835.jpg)\n### Smarter Prompts for Better Responses: Exploring Prompt Optimization and Interpretability for LLMs\nGenerative AI models are highly sensitive to input phrasing. Even small changes to a prompt or switching between models can lead to different results. Adding to the complexity, LLMs often act as black-boxes, making it difficult to understand how specific prompts influence their behavior.\nBy Davide Eynard, Hareesh Bahuleyan, Sandra Antunes\nMay 14, 2025](/smarter-prompts-for-better-responses-exploring-prompt-optimization-and-interpretability-for-llms/)\n[![The Challenge of Choosing the Right LLM](/content/images/size/w600/2025/05/Charles-Darwin.jpeg)\n### The Challenge of Choosing the Right LLM\nImagine you could effortlessly navigate the universe of LLMs, always knowing which one is the perfect fit for your specific query. Today, this is a very difficult challenge. So, how do you efficiently manage and use LLMs for various tasks? This is where LLM Routing emerges as a crucial strategy.\nBy Dimitris Poulopoulos, Mario David Cari\u00f1ana Abasolo, Juliana Rodrigues Ara\u00fajo\nMay 8, 2025](/the-challenge-of-choosing-the-right-llm/)\n[![What do you mean by AI testing...?](/content/images/size/w600/2025/04/AI-Testing-Blog-Post-1.jpg)\n### What do you mean by AI testing...?\nWe recently discussed the increasing need to test applications that make use of AI with tests that target problems specific to AI models. But an immediate follow-up question then arises: What specific problems? How is that testing different?\nBy Irina Vidal Migall\u00f3n, Alejandro Gonzalez, Javier Torres Ram\u00f3n\nApr 30, 2025](/what-do-you-mean-by-ai-testing/)\n![Mozilla.ai](https://blog.mozilla.ai/content/images/2025/01/mozilla.white-1.png)\n* [mozilla.ai](https://www.mozilla.ai/)\nPowered by [Ghost](https://ghost.org/)\nMozilla.ai\n----------\nSubscribe to receive updates\n[Subscribe](#/portal/signup)",
+        "gen_ai.output.type": "text"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.35.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 317317533128662116977132435229754794364,
+        "span_id": 18147396565603954002,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1754996245950154248,
+      "end_time": 1754996254139767262,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 317317533128662116977132435229754794364,
+        "span_id": 15005895200954432012,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "{\"url\":\"https://blog.mozilla.ai/introducing-any-llm-a-unified-api-to-access-any-llm-provider/\",\"summary\":\"Mozilla.ai announces \\\"any-llm,\\\" a Python library that offers a single, OpenAI-style API for interacting with multiple large-language-model providers. By changing only one configuration parameter, developers can switch among models hosted by OpenAI, Google, Mistral, Azure, AWS, Cerebras and others, avoiding provider lock-in while optimizing for cost, latency or security. The library relies on each provider\u2019s official SDK instead of re-implementing interfaces, is actively maintained through its integration with the community project \\\"any-agent,\\\" and requires no additional proxy or gateway server. any-llm returns normalized OpenAI ChatCompletion objects, smoothing over the slight parameter or output differences found in other providers. The post contrasts any-llm with existing tools: LiteLLM (broad but re-implemented APIs), AISuite (unmaintained), framework-specific wrappers (tightly coupled), and proxy services like OpenRouter or Portkey (extra complexity). Mozilla.ai invites developers to explore the repository and documentation and try the library today.\"}",
+        "gen_ai.output.type": "text",
+        "gen_ai.usage.input_tokens": 2696,
+        "gen_ai.usage.output_tokens": 586,
+        "gen_ai.usage.input_cost": 0.005392,
+        "gen_ai.usage.output_cost": 0.0046879999999999995
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.35.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "invoke_agent [any_agent]",
+      "kind": "internal",
+      "parent": {
+        "trace_id": null,
+        "span_id": null,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1754996242858888332,
+      "end_time": 1754996254141654381,
+      "status": {
+        "status_code": "unset",
+        "description": null
+      },
+      "context": {
+        "trace_id": 317317533128662116977132435229754794364,
+        "span_id": 18147396565603954002,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.agent.name": "any_agent",
+        "gen_ai.agent.description": "No description.",
+        "gen_ai.request.model": "o3"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.35.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    }
+  ],
+  "final_output": {},
+  "execution_costs": {
+    "input_cost": 0.00628,
+    "output_cost": 0.005096,
+    "total_cost": 0.011376
+  }
+}
