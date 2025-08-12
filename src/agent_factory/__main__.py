@@ -44,19 +44,12 @@ async def main(
         port (int): The port for the agent server
         log_level (str): The logging level
     """
-    from any_agent import AgentConfig, AgentFramework, AnyAgent
+    from any_agent import AgentConfig, AnyAgent
     from any_agent.callbacks import get_default_callbacks
     from any_agent.serving import A2AServingConfig
     from any_agent.tools import search_tavily, visit_webpage
 
     from agent_factory.callbacks import LimitAgentTurns
-
-    try:
-        AgentFramework[framework.upper()]
-    except KeyError as err:
-        raise ValueError(
-            f"Invalid framework '{framework}'. Allowed values are: {[f.name.lower() for f in AgentFramework]}"
-        ) from err
 
     logger.info(f"Starting the server in {'chat' if chat else 'non-chat'} mode.")
 
