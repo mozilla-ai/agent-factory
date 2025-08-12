@@ -204,7 +204,7 @@ docs-build:
 	@uv run mkdocs build
 	@echo "Documentation built successfully!"
 
-docs-serve: ## Serves locally
+docs-serve-local: ## Serve documentation locally
 	@echo "Starting MkDocs development server..."
 	@uv sync --quiet --group docs
 	@uv run mkdocs serve
