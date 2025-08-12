@@ -19,87 +19,65 @@ from any_agent.config import MCPStdio
 load_dotenv()
 
 # ========== Structured output definition ==========
-class StructuredOutput(BaseModel):
-    """Schema for the agent's final output."""
+class SlackInfo(BaseModel):
+    channel_id: str = Field(..., description="The Slack channel ID where the evaluation was posted.")
+    message_ts: str = Field(..., description="Slack timestamp of the posted message.")
 
-    repo_url: str = Field(..., description="Canonical GitHub repository URL that was evaluated.")
-    score: int = Field(..., ge=0, le=100, description="Overall compliance score out of 100.")
-    evaluation_details: str = Field(
-        ..., description="Concise textual explanation of how the score was determined, including per-guideline remarks."
-    )
-    slack_channel_id: str | None = Field(
-        None, description="Slack channel ID where the report was posted (None if posting failed)."
-    )
-    slack_message_ts: str | None = Field(
-        None, description="Timestamp of the Slack message (None if posting failed)."
-    )
-    db_insert_success: bool = Field(
-        False, description="True if the INSERT into github_repo_evaluations succeeded, otherwise False."
-    )
+class DBWriteInfo(BaseModel):
+    rows_affected: int = Field(..., description="Number of rows written to the database (should be 1).")
+
+class StructuredOutput(BaseModel):
+    repo_url: str = Field(..., description="URL of the evaluated GitHub repository.")
+    score: int = Field(..., ge=0, le=100, description="Overall blueprint compliance score (0-100).")
+    evaluation_summary: str = Field(..., description="Detailed narrative of the evaluation and justification of the score.")
+    slack: SlackInfo = Field(..., description="Metadata about the Slack post.")
+    database: DBWriteInfo = Field(..., description="Metadata about the database insertion.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an assistant that evaluates Github repositories against the "Blueprints – How-tos for Agents" best-practice guidelines published at https://blueprints.mozilla.ai/.
+You are an autonomous evaluation assistant that follows this strict multi-step workflow whenever you receive a GitHub repository URL from the user.
 
-Follow this multi-step workflow EXACTLY and use the available tools whenever applicable:
+STEP-1  (Fetch guidelines)
+• Visit "https://blueprints.mozilla.ai/" using the visit_webpage tool with max_length=-1 to ensure full content retrieval.
+• Extract the section that outlines the official "Guidelines for writing top-notch Blueprints". Summarise these guidelines into concise bullet points that will serve as evaluation criteria.
 
-1. Fetch Guidelines (ONE-TIME)
-   a. Use visit_webpage on https://blueprints.mozilla.ai/ and get the full page contents
-   b. Extract the section that lists recommendations / principles for writing high-quality blueprints (e.g. reproducibility, transparency, modularity, evaluation, documentation, etc.). Summarise each guideline into a short bullet list that will be reused later.
+STEP-2  (Inspect repository)
+• Visit the supplied GitHub repository URL (again use visit_webpage with max_length=-1).
+• Extract the README and any obvious documentation sections. Summarise the project: purpose, architecture, tooling, testing, compliance with best practices etc.
 
-2. Analyse the Submitted Repository
-   a. You receive a single CLI argument called repo_url (e.g. "https://github.com/org/repo").
-   b. Derive the canonical repo slug (owner/repo).
-   c. Retrieve the repository’s README and (if present) docs/blueprint or agent configuration files. You may use:
-      – the GitHub raw URL pattern (https://raw.githubusercontent.com/{owner}/{repo}/HEAD/README.md) with visit_webpage,
-      – fallback to visiting the normal GitHub page if raw content is missing.
-   d. Compare the repository content against EACH extracted guideline. For every guideline decide if it is fully met, partially met, or not met and provide one sentence justification.
-   e. Compute an overall score out of 100 based on the average compliance (fully met = 100, partially met = 50, not met = 0, then mean across guidelines and round). Ensure the final score is an integer 0-100.
+STEP-3  (Evaluate & score)
+• Compare the repository summary against each guideline bullet point.
+• Assign a numeric SCORE between 0 and 100 (whole integer). Provide a short justification for each guideline explaining why full / partial / no compliance was observed.
+• Build an "evaluation_summary" paragraph that includes: scored breakdown, key strengths, key weaknesses, and a final recommendation.
 
-3. Prepare an Evaluation Report (plain-text)
-   Include:
-      • Repository URL
-      • Overall score /100
-      • Per-guideline verdicts & justifications
-      • Timestamp in ISO-8601 (UTC)
+STEP-4  (Post to Slack)
+• Use slack_list_channels to obtain all channels, locate the one whose name exactly matches "blueprint-submission" (case-insensitive). Extract its channel_id.
+• Compose a markdown message containing: repo URL, final SCORE/100, and evaluation_summary.
+• Post this message with slack_post_message to the identified channel. Capture the response timestamp (ts).
 
-4. Post to Slack #blueprint-submission
-   a. Call slack_list_channels to obtain all channels.
-   b. Find the channel whose name equals "blueprint-submission" (ignore the leading “#”). Extract its id → slack_channel_id.
-   c. Call slack_post_message with channel=slack_channel_id and the evaluation report as the text. Capture the returned ts (message timestamp) → slack_message_ts.
+STEP-5  (Write to SQLite)
+• Insert or REPLACE a row in the existing blueprints.db table github_repo_evaluations with columns (repo_url TEXT PRIMARY KEY, score INTEGER, summary TEXT, ts TEXT, channel_id TEXT, when_evaluated DATETIME DEFAULT CURRENT_TIMESTAMP).
+• Use write_query for the INSERT/REPLACE. Return number of affected rows.
 
-5. Log to SQLite
-   a. Build an INSERT statement for the existing table github_repo_evaluations with columns (repo_url TEXT, score INTEGER, details TEXT, slack_channel_id TEXT, slack_message_ts TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP).
-   b. Execute the statement via write_query. If rows_affected > 0 treat the insertion as successful (db_insert_success=True), otherwise False.
+STEP-6  (Return structured output)
+• Produce a StructuredOutput JSON object with the fields defined in the schema. Populate slack.channel_id with the id found, slack.message_ts with the ts returned by Slack, and database.rows_affected from SQLite.
 
-6. Final Structured JSON Output (use the provided Pydantic model):
-   {
-     repo_url,
-     score,
-     evaluation_details (concise <2000 chars),
-     slack_channel_id,
-     slack_message_ts,
-     db_insert_success
-   }
-
-CRITICAL RULES:
-• Always respect tool schemas.
-• NEVER reveal API keys, internal thoughts, or tool raw outputs.
-• Use the tools only as needed and in the order described.
-• If any step fails, set db_insert_success to False and/or omit slack ids accordingly but still output structured JSON.
+General rules:
+• Obey tool use requirements strictly – do NOT fabricate IDs, always call the relevant tool.
+• If any required step fails, stop and raise an error with an informative message.
+• Keep replies short except for evaluation_summary.
+• Never reveal internal chain-of-thought.
 '''
 
 # ========== Tools definition ===========
 TOOLS = [
-    # Built-in tool to read webpages (guidelines & raw GitHub files)
+    # Webpage retrieval
     visit_webpage,
 
-    # --- Slack MCP (official) -------------------------------------------------
+    # Slack MCP – only the tools required to list channels and post a message
     MCPStdio(
-        command="npx",  # runtime
-        args=[
-            "@modelcontextprotocol/server-slack"  # package
-        ],
+        command="npx",
+        args=["@modelcontextprotocol/server-slack"],
         env={
             "SLACK_BOT_TOKEN": os.getenv("SLACK_BOT_TOKEN"),
             "SLACK_TEAM_ID": os.getenv("SLACK_TEAM_ID"),
@@ -110,17 +88,15 @@ TOOLS = [
         ],
     ),
 
-    # --- SQLite MCP (official) -----------------------------------------------
+    # SQLite MCP – only the tool required for write queries
     MCPStdio(
-        command="uvx",  # runtime
+        command="uvx",
         args=[
             "mcp-server-sqlite",
             "--db-path",
-            "./blueprints.db",  # relative path to existing DB
+            "blueprints.db",
         ],
-        tools=[
-            "write_query",
-        ],
+        tools=["write_query"],
     ),
 ]
 
@@ -138,8 +114,8 @@ agent = AnyAgent.create(
 
 
 def main(repo_url: str):
-    """Evaluate a GitHub repository against Mozilla AI Blueprint guidelines, score it, publish the result to Slack, and log it to a local SQLite database."""
-    input_prompt = f"Please evaluate the GitHub repository at {repo_url} against the Mozilla AI Blueprint guidelines and follow the full workflow."
+    """Evaluate a GitHub repository against Mozilla Blueprint guidelines, score it, post the results to Slack, and log the evaluation to SQLite."""
+    input_prompt = f"Please evaluate this GitHub repository against Mozilla Blueprint guidelines and report the results: {repo_url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:

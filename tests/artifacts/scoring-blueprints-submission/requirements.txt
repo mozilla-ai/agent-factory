@@ -1,6 +1,4 @@
-any-agent[all,a2a]==0.25.0
+any-agent[all,a2a]==1.0.1
 fire
-pydantic
 python-dotenv
-
 uv
