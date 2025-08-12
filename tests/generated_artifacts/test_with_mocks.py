@@ -1,4 +1,5 @@
 import importlib
+import os
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -8,11 +9,21 @@ from generated_artifacts.tool_mappings import find_matching_mock, find_matching_
 
 from agent_factory.utils.logging import logger
 
+ENV_VARS_FOR_PROMPT = {
+    "url-to-podcast": ["ELEVENLABS_API_KEY"],
+    "scoring-blueprints-submission": ["SLACK_BOT_TOKEN", "SLACK_TEAM_ID"],
+}
+
 
 @pytest.fixture
 def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
     """Import the agent module dynamically with mocks in place"""
     logger.debug(f"Testing agent from: {agent_dir}")
+
+    # mock env vars specific for this prompt
+    mock_env_vars = ENV_VARS_FOR_PROMPT.get(prompt_id, [])
+    for key in mock_env_vars:
+        os.environ[key] = "MOCK"
 
     # if agent_dir does not exist, break early
     if not agent_dir.exists():
@@ -106,7 +117,7 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
         if "url-to-podcast" in prompt_id:
             result = agent.main("https://en.wikipedia.org/wiki/Alan_Turing_Life")
         elif "scoring-blueprints-submission" in prompt_id:
-            result = agent.main("https://github.com/mozilla-ai/byota")
+            result = agent.main("https://github.com/mozilla-ai/surf-spot-finder")
         else:
             # we are not testing other use-cases atm, but we can expect they will be
             # called with different parameters so we'll have an if...elif...else here

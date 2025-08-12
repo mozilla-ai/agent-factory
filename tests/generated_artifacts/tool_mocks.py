@@ -70,7 +70,12 @@ def mock_slack_list_channels() -> str:
     return """
 {
   "type": "text",
-  "text": "{\"ok\":true,\"channels\":[{\"id\":\"BLU3PR1NTSUB\",\"name\":\"blueprint-submission\",\"is_channel\":true}",
+  "text": "{\"ok\":true,\"channels\":[
+    {\"id\":\"G3N3R4LCH4NL\",\"name\":\"general\",\"is_channel\":true},
+    {\"id\":\"BLU3PR1NTSUB\",\"name\":\"blueprint-submission\",\"is_channel\":true},
+    {\"id\":\"BLU3PR1NTSC0\",\"name\":\"blueprint-scoring\",\"is_channel\":true},
+    {\"id\":\"BLU3PR1NTG3N\",\"name\":\"blueprint-general\",\"is_channel\":true}
+    ]}",
   "annotations": null,
   "meta": null
 }
@@ -85,6 +90,11 @@ def mock_slack_post_message(channel_id: str, text: str) -> str:
     - text: The message text to post
     """
     ts = time.time()
+
+    # we might expect this specific mock to match different slack posts at some point
+    # in the future, but for now it is built ad-hoc for the blueprint-scoring agent
+    assert channel_id == "BLU3PR1NTSUB"
+
     return f"""
 {{
   "type": "text",
@@ -101,6 +111,11 @@ def mock_sqlite_write_query(query: str) -> str:
     Parameters:
     - query: SQL query to execute
     """
+    # we might expect this specific mock to match different queries at some point
+    # in the future, but for now it is built ad-hoc for the blueprint-scoring agent
+    assert "github_repo_evaluations" in query.lower()
+
+    # check the presence of all compulsory fields
     for field in ["repo_url", "score", "details", "slack_channel_id", "slack_message_ts"]:
         assert field in query.lower()
 
