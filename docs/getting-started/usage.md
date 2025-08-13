@@ -102,14 +102,15 @@ The client will send the message to the server, print the response, and save the
 To run the generated agent, navigate to the directory where the agent was saved and execute:
 
 ```bash
-uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1 "value1"
+uv run --with-requirements requirements.txt --python 3.13 python agent.py --help
 ```
 
-Replace `--arg1 "value1"` with the actual arguments required by the generated agent. The command will execute the agent
-and save the agent trace as `agent_trace.json` in the agent's directory.
+From the output you can see if there are any POSITIONAL ARGUMENTS required.
 
-> [!NOTE]
-> You can append the `--help` flag to the command to see the available options for the generated agent.
+Then adjust the command below:
+```bash
+uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1 "value1"
+```
 
 > [!NOTE]
 > The agent-factory has been instructed to set the max_turns (the max number of steps that the generated agent can take
