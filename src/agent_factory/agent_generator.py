@@ -17,7 +17,8 @@ from agent_factory.utils import (
     get_storage_backend,
     logger,
     prepare_agent_artifacts,
-    process_a2a_agent_response,
+    process_a2a_agent_final_response,
+    process_streaming_response_message,
 )
 
 trace.set_tracer_provider(TracerProvider())
@@ -61,8 +62,23 @@ async def generate_target_agent(
 
                 # request_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
                 request = create_message_request(message, request_id=request_id)
-                response = await client.send_message(request, http_kwargs={"timeout": timeout})
-                response = process_a2a_agent_response(response)
+
+                responses = []
+                async for response in client.send_message_streaming(request, http_kwargs={"timeout": timeout}):
+                    processed_response = process_streaming_response_message(response)
+                    if processed_response.message:
+                        if processed_response.message_type == "info":
+                            log_message = f"{processed_response.message} \n"
+                            if processed_response.message_attributes:
+                                log_message += f"{processed_response.message_attributes} \n"
+                            logger.info(log_message)
+                        else:
+                            logger.error(processed_response.message)
+                    responses.append(response)
+
+                # Process response
+                final_response = responses[-1]
+                response = process_a2a_agent_final_response(final_response)
                 if response.status == Status.COMPLETED:
                     prepared_artifacts = prepare_agent_artifacts(response.model_dump())
                     output_dir = output_dir if output_dir else request.id
@@ -76,6 +92,7 @@ async def generate_target_agent(
                 else:
                     logger.error(f"Agent encountered an error: {response.message}")
                     raise Exception(f"Agent encountered an error: {response.message}")
+
         except httpx.ConnectError as e:
             logger.error(f"Failed to connect to the agent server at {host}:{port}. Error: {e}")
             raise RuntimeError(f"Connection to agent server failed: {e}") from e

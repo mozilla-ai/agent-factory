@@ -73,7 +73,9 @@ async def main(
         ),
     )
 
-    server_handle = await agent.serve_async(A2AServingConfig(host=host, port=port, log_level=log_level))
+    server_handle = await agent.serve_async(
+        A2AServingConfig(host=host, port=port, log_level=log_level, stream_tool_usage=True)
+    )
 
     try:
         # Keep the server running
