@@ -138,7 +138,7 @@ async def on_chat_start():
         cl.user_session.set("timeout", TIMEOUT)
 
         await cl.Message(
-            content=f"Connection to Agent at {base_url} established. Ready to chat!",
+            content=f"Connection to Agent at {base_url}{PUBLIC_AGENT_CARD_PATH} established. Ready to chat!",
             author="assistant",
         ).send()
 
