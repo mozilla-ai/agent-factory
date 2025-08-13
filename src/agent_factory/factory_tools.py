@@ -43,13 +43,13 @@ def search_mcp_servers(
     If no servers match, an empty list is returned.
 
     Example:
-    ```python
-    search_mcp_servers(keyphrase="google calendar")
-    search_mcp_servers(keyphrase="github", is_official=True)
-    search_mcp_servers(keyphrase="github", license="MIT")
-    search_mcp_servers(keyphrase="github", categories=["Dev Tools"])
-    search_mcp_servers(keyphrase="mcp", tags=["automation", "llm"])
-    ```
+        ```python
+        results = search_mcp_servers(keyphrase="google calendar")
+        results = search_mcp_servers(keyphrase="github", is_official=True)
+        results = search_mcp_servers(keyphrase="github", license="MIT")
+        results = search_mcp_servers(keyphrase="github", categories=["Dev Tools"])
+        results = search_mcp_servers(keyphrase="mcp", tags=["automation", "llm"])
+        ```
 
     Args:
         keyphrase: A string to search for in the MCP server registry.
@@ -135,7 +135,6 @@ def initialize_mcp_config(config_path: Path) -> bool:
     Example:
         ```python
         success = initialize_mcp_config(config_path=Path("/tmp/.mcpd.toml"))
-        print("Config initialized successfully")
         ```
 
     Args:
@@ -167,15 +166,14 @@ def register_mcp_server(
     Example:
         ```python
         success = register_mcp_server(
-            Path("/tmp/.mcpd.toml"), "github", tools=["get_pull_request_status", "push_files"]
+            config_path=Path("/tmp/.mcpd.toml"), name="github", tools=["get_pull_request_status", "push_files"]
         )
-        print("Server registered successfully")
 
-        register_mcp_server(Path("/tmp/.mcpd.toml"), "github", version="v1.2.3")
+        success = register_mcp_server(config_path=Path("/tmp/.mcpd.toml"), name="github", version="v1.2.3")
 
-        register_mcp_server(
-            Path("/tmp/.mcpd.toml"),
-            "github",
+        success = register_mcp_server(
+            config_path=Path("/tmp/.mcpd.toml"),
+            name="github",
             version="v4.5.6",
             tools=["get_pull_request_status", "update_pull_request_branch"],
         )
@@ -214,6 +212,11 @@ def create_temp_config_dir() -> tuple[Path, uuid.UUID, str]:
     The directory is persistent until explicitly deleted by `cleanup_temp_config_dir`.
     A secure key is stored inside the directory for deletion verification.
 
+    Example:
+        ```python
+        temp_dir, temp_dir_id, temp_dir_deletion_key = create_temp_dir()
+        ```
+
     Returns:
         Tuple containing:
             1. Path that should be used for configuration file creation,
@@ -223,11 +226,6 @@ def create_temp_config_dir() -> tuple[Path, uuid.UUID, str]:
 
     Raises:
         RuntimeError: If `create_temp_dir` fails to create the directory and associated data.
-
-    Example:
-        ```python
-        temp_dir, temp_dir_id, temp_dir_deletion_key = create_temp_dir()
-        ```
     """
     try:
         # Ensure the base directory exists.
@@ -256,6 +254,11 @@ def create_temp_config_dir() -> tuple[Path, uuid.UUID, str]:
 def read_temp_config_file(dir_uuid: uuid.UUID) -> str:
     """Reads the '.mcpd.toml' file from the temporary directory identified by its UUID.
     This function is narrowly scoped and includes a security check to prevent path traversal.
+
+    Example:
+        ```python
+        mcpd_contents = read_temp_config_file(dir_uuid=uuid.UUID("d34dbeef-1000-0000-0000-000000000001"))
+        ```
 
     Args:
         dir_uuid: The UUID of the temporary directory.
@@ -292,6 +295,13 @@ def cleanup_temp_config_dir(dir_uuid: uuid.UUID, deletion_key: str) -> bool:
 
     Includes a security check to prevent deleting other (non-temporary) directories
     and a key verification check to ensure ownership.
+
+    Example:
+        ```python
+        success = cleanup_temp_config_dir(
+            dir_uuid=uuid.UUID("d34dbeef-1000-0000-0000-000000000001"),
+            deletion_key="qwerty123)
+        ```
 
     Args:
         dir_uuid: UUID of the temporary directory to delete.
