@@ -89,7 +89,6 @@ async def create_agent(message: cl.Message):
 
     # Create and start the message updater
     msg = cl.Message(content="", author="assistant")
-    await msg.send()
     thinking_message_updater = ThinkingMessageUpdater(msg)
     thinking_message_update_task = asyncio.create_task(thinking_message_updater.update_loop())
 
@@ -115,13 +114,14 @@ async def create_agent(message: cl.Message):
         if responses:
             final_response = responses[-1]
             final_response = process_a2a_agent_final_response(final_response)
+
             if final_response.status == Status.COMPLETED:
                 prepared_artifacts = prepare_agent_artifacts(final_response.model_dump())
                 storage_backend = get_storage_backend()
                 storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
-            # Update the chat UI with the final message content to return to the user
-            msg.content = final_response.message
-            await msg.update()
+
+            if final_response.message:
+                await cl.Message(content=final_response.message, author="assistant").send()
 
     except Exception as e:
         await cl.Message(
