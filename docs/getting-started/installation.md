@@ -1,15 +1,11 @@
-# Installation
+### Prerequisites
 
-## Prerequisites
+- [Python 3.13+](https://www.python.org/downloads/) (highly recommended to use [pyenv](https://github.com/pyenv/pyenv) to manage Python versions)
+- [uv](https://github.com/astral-sh/uv) (easily manage Python environments and agents' dependencies)
+- [mcpd](https://github.com/mozilla-ai/mcpd) (interface to manage and run MCP servers)
+- **(Optional)** [Docker](https://www.docker.com/products/docker-desktop/) (for containerized server deployment)
 
-- [curl](https://curl.se/)
-- [jq](https://jqlang.org/)
-- [Python 3.13+](https://www.python.org/downloads/)
-- [uv](https://github.com/astral-sh/uv)
-- [Docker](https://www.docker.com/products/docker-desktop/) (for containerized deployment)
-- [mcpd](https://github.com/mozilla-ai/mcpd/releases) added to `PATH`, e.g. `/usr/local/bin` (for local deployment)
-
-## Installation
+### Installation
 
 1. Clone the repository and navigate to the agent's source directory:
    ```bash
