@@ -1,9 +1,8 @@
-
-### Run the Server
+## Run the Server
 
 You can run the Agent-Factory server either directly from a terminal ("locally") or using Docker.
 
-#### Locally
+### Locally
 
 To run the server locally, execute the following command from the `src/agent_factory` directory:
 
@@ -27,7 +26,7 @@ In addition to `host` and `port`, you can also pass the following arguments:
 
 
 
-#### Using Docker
+### Docker
 
 The Makefile enables you to run the server using Docker. Before starting, make sure that [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed and running.
 
@@ -50,11 +49,11 @@ The Makefile enables you to run the server using Docker. Before starting, make s
 > make stop
 > ```
 
-### (Optional) Setting Up Storage Backends
+## (Optional) Setting Up Storage Backends
 
 By default, agent outputs are **saved to the local filesystem**. You can configure the agent factory to use AWS S3 or a local MinIO instance for storage.
 
-#### S3 & MinIO Configuration
+### S3 & MinIO Configuration
 
 To customize the S3/MinIO configuration, you can create a `.env` file in the project root and override the following values from `.default.env`:
 
@@ -67,7 +66,7 @@ To customize the S3/MinIO configuration, you can create a `.env` file in the pro
 
 When using these settings, the application will automatically create the specified bucket if it does not already exist.
 
-#### Running a Local MinIO Instance
+### Running a Local MinIO Instance
 
 If you do not have access to AWS S3, you can run a local MinIO instance using Docker:
 
@@ -83,11 +82,11 @@ The `agent-factory-minio` volume is used to persist the MinIO server's data, ens
 
 Once the container is running, you can access the MinIO console at `http://localhost:9091`. The login credentials are `agent-factory` for both the username and password.
 
-### Generate an Agentic Workflow
+## Generate an Agentic Workflow
 
 > [!IMPORTANT]
 > Always run the server in non-chat mode (`--nochat`) when generating agents using the `agent-factory` command.
-> For multi-turn conversations, see the section on [Multi-Turn Conversations](#multi-turn-conversations).
+> For multi-turn conversations, see the section on [Multi-Turn Conversations](#multi-turn-conversations.md).
 
 Once the server is running, run the `agent-factory` CLI tool with your desired workflow prompt:
 
@@ -98,7 +97,7 @@ uv run agent-factory "Summarize text content from a given webpage URL"
 The client will send the message to the server, print the response, and save the generated agent's files (`agent.py`,
 `README.md`, `requirements.txt`, and `agent_parameters.json`) into a new directory inside the `generated_workflows` directory.
 
-### Run the Generated Workflow
+## Run the Generated Workflow
 
 To run the generated agent, navigate to the directory where the agent was saved and execute:
 
