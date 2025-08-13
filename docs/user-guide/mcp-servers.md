@@ -1,18 +1,27 @@
 # MCP Servers
 
-> **⚠️ Note: This page is automatically generated and should not be manually edited.**
+This page lists the available Model Context Protocol (MCP) servers that can be used with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
+
+> **⚠️ Note: This page is automatically generated, from a template and test results, and should not be manually edited.**
 > To add a new MCP server, edit the `docs/mcp-servers.json` file. Tests will be run automatically and results will be published in the table below.
 
-This page provides a list of Model Context Protocol (MCP) servers configured for use with Agent Factory. These servers extend the capabilities of your AI agents by providing access to various services, APIs, and data sources.
+
+## Server Status Legend
+
+- ✅ **Confirmed**: Server has been tested and confirmed working
+- ⏭️ **Skipped**: Server was skipped during testing (Docker-based servers)
+- ❌ **Failed**: Server failed the latest test
+
 
 ## Quick Reference Table
 
 The following table provides a quick overview of tested MCP servers. For detailed information about each server, see the sections below.
 
+
 <!-- MCP_SERVERS_TABLE_START -->
 
-*Last updated: 2025-08-01T15:45:51.470368+00:00*
-*Test results: 11 working, 1 failed, 1 skipped out of 13 total servers*
+*Last updated: 2025-08-13T15:09:25.964809+00:00*
+*Test results: 17 working, 1 failed, 1 skipped out of 19 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |
 | --- | --- | --- | --- | --- |
@@ -29,21 +38,14 @@ The following table provides a quick overview of tested MCP servers. For detaile
 | **Elasticsearch** | `uvx elasticsearch-mcp-server` | stdio | ✅ Confirmed | Elasticsearch search and analytics |
 | **Monday-Api-Mcp** | `npx -y @mondaydotcomorg/monday-api-mcp -t $MONDAY_API_TOKEN --enable-dynamic-api-tools true` | stdio | ✅ Confirmed | Monday.com integration with dynamic API tools enabled |
 | **Slack-Mcp** | `npx -y @zencoderai/slack-mcp-server` | stdio | ✅ Confirmed | Slack workspace integration for channel, message, reaction and user management |
+| **Jira** | `uvx mcp-atlassian --confluence-url=${CONFLUENCE_URL} --confluence-username=${CONFLUENCE_USERNAME} --confluence-token=${CONFLUENCE_TOKEN} --jira-url=${JIRA_URL} --jira-username=${JIRA_USERNAME} --jira-token=${JIRA_TOKEN}` | stdio | ✅ Confirmed | Atlassian integration for Jira project management and Confluence documentation |
+| **Airtable** | `npx -y @felores/airtable-mcp-server` | stdio | ✅ Confirmed | Airtable database and spreadsheet operations |
+| **Gitlab** | `npx -y @modelcontextprotocol/server-gitlab` | stdio | ✅ Confirmed | GitLab API integration for project management and repository operations |
+| **Intercom** | `npx mcp-remote https://mcp.intercom.com/mcp --header Authorization:${AUTH_HEADER}` | stdio | ✅ Confirmed | Intercom intergration to connect with Intercom's data such as conversations and contacts |
+| **Elevenlabs** | `uvx elevenlabs-mcp` | stdio | ✅ Confirmed | ElevenLabs text-to-speech and voice cloning integration |
+| **Supabase** | `npx -y @supabase/mcp-server-supabase@latest --read-only --project-ref=${SUPABASE_PROJECT_REF}` | stdio | ✅ Confirmed | Supabase database integration for read-only operations |
 <!-- MCP_SERVERS_TABLE_END -->
 
-## Server Status Legend
-
-- ✅ **Confirmed**: Server has been tested and confirmed working
-- ⏭️ **Skipped**: Server was skipped during testing (Docker-based servers)
-- ❌ **Failed**: Server failed the latest test
-
-## Content Processing
-
-### Text Processing Tools
-- **Extract Text from Markdown/HTML**: Built-in tool for content extraction
-- **Summarize Text with LLM**: AI-powered text summarization
-- **Translate Text with LLM**: Multi-language text translation
-- **Generate Podcast Script with LLM**: AI-generated content creation
 
 ## Installation & Setup
 
@@ -52,9 +54,10 @@ The following table provides a quick overview of tested MCP servers. For detaile
 Before installing MCP servers, ensure you have:
 
 1. **Node.js** (for npx installations)
-2. **Docker** (for containerized servers)
-3. **uv** (for uvx installations)
-4. **Proper API keys** for the services you want to use
+2. **uv** (for uvx installations)
+3. **Proper API keys** for the services you want to use
+
+Please note that **Docker**-based MCP servers are not supported as this time.
 
 ## Troubleshooting
 
@@ -62,14 +65,12 @@ Before installing MCP servers, ensure you have:
 
 1. **Permission Errors**: Ensure proper permissions for file system access
 2. **API Key Issues**: Verify API keys are correctly set in environment variables
-3. **Network Connectivity**: Check internet connection for remote services
-4. **Version Compatibility**: Ensure server versions are compatible with your Agent Factory version
+
 
 ### Getting Help
 
 - Check the [GitHub Issues](https://github.com/mozilla-ai/agent-factory/issues) for known problems
 - Review individual server documentation for specific troubleshooting steps
-- Join our community discussions for support
 
 ## Testing and Maintenance
 
@@ -79,11 +80,11 @@ The MCP servers are automatically tested using the following workflow:
 
 1. **Manual Trigger**: Tests are run manually via GitHub Actions workflow dispatch
 2. **Server Testing**: The `docs/scripts/test_mcp_servers.py` script tests each server by:
-   - Attempting to connect to each MCP server
-   - Listing available tools
-   - Recording success/failure status and tool count
+    - Attempting to connect to each MCP server
+    - Listing available tools
+    - Recording success/failure status and tool count
 3. **Results Storage**: Test results are saved to `.cache/mcp-test-results.json`
-4. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script updates this markdown file with current test results
+4. **Documentation Update**: The `docs/scripts/generate_mcp_table.py` script generates this markdown file from the template with current test results
 
 ### Running Tests Locally
 
@@ -119,7 +120,3 @@ We welcome contributions to expand our MCP server coverage! To add a new MCP ser
 
 - [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
 - [Agent Factory GitHub Repository](https://github.com/mozilla-ai/agent-factory)
-
----
-
-*Last updated: Based on [Mozilla AI Agent Factory Wiki](https://github.com/mozilla-ai/agent-factory/wiki/MCP-servers-under-test)*

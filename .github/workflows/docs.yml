@@ -1,0 +1,55 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
+      - 'pyproject.toml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
+      - 'pyproject.toml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: 3.13
+          activate-environment: true
+
+      - name: Install dependencies
+        run: |
+          uv sync --group docs
+
+      - name: Configure git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Build documentation
+        if: github.event_name == 'pull_request'
+        run: uv run mkdocs build -s
+
+      - name: Publish docs
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        run: uv run mkdocs gh-deploy

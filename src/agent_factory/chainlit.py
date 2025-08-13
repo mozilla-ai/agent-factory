@@ -7,14 +7,15 @@ from a2a.types import (
     AgentCard,
 )
 
+from agent_factory.config import DEFAULT_EXPORT_PATH
 from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
     create_message_request,
     get_a2a_agent_card,
-    process_a2a_agent_response,
-    save_agent_outputs,
-    setup_output_directory,
+    get_storage_backend,
+    prepare_agent_artifacts,
+    process_a2a_agent_final_response,
 )
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
@@ -55,11 +56,12 @@ async def create_agent(message: cl.Message):
 
     try:
         result = await client.send_message(request, http_kwargs={"timeout": TIMEOUT})
-        response = process_a2a_agent_response(result)
+        response = process_a2a_agent_final_response(result)
 
         if response.status == Status.COMPLETED:
-            output_dir = setup_output_directory()
-            save_agent_outputs(response.model_dump(), output_dir)
+            prepared_artifacts = prepare_agent_artifacts(response.model_dump())
+            storage_backend = get_storage_backend()
+            storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
 
         await cl.Message(
             content=response.message,
@@ -121,4 +123,8 @@ async def on_message(message: cl.Message):
 
 
 if __name__ == "__main__":
+    from dotenv import find_dotenv, load_dotenv
+
+    load_dotenv(find_dotenv(".default.env", usecwd=True))
+    load_dotenv(find_dotenv(".env", usecwd=True), override=True)
     chainlit.cli.run_chainlit(__file__)

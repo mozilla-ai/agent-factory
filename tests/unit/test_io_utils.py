@@ -1,60 +1,60 @@
+import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 from agent_factory.instructions import AGENT_CODE_TEMPLATE
-from agent_factory.utils.io_utils import save_agent_outputs, setup_output_directory
+from agent_factory.schemas import AgentParameters
+from agent_factory.utils.io_utils import (
+    parse_cli_args_to_params_json,
+    prepare_agent_artifacts,
+)
 
 
-def test_setup_output_directory_default(tmp_path):
-    """Tests the creation of a timestamped directory when no output_dir is provided."""
-    mock_cwd = tmp_path
-    mock_now_datetime = MagicMock()
-    mock_now_datetime.strftime.return_value = "2025-07-28_10:00:00"
-    mock_uuid = "12345678"
-    expected_output_path = mock_cwd / "generated_workflows" / f"2025-07-28_10:00:00_{mock_uuid}"
+def test_prepare_agent_artifacts(sample_generator_agent_response_json):
+    """Test that prepare_agent_artifacts correctly prepares the artifacts."""
+    artifacts = prepare_agent_artifacts(sample_generator_agent_response_json)
 
-    with (
-        patch("agent_factory.utils.io_utils.Path.cwd", return_value=mock_cwd),
-        patch("agent_factory.utils.io_utils.datetime") as mock_datetime,
-        patch("agent_factory.utils.io_utils.uuid.uuid4", return_value=mock_uuid),
-        patch("agent_factory.utils.io_utils.Path.mkdir") as mock_mkdir,
-    ):
-        mock_datetime.now.return_value = mock_now_datetime
-        result = setup_output_directory(output_dir=None)
+    assert "agent.py" in artifacts
+    assert "README.md" in artifacts
+    assert "requirements.txt" in artifacts
+    assert "tools/__init__.py" in artifacts
+    assert "tools/summarize_text_with_llm.py" in artifacts
+    assert "agent_parameters.json" in artifacts
 
-        assert result == expected_output_path
-        mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
+    from agent_factory.utils import clean_python_code_with_autoflake
+
+    agent_code_before_cleaning = AGENT_CODE_TEMPLATE.format(**sample_generator_agent_response_json)
+    assert artifacts["agent.py"] == clean_python_code_with_autoflake(agent_code_before_cleaning)
+    assert artifacts["README.md"] == sample_generator_agent_response_json["readme"]
+    assert artifacts["requirements.txt"] == sample_generator_agent_response_json["dependencies"]
+
+    # Verify tools taken from src directory
+    tool_path = Path("src/agent_factory/tools/summarize_text_with_llm.py")
+    assert artifacts["tools/summarize_text_with_llm.py"] == tool_path.read_text(encoding="utf-8")
+
+    assert artifacts["agent_parameters.json"] == parse_cli_args_to_params_json(
+        sample_generator_agent_response_json["cli_args"]
+    )
 
 
 @pytest.mark.parametrize(
-    "custom_input, expected_path",
+    "cli_args_str, expected_params",
     [
-        (Path("/custom/path/dir"), Path("/custom/path/dir")),
-        ("/custom/string/dir", Path("/custom/string/dir")),
+        # Single argument
+        ("url: str", {"params": {"--url": "string"}}),
+        # Multiple arguments
+        ("url: str, num_hosts: int", {"params": {"--url": "string", "--num_hosts": "integer"}}),
+        # Empty string
+        ("", {"params": {}}),
     ],
-    ids=["path_input", "str_input"],
 )
-def test_setup_output_directory_specified(custom_input, expected_path):
-    """Tests the setup_output_directory function when a Path or string is provided."""
-    with patch("agent_factory.utils.io_utils.Path.mkdir") as mock_mkdir:
-        result = setup_output_directory(output_dir=custom_input)
-        assert result == expected_path
-        mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
+def test_parse_cli_args_to_params_json(cli_args_str, expected_params):
+    """Test that parse_cli_args_to_params_json correctly parses various CLI argument strings."""
+    params_json_str = parse_cli_args_to_params_json(cli_args_str)
+    actual_params = json.loads(params_json_str)
+    assert actual_params == expected_params
 
-
-def test_save_agent_outputs_success(tmp_path, sample_generator_agent_response_json):
-    agent_code = AGENT_CODE_TEMPLATE.format(**sample_generator_agent_response_json)
-    output_dir = tmp_path
-    agent_path = output_dir / "agent.py"
-    readme_path = output_dir / "README.md"
-    req_path = output_dir / "requirements.txt"
-
-    with patch("agent_factory.utils.io_utils.clean_python_code_with_autoflake", side_effect=lambda x: x) as mock_clean:
-        save_agent_outputs(sample_generator_agent_response_json, output_dir)
-
-        mock_clean.assert_called_once_with(agent_code)
-        assert agent_path.exists()
-        assert readme_path.exists()
-        assert req_path.exists()
+    # Validate against the Pydantic schema
+    validated_params = AgentParameters(**actual_params)
+    assert validated_params.model_dump() == expected_params
