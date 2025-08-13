@@ -86,9 +86,9 @@ Once the container is running, you can access the MinIO console at `http://local
 
 > [!IMPORTANT]
 > Always run the server in non-chat mode (`--nochat`) when generating agents using the `agent-factory` command.
-> For multi-turn conversations, see the section on [Multi-Turn Conversations](#multi-turn-conversations.md).
+> For multi-turn conversations, see the section on [Multi-Turn Conversations](multi-turn-conversations.md).
 
-Once the server is running, run the `agent-factory` CLI tool with your desired workflow prompt:
+Once the server is running, from the project root directory, run the `agent-factory` CLI tool with your desired workflow prompt:
 
 ```bash
 uv run agent-factory "Summarize text content from a given webpage URL"
@@ -119,7 +119,7 @@ uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1
 
 ## Evaluate the Generated Agent
 
-Run the evaluation case generator agent with your desired evaluation case prompt:
+Run the Criteria Agent, from the project root directory, with your desired evaluation case prompt:
 
 ```bash
 uv run -m eval.generate_evaluation_case path/to/the/generated/agent
