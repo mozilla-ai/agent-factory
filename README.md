@@ -45,7 +45,7 @@ uv run agent-factory "Create an AI agent that searches the web for the latest ne
 
 * **Smart Tooling & Integration:** Automatically identify the most relevant tools and MCP servers for your agent.
 
-* **Agent Execution:** Effortlessly create runnable agents complete with their operational instructions and dependency
+* **Deployable agents:** Create runnable agents complete with their operational instructions and dependency
   files.
 
 * **Agent Evaluation:** Evaluate the generated agents against automatically or manually defined criteria to ensure they
