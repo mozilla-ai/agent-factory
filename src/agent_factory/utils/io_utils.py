@@ -1,8 +1,9 @@
 import json
 import subprocess
+import tempfile
+from contextlib import nullcontext
 from pathlib import Path
 
-from agent_factory.config import DEFAULT_MCP_CONFIG_PATH
 from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.schemas import AgentParameters
 from agent_factory.utils import clean_python_code_with_autoflake, validate_dependencies
@@ -10,6 +11,101 @@ from agent_factory.utils.logging import logger
 
 TOOLS_DIR = Path(__file__).parent.parent / "tools"
 BINARY_NAME_MCPD = "mcpd"
+
+
+def export_mcpd_config_artifacts(
+    agent_factory_outputs: dict[str, str], output_dir: Path | None = None
+) -> dict[str, str]:
+    """Export mcpd configuration files as sanitized artifacts.
+
+    Attempts to parse mcpd config (.mcpd.toml) contents from the supplied Agent Factory outputs,
+    which is used to generate portable configuration files that separate the configuration structure
+    from sensitive values, making the generated agent more portable while protecting secrets.
+
+    The portable configuration files only handle required variables (not optional ones) for an MCP server.
+
+    Args:
+        agent_factory_outputs: The outputs from the Agent Factory which should contain a key named `mcpd`
+            the value should be string contents representing the mcpd configuration file (.mcpd.toml).
+        output_dir: Optional path to use as output directory for generated files.
+            If None, a temporary directory will be created and automatically cleaned up.
+            If provided, the directory and its contents will be preserved for further use (this causes a side effect).
+
+    Returns:
+        Dictionary with exported configuration artifacts.
+        May contain:
+            - ".mcpd.toml": The original mcpd configuration file content.
+            - ".env": Environment contract with placeholders for required variables.
+            - "secrets.prod.toml": Sanitized execution context safe for version control.
+        Or an empty dictionary when the mcpd configuration doesn't exist in the supplied Agent Factory outputs.
+
+    Note:
+        If mcpd export fails, warnings are logged but the function continues.
+        When output_dir is None, temporary files are cleaned up automatically.
+        When output_dir is provided, all generated files remain in the specified directory (not recommended).
+    """
+    exported_artifacts = {}
+
+    mcpd_toml = agent_factory_outputs.get("mcpd")
+    if not (mcpd_toml and mcpd_toml.strip()):
+        logger.warning("'Agent Factory output does not contain 'mcpd' config, no related artifacts will be exported.")
+        return exported_artifacts
+
+    # Expected file names.
+    config_file_name = ".mcpd.toml"
+    contract_file_name = ".env"
+    context_file_name = "secrets.prod.toml"
+
+    # Use provided output_dir or create a temporary directory that will auto-cleanup.
+    context = tempfile.TemporaryDirectory() if output_dir is None else nullcontext(output_dir)
+
+    with context as working_dir:
+        work_dir = Path(working_dir) if working_dir else output_dir
+
+        try:
+            # Include the original mcpd config file in the export.
+            exported_artifacts[config_file_name] = mcpd_toml
+
+            # Write the mcpd config file to a temporary file so it can be used by mcpd binary to export config.
+            mcpd_toml_path = work_dir / config_file_name
+            mcpd_toml_path.write_text(mcpd_toml, encoding="utf-8")
+
+            # Prepare export paths.
+            mcpd_contract_path = work_dir / contract_file_name
+            mcpd_context_path = work_dir / context_file_name
+
+            # Run 'mcpd config export' to generate artifacts.
+            run_binary(
+                BINARY_NAME_MCPD,
+                [
+                    "config",
+                    "export",
+                    "--config-file",
+                    str(mcpd_toml_path),
+                    "--contract-output",
+                    str(mcpd_contract_path),
+                    "--context-output",
+                    str(mcpd_context_path),
+                ],
+                ignore_response=True,
+            )
+
+            # Read the generated contract file (.env).
+            if mcpd_contract_path.exists():
+                exported_artifacts[contract_file_name] = mcpd_contract_path.read_text(encoding="utf-8")
+            else:
+                logger.warning(f"mcpd config export did not generate expected contract file: {mcpd_contract_path}")
+
+            # Read the generated context file (secrets.prod.toml).
+            if mcpd_context_path.exists():
+                exported_artifacts[context_file_name] = mcpd_context_path.read_text(encoding="utf-8")
+            else:
+                logger.warning(f"mcpd config export did not generate expected context file: {mcpd_context_path}")
+
+        except (RuntimeError, ValueError) as e:
+            logger.warning(f"Failed to export mcpd config: {e}")
+
+    return exported_artifacts
 
 
 def parse_cli_args_to_params_json(cli_args_str: str) -> str:
@@ -64,11 +160,9 @@ def prepare_agent_artifacts(agent_factory_outputs: dict[str, str]) -> dict[str, 
     cli_args_str = agent_factory_outputs.get("cli_args", "")
     artifacts_to_save["agent_parameters.json"] = parse_cli_args_to_params_json(cli_args_str)
 
-    if DEFAULT_MCP_CONFIG_PATH.exists():
-        artifacts_to_save[".mcpd.toml"] = DEFAULT_MCP_CONFIG_PATH.read_text(encoding="utf-8")
-
-        # Delete mcpd config file after reading
-        DEFAULT_MCP_CONFIG_PATH.unlink(missing_ok=True)
+    # Export mcpd config and sanitized artifacts for portability
+    mcpd_artifacts = export_mcpd_config_artifacts(agent_factory_outputs)
+    artifacts_to_save.update(mcpd_artifacts)
 
     # Add a .gitignore file for ignoring secrets
     artifacts_to_save[".gitignore"] = "*secrets*.dev.toml\n!secrets.prod.toml"

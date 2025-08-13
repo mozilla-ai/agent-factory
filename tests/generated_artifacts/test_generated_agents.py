@@ -96,3 +96,36 @@ def test_agent_basic_execution(artifacts_dir: Path, prompt_id: str, timeout: int
         pytest.fail(f"Timeout after {timeout} seconds - agent may be waiting for input or hanging")
     except Exception as e:
         pytest.fail(f"Basic execution test error: {e}")
+
+
+@pytest.mark.artifact_validation
+def test_mcpd_artifacts_present(artifacts_dir: Path, prompt_id: str):
+    """Test that mcpd-related artifacts are present when expected for MCP-enabled workflows."""
+    workflow_dir = artifacts_dir / prompt_id
+    existing_files = [f.name for f in workflow_dir.iterdir()]
+
+    # Define which prompt IDs should have MCP servers and thus mcpd artifacts
+    mcp_enabled_prompts = {
+        "url-to-podcast",  # Uses ElevenLabs MCP
+        "scoring-blueprints-submission",  # Uses Slack and SQLite MCPs
+    }
+
+    if prompt_id in mcp_enabled_prompts:
+        # These prompts should have mcpd artifacts
+        expected_mcpd_files = [".mcpd.toml", ".env", "secrets.prod.toml"]
+        for mcpd_file in expected_mcpd_files:
+            assert mcpd_file in existing_files, (
+                f"MCP-enabled workflow '{prompt_id}' should have {mcpd_file}, but it was not found. Available files: {existing_files}"
+            )
+
+            # Also verify the file has content
+            file_path = workflow_dir / mcpd_file
+            content = file_path.read_text(encoding="utf-8")
+            assert content.strip(), f"{mcpd_file} should not be empty"
+    else:
+        # These prompts should NOT have mcpd artifacts
+        unexpected_mcpd_files = [".mcpd.toml", ".env", "secrets.prod.toml"]
+        for mcpd_file in unexpected_mcpd_files:
+            assert mcpd_file not in existing_files, (
+                f"Non-MCP workflow '{prompt_id}' should not have {mcpd_file}, but it was found. Available files: {existing_files}"
+            )

@@ -27,6 +27,32 @@ def _assert_generated_files(workflow_dir: Path):
     )
 
 
+def _assert_mcpd_artifacts(workflow_dir: Path, prompt_id: str):
+    """Assert that mcpd-related artifacts are present when expected based on prompt_id."""
+    existing_files = [f.name for f in workflow_dir.iterdir()]
+
+    # Define which prompt IDs should have MCP servers and thus mcpd artifacts
+    mcp_enabled_prompts = {
+        "url-to-podcast",  # Uses ElevenLabs MCP
+        "scoring-blueprints-submission",  # Uses Slack and SQLite MCPs
+    }
+
+    if prompt_id in mcp_enabled_prompts:
+        # These prompts should generate mcpd artifacts
+        expected_mcpd_files = [".mcpd.toml", ".env", "secrets.prod.toml"]
+        for mcpd_file in expected_mcpd_files:
+            assert mcpd_file in existing_files, (
+                f"MCP-enabled workflow should generate {mcpd_file}, but it was not found. Generated files: {existing_files}"
+            )
+    else:
+        # These prompts should NOT generate mcpd artifacts
+        unexpected_mcpd_files = [".mcpd.toml", ".env", "secrets.prod.toml"]
+        for mcpd_file in unexpected_mcpd_files:
+            assert mcpd_file not in existing_files, (
+                f"Non-MCP workflow should not generate {mcpd_file}, but it was found. Generated files: {existing_files}"
+            )
+
+
 def _assert_agent_code_syntax(agent_file: Path):
     ast.parse(agent_file.read_text(encoding="utf-8"))
 
@@ -59,6 +85,9 @@ async def test_single_turn_generation(
 
     # Verify the expected files were generated
     _assert_generated_files(full_path)
+
+    # Verify mcpd artifacts are generated when expected
+    _assert_mcpd_artifacts(full_path, prompt_id)
 
     # Verify the generated agent.py has valid Python syntax
     agent_file = full_path / "agent.py"
