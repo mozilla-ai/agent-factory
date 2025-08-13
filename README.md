@@ -1,6 +1,20 @@
+<div align="center">
+
 # Agent Factory
 
+
+[![Docs](https://github.com/mozilla-ai/agent-factory/actions/workflows/docs.yml/badge.svg)](https://github.com/mozilla-ai/agent-factory/actions/workflows/docs.yml/)
+[![Tests](https://github.com/mozilla-ai/agent-factory/actions/workflows/tests.yaml/badge.svg)](https://github.com/mozilla-ai/agent-factory/actions/workflows/tests.yaml/)
+[![MCP Servers](https://github.com/mozilla-ai/agent-factory/actions/workflows/mcp-tests.yaml/badge.svg)](https://github.com/mozilla-ai/agent-factory/actions/workflows/mcp-tests.yaml/)
+
+![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)
+<a href="https://discord.gg/4gf3zXrQUc">
+    <img src="https://img.shields.io/static/v1?label=Chat%20on&message=Discord&color=blue&logo=Discord&style=flat-square" alt="Discord">
+</a>
+
 > A factory for automatically creating agentic workflows.
+
+</div>
 
 Agent Factory is a powerful tool for generating AI agents and workflows using the Model Context Protocol (MCP).
 It transforms natural language descriptions into executable Python code for agentic workflows, powered by the any-agent library.
