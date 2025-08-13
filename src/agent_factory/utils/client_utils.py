@@ -1,16 +1,23 @@
 """Utility functions for the A2A client."""
 
 import json
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
 import httpx
 from a2a.client import A2ACardResolver
 from a2a.types import AgentCard, MessageSendParams, SendStreamingMessageRequest, TaskState
 from any_agent.tracing.attributes import GenAI
+from pydantic import BaseModel
 
 from agent_factory.schemas import AgentFactoryOutputs
 from agent_factory.utils.logging import logger
+
+
+class ProcessedStreamingResponse(BaseModel):
+    message_type: Literal["info", "error"] = "info"
+    message: str | None = None
+    message_attributes: dict[str, Any] = {}
 
 
 async def create_a2a_http_client(host: str, port: int, timeout: int) -> tuple[httpx.AsyncClient, str]:
@@ -68,30 +75,25 @@ def process_a2a_agent_final_response(response: Any) -> AgentFactoryOutputs:
     return AgentFactoryOutputs(**response_data)
 
 
-def process_streaming_response_message(response: Any) -> dict[str, Any]:
-    """Process an agent response message and return a dictionary for logging.
+def process_streaming_response_message(response: Any) -> ProcessedStreamingResponse:
+    """Process an agent response message and return a structured response.
 
     Args:
         response: The response object from the A2A agent.
 
     Returns:
-        A dictionary containing the message_type ("info" or "error"),
-        message, and message_attributes.
+        A ProcessedStreamingResponse object containing the message type,
+        message content, and any additional attributes.
     """
     try:
-        response_data = response.model_dump(mode="json", exclude_none=True)
-        return_dict = {
-            "message_type": "info",
-            "message": None,
-            "message_attributes": {},
-        }
+        processed_response = ProcessedStreamingResponse()
 
         # TastState is an enum with values:
         # submitted, working, completed, failed, input-required, canceled, unknown
         # See: https://www.a2aprotocol.net/docs/specification
         # Using a subset of these states to log different messages
         if response.root.result.status.state == TaskState.submitted:
-            return_dict["message"] = "Manufacturing agent has received the message and is processing it."
+            processed_response.message = "Manufacturing agent has received the message and is processing it."
 
         elif response.root.result.status.state == TaskState.working and response.root.result.status.message:
             message_data = response.root.result.status.message.parts[0].root.data
@@ -99,22 +101,21 @@ def process_streaming_response_message(response: Any) -> dict[str, Any]:
                 tool_call_info_to_log = {
                     k: v for k, v in message_data["payload"].items() if k in [GenAI.TOOL_NAME, GenAI.TOOL_ARGS]
                 }
-                return_dict["message"] = "Making a tool call ..."
-                return_dict["message_attributes"] = {"agent_action": "execute_tool", **tool_call_info_to_log}
+                processed_response.message = "Making a tool call ..."
+                processed_response.message_attributes.update({"agent_action": "execute_tool", **tool_call_info_to_log})
 
         elif response.root.result.status.state == TaskState.completed:
-            return_dict["message"] = "Manufacturing agent has completed the assigned task."
+            processed_response.message = "Manufacturing agent has completed the assigned task."
 
-        return return_dict
+        return processed_response
 
     except Exception as e:
-        error_msg = (
-            f"Error processing response: {str(e)}\nResponse data: "
-            f"{str(response_data) if 'response_data' in locals() else 'N/A'}"
+        processed_response = ProcessedStreamingResponse(
+            message_type="error",
+            message=f"Error processing response: {str(e)}",
+            message_attributes={"error": str(e)},
         )
-        return_dict["message_type"] = "error"
-        return_dict["message"] = error_msg
-        return return_dict
+        return processed_response
 
 
 def is_server_live(host: str, port: int, timeout: float = 2.0) -> bool:
