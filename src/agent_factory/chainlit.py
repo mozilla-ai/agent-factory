@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 from uuid import uuid4
 
 import chainlit as cl
@@ -16,6 +18,7 @@ from agent_factory.utils import (
     get_storage_backend,
     prepare_agent_artifacts,
     process_a2a_agent_final_response,
+    process_streaming_response_message,
 )
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
@@ -43,9 +46,25 @@ async def create_agent(message: cl.Message):
         ).send()
         return
 
-    # TODO: Remove this when streaming is available
-    spinner_msg = cl.Message(content="⏳ Working on it...", author="assistant")
+    # Animated spinner while the agent is working
+    spinner_msg = cl.Message(content="⏳ Thinking...", author="assistant")
     await spinner_msg.send()
+
+    async def animate_spinner(msg: cl.Message):
+        """Continuously update the spinner message until cancelled."""
+        spinner_frames = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]
+        i = 0
+        try:
+            while True:
+                msg.content = f"{spinner_frames[i % len(spinner_frames)]} Thinking..."
+                await msg.update()
+                i += 1
+                await cl.sleep(0.1)
+        except asyncio.CancelledError:
+            # Clear spinner when cancelled
+            pass
+
+    spinner_task = asyncio.create_task(animate_spinner(spinner_msg))
 
     message_id = uuid4()
     request_id = uuid4()
@@ -55,18 +74,32 @@ async def create_agent(message: cl.Message):
     )
 
     try:
-        result = await client.send_message(request, http_kwargs={"timeout": TIMEOUT})
-        response = process_a2a_agent_final_response(result)
+        msg = cl.Message(content="", author="assistant")
+        await msg.send()
 
-        if response.status == Status.COMPLETED:
-            prepared_artifacts = prepare_agent_artifacts(response.model_dump())
-            storage_backend = get_storage_backend()
-            storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
+        responses = []
+        async for response in client.send_message_streaming(request, http_kwargs={"timeout": TIMEOUT}):
+            text, _ = process_streaming_response_message(response)
+            if text:
+                msg.content = text
+                await msg.update()
+            responses.append(response)
 
-        await cl.Message(
-            content=response.message,
-            author="assistant",
-        ).send()
+        # Stop spinner
+        spinner_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await spinner_task
+        await spinner_msg.remove()
+
+        if responses:
+            final_response = responses[-1]
+            final_response = process_a2a_agent_final_response(final_response)
+            if final_response.status == Status.COMPLETED:
+                prepared_artifacts = prepare_agent_artifacts(final_response.model_dump())
+                storage_backend = get_storage_backend()
+                storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
+            msg.content = final_response.message
+            await msg.update()
 
     except Exception as e:
         await cl.Message(
