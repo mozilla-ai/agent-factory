@@ -26,6 +26,13 @@ uv run agent-factory "Create an AI agent that searches the web for the latest ne
  on open-source AI and creates a newsletter article summarizing the findings."
 ```
 
+To get started using Agent-Factory, follow our documentation:
+## [Documentation](https://mozilla-ai.github.io/agent-factory/)
+
+## [Supported Agentic Frameworks](https://mozilla-ai.github.io/any-agent)
+
+## [Supported MCP Servers & tools](https://mozilla-ai.github.io/agent-factory/user-guide/mcp-servers/)
+
 ## Key Capabilities
 
 * **Natural Language to Code:** Transform natural language prompts directly into executable Python code.
