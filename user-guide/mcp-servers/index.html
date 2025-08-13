@@ -584,8 +584,8 @@ To add a new MCP server, edit the <code>docs/mcp-servers.json</code> file. Tests
 <p>The following table provides a quick overview of tested MCP servers. For detailed information about each server, see the sections below.</p>
 <!-- MCP_SERVERS_TABLE_START -->
 
-<p><em>Last updated: 2025-08-08T13:02:32.970709+00:00</em>
-<em>Test results: 14 working, 1 failed, 1 skipped out of 16 total servers</em></p>
+<p><em>Last updated: 2025-08-13T12:09:01.831930+00:00</em>
+<em>Test results: 17 working, 1 failed, 1 skipped out of 19 total servers</em></p>
 <table>
 <thead>
 <tr>
@@ -708,6 +708,27 @@ To add a new MCP server, edit the <code>docs/mcp-servers.json</code> file. Tests
 <td>stdio</td>
 <td>✅ Confirmed</td>
 <td>GitLab API integration for project management and repository operations</td>
+</tr>
+<tr>
+<td><strong>Intercom</strong></td>
+<td><code>npx mcp-remote https://mcp.intercom.com/mcp --header Authorization:${AUTH_HEADER}</code></td>
+<td>stdio</td>
+<td>✅ Confirmed</td>
+<td>Intercom intergration to connect with Intercom's data such as conversations and contacts</td>
+</tr>
+<tr>
+<td><strong>Elevenlabs</strong></td>
+<td><code>uvx elevenlabs-mcp</code></td>
+<td>stdio</td>
+<td>✅ Confirmed</td>
+<td>ElevenLabs text-to-speech and voice cloning integration</td>
+</tr>
+<tr>
+<td><strong>Supabase</strong></td>
+<td><code>npx -y @supabase/mcp-server-supabase@latest --read-only --project-ref=${SUPABASE_PROJECT_REF}</code></td>
+<td>stdio</td>
+<td>✅ Confirmed</td>
+<td>Supabase database integration for read-only operations</td>
 </tr>
 </tbody>
 </table>
