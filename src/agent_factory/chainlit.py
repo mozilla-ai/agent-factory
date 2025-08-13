@@ -37,43 +37,75 @@ COMMANDS = [
 
 
 class ThinkingMessageUpdater:
-    """A class to handle sending new thinking messages instead of updating the same one."""
+    """Handle streaming "thinking" messages with an animated spinner."""
 
     def __init__(self, message: cl.Message):
         self.author = message.author
-        self.last_sent_content = None
-        self.current_content = ProcessedStreamingResponse(message="Thinking...")
+        self.last_sent_content: ProcessedStreamingResponse | None = None
+        self.current_content = ProcessedStreamingResponse(message="Thinking…")
+
+        self.spinner_frames = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]
+        self._spinner_index = 0
+
+        self.current_msg: cl.Message | None = None  # Message currently showing spinner
+
         self._should_stop = False
         self._last_update_time = 0
-        self._update_interval = 0.5  # Minimum seconds between updates
+        self._update_interval = 2  # Minimum seconds between updates
 
     async def update_loop(self):
-        """Monitor for content changes and send new messages when content updates."""
+        """Send/animate thinking messages with a live spinner on the latest one."""
         while not self._should_stop:
             current_time = asyncio.get_event_loop().time()
-            time_since_last_update = current_time - self._last_update_time
 
             # Only send update if content changed and enough time has passed
-            if self.current_content != self.last_sent_content and time_since_last_update >= self._update_interval:
-                content = f"⏳ {self.current_content.message}"
-                if self.current_content.message_attributes:
-                    json_str = json.dumps(self.current_content.message_attributes, indent=2, ensure_ascii=False)
-                    content += f"\n```json\n{json_str}\n```"
+            if (
+                self.current_content != self.last_sent_content
+                and current_time - self._last_update_time >= self._update_interval
+            ):
+                # Finalise previous spinner message (replace animated icon with static one)
+                if self.current_msg:
+                    static_txt = self._render_message(self.last_sent_content, spinner_char="✅")
+                    self.current_msg.content = static_txt
+                    await self.current_msg.update()
 
-                # Send new message instead of updating
-                await cl.Message(content=content, author=self.author).send()
+                # Create new spinner message
+                spinner_txt = self._render_message(self.current_content, spinner_char=self.spinner_frames[0])
+                self.current_msg = cl.Message(content=spinner_txt, author=self.author)
+                await self.current_msg.send()
+
                 self.last_sent_content = self.current_content
                 self._last_update_time = current_time
+                self._spinner_index = 1
+
+            if self.current_msg and not self._should_stop:
+                spinner_char = self.spinner_frames[self._spinner_index % len(self.spinner_frames)]
+                anim_txt = self._render_message(self.last_sent_content, spinner_char=spinner_char)
+                self.current_msg.content = anim_txt
+                await self.current_msg.update()
+                self._spinner_index += 1
 
             await asyncio.sleep(0.1)
+
+    def _render_message(self, content: ProcessedStreamingResponse, *, spinner_char: str) -> str:
+        """Return formatted message string with given spinner/static icon."""
+        text = f"{spinner_char} {content.message}"
+        if content.message_attributes:
+            json_str = json.dumps(content.message_attributes, indent=2, ensure_ascii=False)
+            text += f"\n```json\n{json_str}\n```"
+        return text
 
     def update_content(self, new_content: ProcessedStreamingResponse):
         """Update the content that will be used for the next message."""
         self.current_content = new_content
 
     def stop(self):
-        """Signal the update loop to stop."""
+        """Signal the update loop to stop and finalize the last spinner message."""
         self._should_stop = True
+        if self.current_msg:
+            static_txt = self._render_message(self.last_sent_content, spinner_char="✅")
+            self.current_msg.content = static_txt
+            asyncio.create_task(self.current_msg.update())
 
 
 async def create_agent(message: cl.Message):
