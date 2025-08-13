@@ -37,29 +37,38 @@ COMMANDS = [
 
 
 class ThinkingMessageUpdater:
-    """A class to handle updating a message with a spinner and streaming content."""
+    """A class to handle sending new thinking messages instead of updating the same one."""
 
     def __init__(self, message: cl.Message):
-        self.message = message
-        self.spinner_frames = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]
+        self.author = message.author
+        self.last_sent_content = None
         self.current_content = ProcessedStreamingResponse(message="Thinking...")
         self._should_stop = False
-        self._spinner_index = 0
+        self._last_update_time = 0
+        self._update_interval = 0.5  # Minimum seconds between updates
 
     async def update_loop(self):
-        """Continuously update the message with spinner animation and streaming messages."""
+        """Monitor for content changes and send new messages when content updates."""
         while not self._should_stop:
-            spinner = self.spinner_frames[self._spinner_index % len(self.spinner_frames)]
-            self.message.content = f"{spinner} ⏳ {self.current_content.message} \n"
-            if self.current_content.message_attributes:
-                json_str = json.dumps(self.current_content.message_attributes, indent=2, ensure_ascii=False)
-                self.message.content += f"```json\n{json_str}\n```"
-            await self.message.update()
-            self._spinner_index += 1
+            current_time = asyncio.get_event_loop().time()
+            time_since_last_update = current_time - self._last_update_time
+
+            # Only send update if content changed and enough time has passed
+            if self.current_content != self.last_sent_content and time_since_last_update >= self._update_interval:
+                content = f"⏳ {self.current_content.message}"
+                if self.current_content.message_attributes:
+                    json_str = json.dumps(self.current_content.message_attributes, indent=2, ensure_ascii=False)
+                    content += f"\n```json\n{json_str}\n```"
+
+                # Send new message instead of updating
+                await cl.Message(content=content, author=self.author).send()
+                self.last_sent_content = self.current_content
+                self._last_update_time = current_time
+
             await asyncio.sleep(0.1)
 
     def update_content(self, new_content: ProcessedStreamingResponse):
-        """Update the content that will be displayed with the spinner."""
+        """Update the content that will be used for the next message."""
         self.current_content = new_content
 
     def stop(self):
