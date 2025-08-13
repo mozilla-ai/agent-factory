@@ -10,7 +10,7 @@ To run the server locally, execute the following command from the `src/agent_fac
 cd src/agent_factory && uv run . --host 0.0.0.0 --port 8080 --nochat
 ```
 
-The server will be available at `http://localhost:8080/.well-known/agent.json`.
+The server you start makes Agent-Factory's functionalities available via the A2A protocol. You can reach the Manufacturing Agent's Card at http://localhost:8080/.well-known/agent.json.
 
 In addition to `host` and `port`, you can also pass the following arguments:
 
