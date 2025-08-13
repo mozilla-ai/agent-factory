@@ -88,7 +88,7 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
     try:
         processed_response = ProcessedStreamingResponse()
 
-        # TastState is an enum with values:
+        # TaskState is an enum with values:
         # submitted, working, completed, failed, input-required, canceled, unknown
         # See: https://www.a2aprotocol.net/docs/specification
         # Using a subset of these states to log different messages
