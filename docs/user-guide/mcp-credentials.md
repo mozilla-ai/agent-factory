@@ -33,16 +33,7 @@
 
 **Create an `INTERNAL_INTEGRATION_TOKEN`**
 
-1. Go to your [Notion integration](https://www.notion.com/my-integrations) page.
-2. Click + New integration.
-3. Enter a Name (e.g., *agent integration*).
-4. Select Submit to create your integration.
-5. Under Capabilities, select the required capabilities (e.g.):
-   * Read content
-   * Update content
-   * Insert content
-6. Be sure to Save changes.
-7. Copy the Internal Integration Secret (starts with `ntn_`) and use it as the `INTERNAL_INTEGRATION_TOKEN`.
+You can find instructions for getting an `INTERNAL_INTEGRATION_TOKEN` on the [Notion Docs here](https://www.notion.com/help/create-integrations-with-the-notion-api), which will bring you to the [Notion integration](https://www.notion.com/my-integrations) page.
 
 **Create `OPENAPI_MCP_HEADERS`**
 
@@ -54,35 +45,19 @@
 
 **Create your `MONDAY_API_TOKEN`**
 
-1. In your monday.com account, click your profile picture (top right).
-2. Select Developers (the Developer Center opens).
-3. In the Developer Center, select API Token.
-4. Copy your API token and use it as `MONDAY_API_TOKEN`.
+You can find instructions for getting a `MONDAY_API_TOKEN` on the [Monday.com developer docs here](https://developer.monday.com/api-reference/docs/authentication).
 
 ## **GitHub**
 
 **Create a `GITHUB_PERSONAL_ACCESS_TOKEN`**
 
-1. Ensure your Github email is verified. See [Verifying your email address](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/verifying-your-email-address) for more information.
-2. Open your GitHub profile [Settings](https://github.com/settings/profile).
-3. In the left side bar, select [Developer settings](https://github.com/settings/apps).
-4. In the left side bar, under Personal access tokens, select Tokens (classic).
-5. Select Generate new token, then Generate new token (classic)..
-6. Select the Expiration you'd like for the token
-7. Select Scopes for your token (a token without assigned scopes can only access public information)
-8. Select Generate token.
-9. Copy the token and use it as the `GITHUB_PERSONAL_ACCESS_TOKEN`.
+You can find instructions for getting a `GITHUB_PERSONAL_ACCESS_TOKEN` on the [Github docs here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic) (follow creating a personal access token **classic**)
 
 ## **Tavily**
 
 **Create a `TAVILY_API_KEY`**
 
-1. Log-into [Tavily](https://www.tavily.com/)
-2. Navigate to [app.tavily](https://app.tavily.com/home)
-3. Click on the ‘+’ under ‘API Keys’
-4. Under a key name, select key type (e.g. development)
-5. Copy the key and use it as the `TAVILY_API_KEY`.
-
+You can find instructions on getting a `TAVILY_API_KEY` on the [Tavily docs here](https://docs.tavily.com/documentation/about#getting-started)
 
 ## **Discord**
 
@@ -108,22 +83,13 @@
 
 **Create a `SALESFORCE_SECURITY_TOKEN`**
 
-1. Sign-into Salesforce
-2. In the top right corner, click your user icon, then select "Settings".
-3. In the left-hand menu, under "My Personal Information", click "Reset My Security Token".
-4. Click "Reset Security Token"
-5. Salesforce will send the new token to your registered email address.
-6. Copy the key and use it as the `SALESFORCE_SECURITY_TOKEN`.
+You can find instructions on how to get a `SALESFORCE_SECURITY_TOKEN` by resetting your security token in the [Salesforce Help docs here](https://help.salesforce.com/s/articleView?id=xcloud.user_security_token.htm&type=5_)
 
 ## **Perplexity**
 
 **Create a `PERPLEXITY_API_KEY`**
 
-1. [Sign-into Perplexity](https://www.perplexity.ai/)
-2. Go to your [accounts details](https://www.perplexity.ai/account/details)
-3. Click on API and create a new API Group
-4. Enter your payment details if required
-5. Click ‘Create key’ and copy the key and use it as the `PERPLEXITY_API_KEY`.
+You can find information on how to get a `PERPLEXITY_API_KEY` in the [Perplexity help center here](https://www.perplexity.ai/help-center/en/articles/10352995-api-settings)
 
 ## **Jira**
 
@@ -163,29 +129,14 @@ This is the domain of your atlassian you use to , for example [`https://example.
 
 **Create a `AIRTABLE_API_KEY`**
 
-1. Go to the Airtable Builder Hub [Personal access tokens](https://airtable.com/create/tokens) page.
-2. Select + Create new token.
-3. Enter an appropriate name for your token
-4. Add Scopes to your token. Refer to Airtable's [Scopes](https://airtable.com/developers/web/api/scopes) guide for more information. Example scopres
-   * `data.records:read`
-   * `data.records:write`
-   * `schema.bases:read`
-5. Select the Access for your token. Choose from a single base or all of the bases from any workspace that you own
-6. Click create token
-7. Copy this token and use it as the `AIRTABLE_API_KEY`.
+You can find instructions on how to create an Airtable personal access token in the [Airtable support docs here](https://support.airtable.com/v1/docs/creating-personal-access-tokens)
+Copy the personal accees token you create and use it as the `AIRTABLE_API_KEY`.
 
 ## **Gitlab**
 
 **Create a `GITLAB_PERSONAL_ACCESS_TOKEN`**
 
-1. In GitLab, select your avatar, then select Edit profile.
-2. In the left sidebar, select Access tokens.
-3. Select Add new token.
-4. Enter a Name for the token
-5. Enter an expiry date for the token
-6. Select the desired Scopes. Refer to [Personal access token scopes](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html#personal-access-token-scopes) to select scopes for the functions you want to use.
-7. Select Create personal access token.
-8. Copy the token and use it as the `GITLAB_PERSONAL_ACCESS_TOKEN`
+You can find instructions on how to create a `GITLAB_PERSONAL_ACCESS_TOKEN` on [the Gitlab docs here](https://docs.gitlab.com/user/profile/personal_access_tokens/#create-a-personal-access-token).
 
 **`GITLAB_API_URL`**
 
