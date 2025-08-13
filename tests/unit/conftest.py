@@ -67,6 +67,9 @@ def mock_agent_generator_dependencies():
         patch("agent_factory.agent_generator.A2AClient") as mock_a2a_client,
         patch("agent_factory.agent_generator.create_message_request") as mock_create_message_request,
         patch(
+            "agent_factory.agent_generator.process_streaming_response_message"
+        ) as mock_process_streaming_response_message,
+        patch(
             "agent_factory.agent_generator.process_a2a_agent_final_response"
         ) as mock_process_a2a_agent_final_response,
         patch("agent_factory.agent_generator.prepare_agent_artifacts") as mock_prepare_agent_artifacts,
@@ -92,6 +95,7 @@ def mock_agent_generator_dependencies():
             "a2a_client": mock_a2a_client,
             "a2a_client_instance": mock_a2a_client_instance,
             "create_message_request": mock_create_message_request,
+            "process_streaming_response_message": mock_process_streaming_response_message,
             "process_a2a_agent_final_response": mock_process_a2a_agent_final_response,
             "prepare_agent_artifacts": mock_prepare_agent_artifacts,
             "get_storage_backend": mock_get_storage_backend,
