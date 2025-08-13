@@ -1,5 +1,4 @@
 import asyncio
-import contextlib
 from uuid import uuid4
 
 import chainlit as cl
@@ -35,6 +34,34 @@ COMMANDS = [
 ]
 
 
+class ThinkingMessageUpdater:
+    """A class to handle updating a message with a spinner and streaming content."""
+
+    def __init__(self, message: cl.Message):
+        self.message = message
+        self.spinner_frames = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]
+        self.current_content = "⏳ Thinking..."
+        self._should_stop = False
+        self._spinner_index = 0
+
+    async def update_loop(self):
+        """Continuously update the message with spinner animation and streaming messages."""
+        while not self._should_stop:
+            spinner = self.spinner_frames[self._spinner_index % len(self.spinner_frames)]
+            self.message.content = f"{spinner} ⏳ {self.current_content}"
+            await self.message.update()
+            self._spinner_index += 1
+            await asyncio.sleep(0.1)
+
+    def update_content(self, new_content: str):
+        """Update the content that will be displayed with the spinner."""
+        self.current_content = new_content
+
+    def stop(self):
+        """Signal the update loop to stop."""
+        self._should_stop = True
+
+
 async def create_agent(message: cl.Message):
     client = cl.user_session.get("a2a_client")
     context_id = cl.user_session.get("context_id")
@@ -46,25 +73,11 @@ async def create_agent(message: cl.Message):
         ).send()
         return
 
-    # Animated spinner while the agent is working
-    spinner_msg = cl.Message(content="⏳ Thinking...", author="assistant")
-    await spinner_msg.send()
-
-    async def animate_spinner(msg: cl.Message):
-        """Continuously update the spinner message until cancelled."""
-        spinner_frames = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]
-        i = 0
-        try:
-            while True:
-                msg.content = f"{spinner_frames[i % len(spinner_frames)]} Thinking..."
-                await msg.update()
-                i += 1
-                await cl.sleep(0.1)
-        except asyncio.CancelledError:
-            # Clear spinner when cancelled
-            pass
-
-    spinner_task = asyncio.create_task(animate_spinner(spinner_msg))
+    # Create and start the message updater
+    msg = cl.Message(content="", author="assistant")
+    await msg.send()
+    thinking_message_updater = ThinkingMessageUpdater(msg)
+    thinking_message_update_task = asyncio.create_task(thinking_message_updater.update_loop())
 
     message_id = uuid4()
     request_id = uuid4()
@@ -74,22 +87,16 @@ async def create_agent(message: cl.Message):
     )
 
     try:
-        msg = cl.Message(content="", author="assistant")
-        await msg.send()
-
         responses = []
         async for response in client.send_message_streaming(request, http_kwargs={"timeout": TIMEOUT}):
             text, _ = process_streaming_response_message(response)
             if text:
-                msg.content = text
-                await msg.update()
+                thinking_message_updater.update_content(text)
             responses.append(response)
 
-        # Stop spinner
-        spinner_task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await spinner_task
-        await spinner_msg.remove()
+        # We can stop the update task and clean up
+        thinking_message_updater.stop()
+        await thinking_message_update_task
 
         if responses:
             final_response = responses[-1]
@@ -98,6 +105,7 @@ async def create_agent(message: cl.Message):
                 prepared_artifacts = prepare_agent_artifacts(final_response.model_dump())
                 storage_backend = get_storage_backend()
                 storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
+            # Update the chat UI with the final message content to return to the user
             msg.content = final_response.message
             await msg.update()
 
