@@ -20,8 +20,8 @@ The following table provides a quick overview of tested MCP servers. For detaile
 
 <!-- MCP_SERVERS_TABLE_START -->
 
-*Last updated: 2025-08-08T13:02:32.970709+00:00*
-*Test results: 14 working, 1 failed, 1 skipped out of 16 total servers*
+*Last updated: 2025-08-13T12:09:01.831930+00:00*
+*Test results: 17 working, 1 failed, 1 skipped out of 19 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |
 | --- | --- | --- | --- | --- |
@@ -41,6 +41,9 @@ The following table provides a quick overview of tested MCP servers. For detaile
 | **Jira** | `uvx mcp-atlassian --confluence-url=${CONFLUENCE_URL} --confluence-username=${CONFLUENCE_USERNAME} --confluence-token=${CONFLUENCE_TOKEN} --jira-url=${JIRA_URL} --jira-username=${JIRA_USERNAME} --jira-token=${JIRA_TOKEN}` | stdio | ✅ Confirmed | Atlassian integration for Jira project management and Confluence documentation |
 | **Airtable** | `npx -y @felores/airtable-mcp-server` | stdio | ✅ Confirmed | Airtable database and spreadsheet operations |
 | **Gitlab** | `npx -y @modelcontextprotocol/server-gitlab` | stdio | ✅ Confirmed | GitLab API integration for project management and repository operations |
+| **Intercom** | `npx mcp-remote https://mcp.intercom.com/mcp --header Authorization:${AUTH_HEADER}` | stdio | ✅ Confirmed | Intercom intergration to connect with Intercom's data such as conversations and contacts |
+| **Elevenlabs** | `uvx elevenlabs-mcp` | stdio | ✅ Confirmed | ElevenLabs text-to-speech and voice cloning integration |
+| **Supabase** | `npx -y @supabase/mcp-server-supabase@latest --read-only --project-ref=${SUPABASE_PROJECT_REF}` | stdio | ✅ Confirmed | Supabase database integration for read-only operations |
 <!-- MCP_SERVERS_TABLE_END -->
 
 
