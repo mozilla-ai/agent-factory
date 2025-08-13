@@ -132,12 +132,3 @@ uv run -m eval.run_generated_agent_evaluation path/to/the/generated/agent
 ```
 
 This command will display the evaluation criteria and show how the agent performed on each.
-
-## Multi-Turn Conversations
-
-Agent Factory supports multi-turn conversations. You can run the Chainlit application to interact with the Agent server
-in a conversational manner:
-
-```bash
-uv run chainlit run src/agent_factory/chainlit.py
-```
