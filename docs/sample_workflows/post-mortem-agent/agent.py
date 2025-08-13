@@ -194,4 +194,3 @@ def main(incident_description: str):
 
 if __name__ == "__main__":
     Fire(main)
-
