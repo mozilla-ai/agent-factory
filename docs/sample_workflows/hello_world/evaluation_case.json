@@ -1,0 +1,17 @@
+{
+  "criteria": [
+    "Ensure that the agent uses the visit_webpage tool to fetch the webpage content for the given URL.",
+    "Ensure that the agent parses only the primary textual content from the fetched Markdown, explicitly ignoring navigation menus, advertisements, footers, scripts, and other non-informational elements.",
+    "Ensure that the summary field in the output is a clear, English summary of approximately 100 to 150 words that accurately conveys the main ideas, arguments, and conclusions from the webpage, without adding external information or speculation.",
+    "Ensure that, if the webpage cannot be fetched or has insufficient textual content, the agent explains the issue succinctly within the summary field, as per instructions.",
+    "Ensure that the agent returns output strictly as a JSON object matching the StructuredOutput schema, containing exactly two fields: url (the original input URL) and summary (the generated summary).",
+    "Verify that the url field in the output exactly matches the user's input URL.",
+    "Check that the agent does not include any content outside the valid JSON output structure.",
+    "Verify that the agent's intermediate reasoning and tool usage do not exceed 1000 tokens in total."
+  ],
+  "evaluation_case_generation_costs": {
+    "input_cost": 0.010842,
+    "output_cost": 0.002208,
+    "total_cost": 0.013049999999999999
+  }
+}
