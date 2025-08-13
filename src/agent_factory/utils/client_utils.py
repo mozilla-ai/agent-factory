@@ -99,10 +99,12 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
             message_data = response.root.result.status.message.parts[0].root.data
             if message_data.get("event_type") == "tool_started" and "payload" in message_data:
                 tool_call_info_to_log = {
-                    k: v for k, v in message_data["payload"].items() if k in [GenAI.TOOL_NAME, GenAI.TOOL_ARGS]
+                    k: v
+                    for k, v in message_data["payload"].items()
+                    if k in [GenAI.OPERATION_NAME, GenAI.TOOL_NAME, GenAI.TOOL_ARGS]
                 }
                 processed_response.message = "Making a tool call ..."
-                processed_response.message_attributes.update({"agent_action": "execute_tool", **tool_call_info_to_log})
+                processed_response.message_attributes = tool_call_info_to_log
 
         elif response.root.result.status.state == TaskState.completed:
             processed_response.message = "Manufacturing agent has completed the assigned task."

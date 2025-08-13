@@ -168,7 +168,12 @@ def test_process_streaming_response_tool_started(mock_a2a_agent_streaming_respon
     tool_args = {"param1": "value1"}
     message_data = {
         "event_type": "tool_started",
-        "payload": {GenAI.TOOL_NAME: tool_name, GenAI.TOOL_ARGS: tool_args, "other_field": "should_be_ignored"},
+        "payload": {
+            GenAI.OPERATION_NAME: "execute_tool",
+            GenAI.TOOL_NAME: tool_name,
+            GenAI.TOOL_ARGS: tool_args,
+            "other_field": "should_be_ignored",
+        },
     }
 
     mock_response = mock_a2a_agent_streaming_response(state=TaskState.working, message_data=message_data)
@@ -179,7 +184,7 @@ def test_process_streaming_response_tool_started(mock_a2a_agent_streaming_respon
     assert result.message == "Making a tool call ..."
     assert result.message_type == "info"
     assert result.message_attributes == {
-        "agent_action": "execute_tool",
+        "gen_ai.operation.name": "execute_tool",
         "gen_ai.tool.name": tool_name,
         "gen_ai.tool.args": tool_args,
     }
