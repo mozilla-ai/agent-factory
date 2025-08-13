@@ -29,16 +29,21 @@ uv run agent-factory "Create an AI agent that searches the web for the latest ne
 
 ## Key Capabilities
 
-* **Natural Language to Code:** Transform natural language prompts directly into executable Python code for agentic
-  workflows, powered by the `any-agent` library.
-* **Smart Tooling & Integration:** Automatically identify the most relevant tools or MCP servers for your generated
-  agents.
-* **Agent Execution:** Effortlessly create runnable agents complete with their operational instructions and dependency
-  files.
-* **Agent Evaluation:** Evaluate the generated agents against automatically or manually defined criteria to ensure they
-  meet the desired performance standards.
+* **Natural Language to Code:** Transform natural language prompts directly into executable Python code.
+
 * **Multi-Turn and One-Shot Workflows:** Support for both multi-turn conversations and one-shot tasks, enabling flexible
   interaction patterns.
+
+* **Model Provider-Agnostic:** By leveraging the [any-agent](https://github.com/mozilla-ai/any-agent) library, it becomes trivial to switch across different agent frameworks and models.
+
+* **Smart Tooling & Integration:** Automatically identify the most relevant tools and MCP servers for your agent.
+
+* **Agent Execution:** Effortlessly create runnable agents complete with their operational instructions and dependency
+  files.
+
+* **Agent Evaluation:** Evaluate the generated agents against automatically or manually defined criteria to ensure they
+  meet the desired performance standards.
+
 
 ## Getting Started
 
