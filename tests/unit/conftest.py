@@ -33,6 +33,32 @@ def mock_a2a_agent_response(sample_generator_agent_response_json) -> MagicMock:
 
 
 @pytest.fixture(scope="function")
+def mock_a2a_agent_streaming_response():
+    """Mock A2A agent streaming response with customizable state and message data.
+
+    Args:
+        state: The task state (e.g., TaskState.submitted, TaskState.working)
+        message_data: Optional message data to include in the response
+
+    Returns:
+        A mock response object with the specified state and message data
+    """
+
+    def _create_mock_response(state, message_data=None):
+        response = MagicMock()
+        response.root.result.status.state = state
+
+        if message_data is not None:
+            part = MagicMock()
+            part.root.data = message_data
+            response.root.result.status.message.parts = [part]
+
+        return response
+
+    return _create_mock_response
+
+
+@pytest.fixture(scope="function")
 def mock_agent_generator_dependencies():
     """A fixture to mock all dependencies for generate_target_agent."""
     with (
