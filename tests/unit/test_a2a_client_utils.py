@@ -1,17 +1,20 @@
 import json
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID, uuid4
 
 import httpx
 import pytest
-from a2a.types import AgentCard
+from a2a.types import AgentCard, TaskState
+from any_agent.tracing.attributes import GenAI
 
 from agent_factory.schemas import AgentFactoryOutputs, Status
 from agent_factory.utils.client_utils import (
+    ProcessedStreamingResponse,
     create_a2a_http_client,
     create_message_request,
     get_a2a_agent_card,
     process_a2a_agent_final_response,
+    process_streaming_response_message,
 )
 
 
@@ -139,3 +142,58 @@ def test_process_a2a_agent_final_response_missing_fields(mock_a2a_agent_response
 
     assert "validation error" in str(exc_info.value).lower()
     assert "field required" in str(exc_info.value).lower()
+
+
+@pytest.mark.parametrize(
+    "state,expected_message",
+    [
+        (TaskState.submitted, "Manufacturing agent has received the message and is processing it."),
+        (TaskState.completed, "Manufacturing agent has completed the assigned task."),
+    ],
+)
+def test_process_streaming_response_message_basic_states(state, expected_message, mock_a2a_agent_streaming_response):
+    """Test processing of submitted and completed task states in streaming response."""
+    mock_response = mock_a2a_agent_streaming_response(state=state)
+
+    result = process_streaming_response_message(mock_response)
+
+    assert isinstance(result, ProcessedStreamingResponse)
+    assert result.message == expected_message
+    assert result.message_type == "info"
+
+
+def test_process_streaming_response_tool_started(mock_a2a_agent_streaming_response):
+    """Test processing of tool_started event in working state."""
+    tool_name = "test_tool"
+    tool_args = {"param1": "value1"}
+    message_data = {
+        "event_type": "tool_started",
+        "payload": {GenAI.TOOL_NAME: tool_name, GenAI.TOOL_ARGS: tool_args, "other_field": "should_be_ignored"},
+    }
+
+    mock_response = mock_a2a_agent_streaming_response(state=TaskState.working, message_data=message_data)
+
+    result = process_streaming_response_message(mock_response)
+
+    assert isinstance(result, ProcessedStreamingResponse)
+    assert result.message == "Making a tool call ..."
+    assert result.message_type == "info"
+    assert result.message_attributes == {
+        "agent_action": "execute_tool",
+        "gen_ai.tool.name": tool_name,
+        "gen_ai.tool.args": tool_args,
+    }
+
+
+def test_process_streaming_response_error_handling():
+    """Test error handling in process_streaming_response_message."""
+    mock_response = MagicMock()
+    mock_response.root.result.status.state = TaskState.working
+    mock_response.root.result.status.message.parts = ["not a valid message part"]
+
+    result = process_streaming_response_message(mock_response)
+
+    assert isinstance(result, ProcessedStreamingResponse)
+    assert result.message_type == "error"
+    assert "Error processing response" in result.message
+    assert "error" in result.message_attributes
