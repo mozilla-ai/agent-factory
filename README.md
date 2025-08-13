@@ -17,7 +17,15 @@
 </div>
 
 Agent Factory is a powerful tool for generating AI agents and workflows using the Model Context Protocol (MCP).
-It transforms natural language descriptions into executable Python code for agentic workflows, powered by the any-agent library.
+It transforms natural language descriptions into executable Python code for agentic workflows,
+powered by the [any-agent](https://github.com/mozilla-ai/any-agent) library.
+
+Generating your own, complete, executable agentic workflow can be done in just a single command with a single prompt:
+
+```bash
+uv run agent-factory "Create an AI agent that searches the web for the latest news
+ on open-source AI and creates a newsletter article summarizing the findings."
+```
 
 ## Key Capabilities
 
