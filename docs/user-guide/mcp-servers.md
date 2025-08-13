@@ -20,7 +20,7 @@ The following table provides a quick overview of tested MCP servers. For detaile
 
 <!-- MCP_SERVERS_TABLE_START -->
 
-*Last updated: 2025-08-13T15:09:25.964809+00:00*
+*Last updated: 2025-08-13T19:47:22.538743+00:00*
 *Test results: 17 working, 1 failed, 1 skipped out of 19 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |

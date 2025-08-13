@@ -6,7 +6,14 @@ from uuid import UUID, uuid4
 
 import httpx
 from a2a.client import A2ACardResolver
-from a2a.types import AgentCard, MessageSendParams, SendStreamingMessageRequest, TaskState
+from a2a.types import (
+    AgentCard,
+    JSONRPCErrorResponse,
+    MessageSendParams,
+    SendMessageResponse,
+    SendStreamingMessageRequest,
+    TaskState,
+)
 from any_agent.tracing.attributes import GenAI
 from pydantic import BaseModel
 
@@ -26,6 +33,7 @@ async def create_a2a_http_client(host: str, port: int, timeout: int) -> tuple[ht
     Args:
         host: The host address for the agent server.
         port: The port for the agent server.
+        timeout: The timeout for the HTTP request in seconds.
     """
     base_url = f"http://{host}:{port}"
     return httpx.AsyncClient(timeout=timeout), base_url
@@ -67,9 +75,17 @@ def create_message_request(
     return SendStreamingMessageRequest(id=request_id.hex, params=MessageSendParams(**send_message_payload))
 
 
-def process_a2a_agent_final_response(response: Any) -> AgentFactoryOutputs:
+def process_a2a_agent_final_response(response: SendMessageResponse) -> AgentFactoryOutputs:
     """Process the final response from the agent."""
     logger.info(response.model_dump(mode="json", exclude_none=True))
+
+    # Check if this is an error response
+    if isinstance(response.root, JSONRPCErrorResponse):
+        error_msg = response.root.error.message
+        logger.error(f"Agent execution failed: {error_msg}")
+        raise RuntimeError(f"Agent execution failed: {error_msg}")
+
+    # Handle success response (SendMessageSuccessResponse)
     response_data = json.loads(response.root.result.status.message.parts[0].root.text)
     logger.info(f"Received response from agent: {response_data}")
     return AgentFactoryOutputs(**response_data)

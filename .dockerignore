@@ -3,8 +3,31 @@
 Dockerfile
 
 # Virtual environment
-.venv
+**/.venv
 
-# Python cache
-__pycache__
-*.pyc
+# Caches
+**/__pycache__
+**/*.egg-info
+
+# Local .env
+.env
+.default.env
+
+# Dot folders
+.*/
+
+# Temp folders
+bin
+generated_workflows
+traces
+
+# Test files
+**/tests
+**pytest**
+
+# Docs
+docs
+
+# Build
+.pre-commit-config.yaml
+Makefile

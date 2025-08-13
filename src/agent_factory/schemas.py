@@ -23,6 +23,9 @@ class AgentFactoryOutputs(BaseModel):
     status: Status = Field(..., description="The status of the agent's execution.")
     imports: str = Field(..., description="The python code snippet used to import the required tools.")
     agent_instructions: str = Field(..., description="The instructions passed to the generated agent.")
+    mcpd: str | None = Field(
+        None, description="The mcpd config file contents if MCP servers are required by the generated agent."
+    )
     tools: str = Field(..., description="The python code that defines the tools to be used by the generated agent.")
     structured_outputs: str = Field(..., description="The Pydantic v2 models used to structure the agent's output.")
     cli_args: str = Field(..., description="The arguments to be provided to the agent from the command line.")

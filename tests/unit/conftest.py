@@ -8,6 +8,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from agent_factory.utils.io_utils import BINARY_NAME_MCPD, run_binary
+
 UNIT_TESTS_DATA_DIR = Path(__file__).parent / "data"
 
 
@@ -119,3 +121,22 @@ def mock_s3_environ():
         },
     ) as patched_environ:
         yield patched_environ
+
+
+@pytest.fixture(scope="session")
+def mcpd_binary() -> str:
+    """Session-scoped fixture that checks mcpd binary availability and returns the binary name.
+
+    Fails the entire test session if mcpd is not available, avoiding duplicate checks
+    across all mcpd-related tests.
+
+    Returns:
+        str: The mcpd binary name that can be used in tests.
+    """
+    try:
+        run_binary(BINARY_NAME_MCPD, ["--version"], ignore_response=True)
+        return BINARY_NAME_MCPD
+    except RuntimeError as e:
+        if "Binary not found" in str(e):
+            pytest.fail(f"Required binary not available: {e}")
+        raise  # Re-raise if it's a different RuntimeError

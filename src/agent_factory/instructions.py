@@ -158,6 +158,7 @@ The final expected output is a dictionary with the following structure:
     "imports": "The python code snippet needed to import the required tools.",
     "agent_instructions": "The instructions passed to the generated agent.",
     "tools": "The python code that defines the tools to be used by the generated agent.",
+    "mcpd": "Contains the mcpd config file contents if MCP servers are required by the generated agent to provide tools.",
     "structured_outputs": "The Pydantic v2 models used to structure the agent's final output. The class that
         defines the structured output of the agent should be named `StructuredOutput`.",
     "cli_args": "The arguments to be provided to the agent from the command line.",
@@ -185,19 +186,20 @@ The final expected output is a dictionary with the following structure:
 5. `tools` is Python code that assigns the `TOOLS` variable with the list of tools required by the generated agent.
    This code replaces the {{tools}} placeholder in the agent code template. If only MCP servers are used, this list
    should be empty.
-6. `structured_outputs` is Python code that defines the class `StructuredOutput(BaseModel)` defining the agent's output
+6. `mcpd` contains `mcpd_contents`. Never guess or fabricate this content.
+7. `structured_outputs` is Python code that defines the class `StructuredOutput(BaseModel)` defining the agent's output
    schema as a Pydantic v2 model. While you can build many Pydantic v2 models to create a hierarchy, the final class
    that defines the structured output of the agent should be named `StructuredOutput`.
    This code replaces the {{structured_outputs}} placeholder in the agent code template.
-7. `cli_args` are the arguments to be passed to the `main` function. Each of them is specified as
+8. `cli_args` are the arguments to be passed to the `main` function. Each of them is specified as
    argument_name: type = argument_value.
    These will replace the {{cli_args}} placeholder in the agent code template.
-8. `agent_description` is a string to be provided as the description of the `main` function.
+9. `agent_description` is a string to be provided as the description of the `main` function.
     This string replaces the {{agent_description}} placeholder in the agent code template.
-9. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to
+10. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to
     the generated agent.
     This string replaces the {{prompt_template}} placeholder in the agent code template.
-10. `readme` should contain clear and concise setup instructions. Follow this template:
+11. `readme` should contain clear and concise setup instructions. Follow this template:
     ```markdown
     # Title of the Agent
 
@@ -448,14 +450,30 @@ If the code corresponds to running the agent via CLI, use the following instruct
 
 SINGLE_STEP_INSTRUCTIONS = """
 You will be provided with a task description and a set of tools to use. Read the task description carefully to
-understand what the user wants you to do. Read the following instructions and code examples, and then generate the agent
-code that will solve the task. Fill the `message` field with a confirmation saying "✅ Done! Your agent is ready!", and
+understand the user's goal. Read the following instructions and code examples, then generate the agent code that
+accomplishes the task. Fill the `message` field with the exact text: "✅ Done! Your agent is ready!", and
 set `status` to `completed`.
 
-If you have selected to make MCP servers available to the agent, follow the steps below:
-   a. Call the `initialize_mcp_config` tool, with the default `config_path` to initialize the MCP configuration.
-   b. Register the required MCP servers using the `register_mcp_server` tool, using the default `config_path` and
-      providing the necessary parameters (e.g., `name`, `version`, `tools`).
+If you have selected to make MCP servers available to the agent, follow these exact steps in order:
+
+1. Call `create_temp_config_dir()` only once to create a persistent temporary directory.
+   Store the returned tuple into three variables:
+       `temp_config_file_path`, `temp_config_dir_uuid`, and `temp_config_dir_deletion_key`.
+2. Log the `temp_config_file_path` exactly using the variable, e.g.:
+       `print(f"mcpd config path: {temp_config_file_path}")`
+3. Only call `initialize_mcp_config` once.
+4. Use `temp_config_file_path` as the `config_path` parameter whenever calling:
+       - `initialize_mcp_config`
+       - `register_mcp_server`
+   Do not hardcode or guess this path; always use the variable.
+5. After all MCP server registration is complete, call:
+       `read_temp_config_file(temp_config_dir_uuid)` only once.
+   Assign the returned string to a variable, e.g., `mcpd_contents`.
+6. In the final output dictionary, set the `mcpd` key to the value of `mcpd_contents`.
+   Never guess or fabricate this content — it must be read from the file using `read_temp_config_file`.
+7. When all operations requiring the temporary directory are complete, call:
+       `cleanup_temp_config_dir(temp_config_dir_uuid, temp_config_dir_deletion_key)` only once.
+   This deletes the temporary directory and its contents.
 """
 
 
@@ -503,10 +521,25 @@ steps to follow to generate the agent code, in order:
    `message` field with your amended plan, and set `status` to `input_required`. In the second case,
    this should be the response you will return to the user.
 5. If you are ready to generate the agent code, follow the steps below:
-   1. If you have selected to make MCP servers available to the agent, follow the steps below:
-      a. Call the `initialize_mcp_config` tool, with the default `config_path` to initialize the MCP configuration.
-      b. Register the required MCP servers using the `register_mcp_server` tool, using the default `config_path` and
-         providing the necessary parameters (e.g., `name`, `version`, `tools`).
+    1. If you have selected to make MCP servers available to the agent, follow these exact steps in order:
+        a. Call `create_temp_config_dir()` only once to create a persistent temporary directory.
+           Store the returned tuple into three variables:
+               `temp_config_file_path`, `temp_config_dir_uuid`, and `temp_config_dir_deletion_key`.
+        b. Log the `temp_config_file_path` exactly using the variable, e.g.:
+               `print(f"mcpd config path: {temp_config_file_path}")`
+        c. Call `initialize_mcp_config` only once.
+        d. Use `temp_config_file_path` as the `config_path` parameter whenever calling:
+               - `initialize_mcp_config`
+               - `register_mcp_server`
+           Do not hardcode or guess this path; always use the variable.
+        e. After all MCP server registration is complete, call:
+               `read_temp_config_file(temp_config_dir_uuid)` only once.
+           Assign the returned string to a variable, e.g., `mcpd_contents`.
+        f. In the final output dictionary, set the `mcpd` key to the value of `mcpd_contents`.
+           Never guess or fabricate this content — it must be read from the file using `read_temp_config_file`.
+        g. When all operations requiring the temporary directory are complete, call:
+               `cleanup_temp_config_dir(temp_config_dir_uuid, temp_config_dir_deletion_key)` only once.
+           This deletes the temporary directory and its contents.
    2. Fill the `message` field with a confirmation saying "✅ Done! Your agent is ready!", and set `status` to
       `completed`. Fill the `agent_instructions`, `tools`, `imports`, `structured_outputs`, `cli_args`,
       `agent_description`, `prompt_template`, `readme`, and `dependencies` fields with the appropriate values. If only
