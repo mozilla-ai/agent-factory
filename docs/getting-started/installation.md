@@ -1,6 +1,6 @@
 ## Prerequisites
 
-- [Python 3.13+](https://www.python.org/downloads/) (highly recommended to use [pyenv](https://github.com/pyenv/pyenv) to manage Python versions)
+- [Python 3.13+](https://www.python.org/downloads/) (will be automatically installed by `uv`)
 - [uv](https://github.com/astral-sh/uv) (easily manage Python environments and agents' dependencies)
 - [mcpd](https://github.com/mozilla-ai/mcpd) (interface to manage and run MCP servers)
 - **(Optional)** [Docker](https://www.docker.com/products/docker-desktop/) (for containerized server deployment)
