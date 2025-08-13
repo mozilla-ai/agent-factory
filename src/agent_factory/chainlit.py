@@ -1,4 +1,5 @@
 import asyncio
+import json
 from uuid import uuid4
 
 import chainlit as cl
@@ -19,6 +20,7 @@ from agent_factory.utils import (
     process_a2a_agent_final_response,
     process_streaming_response_message,
 )
+from agent_factory.utils.client_utils import ProcessedStreamingResponse
 
 PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
@@ -40,7 +42,7 @@ class ThinkingMessageUpdater:
     def __init__(self, message: cl.Message):
         self.message = message
         self.spinner_frames = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]
-        self.current_content = "⏳ Thinking..."
+        self.current_content = ProcessedStreamingResponse(message="Thinking...")
         self._should_stop = False
         self._spinner_index = 0
 
@@ -48,12 +50,15 @@ class ThinkingMessageUpdater:
         """Continuously update the message with spinner animation and streaming messages."""
         while not self._should_stop:
             spinner = self.spinner_frames[self._spinner_index % len(self.spinner_frames)]
-            self.message.content = f"{spinner} ⏳ {self.current_content}"
+            self.message.content = f"{spinner} ⏳ {self.current_content.message} \n"
+            if self.current_content.message_attributes:
+                json_str = json.dumps(self.current_content.message_attributes, indent=2, ensure_ascii=False)
+                self.message.content += f"```json\n{json_str}\n```"
             await self.message.update()
             self._spinner_index += 1
             await asyncio.sleep(0.1)
 
-    def update_content(self, new_content: str):
+    def update_content(self, new_content: ProcessedStreamingResponse):
         """Update the content that will be displayed with the spinner."""
         self.current_content = new_content
 
@@ -89,9 +94,9 @@ async def create_agent(message: cl.Message):
     try:
         responses = []
         async for response in client.send_message_streaming(request, http_kwargs={"timeout": TIMEOUT}):
-            text, _ = process_streaming_response_message(response)
-            if text:
-                thinking_message_updater.update_content(text)
+            processed_response = process_streaming_response_message(response)
+            if processed_response.message:
+                thinking_message_updater.update_content(processed_response)
             responses.append(response)
 
         # We can stop the update task and clean up
