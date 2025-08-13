@@ -65,12 +65,15 @@ async def generate_target_agent(
 
                 responses = []
                 async for response in client.send_message_streaming(request, http_kwargs={"timeout": timeout}):
-                    log_message, log_level = process_streaming_response_message(response)
-                    if log_message:
-                        if log_level == "info":
+                    processed_response = process_streaming_response_message(response)
+                    if processed_response["message"]:
+                        if processed_response["message_type"] == "info":
+                            log_message = f"{processed_response['message']} \n"
+                            if processed_response["message_attributes"]:
+                                log_message += f"{processed_response['message_attributes']} \n"
                             logger.info(log_message)
                         else:
-                            logger.error(log_message)
+                            logger.error(f"{processed_response['message']} \n")
                     responses.append(response)
 
                 # Process response
