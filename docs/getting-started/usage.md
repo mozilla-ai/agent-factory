@@ -7,7 +7,7 @@ You can run the Agent-Factory server either directly from a terminal ("locally")
 To run the server locally, execute the following command from the `src/agent_factory` directory:
 
 ```bash
-cd src/agent_factory && uv run . --host 0.0.0.0 --port 8080
+cd src/agent_factory && uv run . --host 0.0.0.0 --port 8080 --nochat
 ```
 
 The server will be available at `http://localhost:8080/.well-known/agent.json`.
