@@ -38,13 +38,13 @@ def search_mcp_servers(
     If no servers match, an empty list is returned.
 
     Example:
-    ```python
-    search_mcp_servers(keyphrase="google calendar")
-    search_mcp_servers(keyphrase="github", is_official=True)
-    search_mcp_servers(keyphrase="github", license="MIT")
-    search_mcp_servers(keyphrase="github", categories=["Dev Tools"])
-    search_mcp_servers(keyphrase="mcp", tags=["automation", "llm"])
-    ```
+        ```python
+        results = search_mcp_servers(keyphrase="google calendar")
+        results = search_mcp_servers(keyphrase="github", is_official=True)
+        results = search_mcp_servers(keyphrase="github", license="MIT")
+        results = search_mcp_servers(keyphrase="github", categories=["Dev Tools"])
+        results = search_mcp_servers(keyphrase="mcp", tags=["automation", "llm"])
+        ```
 
     Args:
         keyphrase: A string to search for in the MCP server registry.
