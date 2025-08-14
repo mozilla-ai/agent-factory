@@ -158,6 +158,8 @@ The final expected output is a dictionary with the following structure:
     "imports": "The python code snippet needed to import the required tools.",
     "agent_instructions": "The instructions passed to the generated agent.",
     "tools": "The python code that defines the tools to be used by the generated agent.",
+    "mcp_servers": "List of MCP servers to be used by the generated agent. If no MCP servers are used, this should be
+        None.",
     "structured_outputs": "The Pydantic v2 models used to structure the agent's final output. The class that
         defines the structured output of the agent should be named `StructuredOutput`.",
     "cli_args": "The arguments to be provided to the agent from the command line.",
@@ -185,19 +187,22 @@ The final expected output is a dictionary with the following structure:
 5. `tools` is Python code that assigns the `TOOLS` variable with the list of tools required by the generated agent.
    This code replaces the {{tools}} placeholder in the agent code template. If only MCP servers are used, this list
    should be empty.
-6. `structured_outputs` is Python code that defines the class `StructuredOutput(BaseModel)` defining the agent's output
+6. `mcp_servers` is a list of MCP servers to be used by the generated agent. Each item in the list should include the
+   server's name and necessary tools. The names of the MCP servers and tools should be used verbatim as obtained from
+   the search. If no MCP servers are used, this should be `None`.
+7. `structured_outputs` is Python code that defines the class `StructuredOutput(BaseModel)` defining the agent's output
    schema as a Pydantic v2 model. While you can build many Pydantic v2 models to create a hierarchy, the final class
    that defines the structured output of the agent should be named `StructuredOutput`.
    This code replaces the {{structured_outputs}} placeholder in the agent code template.
-7. `cli_args` are the arguments to be passed to the `main` function. Each of them is specified as
+8. `cli_args` are the arguments to be passed to the `main` function. Each of them is specified as
    argument_name: type = argument_value.
    These will replace the {{cli_args}} placeholder in the agent code template.
-8. `agent_description` is a string to be provided as the description of the `main` function.
+9. `agent_description` is a string to be provided as the description of the `main` function.
     This string replaces the {{agent_description}} placeholder in the agent code template.
-9. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to
+10. `prompt_template` is an f-string which is formatted with the values of `cli_args` to build the final input prompt to
     the generated agent.
     This string replaces the {{prompt_template}} placeholder in the agent code template.
-10. `readme` should contain clear and concise setup instructions. Follow this template:
+11. `readme` should contain clear and concise setup instructions. Follow this template:
     ```markdown
     # Title of the Agent
 
@@ -219,36 +224,23 @@ The final expected output is a dictionary with the following structure:
     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
     ```
 
+    Add this section about mcpd only if you've chosen to use any MCP servers:
     ## Install mcpd
 
     Follow the mcpd installation instructions in the official documentation: https://mozilla-ai.github.io/mcpd/installation/
 
     # Configuration
 
-    Instruct the user to create a `.env` file to set environment variables; specify exactly which environment variables
-    are required, e.g., OPENAI_API_KEY.
-
-    Also, set the requirement arguments of environment files for the MCP Server only if you've chosen to use MCP
-    servers. otherwise skip to the "Run the Agent" section:
-
-    - If the MCP server expects a specific argument or flag, use the following command:
-    ```bash
-    mcpd config args set <server-name> --runtime-file secrets.dev.toml -- --arg=value [--arg=value ...] [flags]
-    ```
-
-    - If the MCP server expects a specific environment variable, use the following command:
-    ```bash
-    mcpd config env set <server-name> --runtime-file secrets.dev.toml KEY=VALUE [KEY=VALUE ...] [flags]
-    ```
-
-    Give the user only the necessary command based on the MCP server's requirements.
+    Add this exact phrase here:
+    "Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed,
+    for example, environment variables for your LLM provider."
 
     # Run the Agent
 
     Add the following step only if you've chosen to use an MCP server:
     1. Run the mcpd daemon:
     ```bash
-    mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.dev.toml
+    mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
     ```
 
     2. Run the agent:
@@ -258,7 +250,7 @@ The final expected output is a dictionary with the following structure:
 
     ```
     It will be used to generate the `README.md` file, so it should be in Markdown format.
-11. `dependencies` should list all the python libraries (including the ones required by the tools) as dependencies to be
+12. `dependencies` should list all the python libraries (including the ones required by the tools) as dependencies to be
     installed. It will be used to generate the `requirements.txt` file:
     - The first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using `any-agent` to
       run the agent workflow.
@@ -451,11 +443,6 @@ You will be provided with a task description and a set of tools to use. Read the
 understand what the user wants you to do. Read the following instructions and code examples, and then generate the agent
 code that will solve the task. Fill the `message` field with a confirmation saying "✅ Done! Your agent is ready!", and
 set `status` to `completed`.
-
-If you have selected to make MCP servers available to the agent, follow the steps below:
-   a. Call the `initialize_mcp_config` tool, with the default `config_path` to initialize the MCP configuration.
-   b. Register the required MCP servers using the `register_mcp_server` tool, using the default `config_path` and
-      providing the necessary parameters (e.g., `name`, `version`, `tools`).
 """
 
 
@@ -502,15 +489,11 @@ steps to follow to generate the agent code, in order:
    not confirm your plan, you can either ask for clarification or amend your plan by filling the
    `message` field with your amended plan, and set `status` to `input_required`. In the second case,
    this should be the response you will return to the user.
-5. If you are ready to generate the agent code, follow the steps below:
-   1. If you have selected to make MCP servers available to the agent, follow the steps below:
-      a. Call the `initialize_mcp_config` tool, with the default `config_path` to initialize the MCP configuration.
-      b. Register the required MCP servers using the `register_mcp_server` tool, using the default `config_path` and
-         providing the necessary parameters (e.g., `name`, `version`, `tools`).
-   2. Fill the `message` field with a confirmation saying "✅ Done! Your agent is ready!", and set `status` to
-      `completed`. Fill the `agent_instructions`, `tools`, `imports`, `structured_outputs`, `cli_args`,
-      `agent_description`, `prompt_template`, `readme`, and `dependencies` fields with the appropriate values. If only
-      MCP servers are used, the `tools` list should be empty. This should be the response you will return to the user.
+5. If you are ready to generate the agent code, fill the `message` field with a confirmation saying "✅ Done! Your agent
+   is ready!", and set `status` to `completed`. Fill the `agent_instructions`, `tools`, `mcp_servers`, `imports`,
+   `structured_outputs`, `cli_args`, `agent_description`, `prompt_template`, `readme`, and `dependencies` fields with
+   the appropriate values. If only MCP servers are used, the `tools` list should be empty. This should be the response
+   you will return to the user.
 
 General notes:
 - Always format the `message` field in Markdown format, so that it is easy to read and understand.
