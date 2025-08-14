@@ -22,10 +22,10 @@ class JsonFileSpanExporter(SpanExporter):
         # File name matches how trace_id will be formatted inside the JSON
         output_file = self.output_dir / f"0x{format_trace_id(spans[0].context.trace_id)}.jsonl"
 
-        with output_file.open("a", encoding="utf-8") as f:
-            for span in spans:
-                # We don't need a2a server events in traces
-                if span.attributes.get(GenAI.OPERATION_NAME) in KEEP_SPANS_WITH_ANY_AGENT_OPERATION_NAME:
+        for span in spans:
+            # We don't need a2a server events in traces
+            if span.attributes.get(GenAI.OPERATION_NAME) in KEEP_SPANS_WITH_ANY_AGENT_OPERATION_NAME:
+                with output_file.open("a", encoding="utf-8") as f:
                     try:
                         f.write(span.to_json() + "\n")
                     except (json.JSONDecodeError, TypeError, AttributeError):
