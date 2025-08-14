@@ -115,8 +115,6 @@ TOOLS = [
         "@mondaydotcomorg/monday-api-mcp",
         "-t",
         os.getenv("MONDAY_API_TOKEN"),
-        "--enable-dynamic-api-tools",
-        "true"
       ],
         env={
             "MONDAY_API_TOKEN": os.getenv("MONDAY_API_TOKEN"),
@@ -124,11 +122,7 @@ TOOLS = [
         tools=[
             'get_board_items_by_name',
             'get_board_schema',
-            'all_monday_api',
-            'get_graphql_schema',
             'read_docs',
-            'workspace_info',
-            'all_monday_api'
         ],
     ),
 ]
