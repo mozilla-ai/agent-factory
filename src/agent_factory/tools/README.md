@@ -11,7 +11,7 @@ Below is a list of all available files that contain the tool function.
   configurable number of hosts/speakers.
 - `review_code_with_llm.py`: Review a given piece of code for errors, bugs, security issues, and style violations using
   an LLM.
-- `visit_webpage.py`: Visit a webpage at the given url and read its content as a markdown string. Used to browse webpages.
+- `visit_webpage.py`: Visit a webpage at the given url and read its content as a markdown string.
 - `search_tavily.py`: Perform a Tavily web search based on a given query and return the top search results.
 
 Each of the above tools has a corresponding `.py` file in the `tools/` directory that implements its function. If a
