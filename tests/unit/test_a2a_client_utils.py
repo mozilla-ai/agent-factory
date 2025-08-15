@@ -128,7 +128,7 @@ def test_process_a2a_agent_final_response_valid(mock_a2a_agent_response):
     assert isinstance(result, AgentFactoryOutputs)
     assert result.message == "✅ Done! Your agent is ready!"
     assert result.status == Status.COMPLETED
-    assert "from any_agent.tools import search_tavily" in result.imports
+    assert "from tools.search_tavily import search_tavily" in result.imports
 
 
 def test_process_a2a_agent_final_response_missing_fields(mock_a2a_agent_response):
