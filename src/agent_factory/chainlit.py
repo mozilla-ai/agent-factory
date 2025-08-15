@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from uuid import uuid4
 
 import chainlit as cl
@@ -26,8 +27,8 @@ PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
 EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
 
 # Settings for the A2A server connection
-HOST = "localhost"
-PORT = 8080
+A2A_SERVER_HOST = "localhost"
+A2A_SERVER_PORT = int(os.environ.get("A2A_SERVER_PORT", "8080"))
 TIMEOUT = 600  # 10 minutes
 
 COMMANDS = [
@@ -172,7 +173,7 @@ async def on_chat_start():
     cl.user_session.set("message_history", [])
 
     try:
-        httpx_client, base_url = await create_a2a_http_client(HOST, PORT, TIMEOUT)
+        httpx_client, base_url = await create_a2a_http_client(A2A_SERVER_HOST, A2A_SERVER_PORT, TIMEOUT)
         resolver = A2ACardResolver(httpx_client=httpx_client, base_url=base_url)
 
         agent_card: AgentCard = await get_a2a_agent_card(resolver)
