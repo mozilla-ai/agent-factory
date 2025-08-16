@@ -72,9 +72,21 @@ def agent_file(agent_dir):
 
 
 @pytest.fixture(scope="session")
+def toml_file(agent_dir):
+    """Fixture to get the agent file path for the current prompt."""
+    return agent_dir / ".mcpd.toml"
+
+
+@pytest.fixture(scope="session")
 def generated_agent_code(agent_file):
     """Fixture to read the agent code."""
     return agent_file.read_text()
+
+
+@pytest.fixture(scope="session")
+def generated_agent_toml(toml_file):
+    """Fixture to read the agent .mcpd.toml file."""
+    return toml_file.read_text()
 
 
 @pytest.fixture(scope="module")

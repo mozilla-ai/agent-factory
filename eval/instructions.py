@@ -31,9 +31,9 @@ AGENT_SCRIPT_AND_JSON_EXAMPLE = """
 ```python
 # Example imports for the agent.py file:
 from any_agent import AnyAgent, AgentConfig, AgentFramework
-from any_agent.tools import search_tavily, visit_webpage
 from any_agent.config import MCPStdio
 from tools.review_code_with_llm import review_code_with_llm
+from tools.search_tavily import search_tavily
 from pydantic import BaseModel, Field
 
 # Imports for environment variables
@@ -55,7 +55,7 @@ agent = AnyAgent.create(
         model_id="gpt-4.1",
         instructions="Example instructions",
         tools=[
-            search_tavily, # Example tool available from any-agent library
+            search_tavily, # Example tool taken from tools/README.md
             review_code_with_llm, # Example tool taken from tools/README.md
             # Example of MCP server usage
             MCPStdio(
