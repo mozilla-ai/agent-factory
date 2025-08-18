@@ -1,41 +1,29 @@
-# Webpage Summariser Agent
+# Webpage Summarizer Agent
 
-A single-step CLI agent that takes a webpage URL, extracts its textual content, and returns a concise summary in JSON form.
+A simple agent that fetches and summarizes the main text of any webpage.
 
-## Prerequisites
+# Prerequisites
 
-- **uv** – fast Python package manager
-- **mcpd** – optional; the agent attempts to connect but does not rely on MCP tools
+- uv
+- mcpd
 
-### Install **uv**
-- macOS / Linux
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-- Windows PowerShell
-```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
+## Install uv
 
-### Install **mcpd**
-Follow the official guide: <https://mozilla-ai.github.io/mcpd/installation/>
+- **macOS / Linux**
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+- **Windows PowerShell**
+    ```powershell
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+    ```
 
-## Configuration
+# Configuration
 
-Create a `.env` file in the project root and add your OpenAI credentials:
-```
-OPENAI_API_KEY=sk-...
-```
-No other environment variables are required unless you wish to run `mcpd`.
+Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed, for example, environment variables for your LLM provider.
 
-## Run the Agent
+# Run the Agent
 
-1. (Optional) start the `mcpd` daemon if you use MCP servers for other purposes:
-```bash
-mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev
-```
-
-2. Execute the agent:
 ```bash
 uv run --with-requirements requirements.txt --python 3.13 python agent.py --url "https://example.com"
 ```

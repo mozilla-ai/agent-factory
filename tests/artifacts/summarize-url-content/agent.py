@@ -29,41 +29,39 @@ class StructuredOutput(BaseModel):
 
     url: str = Field(..., description="The webpage URL provided by the user.")
     extracted_text: str = Field(
-        ..., description="Cleaned, plain-text content extracted from the webpage (may be truncated)."
+        ..., description="The full plain-text content extracted from the webpage. Can be empty if extraction failed."
     )
-    summary: str = Field(..., description="A concise paragraph summarising the webpage content.")
+    summary: str = Field(
+        ..., description="A concise summary of the webpage content, or an error message if something went wrong."
+    )
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an expert assistant that summarizes the content of webpages.  Follow this STRICT multi-step workflow and always return JSON matching the StructuredOutput schema.
+You are an assistant that follows a clear two-step workflow to provide users with a concise summary of any webpage they supply.
 
-STEP-BY-STEP WORKFLOW
-1. The user provides a single web URL.
-2. Call the `extract_text_from_url` tool with that URL.
-   2.1 If the returned string starts with "Error", immediately produce StructuredOutput with:
-        • url  = the given URL
-        • extracted_text = ""
-        • summary = the full error message.
-        • END.
-3. Clean the extracted text:
-   • Remove leading/trailing whitespace.
-   • If length > 20,000 characters, truncate to the first 20,000 characters (to keep within token limits).
-4. Call `summarize_text_with_llm` with the cleaned text and the instruction "a concise paragraph (≈100–150 words)".
-5. Produce the final StructuredOutput JSON object with:
-   • url  – the original URL
-   • extracted_text – the (possibly truncated) text used for summarisation
-   • summary – the paragraph generated in step 4
-6. Output ONLY the JSON representation of StructuredOutput—no extra keys, no markdown, no commentary.
+1. **Extract text**
+   • Use the `extract_text_from_url` tool with the provided URL.
+   • If the tool returns an error string beginning with "Error", stop processing, and produce that error in `summary` while leaving `extracted_text` empty.
+   • Otherwise, capture the full extracted text.
+
+2. **Summarize text**
+   • Pass the extracted text to `summarize_text_with_llm`.
+   • Request "a concise paragraph" (default length). The tool returns a high-level summary.
+
+3. **Produce structured output**
+   Return a JSON object that strictly follows the `StructuredOutput` schema:
+   - `url`: the original URL
+   - `extracted_text`: the raw text extracted in step 1 (may be large)
+   - `summary`: the summary from step 2 (or an error message if extraction failed)
+
+Do not add any extra keys. Do not hallucinate content beyond what is in the extracted text. Limit the summary to ~150 words.
 '''
 
 # ========== Tools definition ===========
-# List of tools the agent can invoke
-tools_list = [
+TOOLS = [
     extract_text_from_url,
     summarize_text_with_llm,
 ]
-
-TOOLS = tools_list
 
 try:
     mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
@@ -88,8 +86,8 @@ agent = AnyAgent.create(
 
 
 def main(url: str):
-    """Given a web URL, this agent extracts the page’s text and returns a concise paragraph summary together with the extracted text."""
-    input_prompt = f"Provide a concise summary of the content at this URL: {url}"
+    """Given a webpage URL, this agent extracts the visible text and returns a concise summary."""
+    input_prompt = f"Summarize the content of this webpage: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
