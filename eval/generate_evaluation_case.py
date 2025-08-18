@@ -26,18 +26,13 @@ class JSONEvaluationCase(BaseModel):
     )
 
 
-def main(
-    generated_workflow_dir: str = "generated_workflows/latest",
-    framework: AgentFramework = AgentFramework.OPENAI,
-    model: str = "gpt-4.1",
-):
+def main(generated_workflow_dir: str = "generated_workflows/latest"):
     """Generate JSON structured evaluation case for the generated agentic workflow.
     Save the JSON file as `evaluation_case.json` in the same directory as the generated workflow.
 
     Args:
         generated_workflow_dir: The directory of the generated workflow.
-        framework (str): The agent framework to use
-        model (str): The model ID to use
+
     """
     repo_root = Path.cwd()
     workflows_dir = repo_root / generated_workflow_dir
@@ -45,10 +40,11 @@ def main(
     # The filesystem MCP server will work with the local directory directly
     file_ops_dir = str(workflows_dir)
 
+    framework = AgentFramework.OPENAI
     agent = AnyAgent.create(
-        agent_framework=framework,
-        agent_config=AgentConfig(
-            model_id=model,
+        framework,
+        AgentConfig(
+            model_id="gpt-4.1",
             instructions=get_instructions(generated_workflow_dir),
             tools=[
                 visit_webpage,
