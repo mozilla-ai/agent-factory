@@ -137,30 +137,3 @@ jobs:
             make test-generated-artifacts PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
             echo "::endgroup::"
           done
-
-  run-generated-artifacts-integration-tests:
-    if: github.event_name == 'workflow_dispatch'
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v4
-
-      - name: Install the latest version of uv and set the python version to 3.13
-        uses: astral-sh/setup-uv@v6
-        with:
-          python-version: 3.13
-          activate-environment: true
-
-      - name: Run Generated Artifacts Integration tests
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ELEVENLABS_API_KEY: "mock" # pragma: allowlist secret
-        run: |
-          PROMPT_IDS=()
-          for prompt_id in "${PROMPT_IDS[@]}"; do
-            echo "::group::Running tests for PROMPT_ID: $prompt_id"
-            make test-generated-artifacts-integration PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
-            echo "::endgroup::"
-          done
