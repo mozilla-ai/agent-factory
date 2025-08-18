@@ -47,6 +47,7 @@ dependencies = [
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-instrumentation-starlette" },
     { name = "pre-commit" },
+    { name = "tavily-python" },
 ]
 
 [package.dev-dependencies]
@@ -97,6 +98,7 @@ requires-dist = [
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-instrumentation-starlette" },
     { name = "pre-commit", specifier = ">=4.2.0" },
+    { name = "tavily-python", specifier = "==0.7.10" },
 ]
 
 [package.metadata.requires-dev]
