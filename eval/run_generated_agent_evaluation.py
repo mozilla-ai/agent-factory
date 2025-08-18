@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 import fire
-from any_agent import AgentFramework, AgentTrace
+from any_agent import AgentTrace
 from any_agent.evaluation import AgentJudge
 from any_agent.evaluation.schemas import EvaluationOutput
 from eval.generate_evaluation_case import JSONEvaluationCase
@@ -17,8 +17,6 @@ async def run_evaluation(
     evaluation_case_json_file: str | None = None,
     agent_trace_json_file: str | None = None,
     save_evaluation_results_path: str | None = None,
-    framework: AgentFramework = AgentFramework.OPENAI,
-    model: str = "gpt-4.1",
 ):
     """Runs the evaluation process based on an evaluation case JSON file and an agent trace JSON file.
 
@@ -34,9 +32,6 @@ async def run_evaluation(
 
         save_evaluation_results_path (str, optional): Path to save the evaluation results JSON file.
         If None, will use generated_workflow_dir/evaluation_results.json.
-
-        framework (str): The agent framework to use
-        model (str): The model ID to use
     """
     # Set default paths based on generated_workflow_dir if not provided
     if evaluation_case_json_file is None:
@@ -56,7 +51,7 @@ async def run_evaluation(
         logger.info(f"Successfully loaded agent trace from: {agent_trace_json_file}")
 
         # Perform the evaluation
-        agent_judge = AgentJudge(model_id=model, framework=framework)
+        agent_judge = AgentJudge(model_id="gpt-4.1")
         eval_traces = []
         runs = []
         for criteria in evaluation_case.criteria:
