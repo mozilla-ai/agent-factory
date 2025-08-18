@@ -1,7 +1,9 @@
-from litellm import completion
+from any_llm import completion
 
 
-def translate_text_with_llm(text: str, source_language: str, target_language: str, model: str = "gpt-4o-mini") -> str:
+def translate_text_with_llm(
+    text: str, source_language: str, target_language: str, model: str = "openai/gpt-4o-mini"
+) -> str:
     """Translates text from a source language to a target language using an LLM.
 
     Args:

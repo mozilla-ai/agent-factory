@@ -2,6 +2,8 @@ import autoflake
 
 from agent_factory.utils.logging import logger
 
+PINNED_ANY_LLM = "any-llm-sdk[openai]==0.13.1"
+
 
 def clean_python_code_with_autoflake(code: str) -> str:
     """Clean Python code using autoflake to remove unused imports (F401) and variables (F841)."""
@@ -22,10 +24,10 @@ def validate_dependencies(agent_factory_outputs: dict[str, str]) -> str:
     """Validate dependencies. In particular:
     - make sure that if uvx is used to install an MCP server, then
       uv appears in the final requirements.txt
-    - Any line starting with `litellm` (optionally with extras and any version
-      specifiers) is replaced with exactly `litellm<1.75.0`.
-    - If no `litellm` line exists and dependencies are non-empty, append
-      `litellm<1.75.0` as a new line.
+    - Any line starting with `any-llm-sdk` (optionally with extras and any version
+      specifiers) is replaced with exactly `any-llm-sdk[openai]==0.13.1`.
+    - If no `any-llm-sdk` line exists and dependencies are non-empty, append
+      `any-llm-sdk[openai]==0.13.1` as a new line.
     """
     dependencies = agent_factory_outputs["dependencies"]
 
@@ -34,10 +36,10 @@ def validate_dependencies(agent_factory_outputs: dict[str, str]) -> str:
         logger.info("Agent uses uvx but deps were missing uv: adding manually.")
         dependencies += "\nuv"
 
-    # Remove any existing litellm lines and append pinned constraint
+    # Remove any existing any-llm lines and append pinned constraint
     lines = dependencies.split("\n")
-    filtered_lines = [line for line in lines if not line.strip().startswith("litellm")]
-    filtered_lines.append("litellm<1.75.0")
+    filtered_lines = [line for line in lines if not line.strip().startswith("any-llm-sdk")]
+    filtered_lines.append(PINNED_ANY_LLM)
 
     normalized_dependencies = "\n".join(filtered_lines)
     agent_factory_outputs["dependencies"] = normalized_dependencies

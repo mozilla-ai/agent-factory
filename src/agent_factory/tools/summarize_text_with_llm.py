@@ -1,7 +1,9 @@
-from litellm import completion
+from any_llm import completion
 
 
-def summarize_text_with_llm(text: str, summary_length: str = "a concise paragraph", model: str = "gpt-4o-mini") -> str:
+def summarize_text_with_llm(
+    text: str, summary_length: str = "a concise paragraph", model: str = "openai/gpt-4o-mini"
+) -> str:
     """Summarizes a given text using an LLM.
 
     Args:

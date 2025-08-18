@@ -1,7 +1,7 @@
-from litellm import completion
+from any_llm import completion
 
 
-def review_code_with_llm(code: str, language: str, model: str = "gpt-4o-mini") -> str:
+def review_code_with_llm(code: str, language: str, model: str = "openai/gpt-4o-mini") -> str:
     """Reviews a given piece of code for errors, bugs, security issues, and style violations using an LLM.
 
     Args:

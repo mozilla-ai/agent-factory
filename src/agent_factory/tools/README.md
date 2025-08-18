@@ -16,6 +16,6 @@ Each of the above tools has a corresponding `.py` file in the `tools/` directory
 tool's filename and description seem relevant, read its `.py` file to understand the implementation, parameters, and
 usage before configuring the agent to use it.
 
-> General Note on LiteLLM and API Keys:
-> The functions using LiteLLM (e.g., for OpenAI API calls) require API keys to be configured in your environment.
+> General Note on any-llm and API Keys:
+> The functions using any-llm (e.g., for OpenAI API calls) require API keys to be configured in your environment.
 > For OpenAI, one would set the `OPENAI_API_KEY` environment variable.

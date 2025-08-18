@@ -1,8 +1,8 @@
-from litellm import completion
+from any_llm import completion
 
 
 def generate_podcast_script_with_llm(
-    document_text: str, num_hosts: int = 2, host_names: list[str] = None, turns: int = 32, model: str = "o3"
+    document_text: str, num_hosts: int = 2, host_names: list[str] = None, turns: int = 32, model: str = "openai/o3"
 ) -> str:
     """Writes a podcast script from a given text document using an LLM.
     The number of hosts/speakers in the podcast can be specified.
