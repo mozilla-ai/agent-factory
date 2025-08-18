@@ -31,16 +31,15 @@ def test_specific_tool_used(generated_agent_code: str, generated_agent_toml: str
     elif "scoring-blueprints-submission":
         # Either visit_webpage or extract_text_from_url should be used, using both is also fine
         assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
-        # Slack MCP related code matching
-        assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
-            "MCP server(s) required for scoring-blueprints-submission workflow"
-        )
-        assert all(term in generated_agent_code for term in ("SLACK_BOT_TOKEN", "SLACK_TEAM_ID"))
-        assert "slack_list_channels" in generated_agent_code
-        assert "slack_post_message" in generated_agent_code
+        # Slack related code matching
+        assert "slack" in generated_agent_toml
+        assert "SLACK_BOT_TOKEN" in generated_agent_toml
+        assert "SLACK_TEAM_ID" in generated_agent_toml
+        assert "slack_list_channels" in generated_agent_toml
+        assert "slack_post_message" in generated_agent_toml
         # SQLlite related code matching
-        assert "mcp/sqlite" in generated_agent_code
-        assert "write_query" in generated_agent_code
+        assert "sqlite" in generated_agent_toml
+        assert "write_query" in generated_agent_toml
         assert "github_repo_evaluations" in generated_agent_code
         assert "blueprints.db" in generated_agent_code
         # Non-essential tools NOT used
