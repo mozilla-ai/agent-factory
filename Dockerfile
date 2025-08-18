@@ -9,8 +9,8 @@ ENV FRAMEWORK=openai
 ENV CHAT=1
 ENV MODEL=o3
 ENV MAX_TURNS=40
-ENV HOST=0.0.0.0
-ENV PORT=8080
+ENV A2A_SERVER_HOST=0.0.0.0
+ENV A2A_SERVER_PORT=8080
 ENV LOG_LEVEL=info
 ENV TRACES_DIR=/traces
 
@@ -25,17 +25,20 @@ ARG APP_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 
 # Copy mcpd to the container
-COPY --from=mzdotai/mcpd:v0.0.3 /usr/local/bin/mcpd /usr/local/bin/mcpd
+COPY --from=mzdotai/mcpd:v0.0.4 /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
 
 # Install uv
-RUN pip install uv
+COPY --from=ghcr.io/astral-sh/uv:0.8.4 /uv /uvx /usr/local/bin/
 
-# Copy the rest of the application code
-COPY . /app
+# Copy application code and required project assets.
+COPY pyproject.toml /app
+COPY uv.lock /app
+COPY src /app/src
 
 # Install dependencies using uv
-RUN uv sync --no-cache
+RUN uv sync --no-cache --locked --no-editable --no-dev
+RUN rm -rf /app/build
 
 # Set the working directory
 WORKDIR /app/src/agent_factory
