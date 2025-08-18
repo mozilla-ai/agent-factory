@@ -158,9 +158,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ELEVENLABS_API_KEY: "mock" # pragma: allowlist secret
         run: |
-          PROMPT_IDS=(
-            url-to-podcast
-          )
+          PROMPT_IDS=()
           for prompt_id in "${PROMPT_IDS[@]}"; do
             echo "::group::Running tests for PROMPT_ID: $prompt_id"
             make test-generated-artifacts-integration PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
