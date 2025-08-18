@@ -17,56 +17,9 @@ As a toy example, we have populated the tools with some data (slack threads betw
 
 ![post-mortem-slack-thread.png](post-mortem-slack-thread.png)
 
-<details>
+## Setup your Credentials
 
-<summary><span style="font-size:1.5em;"><strong>Instructions to Set up our Credentials</strong></span></summary>
-
-The agent will require access to the tools, so we will need to set up credentials for it.
-
-
-### **Slack**
-
-**Create a `SLACK_BOT_TOKEN`**
-
-1. Open the Slack [API Apps](https://api.slack.com/apps) page.
-2. Select Create New App → From scratch.
-3. Enter an App Name and choose the Workspace we want to use.
-4. Click Create App (the app details page opens).
-5. In the left menu under Features, select OAuth & Permissions.
-6. In Scopes, select the appropriate scopes for the app.
-7. Scroll up to OAuth Tokens and click Install to Workspace (we must be a Slack workspace admin).
-8. Select Allow.
-9. Copy the Bot User OAuth Token and use it as the `SLACK_BOT_TOKEN`.
-
-**Find the `SLACK_TEAM_ID`**
-
-* Open the workspace in a web browser.
-* The team ID is in the URL, usually starts with “T” and is 11 characters long.
-
-**Find the `SLACK_CHANNEL_ID`**
-
-* Open the workspace in a web browser.
-* The channel ID is in the URL, usually starts with “C” and is 11 characters long.
-
-### **Notion**
-
-**Create an `INTERNAL_INTEGRATION_TOKEN`**
-
-we can find instructions for getting an `INTERNAL_INTEGRATION_TOKEN` on the [Notion Docs here](https://www.notion.com/help/create-integrations-with-the-notion-api), which will bring you to the [Notion integration](https://www.notion.com/my-integrations) page.
-
-**Create `OPENAPI_MCP_HEADERS`**
-
-1. Copy: `{"Authorization": "Bearer ntn_****", "Notion-Version": "2022-06-28" }`
-2. Replace `ntn_****` with the Internal Integration Secret.
-3. Enter the text (e.g. `{"Authorization": "Bearer ntn_12345678", "Notion-Version": "2022-06-28" }`) as the `OPENAPI_MCP_HEADERS`.
-
-### **Monday.com**
-
-**Create the `MONDAY_API_TOKEN`**
-
-we can find instructions for getting a `MONDAY_API_TOKEN` on the [Monday.com developer docs here](https://developer.monday.com/api-reference/docs/authentication).
-
-</details>
+You can find instructions to set up the required credentials here: [Setting up credentials](../user-guide/mcp-credentials.md).
 
 ## Building our Agent
 
