@@ -58,6 +58,13 @@ def min_successes(request, use_cases):
 
 
 @pytest.fixture(scope="session")
+def uses_mcpd(request, use_cases):
+    """Fixture to provide uses_mcpd from the use case YAML based on --prompt-id."""
+    prompt_id = request.config.getoption("--prompt-id")
+    return use_cases[prompt_id]["uses_mcpd"]
+
+
+@pytest.fixture(scope="session")
 def agent_dir(artifacts_dir: Path, prompt_id: str) -> Path:
     """Fixture to get the agent directory path for the current prompt."""
     return artifacts_dir / prompt_id
