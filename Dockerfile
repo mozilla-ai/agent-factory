@@ -1,3 +1,10 @@
+# Define build args at the top for the mcpd stage
+ARG MCPD_VERSION=v0.0.6
+
+# Stage to pull mcpd binary
+FROM mzdotai/mcpd:${MCPD_VERSION} AS mcpd
+
+# Main application stage
 FROM python:3.13-slim
 
 # Set the working directory in the container
@@ -13,7 +20,6 @@ ENV A2A_SERVER_HOST=0.0.0.0
 ENV A2A_SERVER_PORT=8080
 ENV LOG_LEVEL=info
 ENV TRACES_DIR=/traces
-ENV MCPD_VERSION=v0.0.6
 
 # Create and set permissions for the traces directory
 RUN mkdir -p ${TRACES_DIR} && \
@@ -21,12 +27,13 @@ RUN mkdir -p ${TRACES_DIR} && \
 
 # Define an argument for the version
 ARG APP_VERSION
+ARG MCPD_VERSION=v0.0.6
 
 # Set the environment variable for setuptools_scm
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 
-# Copy mcpd to the container
-COPY --from=mzdotai/mcpd:${MCPD_VERSION} /usr/local/bin/mcpd /usr/local/bin/mcpd
+# Copy mcpd from the mcpd stage
+COPY --from=mcpd /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
 
 # Install uv

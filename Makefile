@@ -51,8 +51,11 @@ help: ## Display this help message
 # ====================================================================================
 
 build: ## Build the Docker image for the server
-	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
-
+	@docker build \
+		--build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") \
+		--build-arg MCPD_VERSION=$(MCPD_VERSION) \
+		-t $(DOCKER_IMAGE):$(DOCKER_TAG) \
+		.
 
 check-env:
 	@if [ ! -f .env ]; then \
