@@ -22,8 +22,8 @@ from fire import Fire
 from mcpd import McpdClient, McpdError
 from pydantic import BaseModel, Field
 
-# ADD BELOW HERE: tools made available by any-agent or agent-factory
-from any_agent.tools import visit_webpage
+# ADD BELOW HERE: tools made available by agent-factory
+from tools.visit_webpage import visit_webpage
 from tools.translate_text_with_llm import translate_text_with_llm
 
 load_dotenv()
@@ -401,8 +401,7 @@ using Mozilla's any-agent library. The implementation should:
     a. Python Functions: The available tools are described in the local file at `tools/README.md`,
        which can be read using `read_file` tool. Each tool in `README.md` has a corresponding `.py`
        file in the `tools/` directory that implements the function.
-    b. Tools pre-defined in any-agent library: `search_tavily` and `visit_webpage` tools
-    c. MCP Servers: Always look for MCP servers using the `search_mcp_servers` tool,
+    b. MCP Servers: Always look for MCP servers using the `search_mcp_servers` tool,
        giving it a keyphrase that describes the task you want to accomplish.
        Then, read each MCP server's description carefully to verify which one provides the tools you need for the task.
        Always suggest only the minimum subset of tools from the MCP server URL that are necessary for the solving the task at hand.
