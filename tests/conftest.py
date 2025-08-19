@@ -58,10 +58,10 @@ def min_successes(request, use_cases):
 
 
 @pytest.fixture(scope="session")
-def uses_mcpd(request, use_cases):
-    """Fixture to provide uses_mcpd from the use case YAML based on --prompt-id."""
+def requires_mcpd(request, use_cases):
+    """Fixture to provide requires_mcpd from the use case YAML based on --prompt-id."""
     prompt_id = request.config.getoption("--prompt-id")
-    return use_cases[prompt_id]["uses_mcpd"]
+    return use_cases[prompt_id]["requires_mcpd"]
 
 
 @pytest.fixture(scope="session")

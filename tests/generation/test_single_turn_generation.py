@@ -14,10 +14,10 @@ from agent_factory.agent_generator import generate_target_agent
 from agent_factory.utils.client_utils import is_server_live
 
 
-def _assert_generated_files(workflow_dir: Path, uses_mcpd: bool):
+def _assert_generated_files(workflow_dir: Path, requires_mcpd: bool):
     existing_files = [f.name for f in workflow_dir.iterdir()]
     expected_files = ["agent.py", "README.md", "requirements.txt", "agent_parameters.json"]
-    if uses_mcpd:
+    if requires_mcpd:
         expected_files.extend([".env", ".mcpd.toml", "secrets.prod.toml"])
 
     for expected_file in expected_files:
@@ -39,7 +39,7 @@ async def test_single_turn_generation(
     tmp_path: Path,
     request: pytest.FixtureRequest,
     use_cases: dict,
-    uses_mcpd: bool,
+    requires_mcpd: bool,
     max_attempts: int,
     min_successes: int,
 ):
@@ -61,7 +61,7 @@ async def test_single_turn_generation(
     await generate_target_agent(message=test_case["prompt"], output_dir=full_path)
 
     # Verify the expected files were generated
-    _assert_generated_files(full_path, uses_mcpd)
+    _assert_generated_files(full_path, requires_mcpd)
 
     # Verify the generated agent.py has valid Python syntax
     agent_file = full_path / "agent.py"
