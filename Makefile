@@ -4,10 +4,8 @@
 # Configuration
 # ====================================================================================
 # Load .env if it exists to allow assignment for defaults.
-ifneq (,$(wildcard .env))
-	include .env
-	export
-endif
+-include .env
+export
 # Default environment variables for the container if missing.
 FRAMEWORK ?= openai
 MODEL ?= o3
