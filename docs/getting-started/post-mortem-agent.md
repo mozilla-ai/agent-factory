@@ -38,12 +38,9 @@ After docker has set up the server, we can verify that is up and running at `htt
 We can now send a request to the Agent Factory server to generate our post-mortem agent. In a terminal, run the following command:
 
 ```bash
-uv run agent-factory "Create a post-mortem report in Notion in a new page post.
-The report should be based on a user provided incident.
-Search through Notion pages, the #marketing-ops Slack Channel,
-and the tickets in Jira to find out relevant information about the incident.
-The final report in Notion should help find the root-cause of the incident and
-provide relevant analysis and a timelines."
+uv run agent-factory "Create a post-mortem generator agent that creates a post-mortem report in Notion in a new page based on a few keywords provided by the user.
+Given those keywords, the agent should search through Notion pages, the #marketing-ops Slack Channel, and the tickets in Jira to find relevant information about the incident.
+The final report in Notion should help find the root-cause of the incident and provide relevant analysis and a timeline."
 ```
 
 After the command is complete, we should see a new directory under `generated_worfklows` with executable Python code for the agent, as well as all the necessary tools and configurations required to run it. In this case, you can find the actual result under `docs/sample_workflows/post-mortem-agent`.
