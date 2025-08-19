@@ -1,6 +1,9 @@
 from any_agent.config import MCPStdio
 from generated_artifacts.tool_mocks import (
     mock_extract_text_from_url,
+    mock_slack_list_channels,
+    mock_slack_post_message,
+    mock_sqlite_write_query,
     mock_text_to_speech,
 )
 from generated_artifacts.tool_validations import no_docker_mcp
@@ -24,6 +27,30 @@ TOOL_MOCKS = [
             "name": "extract_text_from_url",  # this string appears in the function name
         },
         "mock_function": mock_extract_text_from_url,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "type": "function",
+        "match_condition": {
+            "name": "slack__slack_list_channels",  # this string appears in the function name
+        },
+        "mock_function": mock_slack_list_channels,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "type": "function",
+        "match_condition": {
+            "name": "slack__slack_post_message",  # this string appears in the function name
+        },
+        "mock_function": mock_slack_post_message,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "type": "function",
+        "match_condition": {
+            "name": "sqlite__write_query",  # this string appears in the function name
+        },
+        "mock_function": mock_sqlite_write_query,
     },
 ]
 
