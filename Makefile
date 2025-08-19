@@ -3,7 +3,10 @@
 # ====================================================================================
 # Configuration
 # ====================================================================================
-# Default environment variables for the container
+# Load .env if it exists to allow assignment for defaults.
+-include .env
+export
+# Default environment variables for the container if missing.
 FRAMEWORK ?= openai
 MODEL ?= o3
 MAX_TURNS ?= 40
@@ -11,6 +14,7 @@ A2A_SERVER_HOST ?= 0.0.0.0
 A2A_SERVER_PORT ?= 8080
 LOG_LEVEL ?= info
 CHAT ?= 0
+MCPD_VERSION ?= v0.0.6
 
 # Docker Configuration
 DOCKER_IMAGE := agent-factory
@@ -21,6 +25,7 @@ DOCKER_RUN_ARGS = --rm \
 		-p $(A2A_SERVER_PORT):$(A2A_SERVER_PORT) \
 		--env-file .env \
 		-v $(shell pwd)/traces:/traces \
+		-e MCPD_VERSION=$(MCPD_VERSION) \
 		-e FRAMEWORK=$(FRAMEWORK) \
 		-e MODEL=$(MODEL) \
 		-e MAX_TURNS=$(MAX_TURNS) \
@@ -44,8 +49,11 @@ help: ## Display this help message
 # ====================================================================================
 
 build: ## Build the Docker image for the server
-	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
-
+	@docker build \
+		--build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") \
+		--build-arg MCPD_VERSION=$(MCPD_VERSION) \
+		-t $(DOCKER_IMAGE):$(DOCKER_TAG) \
+		.
 
 check-env:
 	@if [ ! -f .env ]; then \
