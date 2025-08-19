@@ -3,7 +3,12 @@
 # ====================================================================================
 # Configuration
 # ====================================================================================
-# Default environment variables for the container
+# Load .env if it exists to allow assignment for defaults.
+ifneq (,$(wildcard .env))
+	include .env
+	export
+endif
+# Default environment variables for the container if missing.
 FRAMEWORK ?= openai
 MODEL ?= o3
 MAX_TURNS ?= 40
@@ -11,6 +16,7 @@ A2A_SERVER_HOST ?= 0.0.0.0
 A2A_SERVER_PORT ?= 8080
 LOG_LEVEL ?= info
 CHAT ?= 0
+MCPD_VERSION ?= v0.0.6
 
 # Docker Configuration
 DOCKER_IMAGE := agent-factory
@@ -21,6 +27,7 @@ DOCKER_RUN_ARGS = --rm \
 		-p $(A2A_SERVER_PORT):$(A2A_SERVER_PORT) \
 		--env-file .env \
 		-v $(shell pwd)/traces:/traces \
+		-e MCPD_VERSION=$(MCPD_VERSION) \
 		-e FRAMEWORK=$(FRAMEWORK) \
 		-e MODEL=$(MODEL) \
 		-e MAX_TURNS=$(MAX_TURNS) \

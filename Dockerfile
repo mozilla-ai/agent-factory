@@ -13,6 +13,7 @@ ENV A2A_SERVER_HOST=0.0.0.0
 ENV A2A_SERVER_PORT=8080
 ENV LOG_LEVEL=info
 ENV TRACES_DIR=/traces
+ENV MCPD_VERSION=v0.0.6
 
 # Create and set permissions for the traces directory
 RUN mkdir -p ${TRACES_DIR} && \
@@ -25,7 +26,7 @@ ARG APP_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 
 # Copy mcpd to the container
-COPY --from=mzdotai/mcpd:v0.0.4 /usr/local/bin/mcpd /usr/local/bin/mcpd
+COPY --from=mzdotai/mcpd:${MCPD_VERSION} /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
 
 # Install uv
