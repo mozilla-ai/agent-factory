@@ -1,3 +1,10 @@
+# Define build args at the top for the mcpd stage
+ARG MCPD_VERSION=v0.0.6
+
+# Stage to pull mcpd binary
+FROM mzdotai/mcpd:${MCPD_VERSION} AS mcpd
+
+# Main application stage
 FROM python:3.13-slim
 
 # Set the working directory in the container
@@ -24,8 +31,8 @@ ARG APP_VERSION
 # Set the environment variable for setuptools_scm
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 
-# Copy mcpd to the container
-COPY --from=mzdotai/mcpd:v0.0.4 /usr/local/bin/mcpd /usr/local/bin/mcpd
+# Copy mcpd from the mcpd stage
+COPY --from=mcpd /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
 
 # Install uv
