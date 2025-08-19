@@ -26,14 +26,14 @@ repos:
           - --config
           - ruff.toml
           - --fix
-        exclude: ^(tests/artifacts)
+        exclude: ^(tests/artifacts|docs/sample_workflows)
 
       # Run the formatter.
       - id: ruff-format
         args:
           - --config
           - ruff.toml
-        exclude: ^(tests/artifacts)
+        exclude: ^(tests/artifacts|docs/sample_workflows)
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
