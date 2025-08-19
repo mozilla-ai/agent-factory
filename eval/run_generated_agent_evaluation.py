@@ -35,8 +35,8 @@ async def run_evaluation(
         save_evaluation_results_path (str, optional): Path to save the evaluation results JSON file.
         If None, will use generated_workflow_dir/evaluation_results.json.
 
-        framework (str): The agent framework to use
-        model (str): The model ID to use
+        framework (str): The agent framework the Agent Judge should use.
+        model (str): The model ID the Agent Judge should use.
     """
     # Set default paths based on generated_workflow_dir if not provided
     if evaluation_case_json_file is None:
