@@ -56,6 +56,7 @@ chainlit = [
 ]
 dev = [
     { name = "chainlit" },
+    { name = "mcpd" },
     { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings-python" },
@@ -76,6 +77,7 @@ lint = [
     { name = "pre-commit" },
 ]
 tests = [
+    { name = "mcpd" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-lazy-fixtures" },
@@ -105,6 +107,7 @@ requires-dist = [
 chainlit = [{ name = "chainlit", specifier = "~=2.6.0" }]
 dev = [
     { name = "chainlit", specifier = "~=2.6.0" },
+    { name = "mcpd", specifier = ">=0.0.1" },
     { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings-python" },
@@ -123,6 +126,7 @@ docs = [
 ]
 lint = [{ name = "pre-commit", specifier = "==4.2.0" }]
 tests = [
+    { name = "mcpd", specifier = ">=0.0.1" },
     { name = "pytest", specifier = ">=8,<9" },
     { name = "pytest-asyncio", specifier = ">=1.0.0" },
     { name = "pytest-lazy-fixtures", specifier = ">=1.1.2" },
@@ -2152,6 +2156,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a6/96/9f423d4317695386f5bf1156574b6505d056fe6509f09cf86e8b99df60dc/mcpadapt-0.1.13.tar.gz", hash = "sha256:896f00288eb7515042c3b940d415917d363854f300d29d805ebaa40dc63b5574", size = 4226699, upload-time = "2025-08-08T15:33:57.675Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6b/2a/a0e044807ecba9d25a99093ff1f386fc64adc6c07a5ccd8207dec779b90c/mcpadapt-0.1.13-py3-none-any.whl", hash = "sha256:0ce7dba3982c31db008f8492399c03e0d2d5a4de185871357e59f82446faa73b", size = 19311, upload-time = "2025-08-08T15:33:56.5Z" },
+]
+
+[[package]]
+name = "mcpd"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/af/21/db164a29880534a8629e4b2aca9e0b22d418d909d287c68ac4b14ba086ec/mcpd-0.0.1.tar.gz", hash = "sha256:cac56c00f8ff8d98d17e4354b8d0d94a5279a595e706989a8ff558af86805307", size = 394876, upload-time = "2025-07-18T11:24:02.178Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1f/d0/b8db412968b17f6f946a5384cc910e477a7adfa811a8b9242ac2d3483731/mcpd-0.0.1-py3-none-any.whl", hash = "sha256:ab5b281a47d34590988847050a0d9e9e6ae41c48e5a4c3cfe6f067f9c9491994", size = 8059, upload-time = "2025-07-18T11:24:01.173Z" },
 ]
 
 [[package]]
