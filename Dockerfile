@@ -27,7 +27,6 @@ RUN mkdir -p ${TRACES_DIR} && \
 
 # Define an argument for the version
 ARG APP_VERSION
-ARG MCPD_VERSION=v0.0.6
 
 # Set the environment variable for setuptools_scm
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
