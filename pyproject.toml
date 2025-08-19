@@ -6,16 +6,18 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "any-agent[all,a2a]==1.2.0",
-    "fire~=0.7.0",
-    "dotenv>=0.9.9",
-    "mcpm>=1.0.3", # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
-    "loguru>=0.7.3",
-    "pre-commit>=4.2.0",
     "autoflake==2.3.1",
+    "boto3>=1.40.0",
+    "dotenv>=0.9.9",
+    "fire~=0.7.0",
+    "litellm<1.75.0",
+    "loguru>=0.7.3",
+    "markdownify==1.2.0",
+    "mcpm>=1.0.3", # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
     "opentelemetry-instrumentation-httpx",
     "opentelemetry-instrumentation-starlette",
-    "boto3>=1.40.0",
-    "litellm<1.75.0",
+    "pre-commit>=4.2.0",
+    "tavily-python==0.7.10",
 ]
 
 [project.urls]

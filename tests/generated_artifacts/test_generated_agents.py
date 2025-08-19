@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.mark.artifact_validation
-def test_specific_tool_used(generated_agent_code: str, prompt_id: str):
+def test_specific_tool_used(generated_agent_code: str, generated_agent_toml: str, prompt_id: str):
     """Test that the correct tools are used based on the prompt ID."""
     if "summarize-url-content" in prompt_id:
         # Either visit_webpage or extract_text_from_url should be used, using both is also fine
@@ -18,31 +18,28 @@ def test_specific_tool_used(generated_agent_code: str, prompt_id: str):
         assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
         assert "generate_podcast_script_with_llm" in generated_agent_code
         assert "combine_mp3_files_for_podcast" in generated_agent_code
-        # ElevenLabs MCP related code matching
-        assert "ELEVENLABS_API_KEY" in generated_agent_code
-        assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
-            "MCP server(s) required for url-to-podcast workflow"
-        )
+        # ElevenLabs MCP api key and server name
+        assert "ELEVENLABS_API_KEY" in generated_agent_toml
+        assert "elevenlabs-mcp" in generated_agent_toml
         # Necessary ElevenLabs MCP tools used
-        assert "text_to_speech" in generated_agent_code
+        assert "text_to_speech" in generated_agent_toml
         # Non-essential tools NOT used
         assert all(
-            term not in generated_agent_code
+            term not in generated_agent_toml
             for term in ("text_to_sound_effects", "create_agent", "speech_to_speech", "speech_to_text")
         )
     elif "scoring-blueprints-submission":
         # Either visit_webpage or extract_text_from_url should be used, using both is also fine
         assert any(term in generated_agent_code for term in ("visit_webpage", "extract_text_from_url"))
-        # Slack MCP related code matching
-        assert any(term in generated_agent_code for term in ("MCPStdio", "MCPSse")), (
-            "MCP server(s) required for scoring-blueprints-submission workflow"
-        )
-        assert all(term in generated_agent_code for term in ("SLACK_BOT_TOKEN", "SLACK_TEAM_ID"))
-        assert "slack_list_channels" in generated_agent_code
-        assert "slack_post_message" in generated_agent_code
+        # Slack related code matching
+        assert "slack" in generated_agent_toml
+        assert "SLACK_BOT_TOKEN" in generated_agent_toml
+        assert "SLACK_TEAM_ID" in generated_agent_toml
+        assert "slack_list_channels" in generated_agent_toml
+        assert "slack_post_message" in generated_agent_toml
         # SQLlite related code matching
-        assert "mcp/sqlite" in generated_agent_code
-        assert "write_query" in generated_agent_code
+        assert "sqlite" in generated_agent_toml
+        assert "write_query" in generated_agent_toml
         assert "github_repo_evaluations" in generated_agent_code
         assert "blueprints.db" in generated_agent_code
         # Non-essential tools NOT used

@@ -136,6 +136,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Do not ignore .env files in generated artifacts
+!/tests/artifacts/*/.env
+
 # Spyder project settings
 .spyderproject
 .spyproject
