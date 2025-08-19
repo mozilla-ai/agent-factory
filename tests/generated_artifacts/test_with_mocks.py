@@ -9,21 +9,11 @@ from generated_artifacts.tool_mappings import find_matching_mock, find_matching_
 
 from agent_factory.utils.logging import logger
 
-# NOTE we could also get env vars programmatically from the respective .mcpd.toml files
-ENV_VARS_FOR_PROMPT = {
-    "url-to-podcast": ["ELEVENLABS_API_KEY"],
-    "scoring-blueprints-submission": ["SLACK_BOT_TOKEN", "SLACK_TEAM_ID"],
-}
-
 
 @pytest.fixture
 def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
     """Import the agent module dynamically with mocks in place"""
     logger.debug(f"Testing agent from: {agent_dir}")
-
-    mock_env_vars = ENV_VARS_FOR_PROMPT.get(prompt_id, [])
-    for key in mock_env_vars:
-        os.environ[key] = "MOCK"
 
     # if agent_dir does not exist, break early
     if not agent_dir.exists():
