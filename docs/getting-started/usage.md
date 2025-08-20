@@ -99,6 +99,7 @@ The client will send the message to the server, print the response, and save the
 
 ## 3) Setup your Credentials
 
+Depending on the agent generated, there might be some credentials required to connect to the MCP servers that the agent will use.
 Set the environment variables in the `.env` file that has been created for you inside the target agent's directory. Add other environment variables as needed, for example, environment variables for your LLM provider.
 
 ## 4) Start the mcpd daemon
