@@ -1,8 +1,8 @@
-## Run the Server
+## 1) Run the Agent-Factory Server
 
 You can run the Agent-Factory server either directly from a terminal ("locally") or using Docker.
 
-### Locally
+### a. Locally
 
 To run the server locally, execute the following command from the `src/agent_factory` directory:
 
@@ -26,7 +26,7 @@ In addition to `host` and `port`, you can also pass the following arguments:
 
 
 
-### Docker
+### b. Docker
 
 The Makefile enables you to run the server using Docker. Before starting, make sure that [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed and running.
 
@@ -82,7 +82,7 @@ The `agent-factory-minio` volume is used to persist the MinIO server's data, ens
 
 Once the container is running, you can access the MinIO console at `http://localhost:9091`. The login credentials are `agent-factory` for both the username and password.
 
-## Generate an Agentic Workflow
+## 2) Generate an Agentic Workflow
 
 > [!IMPORTANT]
 > Always run the server in non-chat mode (`--nochat`) when generating agents using the `agent-factory` command.
@@ -97,7 +97,19 @@ uv run agent-factory "Summarize text content from a given webpage URL"
 The client will send the message to the server, print the response, and save the generated agent's files (`agent.py`,
 `README.md`, `requirements.txt`, and `agent_parameters.json`) into a new directory inside the `generated_workflows` directory.
 
-## Run the Generated Workflow
+## 3) Setup your Credentials
+
+Set the environment variables in the `.env` file that has been created for you inside the target agent's directory. Add other environment variables as needed, for example, environment variables for your LLM provider.
+
+## 4) Start the mcpd daemon
+
+In the target agent's directory, run the mcpd daemon to initialize and connect to the local MCP servers required. With the command below, environment variables from the `.env` file are also exported to make them available to the mcpd daemon.
+
+```bash
+export $(cat .env | xargs) &&  mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
+```
+
+## 5) Run the Generated Workflow
 
 To run the generated agent, navigate to the directory where the agent was saved and execute:
 
@@ -117,7 +129,7 @@ uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1
 > to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see
 > the generated agent run failing due to AgentRunError caused by MaxTurnsExceeded).
 
-## Evaluate the Generated Agent
+## 6) Use Criteria Agent to create an Evaluation Case
 
 Run the Criteria Agent, from the project root directory, with your desired evaluation case prompt:
 
@@ -125,8 +137,11 @@ Run the Criteria Agent, from the project root directory, with your desired evalu
 uv run -m eval.generate_evaluation_case path/to/the/generated/agent
 ```
 
-This will generate a JSON file in the generated agent's directory with evaluation criteria. Next, evaluate the agent's
-execution trace against the generated evaluation case:
+This will generate a JSON file in the generated agent's directory with evaluation criteria.
+
+## 7) Use Agent Judge to Evaluate the Agent against the Evaluation Case
+
+Finally, evaluate the agent's execution trace against the generated evaluation case:
 
 ```bash
 uv run -m eval.run_generated_agent_evaluation path/to/the/generated/agent
