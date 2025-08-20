@@ -206,6 +206,7 @@ jobs:
           MCPD__SLACK__SLACK_TEAM_ID: "mock" # pragma: allowlist secret
           MCPD__SQLITE__DB_PATH: "blueprints.db" # pragma: allowlist secret
         run: |
+          touch $MCPD__SQLITE__DB_PATH
           PROMPT_IDS=(
             url-to-podcast
             scoring-blueprints-submission
