@@ -55,6 +55,7 @@ nav:
   - Home: index.md
   - Getting Started:
     - Installation: getting-started/installation.md
+    - Hello-world example: getting-started/hello_world.ipynb
   - User Guide:
     - MCP Servers: user-guide/mcp-servers.md
     - MCP Credentials: user-guide/mcp-credentials.md

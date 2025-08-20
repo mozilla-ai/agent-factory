@@ -1,0 +1,22 @@
+{
+  "criteria": [
+    "Ensure that the agent receives a URL as input and calls the 'visit_webpage' tool using this URL to fetch webpage content as Markdown.",
+    "Verify that if 'visit_webpage' returns an error or empty content, the agent stops further steps and sets an appropriate error message in the 'summary' field of the output JSON.",
+    "Ensure that the agent passes the Markdown content from 'visit_webpage' to 'extract_text_from_markdown_or_html', with 'content_type' set to 'md', to extract plain, unformatted text.",
+    "Check that the agent trims the extracted text to at most approximately 3,000 tokens (about 12,000 characters), prioritizing the most informative parts.",
+    "Ensure that the agent calls 'summarize_text_with_llm' using the trimmed plain text with 'summary_length' set to 'a concise paragraph' to generate a summary.",
+    "Verify that the agent does not hallucinate information in the summary and only includes content present in the source webpage.",
+    "Check that the agent returns a JSON object strictly conforming to the StructuredOutput schema with fields: 'url', 'extracted_text', and 'summary', and no additional fields.",
+    "Ensure that the value of the 'url' field in the output matches the original input URL provided by the user.",
+    "Check that the value of the 'extracted_text' field in the output corresponds exactly to the trimmed plain text extracted using the prescribed tool and step.",
+    "Ensure that the value of the 'summary' field in the output is a concise paragraph summarizing the source, or an appropriate error message if prior steps failed.",
+    "Verify that the agent uses only the specified tools ('visit_webpage', 'extract_text_from_markdown_or_html', 'summarize_text_with_llm', or MCP tools if available), and does not invoke any unlisted tools.",
+    "Check that the agent follows all steps in the specified order and does not skip, reorder, or combine them.",
+    "Verify that the language of the summary matches that of the user's input (default English) and does not include internal reasoning or tool output except as specified in the schema."
+  ],
+  "evaluation_case_generation_costs": {
+    "input_cost": 0.012986,
+    "output_cost": 0.0041919999999999995,
+    "total_cost": 0.017178
+  }
+}
