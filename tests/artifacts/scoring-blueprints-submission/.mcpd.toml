@@ -1,0 +1,11 @@
+[[servers]]
+  name = "slack"
+  package = "npx::@modelcontextprotocol/server-slack@latest"
+  tools = ["slack_list_channels", "slack_post_message"]
+  required_env = ["SLACK_TEAM_ID", "SLACK_BOT_TOKEN"]
+
+[[servers]]
+  name = "sqlite"
+  package = "uvx::mcp-server-sqlite@2025.4.25"
+  tools = ["write_query"]
+  required_args = ["--db-path"]

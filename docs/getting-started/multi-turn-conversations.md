@@ -4,5 +4,7 @@ Agent Factory supports multi-turn conversations. You can run the Chainlit applic
 in a conversational manner:
 
 ```bash
-uv run chainlit run src/agent_factory/chainlit.py
+A2A_SERVER_PORT=8080 uv run chainlit run src/agent_factory/chainlit.py
 ```
+> [!NOTE]
+> If you are running the server on a different port, you need to set the `A2A_SERVER_PORT` environment variable accordingly.

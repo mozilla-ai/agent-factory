@@ -3,14 +3,18 @@
 # ====================================================================================
 # Configuration
 # ====================================================================================
-# Default environment variables for the container
+# Load .env if it exists to allow assignment for defaults.
+-include .env
+export
+# Default environment variables for the container if missing.
 FRAMEWORK ?= openai
 MODEL ?= o3
 MAX_TURNS ?= 40
-HOST ?= 0.0.0.0
-PORT ?= 8080
+A2A_SERVER_HOST ?= 0.0.0.0
+A2A_SERVER_PORT ?= 8080
 LOG_LEVEL ?= info
 CHAT ?= 0
+MCPD_VERSION ?= v0.0.6
 
 # Docker Configuration
 DOCKER_IMAGE := agent-factory
@@ -18,21 +22,18 @@ DOCKER_CONTAINER := agent-factory-a2a
 DOCKER_TAG := latest
 DOCKER_RUN_ARGS = --rm \
 		--name $(DOCKER_CONTAINER) \
-		-p $(A2A_SERVER_LOCAL_PORT):8080 \
+		-p $(A2A_SERVER_PORT):$(A2A_SERVER_PORT) \
 		--env-file .env \
 		-v $(shell pwd)/traces:/traces \
+		-e MCPD_VERSION=$(MCPD_VERSION) \
 		-e FRAMEWORK=$(FRAMEWORK) \
 		-e MODEL=$(MODEL) \
 		-e MAX_TURNS=$(MAX_TURNS) \
-		-e HOST=$(HOST) \
-		-e PORT=$(PORT) \
+		-e A2A_SERVER_HOST=$(A2A_SERVER_HOST) \
+		-e A2A_SERVER_PORT=$(A2A_SERVER_PORT) \
 		-e LOG_LEVEL=$(LOG_LEVEL) \
 		-e CHAT=$(CHAT) \
 		$(DOCKER_IMAGE):$(DOCKER_TAG)
-
-# Server Configuration
-A2A_SERVER_HOST ?= localhost
-A2A_SERVER_LOCAL_PORT ?= 8080
 
 
 # ====================================================================================
@@ -48,8 +49,11 @@ help: ## Display this help message
 # ====================================================================================
 
 build: ## Build the Docker image for the server
-	@docker build --build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
-
+	@docker build \
+		--build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") \
+		--build-arg MCPD_VERSION=$(MCPD_VERSION) \
+		-t $(DOCKER_IMAGE):$(DOCKER_TAG) \
+		.
 
 check-env:
 	@if [ ! -f .env ]; then \
@@ -58,7 +62,7 @@ check-env:
 	fi
 
 run: build check-env ## Run the server interactively in the foreground
-	@echo "Starting server interactively on http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)"
+	@echo "Starting server interactively on http://$(A2A_SERVER_HOST):$(A2A_SERVER_PORT)"
 	@docker run $(DOCKER_RUN_ARGS)
 
 
@@ -92,12 +96,13 @@ check-prompt-id-present:
 test-unit: ## Run unit tests
 	@uv sync --quiet --group tests
 	@pytest -v tests/unit/
+	@pytest -v tests/tools/
 	@echo "Unit tests completed successfully!"
 
 wait-for-server:
-	@echo -n "Waiting for server at http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT) to be ready..."
+	@echo -n "Waiting for server at http://$(A2A_SERVER_HOST):$(A2A_SERVER_PORT) to be ready..."
 	@count=0; \
-	while ! curl -s --fail http://$(A2A_SERVER_HOST):$(A2A_SERVER_LOCAL_PORT)/.well-known/agent.json >/dev/null; \
+	while ! curl -s --fail http://$(A2A_SERVER_HOST):$(A2A_SERVER_PORT)/.well-known/agent.json >/dev/null; \
 	do \
 		sleep 1; \
 		count=$$((count+1)); \

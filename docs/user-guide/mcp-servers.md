@@ -20,7 +20,7 @@ The following table provides a quick overview of tested MCP servers. For detaile
 
 <!-- MCP_SERVERS_TABLE_START -->
 
-*Last updated: 2025-08-13T14:43:25.673001+00:00*
+*Last updated: 2025-08-14T14:27:17.499911+00:00*
 *Test results: 17 working, 1 failed, 1 skipped out of 19 total servers*
 
 | Server Name | Installation | Protocol | Status | Description |
@@ -64,7 +64,7 @@ Please note that **Docker**-based MCP servers are not supported as this time.
 ### Common Issues
 
 1. **Permission Errors**: Ensure proper permissions for file system access
-2. **API Key Issues**: Verify API keys are correctly set in environment variables
+2. **API Key Issues**: Verify API keys are correctly set in environment variables — see [MCP Credentials](mcp-credentials.md) for guidance on getting the API keys or tokens.
 
 
 ### Getting Help

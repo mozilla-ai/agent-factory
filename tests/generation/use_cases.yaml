@@ -13,19 +13,22 @@ summarize-url-content:
   expected_execution_time: 120
   max_attempts: 5
   min_successes: 4
+  requires_mcpd: false
 
 # Agent with MCP single MCP server (ElevenLabs)
 url-to-podcast:
   prompt: >
     Workflow to generate a short (tentatively less than 16 turns) podcast mp3 based on the contents of a URL provided by the user.
     And it should create separate mp3 files interleaving the turn-by-turn dialogue between a host and a guest speaker (you can choose their names).
+    Use audio generation tools from ElevenLabs API for text-to-speech (use the uvx installation).
+    Choose voice personas from the following list: "Rachel", "Drew", "Clyde", "Paul", "Aria", "Domi", "Dave", "Roger", "Fin", "Sarah".
     The final output should be saved as a single mp3 file.
     All files should be saved in the /tmp directory.
-    Use audio generation tools from ElevenLabs API for text-to-speech (use the uvx installation).
   expected_num_turns: 40
   expected_execution_time: 420
   max_attempts: 5
   min_successes: 3
+  requires_mcpd: true
 
 # Agent with multiple MCP servers (Slack and SQLite)
 scoring-blueprints-submission:
@@ -43,3 +46,4 @@ scoring-blueprints-submission:
   expected_execution_time: 420
   max_attempts: 5
   min_successes: 4
+  requires_mcpd: true

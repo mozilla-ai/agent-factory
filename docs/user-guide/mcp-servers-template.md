@@ -40,7 +40,7 @@ Please note that **Docker**-based MCP servers are not supported as this time.
 ### Common Issues
 
 1. **Permission Errors**: Ensure proper permissions for file system access
-2. **API Key Issues**: Verify API keys are correctly set in environment variables
+2. **API Key Issues**: Verify API keys are correctly set in environment variables — see [MCP Credentials](mcp-credentials.md) for guidance on getting the API keys or tokens.
 
 
 ### Getting Help
