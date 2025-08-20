@@ -121,6 +121,12 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
             assert result.slack_ts  # the agent posted in the channel
             assert result.db_insert_success  # the agent inserted results in the DB
 
+        elif "summarize-url-content" in prompt_id:
+            result = agent.main("https://en.wikipedia.org/wiki/Alan_Turing_Life")
+
+            # # NOTE that the field names here might change if you rebuild the agent!
+            assert "Turing" in result.summary  # the agent has built a summary of the page
+
         else:
             # we are not testing other use-cases atm, but we can expect they will be
             # called with different parameters so we'll have an if...elif...else here

@@ -61,6 +61,14 @@ TOOL_MOCKS = [
         },
         "mock_function": mock_sqlite_write_query,
     },
+    {
+        "prompt_id": "summarize-url-content",
+        "type": "function",
+        "match_condition": {
+            "name": "extract_text_from_url",  # this string appears in the function name
+        },
+        "mock_function": mock_extract_text_from_url,
+    },
 ]
 
 # Each entry defines how to identify a tool and what validation to run on it.
