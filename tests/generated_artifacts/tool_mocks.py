@@ -65,6 +65,39 @@ def mock_extract_text_from_url(url: str) -> str:
     return "Error: URL not accessible"
 
 
+def mock_combine_mp3_files_for_podcast(
+    mp3_files: list[str], output_filename: str = "podcast.mp3", output_dir: str = "podcasts"
+) -> str:
+    """Combines a list of MP3 audio files into a single MP3 podcast file using ffmpeg.
+
+    This function requires ffmpeg to be installed and accessible in the system's PATH.
+    It creates a temporary file list for ffmpeg's concat demuxer.
+
+    Args:
+        mp3_files: A list of absolute or relative paths to the MP3 files to be combined.
+                   The order in the list determines the order in the output file.
+        output_filename: The name for the combined output MP3 file.
+                         Defaults to "podcast.mp3".
+        output_dir: The directory where the combined podcast file will be saved.
+                    Defaults to "podcasts". Created if it doesn't exist.
+
+    Returns:
+        The absolute path to the combined podcast MP3 file if successful.
+        Returns an error message string if ffmpeg fails or an error occurs.
+    """
+    if not mp3_files:
+        return "Error: No MP3 files provided for combination."
+
+    for f_path in mp3_files:
+        if not Path(f_path).exists():
+            return f"Error: Input file not found: {f_path}"
+
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    output_filepath = Path(output_dir) / output_filename
+    output_filepath.touch()
+    return str(Path(output_filepath).resolve())
+
+
 def mock_slack_list_channels() -> str:
     """List public or pre-defined channels in the workspace."""
     return """

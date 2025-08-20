@@ -1,5 +1,6 @@
 from any_agent.config import MCPStdio
 from generated_artifacts.tool_mocks import (
+    mock_combine_mp3_files_for_podcast,
     mock_extract_text_from_url,
     mock_slack_list_channels,
     mock_slack_post_message,
@@ -27,6 +28,14 @@ TOOL_MOCKS = [
             "name": "extract_text_from_url",  # this string appears in the function name
         },
         "mock_function": mock_extract_text_from_url,
+    },
+    {
+        "prompt_id": "url-to-podcast",  # mocks can be specific to a use-case (identified by its prompt_id)
+        "type": "function",  # Tool type: 'mcp' for MCPStdio tools, 'function' for regular functions
+        "match_condition": {
+            "name": "combine_mp3_files_for_podcast",  # this string appears in the function name
+        },
+        "mock_function": mock_combine_mp3_files_for_podcast,
     },
     {
         "prompt_id": "scoring-blueprints-submission",
