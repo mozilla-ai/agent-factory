@@ -10,4 +10,5 @@ Refer to the [Installation](getting-started/installation.md) for instructions on
 
 ## MCP Servers
 
-Available MCP servers and tools are documented in [MCP Servers](user-guide/mcp-servers.md).
+- Available MCP servers and tools are documented in [MCP Servers](user-guide/mcp-servers.md)
+- For help setting up API keys and tokens, see the [MCP Credentials](user-guide/mcp-credentials.md) guide.

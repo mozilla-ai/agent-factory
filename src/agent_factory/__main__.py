@@ -8,7 +8,7 @@ from opentelemetry.sdk.trace.export import (
 )
 
 from agent_factory.config import TRACES_DIR
-from agent_factory.factory_tools import initialize_mcp_config, read_file, register_mcp_server, search_mcp_servers
+from agent_factory.factory_tools import read_file, search_mcp_servers
 from agent_factory.instructions import load_system_instructions
 from agent_factory.schemas import AgentFactoryOutputs
 from agent_factory.utils import logger
@@ -47,9 +47,10 @@ async def main(
     from any_agent import AgentConfig, AnyAgent
     from any_agent.callbacks import get_default_callbacks
     from any_agent.serving import A2AServingConfig
-    from any_agent.tools import search_tavily, visit_webpage
 
     from agent_factory.callbacks import LimitAgentTurns
+    from agent_factory.tools.search_tavily import search_tavily
+    from agent_factory.tools.visit_webpage import visit_webpage
 
     logger.info(f"Starting the server in {'chat' if chat else 'non-chat'} mode.")
 
@@ -63,17 +64,17 @@ async def main(
             tools=[
                 visit_webpage,
                 search_tavily,
-                search_mcp_servers,
                 read_file,
-                initialize_mcp_config,
-                register_mcp_server,
+                search_mcp_servers,
             ],
             model_args={"tool_choice": "auto"},
             output_type=AgentFactoryOutputs,
         ),
     )
 
-    server_handle = await agent.serve_async(A2AServingConfig(host=host, port=port, log_level=log_level))
+    server_handle = await agent.serve_async(
+        A2AServingConfig(host=host, port=port, log_level=log_level, stream_tool_usage=True)
+    )
 
     try:
         # Keep the server running

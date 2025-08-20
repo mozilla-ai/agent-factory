@@ -1,0 +1,5 @@
+[[servers]]
+  name = "elevenlabs-mcp"
+  package = "uvx::elevenlabs-mcp@latest"
+  tools = ["text_to_speech"]
+  required_env = ["ELEVENLABS_API_KEY"]

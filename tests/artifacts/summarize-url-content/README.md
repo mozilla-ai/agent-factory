@@ -1,27 +1,29 @@
 # Webpage Summarizer Agent
 
-This agent downloads the textual content of any public webpage and returns a concise English summary.
+A simple agent that fetches and summarizes the main text of any webpage.
 
-## Environment Variables
-Create a `.env` file in the project root with the following variable:
+# Prerequisites
 
-```
-OPENAI_API_KEY=<your_openai_api_key>
-```
+- uv
+- mcpd
 
-## Install the *uv* package manager
+## Install uv
 
-MacOS / Linux:
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+- **macOS / Linux**
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+- **Windows PowerShell**
+    ```powershell
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+    ```
 
-Windows (PowerShell):
-```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
+# Configuration
 
-## Install dependencies and run the agent
+Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed, for example, environment variables for your LLM provider.
+
+# Run the Agent
+
 ```bash
 uv run --with-requirements requirements.txt --python 3.13 python agent.py --url "https://example.com"
 ```

@@ -1,21 +1,29 @@
-## Setup Instructions
+# Webpage → Summary Agent
 
-1. **Clone the repository** (or download `agent.py`).
-2. **Create a Python virtual environment** (optional but recommended).
-3. **Install the `uv` package manager**
-   • macOS & Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-   • Windows (PowerShell): `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
-4. **Create a `.env` file** in the project root and add your OpenAI API key (required by any-agent):
+A command-line agent that retrieves any public webpage, extracts the readable text, and returns a concise paragraph-length summary.
 
-   ```env
-   OPENAI_API_KEY=your_openai_key_here
-   ```
+# Prerequisites
 
-   No other environment variables are necessary for this agent.
-5. **Install dependencies & run the agent**:
+- uv
+- mcpd
 
-   ```bash
-   uv run --with-requirements requirements.txt --python 3.13 python agent.py --url "https://example.com"
-   ```
+## Install uv
 
-The agent will output the JSON summary and write the full execution trace to `agent_eval_trace.json`.
+- **macOS / Linux**
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+- **Windows PowerShell**
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+# Configuration
+
+Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed, for example, environment variables for your LLM provider.
+
+# Run the Agent
+
+```bash
+uv run --with-requirements requirements.txt --python 3.13 python agent.py --url "https://example.com"
+```
