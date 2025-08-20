@@ -62,15 +62,29 @@ We see that the agent requires some environment variables and a positional argum
 
 Create a `.env` file in the directory of the target agent and add environment variables as instructed in the README.md file with the credentials we set up earlier.
 
+For example:
 ```bash
-OPENAI_API_KEY=<your_openai_key>
-NOTION_API_KEY=<your_notion_integration_token>
-OPENAPI_MCP_HEADERS={"Authorization": "Bearer <your_notion_integration_token>", "Notion-Version": "2022-06-28" }
-SLACK_BOT_TOKEN=<your_slack_bot_token>
-SLACK_TEAM_ID=<your_slack_team_id>
+MCPD__JIRA__CONFLUENCE_TOKEN=<your_atlassian_api_key>
+MCPD__JIRA__CONFLUENCE_URL=<your_jira_workspace_url/wiki>
+MCPD__JIRA__CONFLUENCE_USERNAME=<your_email_registered_with_jira>
+MCPD__JIRA__JIRA_TOKEN=<your_atlassian_api_key>
+MCPD__JIRA__JIRA_URL=<your_jira_workspace_url>
+MCPD__JIRA__JIRA_USERNAME=<your_email_registered_with_jira>
+MCPD__NOTION__NOTION_API_KEY=<your_notion_integration_token>
+MCPD__SLACK_MCP__SLACK_BOT_TOKEN=<your_slack_bot_token>
+MCPD__SLACK_MCP__SLACK_TEAM_ID=<your_slack_team_id>
+
 ```
 
-### 5. Run the Agent
+### 5. Start the mcpd daemon
+
+Now we need to start up [mcpd](https://github.com/mozilla-ai/mcpd), which will start up the local MCP servers of our tools:
+
+```bash
+ mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
+```
+
+### 6. Run the Agent
 
 As indicated by the README.md of the post-mortem agent, we can now run the agent with the following command:
 
@@ -78,7 +92,7 @@ As indicated by the README.md of the post-mortem agent, we can now run the agent
 uv run --with-requirements requirements.txt --python 3.13 python agent.py --incident_description "Summer25 code"
 ```
 
-### 6. Verify that it worked
+### 7. Verify that it worked
 
 After the above command is complete, we can verify that the agent has created a new post-mortem report in Notion by navigating to the page specified the last output trace of the agent.
 
