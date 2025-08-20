@@ -1,7 +1,6 @@
 name: CI build & push pipeline
 
 on:
-  pull_request:  # Runs on all PRs regardless of target branch
   push:
     branches: [ main ]  # Only run on pushes to main
   workflow_dispatch:
