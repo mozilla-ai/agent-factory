@@ -213,6 +213,10 @@ jobs:
           )
           for prompt_id in "${PROMPT_IDS[@]}"; do
             echo "::group::Running tests for PROMPT_ID: $prompt_id"
+            if [ -f "blueprints.db" ]; then
+              echo "[i] Blueprints db exists"
+            fi
+
             mcpd daemon --runtime-file tests/artifacts/$prompt_id/secrets.prod.toml --config-file tests/artifacts/$prompt_id/.mcpd.toml &
             make test-generated-artifacts-integration PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
             killall mcpd
