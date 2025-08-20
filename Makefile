@@ -96,6 +96,7 @@ check-prompt-id-present:
 test-unit: ## Run unit tests
 	@uv sync --quiet --group tests
 	@pytest -v tests/unit/
+	@pytest -v tests/tools/
 	@echo "Unit tests completed successfully!"
 
 wait-for-server:

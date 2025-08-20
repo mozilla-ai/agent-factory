@@ -1,49 +1,81 @@
+
 # agent.py
 
-# good to have
-
-# ALWAYS used
-import json
+# Always used imports
+import json  # noqa: I001
+import os
+import sys
 from pathlib import Path
 
 from any_agent import AgentConfig, AgentRunError, AnyAgent
-
-# ADD BELOW HERE: tools made available by any-agent or agent-factory
-from any_agent.tools import visit_webpage
 from dotenv import load_dotenv
 from fire import Fire
+from mcpd import McpdClient, McpdError
 from pydantic import BaseModel, Field
+
+# ADD BELOW HERE: tools made available by any-agent or agent-factory
+from tools.visit_webpage import visit_webpage
+from tools.extract_text_from_markdown_or_html import extract_text_from_markdown_or_html
+from tools.summarize_text_with_llm import summarize_text_with_llm
 
 load_dotenv()
 
+# Connect to mcpd daemon for accessing available tools
+MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
+MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
 # ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
     url: str = Field(..., description="The original webpage URL provided by the user.")
-    summary: str = Field(..., description="A concise English summary (≈100–150 words) of the main page content.")
-
+    extracted_text: str = Field(
+        ..., description="Plain, unformatted text extracted from the webpage, trimmed to roughly 3 000 tokens.")
+    summary: str = Field(..., description="A concise paragraph summarizing the main content of the webpage.")
 
 # ========== System (Multi-step) Instructions ===========
-INSTRUCTIONS = """
-You are an assistant that follows this concise multi–step workflow to produce a high-quality summary for any public webpage:
+INSTRUCTIONS='''
+You are an assistant that produces concise, accurate summaries of webpages by following this fixed, step-by-step workflow:
 
-STEP-BY-STEP PLAN
-1. Receive a webpage URL from the user.
-2. Use the `visit_webpage` tool to download the page in Markdown.
-3. Parse the Markdown and extract the primary textual content. Ignore navigation, ads, footers, scripts or non-informational elements. Keep focus on headings and paragraphs that convey the core message.
-4. Produce a concise summary of the extracted content in clear English (≈100–150 words). Capture the main ideas, arguments, and conclusions without adding external information or speculation.
-5. Return a JSON object that follows the `StructuredOutput` schema with exactly two fields: `url` (the provided URL) and `summary` (the generated concise summary).
+STEP-1 – Fetch webpage:
+• Receive an input URL from the user.
+• Call the `visit_webpage` tool to download the page as Markdown.
+• If the tool returns an error or empty content, stop the workflow and output an appropriate message in the `summary` field.
 
-ADDITIONAL GUIDELINES
-• If the page cannot be fetched or has little textual content, explain the issue briefly in the `summary` field.
-• Do not output anything except the valid JSON that matches the schema.
-• Stay within 1000 total tokens for any intermediate reasoning.
-"""  # noqa: E501
+STEP-2 – Extract plain text:
+• Pass the Markdown returned in STEP-1 to `extract_text_from_markdown_or_html`, with `content_type` set to "md", to strip HTML/Markdown formatting and non-text elements.
+• Trim the result to at most ~3 000 tokens (about 12 000 characters) while keeping the most informative parts.
+
+STEP-3 – Summarize:
+• Use `summarize_text_with_llm` with `summary_length="a concise paragraph"` to create a clear, self-contained summary that captures the main ideas, purpose, and key details of the page.
+• The summary must not hallucinate information or include content absent from the source.
+
+STEP-4 – Final structured output:
+Return a JSON object that matches the `StructuredOutput` schema with these fields:
+  • url – the original input URL.
+  • extracted_text – the trimmed plain-text content from STEP-2.
+  • summary – the paragraph-length summary from STEP-3 (or an error message if earlier steps failed).
+
+General rules:
+• Follow the steps in order and do not skip any.
+• Use only the provided tools.
+• Keep the language of the summary the same as the user’s request (default English).
+• Do not expose internal reasoning or tool outputs except as specified in the schema.
+'''
 
 # ========== Tools definition ===========
 TOOLS = [
-    visit_webpage,
+    visit_webpage,                      # fetches webpage content as Markdown
+    extract_text_from_markdown_or_html, # converts Markdown to plain text
+    summarize_text_with_llm,            # creates a concise summary
 ]
+
+try:
+    mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
+    mcp_server_tools = mcpd_client.agent_tools()
+    if not mcp_server_tools:
+        print("No tools found via mcpd.")
+    TOOLS.extend(mcp_server_tools)
+except McpdError as e:
+    print(f"Error connecting to mcpd: {e}", file=sys.stderr)
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
@@ -59,8 +91,8 @@ agent = AnyAgent.create(
 
 
 def main(url: str):
-    """Given a webpage URL, the agent fetches the page, extracts its main text, and returns a concise summary."""
-    input_prompt = f"Summarize the main text content from this webpage: {url}"
+    """Fetches a webpage, extracts its textual content, and returns a concise summary."""
+    input_prompt = f"Summarize the main text content of this webpage: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
@@ -79,12 +111,10 @@ def main(url: str):
             )
             print(cost_msg)
     except Exception:
-
         class DefaultCost:
             input_cost = 0.0
             output_cost = 0.0
             total_cost = 0.0
-
         cost_info = DefaultCost()
 
     # Create enriched trace data with costs as separate metadata
@@ -96,10 +126,10 @@ def main(url: str):
     trace_data["execution_costs"] = {
         "input_cost": cost_info.input_cost,
         "output_cost": cost_info.output_cost,
-        "total_cost": cost_info.total_cost,
+        "total_cost": cost_info.total_cost
     }
 
-    with open(output_path, "w", encoding="utf-8") as f:
+    with output_path.open("w", encoding="utf-8") as f:
         f.write(json.dumps(trace_data, indent=2))
 
     return agent_trace.final_output
