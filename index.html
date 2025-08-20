@@ -227,19 +227,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Home
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="." class="md-nav__link md-nav__link--active">
         
   
@@ -251,43 +238,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Installation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#mcp-servers" class="md-nav__link">
-    <span class="md-ellipsis">
-      MCP Servers
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -349,6 +299,52 @@
   
   <span class="md-ellipsis">
     Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started/usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started/multi-turn-conversations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Multi-Turn Conversations
     
   </span>
   
@@ -508,14 +504,12 @@
 <blockquote>
 <p><strong>A factory for automatically creating agentic workflows.</strong></p>
 </blockquote>
-<p>Agent Factory is a powerful tool for generating AI agents and workflows using the Model Context Protocol (MCP). It transforms natural language descriptions into executable Python code for agentic workflows, powered by the <a href="https://mozilla-ai.github.io/any-agent/">any-agent</a> library.</p>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>Refer to the <a href="getting-started/installation/">Installation</a> for instructions on setup and usage.</p>
-<h2 id="mcp-servers">MCP Servers<a class="headerlink" href="#mcp-servers" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Available MCP servers and tools are documented in <a href="user-guide/mcp-servers/">MCP Servers</a></li>
-<li>For help setting up API keys and tokens, see the <a href="user-guide/mcp-credentials/">MCP Credentials</a> guide.</li>
-</ul>
+<p>Agent Factory is an <strong>Agent2Agent (A2A) protocol-compatible server</strong> designed to simplify agent creation and evaluation.
+Describe your workflow in natural language, and the agent will generate the necessary code to implement that workflow
+using available tools (Python functions or via MCP servers).</p>
+<p>Under the hood, it leverages the <a href="https://github.com/mozilla-ai/any-agent"><code>any-agent</code></a> library, allowing you to easily
+swap between Agent frameworks with minimal code changes.</p>
+<p><strong><em>Follow the Table of Contents on the left side to navigate the documentation.</em></strong></p>
 
 
 

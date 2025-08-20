@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://mozilla-ai.github.io/agent-factory/getting-started/installation/">
+        <link rel="canonical" href="https://mozilla-ai.github.io/agent-factory/getting-started/usage/">
       
       
-        <link rel="prev" href="../..">
+        <link rel="prev" href="../installation/">
       
       
-        <link rel="next" href="../usage/">
+        <link rel="next" href="../multi-turn-conversations/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Installation - Agent Factory</title>
+        <title>Usage - Agent Factory</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#prerequisites" class="md-skip">
+        <a href="#1-run-the-agent-factory-server" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Installation
+              Usage
             
           </span>
         </div>
@@ -284,6 +284,29 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -299,7 +322,7 @@
   
   
   <span class="md-ellipsis">
-    Installation
+    Usage
     
   </span>
   
@@ -312,7 +335,7 @@
   
   
   <span class="md-ellipsis">
-    Installation
+    Usage
     
   </span>
   
@@ -333,18 +356,120 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#1-run-the-agent-factory-server" class="md-nav__link">
     <span class="md-ellipsis">
-      Prerequisites
+      1) Run the Agent-Factory Server
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1) Run the Agent-Factory Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      a. Locally
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      b. Docker
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-setting-up-storage-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      (Optional) Setting Up Storage Backends
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="(Optional) Setting Up Storage Backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#s3-minio-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      S3 &amp; MinIO Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-a-local-minio-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running a Local MinIO Instance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-generate-an-agentic-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      2) Generate an Agentic Workflow
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#3-setup-your-credentials" class="md-nav__link">
     <span class="md-ellipsis">
-      Installation
+      3) Setup your Credentials
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-start-the-mcpd-daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      4) Start the mcpd daemon
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-run-the-generated-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      5) Run the Generated Workflow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-use-criteria-agent-to-create-an-evaluation-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      6) Use Criteria Agent to create an Evaluation Case
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-use-agent-judge-to-evaluate-the-agent-against-the-evaluation-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      7) Use Agent Judge to Evaluate the Agent against the Evaluation Case
     </span>
   </a>
   
@@ -354,29 +479,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../usage/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Usage
-    
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -550,44 +652,111 @@
   
 
 
-  <h1>Installation</h1>
+  <h1>Usage</h1>
 
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<h2 id="1-run-the-agent-factory-server">1) Run the Agent-Factory Server<a class="headerlink" href="#1-run-the-agent-factory-server" title="Permanent link">&para;</a></h2>
+<p>You can run the Agent-Factory server either directly from a terminal ("locally") or using Docker.</p>
+<h3 id="a-locally">a. Locally<a class="headerlink" href="#a-locally" title="Permanent link">&para;</a></h3>
+<p>To run the server locally, execute the following command from the <code>src/agent_factory</code> directory:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/agent_factory<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>.<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8080</span><span class="w"> </span>--nochat
+</code></pre></div>
+<p>The server you start makes Agent-Factory's functionalities available via the A2A protocol. You can reach the Manufacturing Agent's Card at http://localhost:8080/.well-known/agent.json.</p>
+<p>In addition to <code>host</code> and <code>port</code>, you can also pass the following arguments:</p>
 <ul>
-<li><a href="https://www.python.org/downloads/">Python 3.13+</a> (will be automatically installed by <code>uv</code>)</li>
-<li><a href="https://github.com/astral-sh/uv">uv</a> (easily manage Python environments and agents' dependencies)</li>
-<li><a href="https://github.com/mozilla-ai/mcpd">mcpd</a> (interface to manage and run MCP servers)</li>
-<li><strong>(Optional)</strong> <a href="https://www.docker.com/products/docker-desktop/">Docker</a> (for containerized server deployment)</li>
+<li><code>--chat</code> vs <code>--nochat</code>: <code>chat</code> mode enables multi-turn conversations, while <code>nochat</code> mode is for one-shot tasks (default:
+   <code>chat</code>).</li>
+<li><code>--framework</code>: The Agent framework to use (default: <code>openai</code>).</li>
+<li><code>--model</code>: The model ID to use (default: <code>o3</code>).</li>
+<li><code>--log_level</code>: The logging level (default: <code>info</code>).</li>
 </ul>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<ol>
-<li>
-<p>Clone the repository and navigate to the agent's source directory:
-   <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mozilla-ai/agent-factory.git<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>agent-factory
+<blockquote>
+<p>[!NOTE]
+Visit the any-agent <a href="https://mozilla-ai.github.io/any-agent/">documentation</a> for more details on the supported
+frameworks.</p>
+</blockquote>
+<h3 id="b-docker">b. Docker<a class="headerlink" href="#b-docker" title="Permanent link">&para;</a></h3>
+<p>The Makefile enables you to run the server using Docker. Before starting, make sure that <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> is installed and running.</p>
+<p><strong>Run the server</strong> (this will also build the image if needed):
+   <div class="highlight"><pre><span></span><code>make<span class="w"> </span>run
+</code></pre></div>
+   The server will be available at <code>http://localhost:8080/.well-known/agent.json</code>.</p>
+<blockquote>
+<p>[!NOTE]
+You can modify the behavior of the server by passing environment variables to the <code>make run</code> command. For example, to
+run the server with the <code>tinyagent</code> framework and a specific model, in chat mode, you can use:
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>run<span class="w"> </span><span class="nv">FRAMEWORK</span><span class="o">=</span>tinyagent<span class="w"> </span><span class="nv">MODEL</span><span class="o">=</span>mistral/mistral-small-latest<span class="w"> </span><span class="nv">CHAT</span><span class="o">=</span><span class="m">1</span>
 </code></pre></div></p>
-</li>
-<li>
-<p>Install the dependencies using <code>uv</code>:
-   <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--dev
+<p>[!NOTE]
+After generating your agents using the <code>agent-factory</code> command (described below), don't forget to stop the server using:
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>stop
 </code></pre></div></p>
-</li>
-<li>
-<p>Activate the virtual environment:
-   <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</blockquote>
+<h2 id="optional-setting-up-storage-backends">(Optional) Setting Up Storage Backends<a class="headerlink" href="#optional-setting-up-storage-backends" title="Permanent link">&para;</a></h2>
+<p>By default, agent outputs are <strong>saved to the local filesystem</strong>. You can configure the agent factory to use AWS S3 or a local MinIO instance for storage.</p>
+<h3 id="s3-minio-configuration">S3 &amp; MinIO Configuration<a class="headerlink" href="#s3-minio-configuration" title="Permanent link">&para;</a></h3>
+<p>To customize the S3/MinIO configuration, you can create a <code>.env</code> file in the project root and override the following values from <code>.default.env</code>:</p>
+<ul>
+<li><code>STORAGE_BACKEND</code>: Set to <code>s3</code> for AWS S3 or <code>minio</code> for MinIO.</li>
+<li><code>AWS_ACCESS_KEY_ID</code>: Your AWS or MinIO access key.</li>
+<li><code>AWS_SECRET_ACCESS_KEY</code>: Your AWS or MinIO secret key.</li>
+<li><code>AWS_REGION</code>: The AWS region for your S3 bucket.</li>
+<li><code>S3_BUCKET_NAME</code>: The name of the S3 or MinIO bucket.</li>
+<li><code>AWS_ENDPOINT_URL</code>: <strong>(For MinIO only)</strong> The URL of your MinIO instance (e.g., <code>http://localhost:9000</code>).</li>
+</ul>
+<p>When using these settings, the application will automatically create the specified bucket if it does not already exist.</p>
+<h3 id="running-a-local-minio-instance">Running a Local MinIO Instance<a class="headerlink" href="#running-a-local-minio-instance" title="Permanent link">&para;</a></h3>
+<p>If you do not have access to AWS S3, you can run a local MinIO instance using Docker:</p>
+<p><div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">9000</span>:9000<span class="w"> </span>-p<span class="w"> </span><span class="m">9091</span>:9091<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>agent-factory-minio-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="s2">&quot;MINIO_ROOT_USER=agent-factory&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="s2">&quot;MINIO_ROOT_PASSWORD=agent-factory&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>agent-factory-minio:/data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>quay.io/minio/minio<span class="w"> </span>server<span class="w"> </span>/data<span class="w"> </span>--console-address<span class="w"> </span><span class="s2">&quot;:9091&quot;</span>
+</code></pre></div>
+The <code>agent-factory-minio</code> volume is used to persist the MinIO server's data, ensuring it is not lost when the container is stopped or removed.</p>
+<p>Once the container is running, you can access the MinIO console at <code>http://localhost:9091</code>. The login credentials are <code>agent-factory</code> for both the username and password.</p>
+<h2 id="2-generate-an-agentic-workflow">2) Generate an Agentic Workflow<a class="headerlink" href="#2-generate-an-agentic-workflow" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>[!IMPORTANT]
+Always run the server in non-chat mode (<code>--nochat</code>) when generating agents using the <code>agent-factory</code> command.
+For multi-turn conversations, see the section on <a href="../multi-turn-conversations/">Multi-Turn Conversations</a>.</p>
+</blockquote>
+<p>Once the server is running, from the project root directory, run the <code>agent-factory</code> CLI tool with your desired workflow prompt:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>agent-factory<span class="w"> </span><span class="s2">&quot;Summarize text content from a given webpage URL&quot;</span>
+</code></pre></div>
+<p>The client will send the message to the server, print the response, and save the generated agent's files (<code>agent.py</code>,
+<code>README.md</code>, <code>requirements.txt</code>, and <code>agent_parameters.json</code>) into a new directory inside the <code>generated_workflows</code> directory.</p>
+<h2 id="3-setup-your-credentials">3) Setup your Credentials<a class="headerlink" href="#3-setup-your-credentials" title="Permanent link">&para;</a></h2>
+<p>Depending on the agent generated, there might be some credentials required to connect to the MCP servers that the agent will use.
+Set the environment variables in the <code>.env</code> file that has been created for you inside the target agent's directory. Add other environment variables as needed, for example, environment variables for your LLM provider.</p>
+<h2 id="4-start-the-mcpd-daemon">4) Start the mcpd daemon<a class="headerlink" href="#4-start-the-mcpd-daemon" title="Permanent link">&para;</a></h2>
+<p>In the target agent's directory, run the mcpd daemon to initialize and connect to the local MCP servers required. With the command below, environment variables from the <code>.env</code> file are also exported to make them available to the mcpd daemon.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="k">$(</span>cat<span class="w"> </span>.env<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="k">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w">  </span>mcpd<span class="w"> </span>daemon<span class="w"> </span>--log-level<span class="o">=</span>DEBUG<span class="w"> </span>--log-path<span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/mcpd.log<span class="w"> </span>--dev<span class="w"> </span>--runtime-file<span class="w"> </span>secrets.prod.toml
+</code></pre></div>
+<h2 id="5-run-the-generated-workflow">5) Run the Generated Workflow<a class="headerlink" href="#5-run-the-generated-workflow" title="Permanent link">&para;</a></h2>
+<p>To run the generated agent, navigate to the directory where the agent was saved and execute:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--with-requirements<span class="w"> </span>requirements.txt<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.13<span class="w"> </span>python<span class="w"> </span>agent.py<span class="w"> </span>--help
+</code></pre></div>
+<p>From the output you can see if there are any POSITIONAL ARGUMENTS required.</p>
+<p>Then adjust the command below:
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--with-requirements<span class="w"> </span>requirements.txt<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.13<span class="w"> </span>python<span class="w"> </span>agent.py<span class="w"> </span>--arg1<span class="w"> </span><span class="s2">&quot;value1&quot;</span>
 </code></pre></div></p>
-</li>
-<li>
-<p>Create a <code>.env</code> file in the project root directory and add your OpenAI API key and Tavily API key (required). You can get a free Tavily API key by signing up <a href="https://www.tavily.com/">here</a>.
-   <div class="highlight"><pre><span></span><code><span class="nv">OPENAI_API_KEY</span><span class="o">=</span>sk-...
-<span class="nv">TAVILY_API_KEY</span><span class="o">=</span>tvly_...
-</code></pre></div></p>
-</li>
-<li>
-<p>(Only required if you are developing the library) Install pre-commit hooks:
-   <div class="highlight"><pre><span></span><code>pre-commit<span class="w"> </span>install
-</code></pre></div></p>
-</li>
-</ol>
+<blockquote>
+<p>[!NOTE]
+The agent-factory has been instructed to set the max_turns (the max number of steps that the generated agent can take
+to complete the workflow) to 20. Please inspect the generated agent code and override this value if needed (if you see
+the generated agent run failing due to AgentRunError caused by MaxTurnsExceeded).</p>
+</blockquote>
+<h2 id="6-use-criteria-agent-to-create-an-evaluation-case">6) Use Criteria Agent to create an Evaluation Case<a class="headerlink" href="#6-use-criteria-agent-to-create-an-evaluation-case" title="Permanent link">&para;</a></h2>
+<p>Run the Criteria Agent, from the project root directory, with your desired evaluation case prompt:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>eval.generate_evaluation_case<span class="w"> </span>path/to/the/generated/agent
+</code></pre></div>
+<p>This will generate a JSON file in the generated agent's directory with evaluation criteria.</p>
+<h2 id="7-use-agent-judge-to-evaluate-the-agent-against-the-evaluation-case">7) Use Agent Judge to Evaluate the Agent against the Evaluation Case<a class="headerlink" href="#7-use-agent-judge-to-evaluate-the-agent-against-the-evaluation-case" title="Permanent link">&para;</a></h2>
+<p>Finally, evaluate the agent's execution trace against the generated evaluation case:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>eval.run_generated_agent_evaluation<span class="w"> </span>path/to/the/generated/agent
+</code></pre></div>
+<p>This command will display the evaluation criteria and show how the agent performed on each.</p>
 
 
 
