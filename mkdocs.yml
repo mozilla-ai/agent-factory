@@ -55,6 +55,8 @@ nav:
   - Home: index.md
   - Getting Started:
     - Installation: getting-started/installation.md
+    - Usage: getting-started/usage.md
+    - Multi-Turn Conversations: getting-started/multi-turn-conversations.md
     - Hello-world example: getting-started/hello_world.ipynb
   - User Guide:
     - MCP Servers: user-guide/mcp-servers.md
