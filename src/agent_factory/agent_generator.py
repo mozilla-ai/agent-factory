@@ -53,6 +53,9 @@ async def generate_target_agent(
         trace_id = trace.format_trace_id(span.get_span_context().trace_id)
         trace_file = f"0x{trace_id}.jsonl"
         # The same trace_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
+        output_dir = output_dir if output_dir else trace_id
+        storage_backend = get_storage_backend()
+        response_json = None
 
         try:
             http_client, base_url = await create_a2a_http_client(host, port, timeout)
@@ -82,19 +85,11 @@ async def generate_target_agent(
                 # Process response
                 final_response = responses[-1]
                 response = process_a2a_agent_final_response(final_response)
+                response_json = response.model_dump_json()
                 if response.status == Status.COMPLETED:
                     prepared_artifacts = prepare_agent_artifacts(response.model_dump())
-                    output_dir = output_dir if output_dir else trace_id
-                    storage_backend = get_storage_backend()
                     logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
                     storage_backend.save(prepared_artifacts, Path(output_dir))
-
-                    # Create and upload the agent trace to the same location
-                    trace_file_path = TRACES_DIR / trace_file
-                    logger.info(f"Creating agent trace from file saved by A2A server: {trace_file_path}")
-                    agent_trace = create_agent_trace_from_file(trace_file_path, response.model_dump_json())
-                    logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend.__str__()}")
-                    storage_backend.upload_trace_file(agent_trace, Path(output_dir))
                 elif response.status == Status.INPUT_REQUIRED:
                     logger.info(
                         f"Please try again and be more specific with your request. Agent's response: {response.message}"
@@ -112,6 +107,13 @@ async def generate_target_agent(
         except Exception as e:
             logger.error(f"An unexpected error occurred during agent generation: {e}")
             raise
+        finally:
+            # Upload trace regardless of success or failure for debugging purposes
+            trace_file_path = TRACES_DIR / trace_file
+            logger.info(f"Creating agent trace from {trace_file_path}")
+            agent_trace = create_agent_trace_from_file(trace_file_path, final_output=response_json)
+            logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend}")
+            storage_backend.upload_trace_file(agent_trace, Path(output_dir))
 
     """
     This is how you can retrieve the trace after the generation is completed/interrupted
