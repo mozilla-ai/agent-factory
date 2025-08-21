@@ -238,9 +238,9 @@ The final expected output is a dictionary with the following structure:
     # Run the Agent
 
     Add the following step only if you've chosen to use an MCP server:
-    1. Run the mcpd daemon:
+    1. Export your .env variables so they can be sourced by mcpd and run the mcpd daemon:
     ```bash
-    mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
+    export $(cat .env | xargs) &&  mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
     ```
 
     2. Run the agent:
