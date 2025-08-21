@@ -1,6 +1,7 @@
 from .artifact_validation import clean_python_code_with_autoflake, validate_dependencies
 from .client_utils import (
     create_a2a_http_client,
+    create_agent_trace_from_file,
     create_message_request,
     get_a2a_agent_card,
     process_a2a_agent_final_response,
@@ -19,6 +20,7 @@ __all__ = [
     "create_message_request",
     "process_a2a_agent_final_response",
     "process_streaming_response_message",
+    "create_agent_trace_from_file",
     "get_storage_backend",
     "logger",
 ]

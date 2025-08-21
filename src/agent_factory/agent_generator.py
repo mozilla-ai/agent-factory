@@ -13,6 +13,7 @@ from agent_factory.config import TRACES_DIR
 from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
+    create_agent_trace_from_file,
     create_message_request,
     get_a2a_agent_card,
     get_storage_backend,
@@ -87,10 +88,13 @@ async def generate_target_agent(
                     logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
                     storage_backend.save(prepared_artifacts, Path(output_dir))
 
-                    # Upload the trace file to the same location
+                    # Create and upload the agent trace to the same location
                     trace_file_path = TRACES_DIR / trace_file
-                    logger.info(f"Uploading trace file from {trace_file_path}")
-                    storage_backend.upload_trace_file(trace_file_path, Path(output_dir))
+                    logger.info(f"Creating agent trace from file saved by A2A server: {trace_file_path}")
+                    agent_trace = create_agent_trace_from_file(trace_file_path)
+                    agent_trace.final_output = response.model_dump_json()
+                    logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend.__str__()}")
+                    storage_backend.upload_trace_file(agent_trace, Path(output_dir))
                 elif response.status == Status.INPUT_REQUIRED:
                     logger.info(
                         f"Please try again and be more specific with your request. Agent's response: {response.message}"

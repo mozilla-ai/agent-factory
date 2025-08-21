@@ -1,6 +1,7 @@
 """Utility functions for the A2A client."""
 
 import json
+from pathlib import Path
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
@@ -14,6 +15,7 @@ from a2a.types import (
     SendStreamingMessageRequest,
     TaskState,
 )
+from any_agent.tracing.agent_trace import AgentSpan, AgentTrace
 from any_agent.tracing.attributes import GenAI
 from pydantic import BaseModel
 
@@ -134,6 +136,24 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
             message_attributes={"error": str(e)},
         )
         return processed_response
+
+
+def create_agent_trace_from_file(trace_file_path: Path, final_output: str | None = None) -> AgentTrace:
+    """Create an AgentTrace object from a trace file and agent final output."""
+    if not trace_file_path.exists():
+        raise FileNotFoundError(f"Trace file {trace_file_path} does not exist")
+
+    try:
+        spans = [
+            AgentSpan.model_validate_json(line)
+            for line in trace_file_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        agent_trace = AgentTrace(spans=spans, final_output=final_output)
+        return agent_trace
+    except Exception as e:
+        logger.error(f"Failed to create agent trace from file {trace_file_path}: {str(e)}")
+        raise
 
 
 def is_server_live(host: str, port: int, timeout: float = 2.0) -> bool:
