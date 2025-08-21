@@ -217,8 +217,7 @@ jobs:
             if [ -f "tests/artifacts/$prompt_id/secrets.prod.toml" ]; then
               echo "[i] Starting mcpd as it is required for this agent"
               mcpd daemon --runtime-file tests/artifacts/$prompt_id/secrets.prod.toml --config-file tests/artifacts/$prompt_id/.mcpd.toml &
-              sleep 2
-              make test-generated-artifacts-integration PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
+              sh scripts/wait_for_mcpd_servers.sh && make test-generated-artifacts-integration PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
               killall mcpd
             else
               make test-generated-artifacts-integration PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
