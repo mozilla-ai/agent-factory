@@ -1,16 +1,20 @@
 import json
-from unittest.mock import AsyncMock, MagicMock
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID, uuid4
 
 import httpx
 import pytest
 from a2a.types import AgentCard, TaskState
+from any_agent.tracing.agent_trace import AgentSpan, AgentTrace
 from any_agent.tracing.attributes import GenAI
+from conftest import UNIT_TESTS_DATA_DIR
 
 from agent_factory.schemas import AgentFactoryOutputs, Status
 from agent_factory.utils.client_utils import (
     ProcessedStreamingResponse,
     create_a2a_http_client,
+    create_agent_trace_from_file,
     create_message_request,
     get_a2a_agent_card,
     process_a2a_agent_final_response,
@@ -202,3 +206,21 @@ def test_process_streaming_response_error_handling():
     assert result.message_type == "error"
     assert "Error processing response" in result.message
     assert "error" in result.message_attributes
+
+
+def test_create_agent_trace_from_file_success():
+    """Test successful creation of AgentTrace from a valid trace file."""
+    trace_file_path = UNIT_TESTS_DATA_DIR / "sample_agent_trace_from_jsonspanexporter.jsonl"
+    final_output = "Agent execution completed successfully"
+
+    result = create_agent_trace_from_file(trace_file_path, final_output)
+
+    assert isinstance(result, AgentTrace)
+
+    assert len(result.spans) == 2
+
+    assert result.final_output == final_output
+
+    span_names = [span.name for span in result.spans]
+    assert "call_llm o3" in span_names
+    assert "invoke_agent [any_agent]" in span_names
