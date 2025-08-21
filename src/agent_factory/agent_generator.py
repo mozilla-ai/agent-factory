@@ -50,7 +50,9 @@ async def generate_target_agent(
         timeout: The timeout for the request in seconds (default: 600).
     """
     with tracer.start_as_current_span("generate_target_agent") as span:
-        trace_file = f"0x{trace.format_trace_id(span.get_span_context().trace_id)}.jsonl"
+        trace_id = trace.format_trace_id(span.get_span_context().trace_id)
+        trace_file = f"0x{trace_id}.jsonl"
+        # The same trace_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
 
         try:
             http_client, base_url = await create_a2a_http_client(host, port, timeout)
@@ -62,7 +64,6 @@ async def generate_target_agent(
                 logger.info("A2AClient initialized.")
                 logger.info(f"Trace will be saved to {trace_file}")
 
-                # request_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
                 request = create_message_request(message, request_id=request_id)
 
                 responses = []
@@ -83,7 +84,7 @@ async def generate_target_agent(
                 response = process_a2a_agent_final_response(final_response)
                 if response.status == Status.COMPLETED:
                     prepared_artifacts = prepare_agent_artifacts(response.model_dump())
-                    output_dir = output_dir if output_dir else request.id
+                    output_dir = output_dir if output_dir else trace_id
                     storage_backend = get_storage_backend()
                     logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
                     storage_backend.save(prepared_artifacts, Path(output_dir))
@@ -91,8 +92,7 @@ async def generate_target_agent(
                     # Create and upload the agent trace to the same location
                     trace_file_path = TRACES_DIR / trace_file
                     logger.info(f"Creating agent trace from file saved by A2A server: {trace_file_path}")
-                    agent_trace = create_agent_trace_from_file(trace_file_path)
-                    agent_trace.final_output = response.model_dump_json()
+                    agent_trace = create_agent_trace_from_file(trace_file_path, response.model_dump_json())
                     logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend.__str__()}")
                     storage_backend.upload_trace_file(agent_trace, Path(output_dir))
                 elif response.status == Status.INPUT_REQUIRED:
