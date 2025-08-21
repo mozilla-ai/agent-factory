@@ -9,6 +9,7 @@ from opentelemetry import trace
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
 
+from agent_factory.config import TRACES_DIR
 from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
@@ -85,6 +86,11 @@ async def generate_target_agent(
                     storage_backend = get_storage_backend()
                     logger.info(f"Saving agent artifacts to {output_dir} folder on {storage_backend.__str__()}")
                     storage_backend.save(prepared_artifacts, Path(output_dir))
+
+                    # Upload the trace file to the same location
+                    trace_file_path = TRACES_DIR / trace_file
+                    logger.info(f"Uploading trace file from {trace_file_path}")
+                    storage_backend.upload_trace_file(trace_file_path, Path(output_dir))
                 elif response.status == Status.INPUT_REQUIRED:
                     logger.info(
                         f"Please try again and be more specific with your request. Agent's response: {response.message}"

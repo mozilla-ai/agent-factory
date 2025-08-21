@@ -19,6 +19,11 @@ class StorageBackend(ABC):
     def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
         pass
 
+    @abstractmethod
+    def upload_trace_file(self, trace_file_path: Path, output_dir: Path) -> None:
+        """Upload trace file to the storage backend."""
+        pass
+
 
 class LocalStorage(StorageBackend):
     def __str__(self) -> str:
@@ -41,6 +46,22 @@ class LocalStorage(StorageBackend):
     def _setup_output_directory(self, output_dir: Path) -> Path:
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
+
+    def upload_trace_file(self, trace_file_path: Path, output_dir: Path) -> None:
+        """Copy trace file to the local storage directory."""
+        if not trace_file_path.exists():
+            logger.warning(f"Trace file {trace_file_path} does not exist, skipping trace upload")
+            return
+
+        output_dir = Path("generated_workflows") / output_dir
+        output_path = self._setup_output_directory(output_dir)
+
+        try:
+            trace_dest = output_path / "agent_factory_trace.json"
+            trace_dest.write_text(trace_file_path.read_text(), encoding="utf-8")
+            logger.info(f"Trace file saved to {trace_dest}")
+        except Exception as e:
+            logger.warning(f"Warning: Failed to save trace file: {str(e)}")
 
 
 class S3Storage(StorageBackend):
@@ -103,6 +124,19 @@ class S3Storage(StorageBackend):
                 )
             except Exception as e:
                 logger.error(f"Failed to upload to {self.storage_str} bucket {self.bucket_name}. Error: {e}")
+
+    def upload_trace_file(self, trace_file_path: Path, output_dir: Path) -> None:
+        """Upload trace file to S3/MinIO storage."""
+        if not trace_file_path.exists():
+            logger.warning(f"Trace file {trace_file_path} does not exist, skipping trace upload")
+            return
+
+        try:
+            s3_key = f"{output_dir.name}/agent_factory_trace.json"
+            self.s3_client.upload_file(str(trace_file_path), self.bucket_name, s3_key)
+            logger.info(f"Successfully uploaded trace file to {self.storage_str} bucket {self.bucket_name} at {s3_key}")
+        except Exception as e:
+            logger.error(f"Failed to upload trace file to {self.storage_str} bucket {self.bucket_name}. Error: {e}")
 
 
 def get_storage_backend() -> StorageBackend:
