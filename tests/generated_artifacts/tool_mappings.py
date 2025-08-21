@@ -1,99 +1,85 @@
-from generated_artifacts.tool_mocks import mock_extract_text_from_url, mock_text_to_speech
-from generated_artifacts.tool_validations import no_docker_mcp
+from generated_artifacts.tool_mocks import (
+    mock_combine_mp3_files_for_podcast,
+    mock_extract_text_from_url,
+    mock_slack_list_channels,
+    mock_slack_post_message,
+    mock_sqlite_write_query,
+    mock_text_to_speech,
+)
 
 from agent_factory.utils.logging import logger
 
 # Each entry defines how to identify a tool and what mock to use
 TOOL_MOCKS = [
     {
-        "prompt_id": "url-to-podcast",  # mocks can be specific to a use-case (identified by its prompt_id)
-        "type": "MCPStdio",  # Tool type: 'mcp' for MCPStdio tools, 'function' for regular functions
-        "match_condition": "mcp/elevenlabs",  # String to match in tool args (for MCP) or function name (for functions)
+        # mocks can be specific to a use-case (identified by its prompt_id)
+        "prompt_id": "url-to-podcast",
+        # check if the function_name string appears in the function name
+        # (the typical format is mcpservername__functionname, but one could
+        # also specify a string that matches more than one tool and mock all
+        # of them with the same function)
+        "function_name": "elevenlabs_mcp__text_to_speech",
+        # this is the mock we substitute the matched function with
+        # (defined in `tool_mocks.py`)
         "mock_function": mock_text_to_speech,
     },
     {
         "prompt_id": "url-to-podcast",
-        "type": "MCPStdio",
-        "match_condition": "elevenlabs-mcp",  # this string appears as args of uvx MCP (previous one was docker)
-        "mock_function": mock_text_to_speech,
-    },
-    {
-        "prompt_id": "url-to-podcast",
-        "type": "function",
-        "match_condition": "extract_text_from_url",  # this string appears as function name
+        "function_name": "extract_text_from_url",
         "mock_function": mock_extract_text_from_url,
     },
-]
-
-# Each entry defines how to identify a tool and what validation to run on it.
-# NOTE that these are conditions to be met by the original tools and they are
-# verified prior to mocking.
-TOOL_VALIDATIONS = [
     {
-        # We found the docker MCP server was problematic for the url-to-podcast use-case
-        # and decided to explicitly ask for the uvx installation in the instructions.
-        # Here we make sure no docker tools are run in this use-case.
         "prompt_id": "url-to-podcast",
-        "type": "MCPStdio",
-        "validation_function": no_docker_mcp,
-    }
+        "function_name": "combine_mp3_files_for_podcast",
+        "mock_function": mock_combine_mp3_files_for_podcast,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "function_name": "slack__slack_list_channels",
+        "mock_function": mock_slack_list_channels,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "function_name": "slack__slack_post_message",
+        "mock_function": mock_slack_post_message,
+    },
+    {
+        "prompt_id": "scoring-blueprints-submission",
+        "function_name": "sqlite__write_query",
+        "mock_function": mock_sqlite_write_query,
+    },
+    {
+        "prompt_id": "summarize-url-content",
+        "function_name": "extract_text_from_url",
+        "mock_function": mock_extract_text_from_url,
+    },
 ]
 
 # ----------------------------------------------------------------------------
 
 
-def find_matching_validation(tool, tool_type_checker, prompt_id):
-    """Find a matching validation for the given tool.
-
-    Args:
-        tool: The tool to check
-        tool_type_checker: Function that takes (tool, type_name) and returns True if tool matches type
-
-    Returns:
-        Validation function if found, None otherwise
-    """
-    for val_config in TOOL_VALIDATIONS:
-        tool_type = val_config["type"]
-        match_prompt_id = val_config.get("prompt_id", None)
-
-        if match_prompt_id and prompt_id != match_prompt_id:
-            continue
-
-        if tool_type_checker(tool, tool_type):
-            logger.debug(f"Found matching validation function for {match_prompt_id}/{tool_type}")
-            return val_config["validation_function"]
-
-    return None
-
-
-def find_matching_mock(tool, tool_type_checker, prompt_id):
+def find_matching_mock(tool, prompt_id):
     """Find a matching mock for the given tool.
 
     Args:
         tool: The tool to check
-        tool_type_checker: Function that takes (tool, type_name) and returns True if tool matches type
+        prompt_id: The prompt_id used to filter matching configurations
 
     Returns:
-        Mock function if found, None otherwise
+        List of mock functions if found, None otherwise
     """
-    for mock_config in TOOL_MOCKS:
-        tool_type = mock_config["type"]
-        match_condition = mock_config["match_condition"]
-        match_prompt_id = mock_config.get("prompt_id", None)
+    mocks_for_this_prompt = [
+        mock_config
+        for mock_config in TOOL_MOCKS
+        if not mock_config.get("prompt_id", None) or mock_config.get("prompt_id") == prompt_id
+    ]
 
-        if match_prompt_id and prompt_id != match_prompt_id:
-            continue
+    mocks = []
+    # as we match the mock to (a substring of) the function name, we expect the function to have one
+    if callable(tool) and hasattr(tool, "__name__"):
+        for mock_config in mocks_for_this_prompt:
+            if mock_config["function_name"] in tool.__name__:
+                logger.debug(f"Found matching function mock for: {tool.__name__}")
+                mocks.append(mock_config["mock_function"])
 
-        if tool_type == "MCPStdio":
-            # Check if it's an MCP tool with matching args
-            if tool_type_checker(tool, tool_type) and any(match_condition in str(arg) for arg in tool.args):
-                logger.debug(f"Found matching MCP mock for: {match_condition}")
-                return mock_config["mock_function"]
-
-        elif tool_type == "function":
-            # Check if it's a function with matching name
-            if tool_type_checker(tool, tool_type) and hasattr(tool, "__name__") and match_condition in tool.__name__:
-                logger.debug(f"Found matching function mock for: {match_condition}")
-                return mock_config["mock_function"]
-
-    return None
+    return mocks

@@ -68,4 +68,5 @@ tests = [
   "pytest-timeout>=2.4.0",
   "syrupy>=4.9.1",
   "pytest-asyncio>=1.0.0",
+  "mcpd>=0.0.1",
 ]
