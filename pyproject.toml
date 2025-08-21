@@ -15,7 +15,6 @@ dependencies = [
     "markdownify==1.2.0",
     "opentelemetry-instrumentation-httpx",
     "opentelemetry-instrumentation-starlette",
-    "pre-commit>=4.2.0",
     "tavily-python==0.7.10",
 ]
 
