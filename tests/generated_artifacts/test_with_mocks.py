@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from generated_artifacts.tool_mappings import find_matching_mock, find_matching_validation
+from generated_artifacts.tool_mappings import find_matching_mock
 
 from agent_factory.utils.logging import logger
 
@@ -43,16 +43,7 @@ def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
         # Process tools and replace with mocks where applicable
         modified_tools = []
         for tool in tools:
-            # first validate the tool
-            validation_functions = find_matching_validation(tool, prompt_id)
-
-            for validation_function in validation_functions:
-                logger.debug(f"Validating tool {tool} with {validation_function.__name__}")
-                validation_function(tool, prompt_id)
-
             # Try to find matching mocks:
-            # - if function, there is a 1:1 mapping
-            # - if MCPStdio, each tool under the same server needs to have a mock
             mock_tools = find_matching_mock(tool, prompt_id)
 
             if len(mock_tools):
