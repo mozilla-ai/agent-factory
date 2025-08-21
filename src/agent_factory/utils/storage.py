@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 import boto3
+from any_agent.tracing.agent_trace import AgentSpan, AgentTrace
 
 from agent_factory.utils.logging import logger
 
@@ -58,7 +59,13 @@ class LocalStorage(StorageBackend):
 
         try:
             trace_dest = output_path / "agent_factory_trace.json"
-            trace_dest.write_text(trace_file_path.read_text(), encoding="utf-8")
+            spans = [
+                AgentSpan.model_validate_json(line)
+                for line in trace_file_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            agent_trace = AgentTrace(spans=spans)  # TODO: add final output
+            trace_dest.write_text(agent_trace.model_dump_json(), encoding="utf-8")
             logger.info(f"Trace file saved to {trace_dest}")
         except Exception as e:
             logger.warning(f"Warning: Failed to save trace file: {str(e)}")
@@ -131,9 +138,23 @@ class S3Storage(StorageBackend):
             logger.warning(f"Trace file {trace_file_path} does not exist, skipping trace upload")
             return
 
+        s3_key = f"{output_dir.name}/agent_factory_trace.json"
         try:
-            s3_key = f"{output_dir.name}/agent_factory_trace.json"
-            self.s3_client.upload_file(str(trace_file_path), self.bucket_name, s3_key)
+            spans = [
+                AgentSpan.model_validate_json(line)
+                for line in trace_file_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+
+            agent_trace = AgentTrace(spans=spans)  # TODO: add final output
+            agent_trace_json = agent_trace.model_dump_json()
+
+            self.s3_client.put_object(
+                Bucket=self.bucket_name,
+                Key=s3_key,
+                Body=agent_trace_json.encode("utf-8"),
+                ContentType="application/json",
+            )
             logger.info(f"Successfully uploaded trace file to {self.storage_str} bucket {self.bucket_name} at {s3_key}")
         except Exception as e:
             logger.error(f"Failed to upload trace file to {self.storage_str} bucket {self.bucket_name}. Error: {e}")
