@@ -56,6 +56,7 @@ nav:
   - Getting Started:
     - Installation: getting-started/installation.md
     - Hello-world example: getting-started/hello_world.ipynb
+    - Use-case - Post-mortem Generator: getting-started/post-mortem-agent.md
   - User Guide:
     - MCP Servers: user-guide/mcp-servers.md
     - MCP Credentials: user-guide/mcp-credentials.md
