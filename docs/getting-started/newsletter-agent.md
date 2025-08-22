@@ -33,7 +33,7 @@ uv run agent-factory 'Create an agent that creates a newsletter based on the lat
 - newsletter title (optional, default to "Latest News on {keywords}")
 - sources for articles, which can be a list of URLs or specific news outlets (optional, default to None, which means whichever sources are available through the web search)
 - date range for the articles (optional, default to last 7 days)
-- export format (optional, multiple options can be selected out of: "pdf", "html", "markdown", default to "html")
+- export format (optional, multiple options can be selected out of: "html", "markdown", default to "html")
 - slack channel to post the newsletter (optional, default to None)
 
 2. Searches the web with Tavily for the latest news articles related to those topics, according to the user-defined parameters.
@@ -48,7 +48,7 @@ uv run agent-factory 'Create an agent that creates a newsletter based on the lat
 
 5. Export the newsletter in the requested format(s)
 
-6. If the user provided a Slack channel, post the newsletter to that channel.'
+6. If the user provided a Slack channel, use the Slack MCP server to post the newsletter to that channel.'
 ```
 
 
