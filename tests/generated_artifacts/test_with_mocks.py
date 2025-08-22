@@ -108,8 +108,8 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
             # NOTE that the field names here might change if you rebuild the agent!
             assert result.score  # the agent assigned a score
             assert result.slack_channel_id == "BLU3PR1NTSUB"  # the agent found the channel id
-            assert result.slack_ts  # the agent posted in the channel
-            assert result.db_insert_success  # the agent inserted results in the DB
+            assert result.slack_message_ts  # the agent posted in the channel
+            assert result.db_insertion_status  # the agent inserted results in the DB
 
         elif "summarize-url-content" in prompt_id:
             result = agent.main("https://en.wikipedia.org/wiki/Alan_Turing_Life")

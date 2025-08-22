@@ -1,3 +1,5 @@
 any-agent[all,a2a]==1.2.0
+fire
 litellm<1.75.0
 mcpd>=0.0.1
+python-dotenv
