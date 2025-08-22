@@ -63,20 +63,32 @@ class LocalStorage(StorageBackend):
 
 class S3Storage(StorageBackend):
     def __init__(self):
-        self.aws_access_key_id = os.environ["AWS_ACCESS_KEY_ID"]
-        self.aws_secret_access_key = os.environ["AWS_SECRET_ACCESS_KEY"]
-        self.aws_region = os.environ["AWS_REGION"]
+        # Get credentials (optional for IRSA)
+        self.aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
+        self.aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+        self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.bucket_name = os.environ["S3_BUCKET_NAME"]
         self.endpoint_url = os.environ.get("AWS_ENDPOINT_URL") or None
         self.storage_str = "S3" if self.endpoint_url is None else "MinIO"
 
-        self.s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key,
-            region_name=self.aws_region,
-            endpoint_url=self.endpoint_url,
-        )
+        # Build config dict for IRSA compatibility
+        s3_config = {}
+
+        # Always include region
+        if self.aws_region:
+            s3_config["region_name"] = self.aws_region
+
+        # Only add credentials if both are provided (for local/dev)
+        # If not provided, boto3 will use IRSA in K8s
+        if self.aws_access_key_id and self.aws_secret_access_key:
+            s3_config["aws_access_key_id"] = self.aws_access_key_id
+            s3_config["aws_secret_access_key"] = self.aws_secret_access_key
+
+        # Add endpoint URL for MinIO/LocalStack
+        if self.endpoint_url:
+            s3_config["endpoint_url"] = self.endpoint_url
+
+        self.s3_client = boto3.client("s3", **s3_config)
         self._create_bucket_if_not_exists()
 
     def __str__(self) -> str:
