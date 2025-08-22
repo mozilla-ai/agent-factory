@@ -1,4 +1,5 @@
 import sys
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -126,3 +127,30 @@ def sample_evaluation_json_file(common_eval_testing_data_path: Path) -> str:
 @pytest.fixture(scope="module")
 def sample_agent_eval_trace_json(common_eval_testing_data_path: Path) -> str:
     return (common_eval_testing_data_path / "sample_agent_eval_trace.json").read_text()
+
+
+@pytest.fixture(scope="session")
+def cost_tracker():
+    """A session-scoped fixture to track and summarize the total cost of API calls
+    during the test session.
+    """
+    run_costs = []
+    yield run_costs
+
+    # The code below runs AFTER all tests in the session are complete
+    if not run_costs:
+        return
+
+    total_cost = sum(run_costs)
+    avg_cost = total_cost / len(run_costs) if run_costs else 0
+
+    summary_output = textwrap.dedent(f"""
+        {"=" * 60}
+        COST SUMMARY
+        {"-" * 60}
+        Number of runs: {len(run_costs)}
+        Total cost: ${total_cost:.3f}
+        Average cost per run: ${avg_cost:.3f}
+        {"=" * 60}
+    """)
+    print(summary_output)
