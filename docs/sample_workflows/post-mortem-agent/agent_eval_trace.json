@@ -1,0 +1,1153 @@
+{
+  "spans": [
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173456747077842,
+      "end_time": 1755173469795636727,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 824861555981708477,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.input.messages": "[{\"role\": \"system\", \"content\": \"\\nYou are a Post-mortem Assistant. Follow the steps strictly and keep outputs concise.\\n\\nStep-1 (Input Parsing)\\n\u2022 Receive the variable `incident_description` from the user prompt.\\n\u2022 Extract key dates, teams, product names, error messages, and any unique IDs mentioned.\\n\\nStep-2 (Gather Context from Sources)\\nA.  Notion\\n    \u2022 Query for pages whose titles or bodies include any keyword from `incident_description`.\\n    \u2022 Retrieve the first 10 matching page IDs for reference content.\\nB.  Monday.com\\n    \u2022 Get updates from the boards on Monday.com related to: `incident_description`\\nC.  Slack\\n    \u2022 Read history from the 'marketing-ops' channel for the last 7 days.\\n    \u2022 Filter messages that contain any keyword from `incident_description`.\\n\\n\\nDO NOT SKIP ANY OF THE ABOVE SOURCES\\n\\nStep-3  (Locate Parent Page)\\n\u2022 Use Notion `API-post-search` to search for a page whose title equals \u201cPost Mortems\u201d.\\n\u2022 Save its `id` as `PARENT_PAGE_ID`. If multiple pages match, choose the first exact-title match.\\n\u2022 If no page found, STOP and reply that the parent page was not located.\\n\\nStep-4  (Analysis)\\n\u2022 Build a chronological timeline of events across all three sources (ISO-8601 date & time).\\n\u2022 Determine likely root cause and contributing factors.\\n\u2022 List immediate impact, resolution steps, and future preventive actions.\\n\\nStep-5  (Compose Report Markdown)\\nCreate markdown with sections:\\n1. Summary (\u2264150 words)\\n2. Timeline (table with Time \u2502 Source \u2502 Event)\\n3. Root Cause Analysis\\n4. Recommendations / Next steps\\nInclude links (Notion pages, Slack permalinks, Monday items) where available.\\n\\nStep-6  (Create Notion Page)\\n\u2022 Use `API-post-page` with parent `PARENT_PAGE_ID`.\\n\u2022 Title: `Post Mortems \u2013 {incident_description[:50]}\u2026` (truncate if >50 chars).\\n\u2022 Content: markdown prepared in Step-5.\\n\\nOutput strictly the final Structured JSON.\\nIf any step fails irrecoverably, respond with a helpful error message.\\n\"}, {\"content\": \"Create a post-mortem for the following incident: summer25 code\", \"role\": \"user\"}]",
+        "gen_ai.output": "[{\"tool.name\": \"API-post-search\", \"tool.args\": \"{\\\"query\\\":\\\"summer25 code\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"descending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 6365,
+        "gen_ai.usage.output_tokens": 439,
+        "gen_ai.usage.input_cost": 0.01273,
+        "gen_ai.usage.output_cost": 0.003512
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool API-post-search",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173469800287545,
+      "end_time": 1755173470478268639,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 15026237403337753227,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "API-post-search",
+        "gen_ai.tool.description": "Search by title",
+        "gen_ai.tool.args": "\"{\\\"query\\\":\\\"summer25 code\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"descending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"object\\\":\\\"list\\\",\\\"results\\\":[],\\\"next_cursor\\\":null,\\\"has_more\\\":false,\\\"type\\\":\\\"page_or_database\\\",\\\"page_or_database\\\":{},\\\"request_id\\\":\\\"08a6805d-1b7b-448a-827e-a7a0db7c9c67\\\"}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173470483937453,
+      "end_time": 1755173478387468042,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 1755834252708600449,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"slack_list_channels\", \"tool.args\": \"{\\\"limit\\\":200}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 6504,
+        "gen_ai.usage.output_tokens": 281,
+        "gen_ai.usage.input_cost": 0.013007999999999999,
+        "gen_ai.usage.output_cost": 0.002248
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool slack_list_channels",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173478388539850,
+      "end_time": 1755173478799373784,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 2383080638582897584,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "slack_list_channels",
+        "gen_ai.tool.description": "List public and private channels that the bot is a member of, or pre-defined channels in the workspace with pagination",
+        "gen_ai.tool.args": "\"{\\\"limit\\\":200}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"ok\\\":true,\\\"channels\\\":[{\\\"id\\\":\\\"C08U6VCMFGW\\\",\\\"created\\\":1748448975,\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"is_org_shared\\\":false,\\\"is_im\\\":false,\\\"context_team_id\\\":\\\"T08UAP19EBX\\\",\\\"updated\\\":1751045622282,\\\"name\\\":\\\"new-channel\\\",\\\"name_normalized\\\":\\\"new-channel\\\",\\\"is_channel\\\":true,\\\"is_group\\\":false,\\\"is_mpim\\\":false,\\\"is_private\\\":false,\\\"is_archived\\\":false,\\\"is_general\\\":false,\\\"is_shared\\\":false,\\\"is_ext_shared\\\":false,\\\"unlinked\\\":0,\\\"is_pending_ext_shared\\\":false,\\\"pending_shared\\\":[],\\\"parent_conversation\\\":null,\\\"purpose\\\":{\\\"value\\\":\\\"This channel is for everything #new-channel. Hold meetings, share docs and make decisions together with your team.\\\",\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"last_set\\\":1748448975},\\\"topic\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"shared_team_ids\\\":[\\\"T08UAP19EBX\\\"],\\\"pending_connected_team_ids\\\":[],\\\"is_member\\\":false,\\\"num_members\\\":3,\\\"properties\\\":{\\\"use_case\\\":\\\"project\\\",\\\"is_dormant\\\":true},\\\"previous_names\\\":[]},{\\\"id\\\":\\\"C08UAP1MPNZ\\\",\\\"created\\\":1748448964,\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"is_org_shared\\\":false,\\\"is_im\\\":false,\\\"context_team_id\\\":\\\"T08UAP19EBX\\\",\\\"updated\\\":1752576124481,\\\"name\\\":\\\"all-stefan-slack\\\",\\\"name_normalized\\\":\\\"all-stefan-slack\\\",\\\"is_channel\\\":true,\\\"is_group\\\":false,\\\"is_mpim\\\":false,\\\"is_private\\\":false,\\\"is_archived\\\":false,\\\"is_general\\\":true,\\\"is_shared\\\":false,\\\"is_ext_shared\\\":false,\\\"unlinked\\\":0,\\\"is_pending_ext_shared\\\":false,\\\"pending_shared\\\":[],\\\"parent_conversation\\\":null,\\\"purpose\\\":{\\\"value\\\":\\\"Share announcements and updates about company news, upcoming events or teammates who deserve some kudos. \u2b50\\\",\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"last_set\\\":1748448964},\\\"topic\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"shared_team_ids\\\":[\\\"T08UAP19EBX\\\"],\\\"pending_connected_team_ids\\\":[],\\\"is_member\\\":true,\\\"num_members\\\":4,\\\"properties\\\":{\\\"tabs\\\":[{\\\"id\\\":\\\"Ct08UANU542Z\\\",\\\"type\\\":\\\"canvas\\\",\\\"data\\\":{\\\"file_id\\\":\\\"F08UANU20NR\\\",\\\"shared_ts\\\":\\\"1748448968.002589\\\"},\\\"label\\\":\\\"\\\"}],\\\"tabz\\\":[{\\\"id\\\":\\\"Ct08UANU542Z\\\",\\\"type\\\":\\\"canvas\\\",\\\"data\\\":{\\\"file_id\\\":\\\"F08UANU20NR\\\",\\\"shared_ts\\\":\\\"1748448968.002589\\\"}}],\\\"use_case\\\":\\\"welcome\\\"},\\\"previous_names\\\":[\\\"all-team\\\",\\\"all-slack\\\"]},{\\\"id\\\":\\\"C08UAP1T4RK\\\",\\\"created\\\":1748448964,\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"is_org_shared\\\":false,\\\"is_im\\\":false,\\\"context_team_id\\\":\\\"T08UAP19EBX\\\",\\\"updated\\\":1751052944329,\\\"name\\\":\\\"social\\\",\\\"name_normalized\\\":\\\"social\\\",\\\"is_channel\\\":true,\\\"is_group\\\":false,\\\"is_mpim\\\":false,\\\"is_private\\\":false,\\\"is_archived\\\":false,\\\"is_general\\\":false,\\\"is_shared\\\":false,\\\"is_ext_shared\\\":false,\\\"unlinked\\\":0,\\\"is_pending_ext_shared\\\":false,\\\"pending_shared\\\":[],\\\"parent_conversation\\\":null,\\\"purpose\\\":{\\\"value\\\":\\\"Other channels are for work. This one\u2019s just for fun. Get to know your teammates and show your lighter side. \ud83c\udf88\\\",\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"last_set\\\":1748448964},\\\"topic\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"shared_team_ids\\\":[\\\"T08UAP19EBX\\\"],\\\"pending_connected_team_ids\\\":[],\\\"is_member\\\":false,\\\"num_members\\\":3,\\\"properties\\\":{\\\"tabs\\\":[{\\\"id\\\":\\\"Ct08UANVGFU5\\\",\\\"type\\\":\\\"list\\\",\\\"data\\\":{\\\"file_id\\\":\\\"F08UANUCVQV\\\",\\\"shared_ts\\\":\\\"1748448967.578849\\\",\\\"mute_edit_updates\\\":true},\\\"label\\\":\\\"\\\"},{\\\"type\\\":\\\"workflows\\\",\\\"label\\\":\\\"\\\",\\\"id\\\":\\\"workflows\\\"}],\\\"tabz\\\":[{\\\"id\\\":\\\"Ct08UANVGFU5\\\",\\\"type\\\":\\\"list\\\",\\\"data\\\":{\\\"file_id\\\":\\\"F08UANUCVQV\\\",\\\"shared_ts\\\":\\\"1748448967.578849\\\",\\\"mute_edit_updates\\\":true}},{\\\"type\\\":\\\"workflows\\\"}],\\\"use_case\\\":\\\"random\\\",\\\"is_dormant\\\":true},\\\"previous_names\\\":[]},{\\\"id\\\":\\\"C08UBHU8V47\\\",\\\"created\\\":1748621313,\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"is_org_shared\\\":false,\\\"is_im\\\":false,\\\"context_team_id\\\":\\\"T08UAP19EBX\\\",\\\"updated\\\":1751214713115,\\\"name\\\":\\\"product\\\",\\\"name_normalized\\\":\\\"product\\\",\\\"is_channel\\\":true,\\\"is_group\\\":false,\\\"is_mpim\\\":false,\\\"is_private\\\":false,\\\"is_archived\\\":false,\\\"is_general\\\":false,\\\"is_shared\\\":false,\\\"is_ext_shared\\\":false,\\\"unlinked\\\":0,\\\"is_pending_ext_shared\\\":false,\\\"pending_shared\\\":[],\\\"parent_conversation\\\":null,\\\"purpose\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"topic\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"shared_team_ids\\\":[\\\"T08UAP19EBX\\\"],\\\"pending_connected_team_ids\\\":[],\\\"is_member\\\":false,\\\"num_members\\\":1,\\\"properties\\\":{\\\"is_dormant\\\":true},\\\"previous_names\\\":[]},{\\\"id\\\":\\\"C095X7XFGAX\\\",\\\"created\\\":1752671795,\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"is_org_shared\\\":false,\\\"is_im\\\":false,\\\"context_team_id\\\":\\\"T08UAP19EBX\\\",\\\"updated\\\":1752671795514,\\\"name\\\":\\\"incident-report\\\",\\\"name_normalized\\\":\\\"incident-report\\\",\\\"is_channel\\\":true,\\\"is_group\\\":false,\\\"is_mpim\\\":false,\\\"is_private\\\":false,\\\"is_archived\\\":false,\\\"is_general\\\":false,\\\"is_shared\\\":false,\\\"is_ext_shared\\\":false,\\\"unlinked\\\":0,\\\"is_pending_ext_shared\\\":false,\\\"pending_shared\\\":[],\\\"parent_conversation\\\":null,\\\"purpose\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"topic\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"shared_team_ids\\\":[\\\"T08UAP19EBX\\\"],\\\"pending_connected_team_ids\\\":[],\\\"is_member\\\":false,\\\"num_members\\\":3,\\\"previous_names\\\":[]},{\\\"id\\\":\\\"C096JTGS1EU\\\",\\\"created\\\":1752588517,\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"is_org_shared\\\":false,\\\"is_im\\\":false,\\\"context_team_id\\\":\\\"T08UAP19EBX\\\",\\\"updated\\\":1752588517616,\\\"name\\\":\\\"weekly-newsletter\\\",\\\"name_normalized\\\":\\\"weekly-newsletter\\\",\\\"is_channel\\\":true,\\\"is_group\\\":false,\\\"is_mpim\\\":false,\\\"is_private\\\":false,\\\"is_archived\\\":false,\\\"is_general\\\":false,\\\"is_shared\\\":false,\\\"is_ext_shared\\\":false,\\\"unlinked\\\":0,\\\"is_pending_ext_shared\\\":false,\\\"pending_shared\\\":[],\\\"parent_conversation\\\":null,\\\"purpose\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"topic\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"shared_team_ids\\\":[\\\"T08UAP19EBX\\\"],\\\"pending_connected_team_ids\\\":[],\\\"is_member\\\":false,\\\"num_members\\\":1,\\\"previous_names\\\":[]},{\\\"id\\\":\\\"C099F6L2M4Y\\\",\\\"created\\\":1754298423,\\\"creator\\\":\\\"U08UAP1AN21\\\",\\\"is_org_shared\\\":false,\\\"is_im\\\":false,\\\"context_team_id\\\":\\\"T08UAP19EBX\\\",\\\"updated\\\":1754298423482,\\\"name\\\":\\\"marketing-ops\\\",\\\"name_normalized\\\":\\\"marketing-ops\\\",\\\"is_channel\\\":true,\\\"is_group\\\":false,\\\"is_mpim\\\":false,\\\"is_private\\\":false,\\\"is_archived\\\":false,\\\"is_general\\\":false,\\\"is_shared\\\":false,\\\"is_ext_shared\\\":false,\\\"unlinked\\\":0,\\\"is_pending_ext_shared\\\":false,\\\"pending_shared\\\":[],\\\"parent_conversation\\\":null,\\\"purpose\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"topic\\\":{\\\"value\\\":\\\"\\\",\\\"creator\\\":\\\"\\\",\\\"last_set\\\":0},\\\"shared_team_ids\\\":[\\\"T08UAP19EBX\\\"],\\\"pending_connected_team_ids\\\":[],\\\"is_member\\\":true,\\\"num_members\\\":4,\\\"previous_names\\\":[]}],\\\"response_metadata\\\":{\\\"next_cursor\\\":\\\"\\\"}}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173478808113405,
+      "end_time": 1755173484249546194,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 12693968715333552025,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"API-post-search\", \"tool.args\": \"{\\\"query\\\":\\\"summer25\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"descending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 8380,
+        "gen_ai.usage.output_tokens": 118,
+        "gen_ai.usage.input_cost": 0.01676,
+        "gen_ai.usage.output_cost": 0.000944
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool API-post-search",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173484250650603,
+      "end_time": 1755173484626450713,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 11783335592997865952,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "API-post-search",
+        "gen_ai.tool.description": "Search by title",
+        "gen_ai.tool.args": "\"{\\\"query\\\":\\\"summer25\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"descending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"status\\\":\\\"error\\\",\\\"data\\\":\\\"<html>\\\\r\\\\n<head><title>502 Bad Gateway</title></head>\\\\r\\\\n<body>\\\\r\\\\n<center><h1>502 Bad Gateway</h1></center>\\\\r\\\\n</body>\\\\r\\\\n</html>\\\\r\\\\n\\\"}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173484633263993,
+      "end_time": 1755173494251290579,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 14361691449461377283,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"API-post-search\", \"tool.args\": \"{\\\"query\\\":\\\"\\\\\\\"Post Mortems\\\\\\\"\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"ascending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 8526,
+        "gen_ai.usage.output_tokens": 377,
+        "gen_ai.usage.input_cost": 0.017051999999999998,
+        "gen_ai.usage.output_cost": 0.003016
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool API-post-search",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173494252299590,
+      "end_time": 1755173495099115168,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 15348040667116629345,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "API-post-search",
+        "gen_ai.tool.description": "Search by title",
+        "gen_ai.tool.args": "\"{\\\"query\\\":\\\"\\\\\\\"Post Mortems\\\\\\\"\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"ascending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"object\\\":\\\"list\\\",\\\"results\\\":[{\\\"object\\\":\\\"page\\\",\\\"id\\\":\\\"24fe111e-d484-80bf-a6aa-ed38bbb9ffc5\\\",\\\"created_time\\\":\\\"2025-08-14T12:01:00.000Z\\\",\\\"last_edited_time\\\":\\\"2025-08-14T12:02:00.000Z\\\",\\\"created_by\\\":{\\\"object\\\":\\\"user\\\",\\\"id\\\":\\\"24fd872b-594c-81b8-ad2f-0002b97328e0\\\"},\\\"last_edited_by\\\":{\\\"object\\\":\\\"user\\\",\\\"id\\\":\\\"24fd872b-594c-81b8-ad2f-0002b97328e0\\\"},\\\"cover\\\":null,\\\"icon\\\":null,\\\"parent\\\":{\\\"type\\\":\\\"page_id\\\",\\\"page_id\\\":\\\"24fe111e-d484-8066-b6ae-d234e29a002b\\\"},\\\"archived\\\":false,\\\"in_trash\\\":false,\\\"properties\\\":{\\\"title\\\":{\\\"id\\\":\\\"title\\\",\\\"type\\\":\\\"title\\\",\\\"title\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":{\\\"content\\\":\\\"Testing test of a post mortem test\\\",\\\"link\\\":null},\\\"annotations\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"strikethrough\\\":false,\\\"underline\\\":false,\\\"code\\\":false,\\\"color\\\":\\\"default\\\"},\\\"plain_text\\\":\\\"Testing test of a post mortem test\\\",\\\"href\\\":null}]}},\\\"url\\\":\\\"https://www.notion.so/Testing-test-of-a-post-mortem-test-24fe111ed48480bfa6aaed38bbb9ffc5\\\",\\\"public_url\\\":null},{\\\"object\\\":\\\"page\\\",\\\"id\\\":\\\"24fe111e-d484-8066-b6ae-d234e29a002b\\\",\\\"created_time\\\":\\\"2025-08-14T12:00:00.000Z\\\",\\\"last_edited_time\\\":\\\"2025-08-14T12:10:00.000Z\\\",\\\"created_by\\\":{\\\"object\\\":\\\"user\\\",\\\"id\\\":\\\"24fd872b-594c-81b8-ad2f-0002b97328e0\\\"},\\\"last_edited_by\\\":{\\\"object\\\":\\\"user\\\",\\\"id\\\":\\\"24fd872b-594c-81b8-ad2f-0002b97328e0\\\"},\\\"cover\\\":null,\\\"icon\\\":null,\\\"parent\\\":{\\\"type\\\":\\\"workspace\\\",\\\"workspace\\\":true},\\\"archived\\\":false,\\\"in_trash\\\":false,\\\"properties\\\":{\\\"title\\\":{\\\"id\\\":\\\"title\\\",\\\"type\\\":\\\"title\\\",\\\"title\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":{\\\"content\\\":\\\"Post Mortems\\\",\\\"link\\\":null},\\\"annotations\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"strikethrough\\\":false,\\\"underline\\\":false,\\\"code\\\":false,\\\"color\\\":\\\"default\\\"},\\\"plain_text\\\":\\\"Post Mortems\\\",\\\"href\\\":null}]}},\\\"url\\\":\\\"https://www.notion.so/Post-Mortems-24fe111ed4848066b6aed234e29a002b\\\",\\\"public_url\\\":null}],\\\"next_cursor\\\":null,\\\"has_more\\\":false,\\\"type\\\":\\\"page_or_database\\\",\\\"page_or_database\\\":{},\\\"request_id\\\":\\\"aaea255b-2f60-4b4f-90c9-0b36d4c3ec37\\\"}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173495104046035,
+      "end_time": 1755173501729190175,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 9468713519281280042,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"API-post-search\", \"tool.args\": \"{\\\"query\\\":\\\"summer25\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"descending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 9264,
+        "gen_ai.usage.output_tokens": 246,
+        "gen_ai.usage.input_cost": 0.018528,
+        "gen_ai.usage.output_cost": 0.0019679999999999997
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool API-post-search",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173501730230455,
+      "end_time": 1755173502368824341,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 5495726680084162710,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "API-post-search",
+        "gen_ai.tool.description": "Search by title",
+        "gen_ai.tool.args": "\"{\\\"query\\\":\\\"summer25\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"descending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"object\\\":\\\"list\\\",\\\"results\\\":[],\\\"next_cursor\\\":null,\\\"has_more\\\":false,\\\"type\\\":\\\"page_or_database\\\",\\\"page_or_database\\\":{},\\\"request_id\\\":\\\"ed2aa23a-ce84-4584-9646-dcdab923c069\\\"}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173502374196637,
+      "end_time": 1755173508763806579,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 5311681885187968846,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"API-post-search\", \"tool.args\": \"{\\\"query\\\":\\\"code\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"descending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 9395,
+        "gen_ai.usage.output_tokens": 181,
+        "gen_ai.usage.input_cost": 0.018789999999999998,
+        "gen_ai.usage.output_cost": 0.0014479999999999999
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool API-post-search",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173508764925233,
+      "end_time": 1755173509246546596,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 2473622905369121001,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "API-post-search",
+        "gen_ai.tool.description": "Search by title",
+        "gen_ai.tool.args": "\"{\\\"query\\\":\\\"code\\\",\\\"page_size\\\":10,\\\"sort\\\":{\\\"direction\\\":\\\"descending\\\",\\\"timestamp\\\":\\\"last_edited_time\\\"},\\\"filter\\\":{\\\"property\\\":\\\"object\\\",\\\"value\\\":\\\"page\\\"}}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"object\\\":\\\"list\\\",\\\"results\\\":[],\\\"next_cursor\\\":null,\\\"has_more\\\":false,\\\"type\\\":\\\"page_or_database\\\",\\\"page_or_database\\\":{},\\\"request_id\\\":\\\"24378010-71c8-4fd1-a5f9-2f5c628c9e7c\\\"}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173509252062008,
+      "end_time": 1755173511926833096,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 16178086378929257316,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"slack_get_channel_history\", \"tool.args\": \"{\\\"channel_id\\\":\\\"C099F6L2M4Y\\\",\\\"limit\\\":20}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 9532,
+        "gen_ai.usage.output_tokens": 33,
+        "gen_ai.usage.input_cost": 0.019063999999999998,
+        "gen_ai.usage.output_cost": 0.00026399999999999997
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool slack_get_channel_history",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173511928286828,
+      "end_time": 1755173512304701008,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 17898325969771364916,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "slack_get_channel_history",
+        "gen_ai.tool.description": "Get recent messages from a channel",
+        "gen_ai.tool.args": "\"{\\\"channel_id\\\":\\\"C099F6L2M4Y\\\",\\\"limit\\\":20}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"ok\\\":true,\\\"messages\\\":[{\\\"subtype\\\":\\\"channel_join\\\",\\\"user\\\":\\\"U09ABUTA9FU\\\",\\\"text\\\":\\\"<@U09ABUTA9FU> has joined the channel\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1755170020.855789\\\"},{\\\"subtype\\\":\\\"channel_join\\\",\\\"user\\\":\\\"U08U719PXU6\\\",\\\"text\\\":\\\"<@U08U719PXU6> has joined the channel\\\",\\\"inviter\\\":\\\"U08UAP1AN21\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1754302997.194039\\\"},{\\\"user\\\":\\\"U08UAP1AN21\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1754298442.908189\\\",\\\"client_msg_id\\\":\\\"5ff08375-b8bf-4645-acd4-2ebfdc078281\\\",\\\"text\\\":\\\"Hearing from customers that the SUMMER25 code isn\u2019t working. Says \u2018Invalid Code\u2019 on checkout.\u201d\\\",\\\"team\\\":\\\"T08UAP19EBX\\\",\\\"thread_ts\\\":\\\"1754298442.908189\\\",\\\"reply_count\\\":4,\\\"reply_users_count\\\":1,\\\"latest_reply\\\":\\\"1754298526.877859\\\",\\\"reply_users\\\":[\\\"U08UAP1AN21\\\"],\\\"is_locked\\\":false,\\\"subscribed\\\":false,\\\"blocks\\\":[{\\\"type\\\":\\\"rich_text\\\",\\\"block_id\\\":\\\"pDQW2\\\",\\\"elements\\\":[{\\\"type\\\":\\\"rich_text_section\\\",\\\"elements\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Hearing from customers that the SUMMER25 code isn\u2019t working. Says \u2018Invalid Code\u2019 on checkout.\u201d\\\"}]}]}]},{\\\"subtype\\\":\\\"channel_join\\\",\\\"user\\\":\\\"U08UAP1AN21\\\",\\\"text\\\":\\\"<@U08UAP1AN21> has joined the channel\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1754298423.672769\\\"}],\\\"has_more\\\":false,\\\"pin_count\\\":0,\\\"channel_actions_ts\\\":null,\\\"channel_actions_count\\\":0}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173512309948849,
+      "end_time": 1755173514929252295,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 11256730240695142973,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"slack_get_thread_replies\", \"tool.args\": \"{\\\"channel_id\\\":\\\"C099F6L2M4Y\\\",\\\"thread_ts\\\":\\\"1754298442.908189\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 9990,
+        "gen_ai.usage.output_tokens": 41,
+        "gen_ai.usage.input_cost": 0.019979999999999998,
+        "gen_ai.usage.output_cost": 0.000328
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool slack_get_thread_replies",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173514930408343,
+      "end_time": 1755173515182509741,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 15970911411921410578,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "slack_get_thread_replies",
+        "gen_ai.tool.description": "Get all replies in a message thread",
+        "gen_ai.tool.args": "\"{\\\"channel_id\\\":\\\"C099F6L2M4Y\\\",\\\"thread_ts\\\":\\\"1754298442.908189\\\"}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"ok\\\":true,\\\"messages\\\":[{\\\"user\\\":\\\"U08UAP1AN21\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1754298442.908189\\\",\\\"client_msg_id\\\":\\\"5ff08375-b8bf-4645-acd4-2ebfdc078281\\\",\\\"text\\\":\\\"Hearing from customers that the SUMMER25 code isn\u2019t working. Says \u2018Invalid Code\u2019 on checkout.\u201d\\\",\\\"team\\\":\\\"T08UAP19EBX\\\",\\\"thread_ts\\\":\\\"1754298442.908189\\\",\\\"reply_count\\\":4,\\\"reply_users_count\\\":1,\\\"latest_reply\\\":\\\"1754298526.877859\\\",\\\"reply_users\\\":[\\\"U08UAP1AN21\\\"],\\\"is_locked\\\":false,\\\"subscribed\\\":false,\\\"blocks\\\":[{\\\"type\\\":\\\"rich_text\\\",\\\"block_id\\\":\\\"pDQW2\\\",\\\"elements\\\":[{\\\"type\\\":\\\"rich_text_section\\\",\\\"elements\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Hearing from customers that the SUMMER25 code isn\u2019t working. Says \u2018Invalid Code\u2019 on checkout.\u201d\\\"}]}]}]},{\\\"user\\\":\\\"U08UAP1AN21\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1754298458.308039\\\",\\\"client_msg_id\\\":\\\"a914b3ad-2053-45b9-9f54-ff6cee65d2fc\\\",\\\"text\\\":\\\"Confirmed. Seeing the error on staging too. Could be an issue with activation\\\",\\\"team\\\":\\\"T08UAP19EBX\\\",\\\"thread_ts\\\":\\\"1754298442.908189\\\",\\\"parent_user_id\\\":\\\"U08UAP1AN21\\\",\\\"blocks\\\":[{\\\"type\\\":\\\"rich_text\\\",\\\"block_id\\\":\\\"04L1b\\\",\\\"elements\\\":[{\\\"type\\\":\\\"rich_text_section\\\",\\\"elements\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Confirmed. Seeing the error on staging too. Could be an issue with activation\\\"}]}]}]},{\\\"user\\\":\\\"U08UAP1AN21\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1754298467.143819\\\",\\\"client_msg_id\\\":\\\"5a7b7ebd-f202-4402-a07c-244c0f42e923\\\",\\\"text\\\":\\\"CMS has the code set up correctly but status is \u2018inactive\u2019. Looks like it wasn\u2019t toggled live.\u201d\\\",\\\"team\\\":\\\"T08UAP19EBX\\\",\\\"thread_ts\\\":\\\"1754298442.908189\\\",\\\"parent_user_id\\\":\\\"U08UAP1AN21\\\",\\\"blocks\\\":[{\\\"type\\\":\\\"rich_text\\\",\\\"block_id\\\":\\\"dYvz0\\\",\\\"elements\\\":[{\\\"type\\\":\\\"rich_text_section\\\",\\\"elements\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"CMS has the code set up correctly but status is \u2018inactive\u2019. Looks like it wasn\u2019t toggled live.\u201d\\\"}]}]}]},{\\\"user\\\":\\\"U08UAP1AN21\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1754298499.961599\\\",\\\"client_msg_id\\\":\\\"adde6cfa-478a-4e61-9c26-7f6998b7d182\\\",\\\"text\\\":\\\"Who owned the activation checklist this time? I thought it was done last night\\\",\\\"team\\\":\\\"T08UAP19EBX\\\",\\\"thread_ts\\\":\\\"1754298442.908189\\\",\\\"parent_user_id\\\":\\\"U08UAP1AN21\\\",\\\"blocks\\\":[{\\\"type\\\":\\\"rich_text\\\",\\\"block_id\\\":\\\"NSXJU\\\",\\\"elements\\\":[{\\\"type\\\":\\\"rich_text_section\\\",\\\"elements\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Who owned the activation checklist this time? I thought it was done last night\\\"}]}]}]},{\\\"user\\\":\\\"U08UAP1AN21\\\",\\\"type\\\":\\\"message\\\",\\\"ts\\\":\\\"1754298526.877859\\\",\\\"client_msg_id\\\":\\\"07c49056-6c34-40af-a2ec-699414599807\\\",\\\"text\\\":\\\"Mike said \\\\\\\"\u201cI activated it now. Can confirm it's working for new sessions, but cache might affect a few users temporarily.\\\\\\\"\\\",\\\"team\\\":\\\"T08UAP19EBX\\\",\\\"thread_ts\\\":\\\"1754298442.908189\\\",\\\"parent_user_id\\\":\\\"U08UAP1AN21\\\",\\\"blocks\\\":[{\\\"type\\\":\\\"rich_text\\\",\\\"block_id\\\":\\\"YIead\\\",\\\"elements\\\":[{\\\"type\\\":\\\"rich_text_section\\\",\\\"elements\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Mike said \\\\\\\"\u201cI activated it now. Can confirm it's working for new sessions, but cache might affect a few users temporarily.\\\\\\\"\\\"}]}]}]}],\\\"has_more\\\":false}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173515188516496,
+      "end_time": 1755173523416489728,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 1439150536067578492,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"get_board_items_by_name\", \"tool.args\": \"{\\\"boardId\\\":123,\\\"term\\\":\\\"summer25\\\"}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 10970,
+        "gen_ai.usage.output_tokens": 352,
+        "gen_ai.usage.input_cost": 0.021939999999999998,
+        "gen_ai.usage.output_cost": 0.002816
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool get_board_items_by_name",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173523417724362,
+      "end_time": 1755173524359080518,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 11875695938366086003,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "get_board_items_by_name",
+        "gen_ai.tool.description": "Get items by board id and term",
+        "gen_ai.tool.args": "\"{\\\"boardId\\\":123,\\\"term\\\":\\\"summer25\\\"}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"Items undefined successfully fetched\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173524364562836,
+      "end_time": 1755173560019653899,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 14227006429075477844,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "[{\"tool.name\": \"API-post-page\", \"tool.args\": \"{\\\"parent\\\":{\\\"page_id\\\":\\\"24fe111e-d484-8066-b6ae-d234e29a002b\\\"},\\\"properties\\\":{\\\"title\\\":[{\\\"text\\\":{\\\"content\\\":\\\"Post Mortems \u2013 summer25 code\\\"},\\\"type\\\":\\\"text\\\"}],\\\"type\\\":\\\"title\\\"},\\\"children\\\":[{\\\"paragraph\\\":{\\\"rich_text\\\":[{\\\"text\\\":{\\\"content\\\":\\\"## Summary\\\\nA promotion outage on 2025-08-29 prevented the \u201cSUMMER25\u201d discount code from being accepted at checkout for ~30 minutes. The code existed in the CMS but its status remained \u201cinactive\u201d, so customers saw an \u201cInvalid Code\u201d error. Manual activation restored service; some users were still affected briefly due to cache.\\\\n\\\\n## Timeline\\\\nTime | Source | Event\\\\n--- | --- | ---\\\\n2025-08-29T12:43Z | Slack | Customers report \u201cSUMMER25\u201d returns \u201cInvalid Code\u201d (thread).\\\\n2025-08-29T12:44Z | Slack | Issue reproduced on staging; suspected activation problem.\\\\n2025-08-29T12:44:25Z | Slack | CMS shows code status = inactive.\\\\n2025-08-29T12:44:59Z | Slack | Ownership of activation checklist questioned.\\\\n2025-08-29T12:45:26Z | Slack | Code toggled to active; confirmed working for new sessions.\\\\n\\\\n## Root Cause Analysis\\\\nThe promotion code was created in the CMS but never flipped to the \u201cactive\u201d state before the campaign went live. The activation checklist step, normally performed by Marketing Ops, was missed after ownership changed to a new team member. No automated test validated promo-code state in production.\\\\n\\\\n## Recommendations / Next steps\\\\n1. Add an automated pre-launch check that verifies promo codes slated for release are in \u201cactive\u201d state.\\\\n2. Update the launch checklist to assign explicit owner and require second-person sign-off.\\\\n3. Create alerting that triggers when popular codes return >1% failure rate.\\\\n4. Document fallback process so customer support can apply manual discounts immediately.\\\\n\\\\nSlack thread: https://slack.com/archives/C099F6L2M4Y/p1754298442908189\\\"},\\\"type\\\":\\\"text\\\"}]},\\\"type\\\":\\\"paragraph\\\"}]}\"}]",
+        "gen_ai.output.type": "json",
+        "gen_ai.usage.input_tokens": 11030,
+        "gen_ai.usage.output_tokens": 1966,
+        "gen_ai.usage.input_cost": 0.02206,
+        "gen_ai.usage.output_cost": 0.015728
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "execute_tool API-post-page",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173560021232682,
+      "end_time": 1755173561665437693,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 17623406277293018171,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "API-post-page",
+        "gen_ai.tool.description": "Create a page",
+        "gen_ai.tool.args": "\"{\\\"parent\\\":{\\\"page_id\\\":\\\"24fe111e-d484-8066-b6ae-d234e29a002b\\\"},\\\"properties\\\":{\\\"title\\\":[{\\\"text\\\":{\\\"content\\\":\\\"Post Mortems \u2013 summer25 code\\\"},\\\"type\\\":\\\"text\\\"}],\\\"type\\\":\\\"title\\\"},\\\"children\\\":[{\\\"paragraph\\\":{\\\"rich_text\\\":[{\\\"text\\\":{\\\"content\\\":\\\"## Summary\\\\nA promotion outage on 2025-08-29 prevented the \u201cSUMMER25\u201d discount code from being accepted at checkout for ~30 minutes. The code existed in the CMS but its status remained \u201cinactive\u201d, so customers saw an \u201cInvalid Code\u201d error. Manual activation restored service; some users were still affected briefly due to cache.\\\\n\\\\n## Timeline\\\\nTime | Source | Event\\\\n--- | --- | ---\\\\n2025-08-29T12:43Z | Slack | Customers report \u201cSUMMER25\u201d returns \u201cInvalid Code\u201d (thread).\\\\n2025-08-29T12:44Z | Slack | Issue reproduced on staging; suspected activation problem.\\\\n2025-08-29T12:44:25Z | Slack | CMS shows code status = inactive.\\\\n2025-08-29T12:44:59Z | Slack | Ownership of activation checklist questioned.\\\\n2025-08-29T12:45:26Z | Slack | Code toggled to active; confirmed working for new sessions.\\\\n\\\\n## Root Cause Analysis\\\\nThe promotion code was created in the CMS but never flipped to the \u201cactive\u201d state before the campaign went live. The activation checklist step, normally performed by Marketing Ops, was missed after ownership changed to a new team member. No automated test validated promo-code state in production.\\\\n\\\\n## Recommendations / Next steps\\\\n1. Add an automated pre-launch check that verifies promo codes slated for release are in \u201cactive\u201d state.\\\\n2. Update the launch checklist to assign explicit owner and require second-person sign-off.\\\\n3. Create alerting that triggers when popular codes return >1% failure rate.\\\\n4. Document fallback process so customer support can apply manual discounts immediately.\\\\n\\\\nSlack thread: https://slack.com/archives/C099F6L2M4Y/p1754298442908189\\\"},\\\"type\\\":\\\"text\\\"}]},\\\"type\\\":\\\"paragraph\\\"}]}\"",
+        "gen_ai.output": "{\"type\":\"text\",\"text\":\"{\\\"object\\\":\\\"page\\\",\\\"id\\\":\\\"24fe111e-d484-813b-8052-c16a8bb00c53\\\",\\\"created_time\\\":\\\"2025-08-14T12:12:00.000Z\\\",\\\"last_edited_time\\\":\\\"2025-08-14T12:12:00.000Z\\\",\\\"created_by\\\":{\\\"object\\\":\\\"user\\\",\\\"id\\\":\\\"05186e07-3abc-472e-bef8-f0dd361d2d7e\\\"},\\\"last_edited_by\\\":{\\\"object\\\":\\\"user\\\",\\\"id\\\":\\\"05186e07-3abc-472e-bef8-f0dd361d2d7e\\\"},\\\"cover\\\":null,\\\"icon\\\":null,\\\"parent\\\":{\\\"type\\\":\\\"page_id\\\",\\\"page_id\\\":\\\"24fe111e-d484-8066-b6ae-d234e29a002b\\\"},\\\"archived\\\":false,\\\"in_trash\\\":false,\\\"properties\\\":{\\\"title\\\":{\\\"id\\\":\\\"title\\\",\\\"type\\\":\\\"title\\\",\\\"title\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":{\\\"content\\\":\\\"Post Mortems \u2013 summer25 code\\\",\\\"link\\\":null},\\\"annotations\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"strikethrough\\\":false,\\\"underline\\\":false,\\\"code\\\":false,\\\"color\\\":\\\"default\\\"},\\\"plain_text\\\":\\\"Post Mortems \u2013 summer25 code\\\",\\\"href\\\":null}]}},\\\"url\\\":\\\"https://www.notion.so/Post-Mortems-summer25-code-24fe111ed484813b8052c16a8bb00c53\\\",\\\"public_url\\\":null,\\\"request_id\\\":\\\"a3dda7ab-684c-481a-b774-7854a0517780\\\"}\",\"annotations\":null,\"meta\":null}",
+        "gen_ai.output.type": "json"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "call_llm o3",
+      "kind": "internal",
+      "parent": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173561670458300,
+      "end_time": 1755173565918861986,
+      "status": {
+        "status_code": "ok",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6304087519041250205,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "call_llm",
+        "gen_ai.request.model": "o3",
+        "gen_ai.output": "{\"notion_page_url\":\"https://www.notion.so/Post-Mortems-summer25-code-24fe111ed484813b8052c16a8bb00c53\"}",
+        "gen_ai.output.type": "text",
+        "gen_ai.usage.input_tokens": 11881,
+        "gen_ai.usage.output_tokens": 55,
+        "gen_ai.usage.input_cost": 0.023762,
+        "gen_ai.usage.output_cost": 0.00043999999999999996
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "invoke_agent [any_agent]",
+      "kind": "internal",
+      "parent": {
+        "trace_id": null,
+        "span_id": null,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "start_time": 1755173456740887929,
+      "end_time": 1755173565919913679,
+      "status": {
+        "status_code": "unset",
+        "description": null
+      },
+      "context": {
+        "trace_id": 12810096009394603564810642364250733223,
+        "span_id": 6386949880947550840,
+        "is_remote": false,
+        "trace_flags": {
+          "value": 0
+        },
+        "trace_state": {
+          "entries": {}
+        }
+      },
+      "attributes": {
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.agent.name": "any_agent",
+        "gen_ai.agent.description": "No description.",
+        "gen_ai.request.model": "o3"
+      },
+      "links": [],
+      "events": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.36.0",
+          "service.name": "unknown_service"
+        },
+        "schema_url": ""
+      }
+    }
+  ],
+  "final_output": {},
+  "execution_costs": {
+    "input_cost": 0.20367399999999997,
+    "output_cost": 0.032712,
+    "total_cost": 0.23638599999999996
+  }
+}
