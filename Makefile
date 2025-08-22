@@ -94,9 +94,8 @@ check-prompt-id-present:
 	fi
 
 test-unit: ## Run unit tests
-	@uv sync --quiet --group tests
-	@pytest -v tests/unit/
-	@pytest -v tests/tools/
+	@uv run --group tests pytest -v tests/unit/
+	@uv run --group tests pytest -v tests/tools/
 	@echo "Unit tests completed successfully!"
 
 wait-for-server:
@@ -118,8 +117,7 @@ wait-for-server:
 
 test-single-turn-generation: check-prompt-id-present ## Run single turn generation tests
 	@echo "Running single turn generation tests for prompt-id: $(PROMPT_ID) $(UPDATE_ARTIFACTS) ..."
-	@uv sync --quiet --group tests
-	@pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=$(PROMPT_ID) $(UPDATE_ARTIFACTS)
+	@uv run --group tests pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=$(PROMPT_ID) $(UPDATE_ARTIFACTS)
 
 test-single-turn-generation-local: UPDATE_ARTIFACTS=--update-artifacts
 test-single-turn-generation-local: check-prompt-id-present ## Run test-single-turn-generation with already running A2A server
@@ -138,14 +136,12 @@ test-single-turn-generation-e2e: check-prompt-id-present ## Run all tests in a c
 
 test-generated-artifacts: check-prompt-id-present ## Run artifact validation tests
 	@echo "Running artifact validation tests for prompt-id: $(PROMPT_ID)..."
-	@uv sync --quiet --group tests
-	@pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
+	@uv run --group tests pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
 	@echo "Artifact validation tests completed successfully!"
 
 test-generated-artifacts-integration: check-prompt-id-present ## Run artifact integration tests
 	@echo "Running artifact integration tests for prompt-id: $(PROMPT_ID)..."
-	@uv sync --quiet --group tests
-	@pytest tests/generated_artifacts/ -m artifact_integration --prompt-id=$(PROMPT_ID) -v
+	@uv run --group tests pytest tests/generated_artifacts/ -m artifact_integration --prompt-id=$(PROMPT_ID) -v
 	@echo "Artifact integration tests completed successfully!"
 
 # ====================================================================================
