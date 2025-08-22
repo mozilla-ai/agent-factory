@@ -52,7 +52,8 @@ async def generate_target_agent(
     with tracer.start_as_current_span("generate_target_agent") as span:
         trace_id = trace.format_trace_id(span.get_span_context().trace_id)
         spans_dump_file_path = TRACES_DIR / f"0x{trace_id}.jsonl"
-        # The same trace_id is used as the folder name when saving agent artifacts (on local/MinIO/S3), if no output_dir is defined
+        # The same trace_id is used as the folder name when saving agent artifacts (on local/MinIO/S3),
+        # if no output_dir is defined
         output_dir = output_dir if output_dir else trace_id
         storage_backend = get_storage_backend()
         response_json = None
