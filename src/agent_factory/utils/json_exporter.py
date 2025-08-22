@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from any_agent.tracing.agent_trace import AgentSpan
 from any_agent.tracing.attributes import GenAI
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.export import SpanExporter
@@ -27,7 +28,8 @@ class JsonFileSpanExporter(SpanExporter):
             if span.attributes.get(GenAI.OPERATION_NAME) in KEEP_SPANS_WITH_ANY_AGENT_OPERATION_NAME:
                 with output_file.open("a", encoding="utf-8") as f:
                     try:
-                        f.write(span.to_json() + "\n")
+                        agent_span = AgentSpan.from_otel(span)
+                        f.write(agent_span.model_dump_json() + "\n")
                     except (json.JSONDecodeError, TypeError, AttributeError):
                         f.write(json.dumps({"error": "Could not serialize span", "span_str": str(span)}) + "\n")
 

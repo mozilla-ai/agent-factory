@@ -29,7 +29,14 @@ def _assert_generated_files(workflow_dir: Path, requires_mcpd: bool):
       mcpd to work (this information is stored in `use_cases.yaml`)
     """
     existing_files = [f.name for f in workflow_dir.iterdir() if not f.is_dir()]
-    expected_files = [".gitignore", "agent.py", "README.md", "requirements.txt", "agent_parameters.json"]
+    expected_files = [
+        ".gitignore",
+        "agent.py",
+        "README.md",
+        "requirements.txt",
+        "agent_parameters.json",
+        "agent_factory_trace.json",
+    ]
     if requires_mcpd:
         expected_files.extend([".env", ".mcpd.toml", "secrets.prod.toml"])
 

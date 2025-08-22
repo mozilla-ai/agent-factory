@@ -2,7 +2,7 @@
   name = "slack"
   package = "npx::@modelcontextprotocol/server-slack@latest"
   tools = ["slack_list_channels", "slack_post_message"]
-  required_env = ["SLACK_TEAM_ID", "SLACK_BOT_TOKEN"]
+  required_env = ["SLACK_BOT_TOKEN", "SLACK_TEAM_ID"]
 
 [[servers]]
   name = "sqlite"
