@@ -79,11 +79,13 @@ async def test_generate_target_agent_http_error():
     """Tests that HTTP errors are handled correctly."""
     with (
         patch("agent_factory.agent_generator.create_a2a_http_client") as mock_create_a2a_http_client,
-        patch("agent_factory.agent_generator.create_agent_trace_from_file") as mock_create_agent_trace_from_file,
+        patch(
+            "agent_factory.agent_generator.create_agent_trace_from_dumped_spans"
+        ) as mock_create_agent_trace_from_dumped_spans,
         patch("agent_factory.agent_generator.get_storage_backend") as mock_get_storage_backend,
     ):
         mock_create_a2a_http_client.side_effect = Exception("Connection error")
-        mock_create_agent_trace_from_file.return_value = MagicMock()
+        mock_create_agent_trace_from_dumped_spans.return_value = MagicMock()
         mock_storage_backend = MagicMock()
         mock_storage_backend.upload_trace_file = MagicMock()
         mock_get_storage_backend.return_value = mock_storage_backend

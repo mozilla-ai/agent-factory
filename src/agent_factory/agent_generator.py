@@ -13,7 +13,7 @@ from agent_factory.config import TRACES_DIR
 from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
-    create_agent_trace_from_file,
+    create_agent_trace_from_dumped_spans,
     create_message_request,
     get_a2a_agent_card,
     get_storage_backend,
@@ -111,7 +111,7 @@ async def generate_target_agent(
             # Upload trace regardless of success or failure for debugging purposes
             trace_file_path = TRACES_DIR / trace_file
             logger.info(f"Creating agent trace from {trace_file_path}")
-            agent_trace = create_agent_trace_from_file(trace_file_path, final_output=response_json)
+            agent_trace = create_agent_trace_from_dumped_spans(trace_file_path, final_output=response_json)
             logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend}")
             storage_backend.upload_trace_file(agent_trace, Path(output_dir))
 

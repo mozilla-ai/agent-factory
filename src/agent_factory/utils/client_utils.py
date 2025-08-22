@@ -138,7 +138,7 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
         return processed_response
 
 
-def create_agent_trace_from_file(trace_file_path: Path, final_output: str | None = None) -> AgentTrace:
+def create_agent_trace_from_dumped_spans(trace_file_path: Path, final_output: str | None = None) -> AgentTrace:
     """Create an AgentTrace object from a trace file and agent final output."""
     if not trace_file_path.exists():
         raise FileNotFoundError(f"Trace file {trace_file_path} does not exist")
