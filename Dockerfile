@@ -1,3 +1,10 @@
+# Define build args at the top for the mcpd stage
+ARG MCPD_VERSION=v0.0.6
+
+# Stage to pull mcpd binary
+FROM mzdotai/mcpd:${MCPD_VERSION} AS mcpd
+
+# Main application stage
 FROM python:3.13-slim
 
 # Set the working directory in the container
@@ -8,9 +15,15 @@ ENV FRAMEWORK=openai
 # Set to 1 to enable chat mode, 0 to disable
 ENV CHAT=1
 ENV MODEL=o3
-ENV HOST=0.0.0.0
-ENV PORT=8080
+ENV MAX_TURNS=40
+ENV A2A_SERVER_HOST=0.0.0.0
+ENV A2A_SERVER_PORT=8080
 ENV LOG_LEVEL=info
+ENV TRACES_DIR=/traces
+
+# Create and set permissions for the traces directory
+RUN mkdir -p ${TRACES_DIR} && \
+    chmod 777 ${TRACES_DIR}
 
 # Define an argument for the version
 ARG APP_VERSION
@@ -18,18 +31,21 @@ ARG APP_VERSION
 # Set the environment variable for setuptools_scm
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 
-# Copy mcpd to the container.
-COPY bin/mcpd /usr/local/bin/mcpd
+# Copy mcpd from the mcpd stage
+COPY --from=mcpd /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
 
 # Install uv
-RUN pip install uv
+COPY --from=ghcr.io/astral-sh/uv:0.8.4 /uv /uvx /usr/local/bin/
 
-# Copy the rest of the application code
-COPY . /app
+# Copy application code and required project assets.
+COPY pyproject.toml /app
+COPY uv.lock /app
+COPY src /app/src
 
 # Install dependencies using uv
-RUN uv sync --no-cache
+RUN uv sync --no-cache --locked --no-editable --no-dev
+RUN rm -rf /app/build
 
 # Set the working directory
 WORKDIR /app/src/agent_factory

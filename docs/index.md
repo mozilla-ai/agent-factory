@@ -2,12 +2,11 @@
 
 > **A factory for automatically creating agentic workflows.**
 
-Agent Factory is a powerful tool for generating AI agents and workflows using the Model Context Protocol (MCP). It transforms natural language descriptions into executable Python code for agentic workflows, powered by the [any-agent](https://mozilla-ai.github.io/any-agent/) library.
+Agent Factory is an **Agent2Agent (A2A) protocol-compatible server** designed to simplify agent creation and evaluation.
+Describe your workflow in natural language, and the agent will generate the necessary code to implement that workflow
+using available tools (Python functions or via MCP servers).
 
-## Installation
+Under the hood, it leverages the [`any-agent`](https://github.com/mozilla-ai/any-agent) library, allowing you to easily
+swap between Agent frameworks with minimal code changes.
 
-Refer to the [Installation](getting-started/installation.md) for instructions on setup and usage.
-
-## MCP Servers
-
-Available MCP servers and tools are documented in [MCP Servers](user-guide/mcp-servers.md).
+**_Follow the Table of Contents on the left side to navigate the documentation._**

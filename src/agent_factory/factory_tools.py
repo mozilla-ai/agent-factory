@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-from agent_factory.utils.io_utils import BINARY_NAME_MCPD, run_binary
+from agent_factory.utils.mcpd_utils import BINARY_NAME_MCPD, run_binary
 
 KEYS_TO_DROP = ("display_name", "repository", "homepage", "author", "categories", "tags", "examples")
 
@@ -11,7 +11,7 @@ def _cleanup_mcp_server_info(server_info):
         server_info.pop(k, None)
 
     for tool in server_info.get("tools", []):
-        tool.pop("inputSchema")
+        tool.pop("inputSchema", None)
 
     return server_info
 
@@ -37,13 +37,13 @@ def search_mcp_servers(
     If no servers match, an empty list is returned.
 
     Example:
-    ```python
-    search_mcp_servers(keyphrase="google calendar")
-    search_mcp_servers(keyphrase="github", is_official=True)
-    search_mcp_servers(keyphrase="github", license="MIT")
-    search_mcp_servers(keyphrase="github", categories=["Dev Tools"])
-    search_mcp_servers(keyphrase="mcp", tags=["automation", "llm"])
-    ```
+        ```python
+        results = search_mcp_servers(keyphrase="google calendar")
+        results = search_mcp_servers(keyphrase="github", is_official=True)
+        results = search_mcp_servers(keyphrase="github", license="MIT")
+        results = search_mcp_servers(keyphrase="github", categories=["Dev Tools"])
+        results = search_mcp_servers(keyphrase="mcp", tags=["automation", "llm"])
+        ```
 
     Args:
         keyphrase: A string to search for in the MCP server registry.
@@ -115,8 +115,7 @@ def read_file(file_name: str) -> str:
     """
     file_path = Path(file_name)
 
-    # TODO: this is just a hacky way to restrict file access to
-    # "mimic" the MCP filesystem server.
+    # TODO: this is just a hacky way to restrict file access to "mimic" the MCP filesystem server.
     if file_path.parent.name != "tools":
         raise ValueError(f"`file_name` parent dir must be `tools`. Got {file_path.parent}")
 

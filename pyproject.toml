@@ -5,14 +5,17 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "any-agent[all,a2a]==0.25.0",
-    "fire~=0.7.0",
-    "dotenv>=0.9.9",
-    "mcpm>=1.0.3",  # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
-    "loguru>=0.7.3",
-    "pre-commit>=4.2.0",
+    "any-agent[all,a2a]==1.2.0",
     "autoflake==2.3.1",
     "boto3>=1.40.0",
+    "dotenv>=0.9.9",
+    "fire~=0.7.0",
+    "litellm<1.75.0",
+    "loguru>=0.7.3",
+    "markdownify==1.2.0",
+    "opentelemetry-instrumentation-httpx",
+    "opentelemetry-instrumentation-starlette",
+    "tavily-python==0.7.10",
 ]
 
 [project.urls]
@@ -63,4 +66,5 @@ tests = [
   "pytest-timeout>=2.4.0",
   "syrupy>=4.9.1",
   "pytest-asyncio>=1.0.0",
+  "mcpd>=0.0.1",
 ]

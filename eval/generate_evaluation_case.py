@@ -5,9 +5,11 @@ import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
-from any_agent.tools import search_tavily, visit_webpage
 from eval.instructions import get_instructions
 from pydantic import BaseModel, Field
+
+from agent_factory.tools.search_tavily import search_tavily
+from agent_factory.tools.visit_webpage import visit_webpage
 
 dotenv.load_dotenv()
 
@@ -26,43 +28,40 @@ class JSONEvaluationCase(BaseModel):
     )
 
 
-def main(generated_workflow_dir: str = "generated_workflows/latest"):
+def main(
+    generated_workflow_dir: str = "generated_workflows/latest",
+    framework: AgentFramework = AgentFramework.OPENAI,
+    model: str = "gpt-4.1",
+):
     """Generate JSON structured evaluation case for the generated agentic workflow.
     Save the JSON file as `evaluation_case.json` in the same directory as the generated workflow.
 
     Args:
         generated_workflow_dir: The directory of the generated workflow.
-
+        framework (str): The agent framework to use
+        model (str): The model ID to use
     """
     repo_root = Path.cwd()
     workflows_dir = repo_root / generated_workflow_dir
 
-    # Create a separate directory for file operations
-    file_ops_dir = "/app"
-    mount_workflows_dir = f"/app/{generated_workflow_dir}"
+    # The filesystem MCP server will work with the local directory directly
+    file_ops_dir = str(workflows_dir)
 
-    framework = AgentFramework.OPENAI
     agent = AnyAgent.create(
-        framework,
-        AgentConfig(
-            model_id="gpt-4.1",
+        agent_framework=framework,
+        agent_config=AgentConfig(
+            model_id=model,
             instructions=get_instructions(generated_workflow_dir),
             tools=[
                 visit_webpage,
                 search_tavily,
                 MCPStdio(
-                    command="docker",
+                    command="npx",
                     args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "--volume",
-                        "/app",
-                        # Mount workflows directory
-                        "--mount",
-                        f"type=bind,src={workflows_dir},dst={mount_workflows_dir}",
-                        "mcp/filesystem",
+                        "-y",
+                        "@modelcontextprotocol/server-filesystem",
                         file_ops_dir,
+                        ".",
                     ],
                     tools=[
                         "read_file",

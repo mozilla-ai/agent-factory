@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from generated_artifacts.tool_mappings import find_matching_mock, find_matching_validation
+from generated_artifacts.tool_mappings import find_matching_mock
 
 from agent_factory.utils.logging import logger
 
@@ -22,29 +22,9 @@ def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
     sys.path.insert(0, str(agent_dir))
 
     # Import the original method before patching
-    from any_agent.config import MCPStdio
     from any_agent.frameworks.any_agent import AnyAgent
 
     original_load_tools = AnyAgent._load_tools
-
-    def tool_type_checker(tool: any, type_name: str) -> bool:
-        """Check if a tool matches a given type (specified as a string).
-
-        Parameters:
-        - tool: one of the tools defined in the agent configuration
-        - type_name: MCPStdio or function
-
-        Returns:
-        - bool: whether the tool matches the type and satisfies
-                some type-related checks
-        """
-        if type_name == "MCPStdio":
-            return isinstance(tool, MCPStdio)
-        elif type_name == "function":
-            # as we match the mock to (a substring of) the function name,
-            # we expect the function to have one
-            return callable(tool) and hasattr(tool, "__name__")
-        return False
 
     async def mocking_load_tools(self, tools):
         """A version of AnyAgent's _load_tools that mocks tool calls.
@@ -63,19 +43,12 @@ def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
         # Process tools and replace with mocks where applicable
         modified_tools = []
         for tool in tools:
-            # first validate the tool
-            validation_function = find_matching_validation(tool, tool_type_checker, prompt_id)
+            # Try to find matching mocks:
+            mock_tools = find_matching_mock(tool, prompt_id)
 
-            if validation_function:
-                logger.debug(f"Validating tool {tool} with {validation_function.__name__}")
-                validation_function(tool, prompt_id)
-
-            # Try to find a matching mock
-            mock_function = find_matching_mock(tool, tool_type_checker, prompt_id)
-
-            if mock_function:
-                logger.debug(f"Replacing tool {tool} with mock {mock_function.__name__}")
-                modified_tools.append(mock_function)
+            if len(mock_tools):
+                logger.debug(f"Replacing tool {tool} with: {[func.__name__ for func in mock_tools]}")
+                modified_tools.extend(mock_tools)
             else:
                 # No mock found, keep original tool
                 modified_tools.append(tool)
@@ -123,6 +96,27 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
     try:
         if "url-to-podcast" in prompt_id:
             result = agent.main("https://en.wikipedia.org/wiki/Alan_Turing_Life")
+
+            # the agent completes with a file generated in the /tmp folder
+            # NOTE that the field names here might change if you rebuild the agent!
+            assert "/tmp" in result.podcast_path
+
+        elif "scoring-blueprints-submission" in prompt_id:
+            result = agent.main("https://github.com/mozilla-ai/surf-spot-finder")
+
+            # the agent completes with the following conditions satisfied
+            # NOTE that the field names here might change if you rebuild the agent!
+            assert result.score  # the agent assigned a score
+            assert result.slack_channel_id == "BLU3PR1NTSUB"  # the agent found the channel id
+            assert result.slack_ts  # the agent posted in the channel
+            assert result.db_insert_success  # the agent inserted results in the DB
+
+        elif "summarize-url-content" in prompt_id:
+            result = agent.main("https://en.wikipedia.org/wiki/Alan_Turing_Life")
+
+            # NOTE that the field names here might change if you rebuild the agent!
+            assert "Turing" in result.summary  # the agent has built a summary of the page
+
         else:
             # we are not testing other use-cases atm, but we can expect they will be
             # called with different parameters so we'll have an if...elif...else here
@@ -135,3 +129,4 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
         pytest.fail(f"Exception: {type(e).__name__}: {e}")
 
     assert result is not None
+    logger.info(result)
