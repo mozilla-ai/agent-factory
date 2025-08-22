@@ -99,7 +99,7 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
 
             # the agent completes with a file generated in the /tmp folder
             # NOTE that the field names here might change if you rebuild the agent!
-            assert "/tmp" in result.podcast_path
+            assert "/tmp" in result.final_podcast_path
 
         elif "scoring-blueprints-submission" in prompt_id:
             result = agent.main("https://github.com/mozilla-ai/surf-spot-finder")

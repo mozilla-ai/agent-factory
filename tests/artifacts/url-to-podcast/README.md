@@ -1,6 +1,6 @@
-# URL-to-Podcast Generator
+# Web-to-Podcast Agent
 
-Creates a short (≤16 turns) podcast MP3 from any webpage: it extracts the article, writes a host/guest script, converts each turn to speech with ElevenLabs voices, and merges everything into a single MP3 stored in `/tmp/podcast.mp3`.
+Turns any web page into a short, two-speaker podcast, voices it with ElevenLabs, and produces a final MP3 saved in `/tmp`.
 
 # Prerequisites
 
@@ -10,13 +10,13 @@ Creates a short (≤16 turns) podcast MP3 from any webpage: it extracts the arti
 ## Install uv
 
 - **macOS / Linux**
-    ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 - **Windows PowerShell**
-    ```powershell
-    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-    ```
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
 
 ## Install mcpd
 
@@ -26,14 +26,13 @@ Follow the mcpd installation instructions in the official documentation: https:/
 
 Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed, for example, environment variables for your LLM provider.
 
-Add `ELEVENLABS_API_KEY` to the `.env` file so the ElevenLabs MCP server can authenticate.
-
 # Run the Agent
 
-1. Run the mcpd daemon:
+1. Export your .env variables so they can be sourced by mcpd and run the mcpd daemon:
 ```bash
-mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
+export $(cat .env | xargs) &&  mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
 ```
+
 2. Run the agent:
 ```bash
 uv run --with-requirements requirements.txt --python 3.13 python agent.py --url "https://example.com/article"
