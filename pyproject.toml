@@ -13,10 +13,8 @@ dependencies = [
     "litellm<1.75.0",
     "loguru>=0.7.3",
     "markdownify==1.2.0",
-    "mcpm>=1.0.3", # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
     "opentelemetry-instrumentation-httpx",
     "opentelemetry-instrumentation-starlette",
-    "pre-commit>=4.2.0",
     "tavily-python==0.7.10",
 ]
 
