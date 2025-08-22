@@ -177,7 +177,7 @@ async def test_single_turn_generation(
     _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
 
     # Cost tracking for completed agent artifact generations (based on agent_factory_trace.json)
-    cost_tracker.append(agent_trace.execution_costs.total_cost)
+    cost_tracker.append(agent_trace.cost.total_cost)
 
     # Assertions based on requirements.txt
     assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")
