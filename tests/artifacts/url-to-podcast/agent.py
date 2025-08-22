@@ -25,47 +25,68 @@ MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
 MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
 # ========== Structured output definition ==========
+from pydantic import BaseModel, Field
+from typing import List
+
+class Turn(BaseModel):
+    speaker: str = Field(..., description="Name of the speaker for this dialogue turn.")
+    text: str = Field(..., description="Spoken text for this turn.")
+    audio_path: str = Field(..., description="Filesystem path to the generated MP3 for this turn.")
+
 class StructuredOutput(BaseModel):
-    podcast_path: str = Field(..., description="Absolute path to the final combined podcast MP3 in /tmp directory.")
-    number_of_turns: int = Field(..., description="Total number of dialogue turns in the podcast, max 16.")
-    individual_files: list[str] = Field(..., description="Ordered list of absolute paths to the per-turn MP3 files used to build the podcast.")
+    url: str = Field(..., description="Original URL used as source material.")
+    script: List[Turn] = Field(..., description="Ordered list of dialogue turns with audio paths.")
+    final_podcast_path: str = Field(..., description="Filesystem path to the combined podcast MP3.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are PodGen, an autonomous podcast-producer.
-Follow this exact 5-step workflow every time you run:
-1. Fetch & Read
-   • Call extract_text_from_url(url) to fetch the article the user provided.
-   • If an error string is returned, abort and respond with the error.
-2. Script Writing
-   • Call generate_podcast_script_with_llm with parameters:
-       – document_text = extracted text (trim to ≤7 000 chars if longer)
-       – num_hosts = 2
-       – host_names = ["Host", "Guest"]
-       – turns = 14
-   • Expect a JSON list where each item is {"Host": "…"} or {"Guest": "…"}.
-   • Ensure the total number of turns is ≤ 16. If the LLM returns more, keep only the first 16.
-3. Voice Casting & TTS
-   • Map speakers to ElevenLabs voices:
-       – "Host"  → voice_name="Rachel"
-       – "Guest" → voice_name="Drew"
-   • For every turn, call text_to_speech (from ElevenLabs MCP) with:
-       text=<line>, voice_name as above, output_dir="/tmp".
-   • Record the absolute file path returned for each MP3 in a list keeping conversation order.
-4. Assembly
-   • After all individual files are ready, call combine_mp3_files_for_podcast with:
-       mp3_files=<ordered list>, output_filename="podcast.mp3", output_dir="/tmp".
-   • If the tool returns an error string, abort and surface the error.
-5. Final JSON Output
-   Produce StructuredOutput with:
-       podcast_path – absolute path of the combined /tmp/podcast.mp3 file
-       number_of_turns – int (actual turns used ≤16)
-       individual_files – list[str] paths of the per-turn mp3 clips.
-General rules:
-• Always save every file inside /tmp.
-• Never exceed the user-specified cost constraints.
-• Strictly follow the tool parameter names.
-• Respond only with the structured JSON defined by StructuredOutput.
+You are PodCreatorGPT, an expert multi-step workflow agent that transforms a web page into a short, engaging two-speaker podcast and outputs a ready-to-play MP3 file saved in /tmp.
+Follow this exact procedure:
+
+STEP-1  (Content Extraction)
+• Use extract_text_from_url(url) to fetch and clean all meaningful text from the user-supplied URL.
+• If extraction fails or returns < 500 characters, stop and reply with an error message encoded in StructuredOutput.final_podcast_path.
+
+STEP-2  (Script Writing)
+• Call generate_podcast_script_with_llm(document_text=extracted_text,
+    num_hosts=2,
+    host_names=["Alex","Jordan"],
+    turns=16,
+    model="o3")
+• The tool returns a JSON array where each element is {"host_name":"host_line"}.
+• Parse it to obtain an ordered list of turns.
+
+STEP-3  (Voice Assignment)
+• Map hosts to ElevenLabs voices:
+    Alex → "Rachel"
+    Jordan → "Drew"
+• Keep a list mp3_paths = [] for the generated clips.
+
+STEP-4  (Text-to-Speech per Turn)
+For each turn in order:
+    • Call text_to_speech(text=host_line,
+                        voice_name=assigned_voice,
+                        output_dir="/tmp",
+                        output_filename=f"turn_{idx:02d}_{host}.mp3")
+    • Append the returned absolute path to mp3_paths.
+
+STEP-5  (Combine Audio)
+• After all turns are voiced, call combine_mp3_files_for_podcast(mp3_files=mp3_paths,
+                                                 output_filename="podcast.mp3",
+                                                 output_dir="/tmp") and store the returned path as final_path.
+
+STEP-6  (Return Result)
+• Deliver a StructuredOutput JSON object with:
+    url – original URL
+    script – list of {speaker, text, audio_path}
+    final_podcast_path – final_path
+
+Critical rules:
+• Always save every intermediate MP3 and the final file in /tmp.
+• Do not exceed 16 turns.
+• Use the provided voices exactly.
+• Abort early with a helpful message if any step fails.
+• Respond ONLY with valid StructuredOutput JSON.
 '''
 
 # ========== Tools definition ===========
@@ -98,8 +119,8 @@ agent = AnyAgent.create(
 
 
 def main(url: str):
-    """Generate a short, <16-turn podcast from the contents of a webpage and output it as an MP3 in /tmp."""
-    input_prompt = f"Please create a concise (<16 turns) podcast dialogue from the article at this URL: {url}"
+    """Generate a two-speaker, <16-turn podcast from a webpage URL, voice it with ElevenLabs, and output the final MP3 path."""
+    input_prompt = f"Create a short podcast (<16 turns) from the webpage at {url}."
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:

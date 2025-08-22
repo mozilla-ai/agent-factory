@@ -1,6 +1,6 @@
-# Webpage Summarizer Agent
+# Webpage Summariser Agent
 
-A simple agent that fetches and summarizes the main text of any webpage.
+A simple agent that takes a webpage URL, extracts its text, and returns a concise summary.
 
 # Prerequisites
 
@@ -20,7 +20,8 @@ A simple agent that fetches and summarizes the main text of any webpage.
 
 # Configuration
 
-Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed, for example, environment variables for your LLM provider.
+Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed,
+for example, environment variables for your LLM provider.
 
 # Run the Agent
 

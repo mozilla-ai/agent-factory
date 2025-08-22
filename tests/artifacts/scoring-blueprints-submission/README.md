@@ -1,6 +1,6 @@
 # Blueprint Evaluation Agent
 
-Evaluates a GitHub repository against the Mozilla AI Blueprint guidelines, posts the score to Slack, and logs it to SQLite.
+Evaluates a GitHub repository against Mozilla Blueprint guidelines, posts the results to a Slack channel, and logs them into an SQLite database.
 
 # Prerequisites
 
@@ -28,12 +28,12 @@ Set the environment variables in the `.env` file that has been created for you. 
 
 # Run the Agent
 
-1. Run the mcpd daemon:
+1. Export your .env variables so they can be sourced by mcpd and run the mcpd daemon:
 ```bash
-mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
+export $(cat .env | xargs) &&  mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
 ```
 
 2. Run the agent:
 ```bash
-uv run --with-requirements requirements.txt --python 3.13 python agent.py --repo_url "https://github.com/user/repo"
+uv run --with-requirements requirements.txt --python 3.13 python agent.py --repo_url "https://github.com/owner/repo"
 ```
