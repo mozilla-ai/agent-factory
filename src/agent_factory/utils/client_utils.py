@@ -138,21 +138,21 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
         return processed_response
 
 
-def create_agent_trace_from_dumped_spans(trace_file_path: Path, final_output: str | None = None) -> AgentTrace:
-    """Create an AgentTrace object from a trace file and agent final output."""
-    if not trace_file_path.exists():
-        raise FileNotFoundError(f"Trace file {trace_file_path} does not exist")
+def create_agent_trace_from_dumped_spans(spans_dump_file_path: Path, final_output: str | None = None) -> AgentTrace:
+    """Create an AgentTrace object from a spans dump file and agent final output."""
+    if not spans_dump_file_path.exists():
+        raise FileNotFoundError(f"Spans dump file {spans_dump_file_path} does not exist")
 
     try:
         spans = [
             AgentSpan.model_validate_json(line)
-            for line in trace_file_path.read_text(encoding="utf-8").splitlines()
+            for line in spans_dump_file_path.read_text(encoding="utf-8").splitlines()
             if line.strip()
         ]
         agent_trace = AgentTrace(spans=spans, final_output=final_output)
         return agent_trace
     except Exception as e:
-        logger.error(f"Failed to create agent trace from file {trace_file_path}: {str(e)}")
+        logger.error(f"Failed to create agent trace from file {spans_dump_file_path}: {str(e)}")
         raise
 
 

@@ -51,7 +51,7 @@ async def generate_target_agent(
     """
     with tracer.start_as_current_span("generate_target_agent") as span:
         trace_id = trace.format_trace_id(span.get_span_context().trace_id)
-        trace_file = f"0x{trace_id}.jsonl"
+        spans_dump_file_path = TRACES_DIR / f"0x{trace_id}.jsonl"
         # The same trace_id is used as the folder name when saving agent artifacts (on local/MinIO/S3)
         output_dir = output_dir if output_dir else trace_id
         storage_backend = get_storage_backend()
@@ -65,7 +65,7 @@ async def generate_target_agent(
 
                 client = A2AClient(httpx_client=client, agent_card=agent_card)
                 logger.info("A2AClient initialized.")
-                logger.info(f"Trace will be saved to {trace_file}")
+                logger.info(f"Trace will be temporarily saved to {spans_dump_file_path}")
 
                 request = create_message_request(message, request_id=request_id)
 
@@ -109,16 +109,10 @@ async def generate_target_agent(
             raise
         finally:
             # Upload trace regardless of success or failure for debugging purposes
-            trace_file_path = TRACES_DIR / trace_file
-            logger.info(f"Creating agent trace from {trace_file_path}")
-            agent_trace = create_agent_trace_from_dumped_spans(trace_file_path, final_output=response_json)
+            logger.info(f"Creating agent trace from {spans_dump_file_path}")
+            agent_trace = create_agent_trace_from_dumped_spans(spans_dump_file_path, final_output=response_json)
             logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend}")
             storage_backend.upload_trace_file(agent_trace, Path(output_dir))
-
-    """
-    This is how you can retrieve the trace after the generation is completed/interrupted
-    full_trace = json.loads((TRACES_DIR / trace_file).read_text())
-    """
 
 
 def main():
