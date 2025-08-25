@@ -15,6 +15,8 @@ def test_prepare_agent_artifacts(sample_generator_agent_response_json):
     """Test that prepare_agent_artifacts correctly prepares the artifacts."""
     artifacts = prepare_agent_artifacts(sample_generator_agent_response_json)
 
+    expected_dependencies = "python-dotenv\npydantic\nfire\nmcpd\nany-agent[all,a2a]==1.2.0\nlitellm<1.75.0\nbeautifulsoup4\nrequests\ntavily-python"
+
     assert "agent.py" in artifacts
     assert "README.md" in artifacts
     assert "requirements.txt" in artifacts
@@ -27,7 +29,10 @@ def test_prepare_agent_artifacts(sample_generator_agent_response_json):
     agent_code_before_cleaning = AGENT_CODE_TEMPLATE.format(**sample_generator_agent_response_json)
     assert artifacts["agent.py"] == clean_python_code_with_autoflake(agent_code_before_cleaning)
     assert artifacts["README.md"] == sample_generator_agent_response_json["readme"]
-    assert artifacts["requirements.txt"] == sample_generator_agent_response_json["dependencies"]
+
+    expected_dependencies_sorted = sorted([line for line in expected_dependencies.split("\n") if line])
+    result_dependencies_sorted = sorted([line for line in artifacts["requirements.txt"].split("\n") if line])
+    assert result_dependencies_sorted == expected_dependencies_sorted
 
     # Verify tools taken from src directory
     tool_path = Path("src/agent_factory/tools/summarize_text_with_llm.py")
