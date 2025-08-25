@@ -1,11 +1,6 @@
 """Instructions for the agent code generator."""
 
-from importlib.metadata import version
-
 from jinja2 import Template
-
-ANY_AGENT_VERSION = version("any_agent")
-
 
 CODE_EXAMPLE = """
 # agent.py
@@ -146,7 +141,7 @@ if __name__ == "__main__":
 """  # noqa: E501
 
 
-DELIVERABLES_INSTRUCTIONS = f"""
+DELIVERABLES_INSTRUCTIONS = """
 # Instructions to generate final deliverables
 
 The final expected output is a dictionary with the following structure:
@@ -155,7 +150,7 @@ The final expected output is a dictionary with the following structure:
     "message": "The message to be displayed to the user. Use this field to return simple text answers to the user.",
     "status": "Set this to `completed`, if the agent has completed the user assigned task and provided the
         `imports`, `agent_instructions`, `tools`, `structured_outputs`, `cli_args`, `agent_description`,
-        `prompt_template`, `readme` and `dependencies`. Set this to `input_required` if the agent is not ready to
+        `prompt_template`, and `readme`. Set this to `input_required` if the agent is not ready to
         provide the final output, and needs more information from the user. Set this to `error` if the agent
         encountered an error while executing the task.",
     "imports": "The python code snippet needed to import the required tools.",
@@ -168,8 +163,7 @@ The final expected output is a dictionary with the following structure:
     "cli_args": "The arguments to be provided to the agent from the command line.",
     "agent_description": "The description of the agent and what it does.",
     "prompt_template": "A prompt template that, completed with cli_args, defines the agent's input prompt.",
-    "readme": "The instructions for setting up the environment in Markdown format (e.g., a README file).",
-    "dependencies": "The list of python dependencies in Markdown format."
+    "readme": "The instructions for setting up the environment in Markdown format (e.g., a README file)."
 }}
 
 ## Values to assign to dictionary keys
@@ -180,7 +174,7 @@ The final expected output is a dictionary with the following structure:
 2. `status` is a literal value that indicates whether the agent has completed the task
     and is ready to provide the final output. Set this to `completed` if the agent has completed the task
     and provided the `agent_instructions`, `tools`, `imports`, `structured_outputs`, `cli_args`,
-    `agent_description`, `prompt_template`, `readme` and `dependencies`. Set this to `input_required` if the agent is
+    `agent_description`, `prompt_template`, and `readme`. Set this to `input_required` if the agent is
     not ready to provide the final output, and needs more information from the user. Set this to `error` if the agent
     encountered an error while executing the task.",
 3. `imports` is Python code containing all the required imports for the selected tools.
@@ -255,13 +249,6 @@ The final expected output is a dictionary with the following structure:
 
     ```
     It will be used to generate the `README.md` file, so it should be in Markdown format.
-12. `dependencies` should list all the python libraries (including the ones required by the tools) as dependencies to be
-    installed. It will be used to generate the `requirements.txt` file:
-    - The first line should be "any-agent[all,a2a]=={ANY_AGENT_VERSION}" dependency, since we are using `any-agent` to
-      run the agent workflow.
-    - The second line should be the "mcpd>=0.0.1" dependency, since we are using mcpd to manage MCP servers.
-    - Do not provide specific versions for the dependencies except for `any-agent[all,a2a]` and `mcpd` (see the above
-      point).
 """  # noqa: E501
 
 
@@ -498,9 +485,9 @@ steps to follow to generate the agent code, in order:
    this should be the response you will return to the user.
 5. If you are ready to generate the agent code, fill the `message` field with a confirmation saying "✅ Done! Your agent
    is ready!", and set `status` to `completed`. Fill the `agent_instructions`, `tools`, `mcp_servers`, `imports`,
-   `structured_outputs`, `cli_args`, `agent_description`, `prompt_template`, `readme`, and `dependencies` fields with
-   the appropriate values. If only MCP servers are used, the `tools` list should be empty. This should be the response
-   you will return to the user.
+   `structured_outputs`, `cli_args`, `agent_description`, `prompt_template`, and `readme`,  fields with the appropriate
+   values. If only MCP servers are used, the `tools` list should be empty. This should be the response you will return
+   to the user.
 
 General notes:
 - Always format the `message` field in Markdown format, so that it is easy to read and understand.
