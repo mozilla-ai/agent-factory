@@ -1,11 +1,14 @@
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
 from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.schemas import AgentParameters
 from agent_factory.utils.io_utils import (
+    extract_requirements_from_string,
+    get_imports_from_string,
     parse_cli_args_to_params_json,
     prepare_agent_artifacts,
 )
@@ -63,3 +66,42 @@ def test_parse_cli_args_to_params_json(cli_args_str, expected_params):
     # Validate against the Pydantic schema
     validated_params = AgentParameters(**actual_params)
     assert validated_params.model_dump() == expected_params
+
+
+@pytest.mark.parametrize(
+    "code_string, expected_imports",
+    [
+        ("import pandas", {"pandas"}),
+        ("import pandas as pd", {"pandas"}),
+        ("from collections import deque", {"collections"}),
+        ("import os, sys", {"os", "sys"}),
+        ("from a.b import c", {"a"}),
+        ("import a.b.c", {"a"}),
+        ("", set()),
+    ],
+)
+def test_get_imports_from_string(code_string, expected_imports):
+    """Test that get_imports_from_string correctly extracts import names."""
+    assert get_imports_from_string(code_string) == expected_imports
+
+
+@patch("importlib.metadata.packages_distributions")
+def test_extract_requirements_from_string(mock_packages_distributions):
+    """Test that extract_requirements_from_string correctly extracts requirements."""
+    mock_packages_distributions.return_value = {
+        "pandas": ["pandas"],
+        "numpy": ["numpy"],
+        "bs4": ["beautifulsoup4"],
+        "any_llm": ["any-llm-sdk"],
+    }
+    code_string = """
+import pandas as pd
+import numpy
+import os
+from bs4 import BeautifulSoup
+import sys
+import any_llm
+"""
+    expected_requirements = ["beautifulsoup4", "numpy", "pandas", "any-llm-sdk"]
+    # Sort for comparison
+    assert sorted(extract_requirements_from_string(code_string)) == sorted(expected_requirements)
