@@ -137,7 +137,7 @@ def metrics_tracker():
     Each run should append a dict with keys:
     - cost (float): incurred for LLM API calls
     - n_tokens (int): number of tokens required by the agent
-    - n_steps (int): number of steps taken by the agent
+    - n_turns (int): number of turns taken by the agent
     At the end of the session, a consolidated summary of totals and averages is printed.
     """
     run_metrics: list[dict] = []
@@ -150,11 +150,11 @@ def metrics_tracker():
     n_runs = len(run_metrics)
     total_cost = sum(m.get("cost", 0.0) for m in run_metrics)
     total_tokens = sum(m.get("n_tokens", 0) for m in run_metrics)
-    total_steps = sum(m.get("n_steps", 0) for m in run_metrics)
+    total_turns = sum(m.get("n_turns", 0) for m in run_metrics)
 
     avg_cost = total_cost / n_runs if n_runs else 0.0
     avg_tokens = total_tokens / n_runs if n_runs else 0.0
-    avg_steps = total_steps / n_runs if n_runs else 0.0
+    avg_turns = total_turns / n_runs if n_runs else 0.0
 
     console = Console()
 
@@ -165,6 +165,6 @@ def metrics_tracker():
 
     table.add_row("Cost ($)", f"{total_cost:.3f}", f"{avg_cost:.3f}")
     table.add_row("Tokens", f"{total_tokens}", f"{int(avg_tokens)}")
-    table.add_row("Steps", f"{total_steps}", f"{int(avg_steps)}")
+    table.add_row("Turns", f"{total_turns}", f"{int(avg_turns)}")
 
     console.print(table)
