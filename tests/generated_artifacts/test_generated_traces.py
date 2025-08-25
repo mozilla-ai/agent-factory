@@ -2,6 +2,7 @@ import json
 
 import pytest
 from any_agent import AgentTrace
+from any_agent.tracing.attributes import GenAI
 
 
 def get_specific_tool_calls_by_name(trace: AgentTrace, tool_name: str) -> list:
@@ -10,8 +11,8 @@ def get_specific_tool_calls_by_name(trace: AgentTrace, tool_name: str) -> list:
     for span in trace.spans:
         if span.is_tool_execution():
             output_content = span.get_output_content()
-            if output_content and span.attributes.get("gen_ai.tool.name") == tool_name:
-                specific_tool_call_args.append(json.loads(span.attributes["gen_ai.tool.args"]))
+            if output_content and span.attributes.get(GenAI.TOOL_NAME) == tool_name:
+                specific_tool_call_args.append(json.loads(span.attributes[GenAI.TOOL_ARGS]))
     return specific_tool_call_args
 
 
