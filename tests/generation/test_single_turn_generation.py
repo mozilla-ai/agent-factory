@@ -140,7 +140,7 @@ def validate_generated_artifacts(artifacts_dir: Path, prompt_id: str):
 async def test_single_turn_generation(
     tmp_path: Path,
     request: pytest.FixtureRequest,
-    cost_tracker: list[float],
+    metrics_tracker: list[dict],
     use_cases: dict,
     requires_mcpd: bool,
     max_attempts: int,
@@ -176,8 +176,20 @@ async def test_single_turn_generation(
     _assert_execution_time_within_limit(agent_trace, test_case["expected_execution_time"])
     _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
 
-    # Cost tracking for completed agent artifact generations (based on agent_factory_trace.json)
-    cost_tracker.append(agent_trace.cost.total_cost)
+    # Metrics tracking for completed agent artifact generation (based on agent_factory_trace.json)
+    metrics = {
+        "cost": agent_trace.cost.total_cost,
+        "duration": agent_trace.duration.seconds,
+        "n_turns": len(agent_trace.spans),
+        "n_tokens": agent_trace.tokens.total_tokens,
+        "n_input_tokens": agent_trace.tokens.input_tokens,
+        "n_output_tokens": agent_trace.tokens.output_tokens,
+    }
+    metrics_tracker.append(metrics)
+
+    print("Run summary:")
+    for key in metrics:
+        print(f"{key}: {metrics[key]}")
 
     # Assertions based on requirements.txt
     assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")
