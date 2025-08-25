@@ -130,80 +130,43 @@ def sample_agent_eval_trace_json(common_eval_testing_data_path: Path) -> str:
 
 
 @pytest.fixture(scope="session")
-def cost_tracker():
-    """A session-scoped fixture to track and summarize the total cost of API calls
-    during the test session.
-    """
-    run_costs = []
-    yield run_costs
+def metrics_tracker():
+    """Session-scoped tracker that records per-run metrics as dictionaries.
 
-    # The code below runs AFTER all tests in the session are complete
-    if not run_costs:
+    Each run should append a dict with keys:
+    - cost (float): incurred for LLM API calls
+    - n_tokens (int): number of tokens required by the agent
+    - n_steps (int): number of steps taken by the agent
+    At the end of the session, a consolidated summary of totals and averages is printed.
+    """
+    run_metrics: list[dict] = []
+    yield run_metrics
+
+    # AFTER all tests in the session are complete
+    if not run_metrics:
         return
 
-    total_cost = sum(run_costs)
-    avg_cost = total_cost / len(run_costs) if run_costs else 0
+    n_runs = len(run_metrics)
+    total_cost = sum(m.get("cost", 0.0) for m in run_metrics)
+    total_tokens = sum(m.get("n_tokens", 0) for m in run_metrics)
+    total_steps = sum(m.get("n_steps", 0) for m in run_metrics)
+
+    avg_cost = total_cost / n_runs if n_runs else 0.0
+    avg_tokens = total_tokens / n_runs if n_runs else 0.0
+    avg_steps = total_steps / n_runs if n_runs else 0.0
 
     summary_output = textwrap.dedent(f"""
         {"=" * 60}
-        COST SUMMARY
+        RUN METRICS SUMMARY
         {"-" * 60}
-        Number of runs: {len(run_costs)}
+        Number of runs: {n_runs}
+
         Total cost: ${total_cost:.3f}
-        Average cost per run: ${avg_cost:.3f}
-        {"=" * 60}
-    """)
-    print(summary_output)
-
-
-@pytest.fixture(scope="session")
-def tokens_tracker():
-    """A session-scoped fixture to track and summarize total tokens used
-    during the test session.
-    """
-    run_tokens: list[int] = []
-    yield run_tokens
-
-    # AFTER all tests complete
-    if not run_tokens:
-        return
-
-    total_tokens = sum(run_tokens)
-    avg_tokens = total_tokens / len(run_tokens) if run_tokens else 0
-
-    summary_output = textwrap.dedent(f"""
-        {"=" * 60}
-        TOKENS SUMMARY
-        {"-" * 60}
-        Number of runs: {len(run_tokens)}
-        Total tokens: {total_tokens}
-        Average tokens per run: {avg_tokens:.1f}
-        {"=" * 60}
-    """)
-    print(summary_output)
-
-
-@pytest.fixture(scope="session")
-def steps_tracker():
-    """A session-scoped fixture to track and summarize total steps taken
-    during the test session.
-    """
-    run_steps: list[int] = []
-    yield run_steps
-
-    # AFTER all tests complete
-    if not run_steps:
-        return
-
-    total_steps = sum(run_steps)
-    avg_steps = total_steps / len(run_steps) if run_steps else 0
-
-    summary_output = textwrap.dedent(f"""
-        {"=" * 60}
-        STEPS SUMMARY
-        {"-" * 60}
-        Number of runs: {len(run_steps)}
         Total steps: {total_steps}
+        Total tokens: {total_tokens}
+        {"=" * 60}
+        Average cost per run: ${avg_cost:.3f}
+        Average tokens per run: {avg_tokens:.1f}
         Average steps per run: {avg_steps:.1f}
         {"=" * 60}
     """)
