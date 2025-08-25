@@ -1,10 +1,11 @@
 import sys
-import textwrap
 from pathlib import Path
 
 import pytest
 import yaml
 from any_agent.tracing.agent_trace import AgentTrace
+from rich.console import Console
+from rich.table import Table
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
@@ -155,19 +156,15 @@ def metrics_tracker():
     avg_tokens = total_tokens / n_runs if n_runs else 0.0
     avg_steps = total_steps / n_runs if n_runs else 0.0
 
-    summary_output = textwrap.dedent(f"""
-        {"=" * 60}
-        RUN METRICS SUMMARY
-        {"-" * 60}
-        Number of runs: {n_runs}
+    console = Console()
 
-        Total cost: ${total_cost:.3f}
-        Total steps: {total_steps}
-        Total tokens: {total_tokens}
-        {"=" * 60}
-        Average cost per run: ${avg_cost:.3f}
-        Average tokens per run: {avg_tokens:.1f}
-        Average steps per run: {avg_steps:.1f}
-        {"=" * 60}
-    """)
-    print(summary_output)
+    table = Table(title="RUN METRICS SUMMARY")
+    table.add_column("Metric", style="bold")
+    table.add_column("Total", justify="right")
+    table.add_column("Average (per run)", justify="right")
+
+    table.add_row("Cost ($)", f"{total_cost:.3f}", f"{avg_cost:.3f}")
+    table.add_row("Tokens", f"{total_tokens}", f"{int(avg_tokens)}")
+    table.add_row("Steps", f"{total_steps}", f"{int(avg_steps)}")
+
+    console.print(table)
