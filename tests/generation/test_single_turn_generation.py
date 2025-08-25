@@ -141,6 +141,8 @@ async def test_single_turn_generation(
     tmp_path: Path,
     request: pytest.FixtureRequest,
     cost_tracker: list[float],
+    tokens_tracker: list[int],
+    steps_tracker: list[int],
     use_cases: dict,
     requires_mcpd: bool,
     max_attempts: int,
@@ -178,6 +180,18 @@ async def test_single_turn_generation(
 
     # Cost tracking for completed agent artifact generations (based on agent_factory_trace.json)
     cost_tracker.append(agent_trace.cost.total_cost)
+    # Tokens and steps tracking
+    total_tokens = agent_trace.tokens.total_tokens
+    total_steps = len(agent_trace.spans)
+    tokens_tracker.append(total_tokens)
+    steps_tracker.append(total_steps)
+
+    # Per-run summary output
+    print(f"Run summary -> Cost: ${agent_trace.cost.total_cost:.3f}, Tokens: {total_tokens}, Steps: {total_steps}")
+    # Running averages after this run
+    avg_tokens_so_far = sum(tokens_tracker) / len(tokens_tracker) if tokens_tracker else 0
+    avg_steps_so_far = sum(steps_tracker) / len(steps_tracker) if steps_tracker else 0
+    print(f"Running averages -> Tokens: {avg_tokens_so_far:.1f}, Steps: {avg_steps_so_far:.1f}")
 
     # Assertions based on requirements.txt
     assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")

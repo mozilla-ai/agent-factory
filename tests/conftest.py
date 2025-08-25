@@ -154,3 +154,57 @@ def cost_tracker():
         {"=" * 60}
     """)
     print(summary_output)
+
+
+@pytest.fixture(scope="session")
+def tokens_tracker():
+    """A session-scoped fixture to track and summarize total tokens used
+    during the test session.
+    """
+    run_tokens: list[int] = []
+    yield run_tokens
+
+    # AFTER all tests complete
+    if not run_tokens:
+        return
+
+    total_tokens = sum(run_tokens)
+    avg_tokens = total_tokens / len(run_tokens) if run_tokens else 0
+
+    summary_output = textwrap.dedent(f"""
+        {"=" * 60}
+        TOKENS SUMMARY
+        {"-" * 60}
+        Number of runs: {len(run_tokens)}
+        Total tokens: {total_tokens}
+        Average tokens per run: {avg_tokens:.1f}
+        {"=" * 60}
+    """)
+    print(summary_output)
+
+
+@pytest.fixture(scope="session")
+def steps_tracker():
+    """A session-scoped fixture to track and summarize total steps taken
+    during the test session.
+    """
+    run_steps: list[int] = []
+    yield run_steps
+
+    # AFTER all tests complete
+    if not run_steps:
+        return
+
+    total_steps = sum(run_steps)
+    avg_steps = total_steps / len(run_steps) if run_steps else 0
+
+    summary_output = textwrap.dedent(f"""
+        {"=" * 60}
+        STEPS SUMMARY
+        {"-" * 60}
+        Number of runs: {len(run_steps)}
+        Total steps: {total_steps}
+        Average steps per run: {avg_steps:.1f}
+        {"=" * 60}
+    """)
+    print(summary_output)
