@@ -179,13 +179,20 @@ async def test_single_turn_generation(
     # Metrics tracking for completed agent artifact generation (based on agent_factory_trace.json)
     metrics = {
         "cost": agent_trace.cost.total_cost,
-        "n_tokens": agent_trace.tokens.total_tokens,
+        "duration": agent_trace.duration.seconds,
         "n_turns": len(agent_trace.spans),
+        "n_tokens": agent_trace.tokens.total_tokens,
+        "n_input_tokens": agent_trace.tokens.input_tokens,
+        "n_output_tokens": agent_trace.tokens.output_tokens,
     }
     metrics_tracker.append(metrics)
 
     # Summary output for this run
-    print(f"Run summary -> Cost: ${metrics['cost']:.3f}, Tokens: {metrics['n_tokens']}, Turns: {metrics['n_turns']}")
+    print(
+        f"Run summary: \nCost: ${metrics['cost']:.3f} \nDuration: {metrics['duration']} \nTurns: {metrics['n_turns']}"
+        f"\nTokens: {metrics['n_tokens']}"
+        f"\nInput Tokens: {metrics['n_input_tokens']} \nOutput Tokens: {metrics['n_output_tokens']}"
+    )
 
     # Assertions based on requirements.txt
     assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")
