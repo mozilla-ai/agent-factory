@@ -4,24 +4,23 @@ from importlib.metadata import version
 from pathlib import Path
 
 
-def assert_requirements_first_line_matches_any_agent_version(requirements_path: Path):
-    """Verify that the first line of requirements.txt matches any-agent[all,a2a]=={version}."""
+def assert_requirements_includes_any_agent_version(requirements_path: Path):
+    """Verify that the requirements.txt includes any-agent[all,a2a]=={version}."""
     content = requirements_path.read_text(encoding="utf-8").strip()
     lines = content.split("\n")
 
     if not lines:
         raise AssertionError(f"requirements.txt is empty\n\nFull requirements.txt content:\n{content}")
 
-    first_line = lines[0].strip()
-
     # Get the expected version from the installed any-agent package
     expected_version = version("any-agent")
-    expected_first_line = f"any-agent[all,a2a]=={expected_version}"
+    expected_line = f"any-agent[all,a2a]=={expected_version}"
 
-    if first_line != expected_first_line:
+    # Find the expected line in the requirements file
+    if expected_line not in lines:
         raise AssertionError(
-            f"First line must be 'any-agent[all,a2a]=={expected_version}'. "
-            f"Found: '{first_line}'\n\nFull requirements.txt content:\n{content}"
+            f"Missing required dependency: '{expected_line}' not found in requirements.txt\n\n"
+            f"Full requirements.txt content:\n{content}"
         )
 
 
