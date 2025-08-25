@@ -18,7 +18,7 @@ async def run_evaluation(
     agent_trace_json_file: str | None = None,
     save_evaluation_results_path: str | None = None,
     framework: AgentFramework = AgentFramework.TINYAGENT,
-    model: str = "gpt-4.1",
+    model: str = "openai:gpt-4.1",
 ):
     """Runs the evaluation process based on an evaluation case JSON file and an agent trace JSON file.
 

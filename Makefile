@@ -7,8 +7,8 @@
 -include .env
 export
 # Default environment variables for the container if missing.
-FRAMEWORK ?= openai
-MODEL ?= o3
+FRAMEWORK ?= tinyagent
+MODEL ?= openai:o3
 MAX_TURNS ?= 40
 A2A_SERVER_HOST ?= 0.0.0.0
 A2A_SERVER_PORT ?= 8080

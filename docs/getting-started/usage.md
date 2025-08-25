@@ -16,8 +16,8 @@ In addition to `host` and `port`, you can also pass the following arguments:
 
 -  `--chat` vs `--nochat`: `chat` mode enables multi-turn conversations, while `nochat` mode is for one-shot tasks (default:
    `chat`).
--  `--framework`: The Agent framework to use (default: `openai`).
--  `--model`: The model ID to use (default: `o3`).
+-  `--framework`: The Agent framework to use (default: `tinyagent`).
+-  `--model`: The model ID to use (default: `openai:o3`).
 -  `--log_level`: The logging level (default: `info`).
 
 > [!NOTE]
