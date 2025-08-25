@@ -151,32 +151,35 @@ def metrics_tracker():
         return
 
     n_runs = len(run_metrics)
-    total_cost = sum(m.get("cost", 0.0) for m in run_metrics)
-    total_duration_seconds = sum(m.get("duration", 0.0) for m in run_metrics)
-    total_turns = sum(m.get("n_turns", 0) for m in run_metrics)
-    total_tokens = sum(m.get("n_tokens", 0) for m in run_metrics)
-    total_input_tokens = sum(m.get("n_input_tokens", 0) for m in run_metrics)
-    total_output_tokens = sum(m.get("n_output_tokens", 0) for m in run_metrics)
+    metric_specs = [
+        {"key": "cost", "label": "Cost ($)", "default": 0.0, "formatting": "{:.3f}"},
+        {"key": "duration", "label": "Duration (s)", "default": 0.0, "formatting": "{:.1f}"},
+        {"key": "n_turns", "label": "Turns", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_tokens", "label": "Tokens (total)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_input_tokens", "label": "Tokens (input)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_output_tokens", "label": "Tokens (output)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+    ]
 
-    avg_cost = total_cost / n_runs if n_runs else 0.0
-    avg_duration_seconds = total_duration_seconds / n_runs if n_runs else 0.0
-    avg_turns = total_turns / n_runs if n_runs else 0.0
-    avg_tokens = total_tokens / n_runs if n_runs else 0.0
-    avg_input_tokens = total_input_tokens / n_runs if n_runs else 0.0
-    avg_output_tokens = total_output_tokens / n_runs if n_runs else 0.0
+    # Compute totals and averages per metric
+    totals = {spec["key"]: sum(m.get(spec["key"], spec["default"]) for m in run_metrics) for spec in metric_specs}
+    avgs = {k: (totals[k] / n_runs if n_runs else 0.0) for k in totals}
 
+    # Build the table
     console = Console()
-
-    table = Table(title="RUN METRICS SUMMARY")
+    table = Table(title=f"RUN METRICS SUMMARY for {n_runs} runs with saved traces")
     table.add_column("Metric", style="bold")
     table.add_column("Total", justify="right")
     table.add_column("Average (per run)", justify="right")
 
-    table.add_row("Cost ($)", f"{total_cost:.3f}", f"{avg_cost:.3f}")
-    table.add_row("Duration (s)", f"{total_duration_seconds:.1f}", f"{avg_duration_seconds:.1f}")
-    table.add_row("Turns", f"{total_turns}", f"{int(avg_turns)}")
-    table.add_row("Tokens (total)", f"{total_tokens}", f"{int(avg_tokens)}")
-    table.add_row("Tokens (input)", f"{total_input_tokens}", f"{int(avg_input_tokens)}")
-    table.add_row("Tokens (output)", f"{total_output_tokens}", f"{int(avg_output_tokens)}")
+    def _formatting(val, f):
+        return f(val) if callable(f) else f.format(val)
+
+    for spec in metric_specs:
+        k = spec["key"]
+        table.add_row(
+            spec["label"],
+            _formatting(totals[k], spec["formatting"]),
+            _formatting(avgs[k], spec["formatting"]),
+        )
 
     console.print(table)

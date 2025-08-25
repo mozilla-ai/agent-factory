@@ -187,12 +187,9 @@ async def test_single_turn_generation(
     }
     metrics_tracker.append(metrics)
 
-    # Summary output for this run
-    print(
-        f"Run summary: \nCost: ${metrics['cost']:.3f} \nDuration: {metrics['duration']} \nTurns: {metrics['n_turns']}"
-        f"\nTokens: {metrics['n_tokens']}"
-        f"\nInput Tokens: {metrics['n_input_tokens']} \nOutput Tokens: {metrics['n_output_tokens']}"
-    )
+    print("Run summary:")
+    for key in metrics:
+        print(f"{key}: {metrics[key]}")
 
     # Assertions based on requirements.txt
     assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")
