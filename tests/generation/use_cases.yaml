@@ -8,6 +8,7 @@
 summarize-url-content:
   prompt: >
     Workflow that takes an input web URL and returns a summary of the content.
+    You must use a tool that internally makes an LLM call to generate the summary.
     Do not search for or assign MCP servers among the tools.
   expected_num_turns: 15
   expected_execution_time: 120
