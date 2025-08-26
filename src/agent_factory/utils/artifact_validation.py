@@ -26,6 +26,8 @@ def validate_dependencies(agent_factory_outputs: dict[str, str]) -> str:
       specifiers) is replaced with exactly `litellm<1.75.0`.
     - If no `litellm` line exists and dependencies are non-empty, append
       `litellm<1.75.0` as a new line.
+    - if visit_webpage is in tools, add markdownify==1.2.0 to dependencies
+    - if search_tavily is in tools, add tavily-python==0.7.10 to dependencies
     """
     dependencies = agent_factory_outputs["dependencies"]
 
@@ -33,6 +35,17 @@ def validate_dependencies(agent_factory_outputs: dict[str, str]) -> str:
     if "uvx" in agent_factory_outputs["tools"] and "uv" not in dependencies:
         logger.info("Agent uses uvx but deps were missing uv: adding manually.")
         dependencies += "\nuv"
+
+    # We know markdownify is a dependency of visit_webpage
+    # TODO: parse tool deps and add them to the dependencies, rather than manually here
+    if "visit_webpage" in agent_factory_outputs["tools"] and "markdownify" not in dependencies:
+        logger.info("Agent uses visit_webpage but deps were missing markdownify: adding manually.")
+        dependencies += "\nmarkdownify==1.2.0"
+
+    # TODO: same as a above
+    if "search_tavily" in agent_factory_outputs["tools"] and "tavily-python" not in dependencies:
+        logger.info("Agent uses search_tavily but deps were missing tavily-python: adding manually.")
+        dependencies += "\ntavily-python==0.7.10"
 
     # Remove any existing litellm lines and append pinned constraint
     lines = dependencies.split("\n")

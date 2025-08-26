@@ -14,7 +14,8 @@ class TestValidateDependencies:
 
         result = validate_dependencies(agent_factory_outputs)
 
-        expected = sample_generator_agent_response_json["dependencies"] + "\nlitellm<1.75.0"
+        # The sample data contains search_tavily, so tavily-python should be added too
+        expected = sample_generator_agent_response_json["dependencies"] + "\ntavily-python==0.7.10\nlitellm<1.75.0"
         assert result == expected
         assert agent_factory_outputs["dependencies"] == expected
 
@@ -37,7 +38,8 @@ class TestValidateDependencies:
 
         result = validate_dependencies(agent_factory_outputs)
 
-        expected = sample_generator_agent_response_json["dependencies"] + f"\n{expected_suffix}"
+        # The sample data contains search_tavily, so tavily-python should be added too
+        expected = sample_generator_agent_response_json["dependencies"] + f"\ntavily-python==0.7.10\n{expected_suffix}"
         assert result == expected
         assert result.count("litellm<1.75.0") == 1
 
@@ -51,6 +53,20 @@ class TestValidateDependencies:
 
         result = validate_dependencies(agent_factory_outputs)
 
-        expected = sample_generator_agent_response_json["dependencies"] + "\nuv\nlitellm<1.75.0"
+        # The sample data contains search_tavily, so tavily-python should be added too
+        expected = sample_generator_agent_response_json["dependencies"] + "\nuv\ntavily-python==0.7.10\nlitellm<1.75.0"
+        assert result == expected
+        assert agent_factory_outputs["dependencies"] == expected
+
+    def test_adds_markdownify_when_visit_webpage_in_tools(self):
+        """Test that markdownify==1.2.0 is added when visit_webpage is found in tools."""
+        agent_factory_outputs = {
+            "dependencies": "requests\nfire",
+            "tools": "TOOLS = [\n    visit_webpage,  # visit webpages\n]",
+        }
+
+        result = validate_dependencies(agent_factory_outputs)
+
+        expected = "requests\nfire\nmarkdownify==1.2.0\nlitellm<1.75.0"
         assert result == expected
         assert agent_factory_outputs["dependencies"] == expected
