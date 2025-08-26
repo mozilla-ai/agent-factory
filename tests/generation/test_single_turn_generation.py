@@ -53,8 +53,7 @@ def _assert_agent_code_syntax(agent_file: Path):
 
 
 def _assert_agent_code_contains_trace_writing(agent_file: Path):
-    """
-    Assert that the agent file contains the code to write agent trace to a JSON file.
+    """Assert that the agent file contains the code to write agent trace to a JSON file.
     Changing how the target agent traces are saved in the AGENT_CODE_TEMPLATE
     could impact their usage downstream, for example, in the agent platform.
     """
