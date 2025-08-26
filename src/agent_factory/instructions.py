@@ -76,7 +76,10 @@ try:
         print("No tools found via mcpd.")
     TOOLS.extend(mcp_server_tools)
 except McpdError as e:
-    print(f"Error connecting to mcpd: {e}", file=sys.stderr)
+    print(
+        f"Error connecting to mcpd: {e}. If the agent doesn't use any MCP servers you can safely ignore this error",
+        file=sys.stderr
+    )
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
@@ -211,6 +214,8 @@ The final expected output is a dictionary with the following structure:
     # Prerequisites
 
     - uv
+
+    Add the following prerequisite only if you have chosen to use any MCP servers:
     - mcpd
 
     ## Install uv
@@ -220,20 +225,20 @@ The final expected output is a dictionary with the following structure:
         curl -LsSf https://astral.sh/uv/install.sh | sh
         ```
     - **Windows PowerShell**
-    ```powershell
-    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-    ```
+        ```powershell
+        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+        ```
 
     Add this section about mcpd only if you've chosen to use any MCP servers:
     ## Install mcpd
 
     Follow the mcpd installation instructions in the official documentation: https://mozilla-ai.github.io/mcpd/installation/
 
+    Add this section about mcpd configuration only if you've chosen to use any MCP servers:
     # Configuration
 
-    Add this exact phrase here:
-    "Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed,
-    for example, environment variables for your LLM provider."
+    Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed,
+    for example, environment variables for your LLM provider.
 
     # Run the Agent
 
@@ -302,7 +307,10 @@ try:
         print("No tools found via mcpd.")
     TOOLS.extend(mcp_server_tools)
 except McpdError as e:
-    print(f"Error connecting to mcpd: {{e}}", file=sys.stderr)
+    print(
+        f"Error connecting to mcpd: {{e}}. If the agent doesn't use any MCP servers you can safely ignore this error",
+        file=sys.stderr
+    )
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
