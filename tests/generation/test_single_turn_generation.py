@@ -169,17 +169,8 @@ async def test_single_turn_generation(
     # Verify the expected files were generated
     _assert_generated_files(full_path, requires_mcpd)
 
-    # Verify the generated agent.py has valid Python syntax
-    agent_file = full_path / "agent.py"
-    _assert_agent_code_syntax(agent_file)
-    _assert_agent_code_contains_trace_writing(agent_file)
-
-    # Assertions based on manufacturing agent's trace
-    agent_trace = load_agent_trace(full_path / "agent_factory_trace.json")
-    _assert_execution_time_within_limit(agent_trace, test_case["expected_execution_time"])
-    _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
-
     # Metrics tracking for completed agent artifact generation (based on agent_factory_trace.json)
+    agent_trace = load_agent_trace(full_path / "agent_factory_trace.json")
     metrics = {
         "cost": agent_trace.cost.total_cost,
         "duration": agent_trace.duration.seconds,
@@ -193,6 +184,15 @@ async def test_single_turn_generation(
     print("Run summary:")
     for key in metrics:
         print(f"{key}: {metrics[key]}")
+
+    # Verify the generated agent.py has valid Python syntax
+    agent_file = full_path / "agent.py"
+    _assert_agent_code_syntax(agent_file)
+    _assert_agent_code_contains_trace_writing(agent_file)
+
+    # Assertions based on manufacturing agent's trace
+    _assert_execution_time_within_limit(agent_trace, test_case["expected_execution_time"])
+    _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
 
     # Assertions based on requirements.txt
     assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")
