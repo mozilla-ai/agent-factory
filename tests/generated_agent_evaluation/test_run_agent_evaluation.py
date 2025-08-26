@@ -30,9 +30,9 @@ def test_evaluation_runs_with_valid_inputs(tmpdir, sample_evaluation_json_file, 
 @pytest.mark.parametrize(
     "custom_model,custom_framework",
     [
-        ("o3", AgentFramework.OPENAI),
-        ("gpt-5", AgentFramework.GOOGLE),
-        ("mistral-medium-2508", AgentFramework.LANGCHAIN),
+        ("openai:o3", AgentFramework.OPENAI),
+        ("openai:gpt-5", AgentFramework.GOOGLE),
+        ("mistral:mistral-medium-2508", AgentFramework.LANGCHAIN),
         ("llama-2-70b", AgentFramework.SMOLAGENTS),
     ],
 )
