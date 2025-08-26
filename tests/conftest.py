@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 import yaml
 from any_agent.tracing.agent_trace import AgentTrace
+from rich.console import Console
+from rich.table import Table
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
@@ -130,27 +132,55 @@ def sample_agent_eval_trace_json(common_eval_testing_data_path: Path) -> str:
 
 
 @pytest.fixture(scope="session")
-def cost_tracker():
-    """A session-scoped fixture to track and summarize the total cost of API calls
-    during the test session.
-    """
-    run_costs = []
-    yield run_costs
+def metrics_tracker():
+    """Session-scoped tracker that records per-run metrics as dictionaries.
 
-    # The code below runs AFTER all tests in the session are complete
-    if not run_costs:
+    Each run should append a dict with keys:
+    - cost (float): incurred for LLM API calls
+    - duration (timedelta): duration to complete the task
+    - n_turns (int): number of turns taken by the agent
+    - n_tokens (int): total tokens used by the agent
+    - n_input_tokens (int): input tokens
+    - n_output_tokens (int): output tokens
+    At the end of the session, a consolidated summary of totals and averages is printed.
+    """
+    run_metrics: list[dict] = []
+    yield run_metrics
+
+    # AFTER all tests in the session are complete
+    if not run_metrics:
         return
 
-    total_cost = sum(run_costs)
-    avg_cost = total_cost / len(run_costs) if run_costs else 0
+    n_runs = len(run_metrics)
+    metric_specs = [
+        {"key": "cost", "label": "Cost ($)", "default": 0.0, "formatting": "{:.3f}"},
+        {"key": "duration", "label": "Duration (s)", "default": 0.0, "formatting": "{:.1f}"},
+        {"key": "n_turns", "label": "Turns", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_tokens", "label": "Tokens (total)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_input_tokens", "label": "Tokens (input)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_output_tokens", "label": "Tokens (output)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+    ]
 
-    summary_output = textwrap.dedent(f"""
-        {"=" * 60}
-        COST SUMMARY
-        {"-" * 60}
-        Number of runs: {len(run_costs)}
-        Total cost: ${total_cost:.3f}
-        Average cost per run: ${avg_cost:.3f}
-        {"=" * 60}
-    """)
-    print(summary_output)
+    # Compute totals and averages per metric
+    totals = {spec["key"]: sum(m.get(spec["key"], spec["default"]) for m in run_metrics) for spec in metric_specs}
+    avgs = {k: (totals[k] / n_runs if n_runs else 0.0) for k in totals}
+
+    # Build the table
+    console = Console()
+    table = Table(title=f"RUN METRICS SUMMARY for {n_runs} runs with saved traces")
+    table.add_column("Metric", style="bold")
+    table.add_column("Total", justify="right")
+    table.add_column("Average (per run)", justify="right")
+
+    def _formatting(val, f):
+        return f(val) if callable(f) else f.format(val)
+
+    for spec in metric_specs:
+        k = spec["key"]
+        table.add_row(
+            spec["label"],
+            _formatting(totals[k], spec["formatting"]),
+            _formatting(avgs[k], spec["formatting"]),
+        )
+
+    console.print(table)

@@ -44,12 +44,12 @@ def test_search_mcp_servers_used(agent_factory_trace: AgentTrace, prompt_id: str
 
 
 @pytest.mark.artifact_validation
-@pytest.mark.parametrize("max_steps", range(5, 40, 5))
-def test_steps_taken(agent_factory_trace: AgentTrace, max_steps: int):
-    """Test that the number of steps taken is within the expected range."""
-    if max_steps <= len(agent_factory_trace.spans):
+@pytest.mark.parametrize("max_turns", range(5, 40, 5))
+def test_turns_taken(agent_factory_trace: AgentTrace, max_turns: int):
+    """Test that the number of turns taken is within the expected range."""
+    if max_turns <= len(agent_factory_trace.spans):
         pytest.xfail()
-    assert len(agent_factory_trace.spans) < max_steps
+    assert len(agent_factory_trace.spans) < max_turns
 
 
 @pytest.mark.artifact_validation
