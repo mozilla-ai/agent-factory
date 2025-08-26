@@ -8,6 +8,7 @@
 summarize-url-content:
   prompt: >
     Workflow that takes an input web URL and returns a summary of the content.
+    You must use a tool that internally makes an LLM call to generate the summary.
     Do not search for or assign MCP servers among the tools.
   expected_num_turns: 15
   expected_execution_time: 120
@@ -40,7 +41,7 @@ scoring-blueprints-submission:
     and do BOTH of the following with it
     (1) post it to the blueprint-submission channel on Slack after finding the correct channel_id, and
     (2) log the entry to SQLite - to the already existing table named `github_repo_evaluations` in the `blueprints.db` database.
-    Look for MCP servers for Slack and SQLite (NEVER use the docker MCP) and provide suitable MCP configurations
+    Look for only the official MCP servers for Slack and SQLite (NEVER use the docker MCP) and provide suitable MCP configurations
     along with only the necessary subset of tools required for the task at hand.
   expected_num_turns: 40
   expected_execution_time: 420

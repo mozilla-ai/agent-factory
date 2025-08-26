@@ -24,55 +24,65 @@ MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
 # ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    """Schema for the agent's final output."""
+    """Schema for the agent's final JSON response."""
 
-    repo_url: str = Field(..., description="GitHub repository that was evaluated")
-    guidelines: list[str] = Field(..., description="Short list of extracted Blueprint guidelines used in the assessment")
-    score: int = Field(..., ge=0, le=100, description="Numeric score out of 100")
-    evaluation_details: str = Field(..., description="Detailed analysis referencing how the repo meets or fails each guideline")
-    improvement_plan: str = Field(..., description="Concrete recommendations for improving adherence to the guidelines")
-    slack_channel_id: str = Field(..., description="ID of the Slack channel used for posting the evaluation")
-    slack_message_ts: str = Field(..., description="Timestamp of the Slack message that was posted")
-    db_insertion_status: str = Field(..., description="Confirmation message or error string from SQLite INSERT operation")
+    repo_url: str = Field(..., description="GitHub repository that was evaluated.")
+    guidelines_url: str = Field(..., description="URL of the guidelines used for evaluation, always https://blueprints.mozilla.ai/ .")
+    score: int = Field(..., ge=0, le=100, description="Overall score out of 100.")
+    summary: str = Field(..., description="Markdown summary report that was posted to Slack and saved to SQLite.")
+    slack_channel_id: str = Field(..., description="The channel ID where the report was posted.")
+    sqlite_status: str = Field(..., description="Confirmation message returned from the SQLite write_query tool.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are a code-review assistant evaluating GitHub repositories against Mozilla Blueprint guidelines.
-Follow this precise multi-step workflow for EVERY user prompt:
+You are a Blueprint Quality Evaluator.
+Perform the entire workflow in the ordered steps below.  NEVER skip, merge, or reorder the steps.
 
-STEP 1 – Fetch Guidelines
-1. Use visit_webpage to download https://blueprints.mozilla.ai/ .
-2. Extract the sections that describe "Blueprint best-practices / guidelines". Summarise the key points into a numbered list (5-10 bullets maximum).
+Step-1 – Retrieve guidelines
+• Visit https://blueprints.mozilla.ai/ and extract the section that describes how to create best-in-class Blueprints.
+• Summarise the key points as a bullet-list (<15 bullets).  Call this list GUIDELINES.
 
-STEP 2 – Analyse Repository
-3. Visit the GitHub repository URL supplied by the user. Prioritise the README, CONTRIBUTING, docs folder and root-level configuration files.
-4. Identify evidence that addresses each guideline (or violations / missing pieces).
+Step-2 – Analyse the submitted repository
+• Clone or otherwise inspect the GitHub repository whose URL is supplied in the user prompt (visit the repo root, README, and whenever useful additional source files).
+• Compare the repository against GUIDELINES and decide how well it follows each guideline.
+• Produce a concise but detailed paragraph for every guideline explaining compliance or deviation.
+• Derive a numeric SCORE between 0-100 where 100 is perfect alignment.
 
-STEP 3 – Score & Recommendations
-5. Allocate a score out of 100.   • Start from 100 then deduct points proportionally for every unmet guideline, weighting more-important guidelines higher.  • Explain scoring rationale.
-6. Produce a concise improvement plan listing concrete actions the author could take.
+Step-3 – Compose the evaluation report
+Prepare a Markdown report containing:
+• Title line with repo URL
+• Table or bullet list giving each guideline, your assessment, and any recommendations
+• ‘Overall score: <SCORE>/100’ on its own line
+• Short final verdict sentence (e.g. “Ready for publication” / “Needs major revisions”).
 
-STEP 4 – Structured Output
-7. Build a StructuredOutput instance with: repo_url, guidelines, score, evaluation_details (markdown), improvement_plan, slack_channel_id, slack_message_ts, db_insertion_status.
+Step-4 – Post to Slack
+• Use slack_list_channels to find a channel whose name contains "blueprint-submission" (case-insensitive).
+• Use slack_post_message to post the Markdown report to that channel.  Save the returned channel id.
 
-STEP 5 – Slack Publication
-8. Call slack_list_channels (from Slack MCP) and find the channel whose name includes "blueprint-submission" (case-insensitive). Save its id.
-9. Post the evaluation summary (repo URL, score, top recommendations) to that channel using slack_post_message. Save the message ts.
+Step-5 – Persist to SQLite
+• Insert a new row into the table github_repo_evaluations in the blueprints.db database using the write_query tool.
+  Required columns are assumed to be: repo_url (TEXT), score (INTEGER), details (TEXT), created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+  Write an INSERT statement filling repo_url, score, details (use the Markdown report text).
+• Return success/failure information from the query execution.
 
-STEP 6 – Log to SQLite
-10. Insert a row into table github_repo_evaluations in blueprints.db via write_query (SQLite MCP). Minimum columns expected: repo_url TEXT, score INT, evaluation TEXT, created_at defaults CURRENT_TIMESTAMP. Use parameterised INSERT to avoid SQL injection.
-11. Confirm the row was written (rowcount > 0) and record status.
-
-Rules
-• Always execute the steps in order. Abort if any critical step fails and report the error inside evaluation_details.
-• All external actions (web visits, Slack, SQLite) MUST be done with the provided tools only – never with direct HTTP requests or internal libraries.
-• Keep LLM reasoning internal; final agent reply MUST be the JSON StructuredOutput only.
+Final-Step – Respond
+Reply ONLY with a JSON object matching the StructuredOutput schema.  Do NOT include any additional keys.
 '''
 
 # ========== Tools definition ===========
 TOOLS = [
-    visit_webpage,  # fetches webpage content – used for guidelines and GitHub repo
+    visit_webpage,  # retrieve webpage or README content
 ]
+
+# The MCP server tools that are actually required for the workflow
+NEEDED_MCP_TOOLS = {"slack_list_channels", "slack_post_message", "write_query"}
+
+try:
+    mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
+    all_mcp_tools = mcpd_client.agent_tools()
+    TOOLS.extend([t for t in all_mcp_tools if getattr(t, "__name__", "") in NEEDED_MCP_TOOLS])
+except McpdError as e:
+    print(f"Error connecting to mcpd: {e}", file=sys.stderr)
 
 try:
     mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
@@ -97,8 +107,8 @@ agent = AnyAgent.create(
 
 
 def main(repo_url: str):
-    """Evaluate a GitHub repository against Mozilla Blueprint guidelines, post results to Slack #blueprint-submission and log them into the blueprints.db SQLite database."""
-    input_prompt = f"Please evaluate the following GitHub repository against Mozilla Blueprint guidelines and report the results: {repo_url}"
+    """Evaluate a GitHub repository against Mozilla AI Blueprint guidelines, post the results to Slack, and archive them in SQLite."""
+    input_prompt = f"Evaluate the following GitHub repository against Mozilla AI Blueprint guidelines and follow the prescribed workflow: {repo_url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
