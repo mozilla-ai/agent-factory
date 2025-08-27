@@ -140,20 +140,12 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
 
 
 def create_agent_trace_from_dumped_spans(
-    spans_dump_file_path: Path | Iterable[Path],
+    spans_dump_file_path: Iterable[Path],
     final_output: str | None = None,
 ) -> AgentTrace:
-    """Create an AgentTrace from one or multiple JSONL span dump files.
-
-    Args:
-        spans_dump_file_path: A Path or an iterable of Paths to JSONL span dump files.
-        final_output: Optional final output string to attach to the AgentTrace.
-
-    Returns:
-        AgentTrace built by concatenating all spans from the provided file(s) in order.
-    """
+    """Create an AgentTrace from one or multiple JSONL span dump files."""
     # Normalize to a list of Paths
-    paths: list[Path] = [spans_dump_file_path] if isinstance(spans_dump_file_path, Path) else list(spans_dump_file_path)
+    paths: list[Path] = list(spans_dump_file_path)
 
     all_spans: list[AgentSpan] = []
 
@@ -166,7 +158,7 @@ def create_agent_trace_from_dumped_spans(
             file_spans = [AgentSpan.model_validate_json(line) for line in lines if line.strip()]
             all_spans.extend(file_spans)
         except Exception as e:
-            logger.error(f"Failed to read/parse spans from file {path}: {str(e)}")
+            logger.error(f"Failed to read and parse spans from file {path}: {str(e)}")
             raise
 
     if not all_spans:
