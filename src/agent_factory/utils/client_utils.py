@@ -1,7 +1,6 @@
 """Utility functions for the A2A client."""
 
 import json
-from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Literal
 from uuid import UUID, uuid4
@@ -140,13 +139,11 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
 
 
 def create_agent_trace_from_dumped_spans(
-    spans_dump_file_path: Iterable[Path],
+    spans_dump_file_path: list[Path],
     final_output: str | None = None,
 ) -> AgentTrace:
     """Create an AgentTrace from one or multiple JSONL span dump files."""
-    # Normalize to a list of Paths
-    paths: list[Path] = list(spans_dump_file_path)
-
+    paths: list[Path] = spans_dump_file_path
     all_spans: list[AgentSpan] = []
 
     for path in paths:

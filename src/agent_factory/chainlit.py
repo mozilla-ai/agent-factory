@@ -36,7 +36,6 @@ A2A_SERVER_HOST = "localhost"
 A2A_SERVER_PORT = int(os.environ.get("A2A_SERVER_PORT", "8080"))
 TIMEOUT = 600  # 10 minutes
 
-# Initialize tracing to enable context propagation to the A2A server
 trace.set_tracer_provider(TracerProvider())
 HTTPXClientInstrumentor().instrument()
 tracer = trace.get_tracer(__name__)
