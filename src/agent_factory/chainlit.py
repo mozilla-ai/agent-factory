@@ -21,6 +21,7 @@ from agent_factory.utils import (
     create_message_request,
     get_a2a_agent_card,
     get_storage_backend,
+    logger,
     prepare_agent_artifacts,
     process_a2a_agent_final_response,
     process_streaming_response_message,
@@ -140,6 +141,7 @@ async def create_agent(message: cl.Message):
     # Start a span to propagate trace context to the A2A server
     with tracer.start_as_current_span("create_agent") as span:
         trace_id = trace.format_trace_id(span.get_span_context().trace_id)
+        output_dir = DEFAULT_EXPORT_PATH / trace_id
         spans_dump_file_path = TRACES_DIR / f"0x{trace_id}.jsonl"
         storage_backend = get_storage_backend()
         response_json: str | None = None
@@ -162,12 +164,10 @@ async def create_agent(message: cl.Message):
                 final_response = responses[-1]
                 final_response = process_a2a_agent_final_response(final_response)
 
-                # Save artifacts if completed
                 if final_response.status == Status.COMPLETED:
                     prepared_artifacts = prepare_agent_artifacts(final_response.model_dump())
-                    storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
+                    storage_backend.save(prepared_artifacts, output_dir)
 
-                # Prepare final output for trace export
                 response_json = final_response.model_dump_json()
 
                 if final_response.message:
@@ -181,11 +181,15 @@ async def create_agent(message: cl.Message):
         finally:
             # Attempt to export trace regardless of success or failure
             try:
+                logger.info(f"Creating agent trace from {spans_dump_file_path}")
                 agent_trace = create_agent_trace_from_dumped_spans(spans_dump_file_path, final_output=response_json)
-                storage_backend.upload_trace_file(agent_trace, DEFAULT_EXPORT_PATH / str(context_id))
+                logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend}")
+                storage_backend.upload_trace_file(agent_trace, output_dir)
             except Exception:
-                # Swallow trace export errors to avoid breaking the chat flow
-                pass
+                await cl.Message(
+                    content="An error occurred while exporting the trace.",
+                    author="Error",
+                ).send()
 
 
 @cl.on_chat_start
