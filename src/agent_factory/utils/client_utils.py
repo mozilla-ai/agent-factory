@@ -1,6 +1,7 @@
 """Utility functions for the A2A client."""
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Literal
 from uuid import UUID, uuid4
@@ -139,21 +140,40 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
 
 
 def create_agent_trace_from_dumped_spans(spans_dump_file_path: Path, final_output: str | None = None) -> AgentTrace:
-    """Create an AgentTrace object from a spans dump file and agent final output."""
-    if not spans_dump_file_path.exists():
-        raise FileNotFoundError(f"Spans dump file {spans_dump_file_path} does not exist")
+    """Create an AgentTrace object from one or multiple spans dump files and agent final output.
 
-    try:
-        spans = [
-            AgentSpan.model_validate_json(line)
-            for line in spans_dump_file_path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
-        agent_trace = AgentTrace(spans=spans, final_output=final_output)
-        return agent_trace
-    except Exception as e:
-        logger.error(f"Failed to create agent trace from file {spans_dump_file_path}: {str(e)}")
-        raise
+    Args:
+        spans_dump_file_path: A single Path or an iterable of Paths pointing to JSONL span dump files.
+        final_output: Optional final output string to attach to the AgentTrace.
+
+    Returns:
+        AgentTrace built by merging all spans from the provided file(s) in the given order.
+    """
+    # Normalize input to an iterable of Paths
+    paths: Iterable[Path]
+    if isinstance(spans_dump_file_path, Path):
+        paths = [spans_dump_file_path]
+    else:  # type: ignore[unreachable]
+        paths = spans_dump_file_path  # type: ignore[assignment]
+
+    all_spans: list[AgentSpan] = []
+
+    for p in paths:
+        if not p.exists():
+            logger.warning(f"Spans dump file {p} does not exist. Skipping.")
+            continue
+        try:
+            lines = p.read_text(encoding="utf-8").splitlines()
+            file_spans = [AgentSpan.model_validate_json(line) for line in lines if line.strip()]
+            all_spans.extend(file_spans)
+        except Exception as e:
+            logger.error(f"Failed to read/parse spans from file {p}: {str(e)}")
+            raise
+
+    if not all_spans:
+        raise FileNotFoundError("No valid spans found in the provided span dump file(s)")
+
+    return AgentTrace(spans=all_spans, final_output=final_output)
 
 
 def is_server_live(host: str, port: int, timeout: float = 2.0) -> bool:

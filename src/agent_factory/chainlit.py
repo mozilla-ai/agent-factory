@@ -135,14 +135,24 @@ async def create_agent(message: cl.Message):
     thinking_message_updater = ThinkingMessageUpdater(msg)
     thinking_message_update_task = asyncio.create_task(thinking_message_updater.update_loop())
 
-    # TODO: create a list where trace ids are stored in memory
-    # and use it to export traces together
+    # Maintain a list of span dump file paths across this chat session
+    span_paths = cl.user_session.get("span_dump_file_paths") or []
+    import pdb
+
+    pdb.set_trace()
+    if not isinstance(span_paths, list):
+        span_paths = []
+    cl.user_session.set("span_dump_file_paths", span_paths)
 
     # Start a span to propagate trace context to the A2A server
     with tracer.start_as_current_span("create_agent") as span:
         trace_id = trace.format_trace_id(span.get_span_context().trace_id)
         output_dir = DEFAULT_EXPORT_PATH / trace_id
         spans_dump_file_path = TRACES_DIR / f"0x{trace_id}.jsonl"
+        # Track this file path for combined export
+        if spans_dump_file_path not in span_paths:
+            span_paths.append(spans_dump_file_path)
+            cl.user_session.set("span_dump_file_paths", span_paths)
         storage_backend = get_storage_backend()
         response_json: str | None = None
 
@@ -181,8 +191,8 @@ async def create_agent(message: cl.Message):
         finally:
             # Attempt to export trace regardless of success or failure
             try:
-                logger.info(f"Creating agent trace from {spans_dump_file_path}")
-                agent_trace = create_agent_trace_from_dumped_spans(spans_dump_file_path, final_output=response_json)
+                logger.info(f"Creating agent trace from {len(span_paths)} span dump file(s)")
+                agent_trace = create_agent_trace_from_dumped_spans(span_paths, final_output=response_json)
                 logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend}")
                 storage_backend.upload_trace_file(agent_trace, output_dir)
             except Exception:
@@ -198,8 +208,6 @@ async def on_chat_start():
     # Set up the commands for the chat interface
     # This can be extended with more commands as needed, to capture user intent in a deterministic way
     await cl.context.emitter.set_commands(COMMANDS)  # type: ignore
-
-    cl.user_session.set("message_history", [])
 
     try:
         httpx_client, base_url = await create_a2a_http_client(A2A_SERVER_HOST, A2A_SERVER_PORT, TIMEOUT)
