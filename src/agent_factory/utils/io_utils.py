@@ -126,6 +126,8 @@ def prepare_agent_artifacts(agent_factory_outputs: dict[str, str]) -> dict[str, 
     # Identify and read tool files
     for tool_file in TOOLS_DIR.iterdir():
         if tool_file.is_file() and (tool_file.stem in agent_code or tool_file.name == "__init__.py"):
+            if tool_file.suffix != ".py":
+                continue
             tool_code = tool_file.read_text(encoding="utf-8")
             dependencies.update(extract_requirements_from_string(tool_code))
             artifacts_to_save[f"tools/{tool_file.name}"] = tool_code
