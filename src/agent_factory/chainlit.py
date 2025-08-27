@@ -9,11 +9,15 @@ from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import (
     AgentCard,
 )
+from opentelemetry import trace
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
 
-from agent_factory.config import DEFAULT_EXPORT_PATH
+from agent_factory.config import DEFAULT_EXPORT_PATH, TRACES_DIR
 from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
+    create_agent_trace_from_dumped_spans,
     create_message_request,
     get_a2a_agent_card,
     get_storage_backend,
@@ -30,6 +34,11 @@ EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
 A2A_SERVER_HOST = "localhost"
 A2A_SERVER_PORT = int(os.environ.get("A2A_SERVER_PORT", "8080"))
 TIMEOUT = 600  # 10 minutes
+
+# Initialize tracing to enable context propagation to the A2A server
+trace.set_tracer_provider(TracerProvider())
+HTTPXClientInstrumentor().instrument()
+tracer = trace.get_tracer(__name__)
 
 COMMANDS = [
     {"id": "create", "icon": "bot", "description": "Create an AI Agent"},
@@ -125,42 +134,58 @@ async def create_agent(message: cl.Message):
     thinking_message_updater = ThinkingMessageUpdater(msg)
     thinking_message_update_task = asyncio.create_task(thinking_message_updater.update_loop())
 
-    message_id = uuid4()
-    request_id = uuid4()
+    # TODO: create a list where trace ids are stored in memory
+    # and use it to export traces together
 
-    request = create_message_request(
-        message=message.content, context_id=context_id, request_id=request_id, message_id=message_id
-    )
+    # Start a span to propagate trace context to the A2A server
+    with tracer.start_as_current_span("create_agent") as span:
+        trace_id = trace.format_trace_id(span.get_span_context().trace_id)
+        spans_dump_file_path = TRACES_DIR / f"0x{trace_id}.jsonl"
+        storage_backend = get_storage_backend()
+        response_json: str | None = None
 
-    try:
-        responses = []
-        async for response in client.send_message_streaming(request, http_kwargs={"timeout": TIMEOUT}):
-            processed_response = process_streaming_response_message(response)
-            if processed_response.message:
-                thinking_message_updater.update_content(processed_response)
-            responses.append(response)
+        request = create_message_request(message=message.content, context_id=context_id)
 
-        # We can stop the update task and clean up
-        thinking_message_updater.stop()
-        await thinking_message_update_task
+        try:
+            responses = []
+            async for response in client.send_message_streaming(request, http_kwargs={"timeout": TIMEOUT}):
+                processed_response = process_streaming_response_message(response)
+                if processed_response.message:
+                    thinking_message_updater.update_content(processed_response)
+                responses.append(response)
 
-        if responses:
-            final_response = responses[-1]
-            final_response = process_a2a_agent_final_response(final_response)
+            # We can stop the update task and clean up
+            thinking_message_updater.stop()
+            await thinking_message_update_task
 
-            if final_response.status == Status.COMPLETED:
-                prepared_artifacts = prepare_agent_artifacts(final_response.model_dump())
-                storage_backend = get_storage_backend()
-                storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
+            if responses:
+                final_response = responses[-1]
+                final_response = process_a2a_agent_final_response(final_response)
 
-            if final_response.message:
-                await cl.Message(content=final_response.message, author="assistant").send()
+                # Save artifacts if completed
+                if final_response.status == Status.COMPLETED:
+                    prepared_artifacts = prepare_agent_artifacts(final_response.model_dump())
+                    storage_backend.save(prepared_artifacts, DEFAULT_EXPORT_PATH / str(context_id))
 
-    except Exception as e:
-        await cl.Message(
-            content=f"An error occurred: {e}",
-            author="Error",
-        ).send()
+                # Prepare final output for trace export
+                response_json = final_response.model_dump_json()
+
+                if final_response.message:
+                    await cl.Message(content=final_response.message, author="assistant").send()
+
+        except Exception as e:
+            await cl.Message(
+                content=f"An error occurred: {e}",
+                author="Error",
+            ).send()
+        finally:
+            # Attempt to export trace regardless of success or failure
+            try:
+                agent_trace = create_agent_trace_from_dumped_spans(spans_dump_file_path, final_output=response_json)
+                storage_backend.upload_trace_file(agent_trace, DEFAULT_EXPORT_PATH / str(context_id))
+            except Exception:
+                # Swallow trace export errors to avoid breaking the chat flow
+                pass
 
 
 @cl.on_chat_start
