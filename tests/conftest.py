@@ -1,8 +1,12 @@
 import sys
+import textwrap
 from pathlib import Path
 
 import pytest
 import yaml
+from any_agent.tracing.agent_trace import AgentTrace
+from rich.console import Console
+from rich.table import Table
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
@@ -100,6 +104,18 @@ def generated_agent_toml(toml_file: Path) -> str:
         return ""
 
 
+@pytest.fixture
+def agent_factory_trace_file(artifacts_dir: Path, prompt_id: str) -> Path:
+    """Fixture to get the trace file path for the current prompt."""
+    return artifacts_dir / prompt_id / "agent_factory_trace.json"
+
+
+@pytest.fixture
+def agent_factory_trace(agent_factory_trace_file: Path) -> AgentTrace:
+    """Fixture to load and validate the trace for the current prompt."""
+    return AgentTrace.model_validate_json(agent_factory_trace_file.read_text())
+
+
 @pytest.fixture(scope="module")
 def common_eval_testing_data_path() -> Path:
     return Path("tests/generated_agent_evaluation/data/")
@@ -113,3 +129,58 @@ def sample_evaluation_json_file(common_eval_testing_data_path: Path) -> str:
 @pytest.fixture(scope="module")
 def sample_agent_eval_trace_json(common_eval_testing_data_path: Path) -> str:
     return (common_eval_testing_data_path / "sample_agent_eval_trace.json").read_text()
+
+
+@pytest.fixture(scope="session")
+def metrics_tracker():
+    """Session-scoped tracker that records per-run metrics as dictionaries.
+
+    Each run should append a dict with keys:
+    - cost (float): incurred for LLM API calls
+    - duration (timedelta): duration to complete the task
+    - n_turns (int): number of turns taken by the agent
+    - n_tokens (int): total tokens used by the agent
+    - n_input_tokens (int): input tokens
+    - n_output_tokens (int): output tokens
+    At the end of the session, a consolidated summary of totals and averages is printed.
+    """
+    run_metrics: list[dict] = []
+    yield run_metrics
+
+    # AFTER all tests in the session are complete
+    if not run_metrics:
+        return
+
+    n_runs = len(run_metrics)
+    metric_specs = [
+        {"key": "cost", "label": "Cost ($)", "default": 0.0, "formatting": "{:.3f}"},
+        {"key": "duration", "label": "Duration (s)", "default": 0.0, "formatting": "{:.1f}"},
+        {"key": "n_turns", "label": "Turns", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_tokens", "label": "Tokens (total)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_input_tokens", "label": "Tokens (input)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+        {"key": "n_output_tokens", "label": "Tokens (output)", "default": 0.0, "formatting": (lambda v: f"{int(v)}")},
+    ]
+
+    # Compute totals and averages per metric
+    totals = {spec["key"]: sum(m.get(spec["key"], spec["default"]) for m in run_metrics) for spec in metric_specs}
+    avgs = {k: (totals[k] / n_runs if n_runs else 0.0) for k in totals}
+
+    # Build the table
+    console = Console()
+    table = Table(title=f"RUN METRICS SUMMARY for {n_runs} runs with saved traces")
+    table.add_column("Metric", style="bold")
+    table.add_column("Total", justify="right")
+    table.add_column("Average (per run)", justify="right")
+
+    def _formatting(val, f):
+        return f(val) if callable(f) else f.format(val)
+
+    for spec in metric_specs:
+        k = spec["key"]
+        table.add_row(
+            spec["label"],
+            _formatting(totals[k], spec["formatting"]),
+            _formatting(avgs[k], spec["formatting"]),
+        )
+
+    console.print(table)
