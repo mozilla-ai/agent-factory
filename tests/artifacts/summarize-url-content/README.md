@@ -1,11 +1,10 @@
-# Webpage Summariser Agent
+# Webpage Summarizer Agent
 
-A simple agent that takes a webpage URL, extracts its text, and returns a concise summary.
+Generates a concise summary for any provided webpage URL using Mozilla's any-agent framework.
 
 # Prerequisites
 
 - uv
-- mcpd
 
 ## Install uv
 
@@ -20,8 +19,7 @@ A simple agent that takes a webpage URL, extracts its text, and returns a concis
 
 # Configuration
 
-Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed,
-for example, environment variables for your LLM provider.
+Set the environment variables in the `.env` file that has been created for you. Add other environment variables as needed, for example, environment variables for your LLM provider.
 
 # Run the Agent
 
