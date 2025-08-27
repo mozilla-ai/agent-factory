@@ -23,66 +23,59 @@ MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
 MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
 # ========== Structured output definition ==========
-class StructuredOutput(BaseModel):
-    """Schema for the agent's final JSON response."""
+class EvaluationCriterion(BaseModel):
+    criterion: str = Field(..., description="The guideline being assessed, e.g. 'Comprehensive README'.")
+    score: int = Field(..., ge=0, le=10, description="Score (0-10) awarded for this criterion.")
+    comments: str = Field(..., description="Brief justification for the score.")
 
-    repo_url: str = Field(..., description="GitHub repository that was evaluated.")
-    guidelines_url: str = Field(..., description="URL of the guidelines used for evaluation, always https://blueprints.mozilla.ai/ .")
-    score: int = Field(..., ge=0, le=100, description="Overall score out of 100.")
-    summary: str = Field(..., description="Markdown summary report that was posted to Slack and saved to SQLite.")
-    slack_channel_id: str = Field(..., description="The channel ID where the report was posted.")
-    sqlite_status: str = Field(..., description="Confirmation message returned from the SQLite write_query tool.")
+class StructuredOutput(BaseModel):
+    repo_url: str = Field(..., description="GitHub repository URL that was evaluated.")
+    total_score: int = Field(..., ge=0, le=100, description="Total score out of 100.")
+    summary: str = Field(..., description="Overall one-paragraph assessment.")
+    evaluation_breakdown: list[EvaluationCriterion] = Field(
+        ..., description="Per-criterion breakdown including comments.")
+    slack_channel_id: str = Field(..., description="ID of the Slack channel where the result was posted.")
+    db_insert_success: bool = Field(..., description="True if INSERT into SQLite succeeded, else False.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are a Blueprint Quality Evaluator.
-Perform the entire workflow in the ordered steps below.  NEVER skip, merge, or reorder the steps.
+You are an autonomous evaluator that follows this strict multi-step workflow for every run. Your goal is to review an incoming GitHub repository with respect to Mozilla’s Blueprint development guidelines and then record and announce your verdict.
 
-Step-1 – Retrieve guidelines
-• Visit https://blueprints.mozilla.ai/ and extract the section that describes how to create best-in-class Blueprints.
-• Summarise the key points as a bullet-list (<15 bullets).  Call this list GUIDELINES.
+Step-1  Fetch Guidelines
+• Use visit_webpage to retrieve https://blueprints.mozilla.ai/ . Extract only the explicit checklist / best-practice guidance for writing top-notch Blueprints. Summarise these guidelines into numbered evaluation criteria (max 10) that you will later grade against.
 
-Step-2 – Analyse the submitted repository
-• Clone or otherwise inspect the GitHub repository whose URL is supplied in the user prompt (visit the repo root, README, and whenever useful additional source files).
-• Compare the repository against GUIDELINES and decide how well it follows each guideline.
-• Produce a concise but detailed paragraph for every guideline explaining compliance or deviation.
-• Derive a numeric SCORE between 0-100 where 100 is perfect alignment.
+Step-2  Inspect the Repository
+• Receive the repo_url from the user.
+• Collect the repository’s README, LICENSE and the top-level file list. If a README link is not obvious, attempt the raw.githubusercontent.com URL in both main and master branches.
+• Summarise the repo’s purpose, structure, and any blueprint-related files (.yaml, blueprint.md, etc.).
 
-Step-3 – Compose the evaluation report
-Prepare a Markdown report containing:
-• Title line with repo URL
-• Table or bullet list giving each guideline, your assessment, and any recommendations
-• ‘Overall score: <SCORE>/100’ on its own line
-• Short final verdict sentence (e.g. “Ready for publication” / “Needs major revisions”).
+Step-3  Score the Repo
+• For each criterion generated in Step-1 assign an integer score 0-10 and write 1-2 sentence justification.
+• Sum the criterion scores to obtain total_score out of 100.
+• Craft a short overall summary highlighting major strengths and weaknesses.
 
-Step-4 – Post to Slack
-• Use slack_list_channels to find a channel whose name contains "blueprint-submission" (case-insensitive).
-• Use slack_post_message to post the Markdown report to that channel.  Save the returned channel id.
+Step-4  Prepare the Structured Result
+Prepare a JSON object matching the StructuredOutput schema that contains: repo_url, total_score, evaluation_breakdown (list of {criterion, score, comments}), summary.
 
-Step-5 – Persist to SQLite
-• Insert a new row into the table github_repo_evaluations in the blueprints.db database using the write_query tool.
-  Required columns are assumed to be: repo_url (TEXT), score (INTEGER), details (TEXT), created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
-  Write an INSERT statement filling repo_url, score, details (use the Markdown report text).
-• Return success/failure information from the query execution.
+Step-5  Post to Slack
+• Use slack_list_channels to locate the public channel whose name exactly equals "blueprint-submission" (case-insensitive). Retrieve its id. If not found, abort with a clear error message.
+• Use slack_post_message to post the JSON result (pretty-printed) to that channel. Save the returned channel_id.
 
-Final-Step – Respond
-Reply ONLY with a JSON object matching the StructuredOutput schema.  Do NOT include any additional keys.
+Step-6  Persist to SQLite
+• Use write_query (SQLite MCP) to insert a new row into the table github_repo_evaluations inside blueprints.db. The table has at least these columns: repo_url TEXT, total_score INTEGER, summary TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP.
+• Build an INSERT statement using ? placeholders and the collected data.
+• Capture whether the insertion succeeded (True / False).
+
+Strict rules:
+• Always comply with tool argument requirements.
+• Never output anything other than the final JSON structured result.
+• Abort early with an explanatory message if any critical step fails (e.g., channel not found, DB error).
 '''
 
 # ========== Tools definition ===========
 TOOLS = [
-    visit_webpage,  # retrieve webpage or README content
+    visit_webpage,  # Used to fetch guidelines and raw repo assets
 ]
-
-# The MCP server tools that are actually required for the workflow
-NEEDED_MCP_TOOLS = {"slack_list_channels", "slack_post_message", "write_query"}
-
-try:
-    mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
-    all_mcp_tools = mcpd_client.agent_tools()
-    TOOLS.extend([t for t in all_mcp_tools if getattr(t, "__name__", "") in NEEDED_MCP_TOOLS])
-except McpdError as e:
-    print(f"Error connecting to mcpd: {e}", file=sys.stderr)
 
 try:
     mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
@@ -91,7 +84,10 @@ try:
         print("No tools found via mcpd.")
     TOOLS.extend(mcp_server_tools)
 except McpdError as e:
-    print(f"Error connecting to mcpd: {e}", file=sys.stderr)
+    print(
+        f"Error connecting to mcpd: {e}. If the agent doesn't use any MCP servers you can safely ignore this error",
+        file=sys.stderr
+    )
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
@@ -107,8 +103,8 @@ agent = AnyAgent.create(
 
 
 def main(repo_url: str):
-    """Evaluate a GitHub repository against Mozilla AI Blueprint guidelines, post the results to Slack, and archive them in SQLite."""
-    input_prompt = f"Evaluate the following GitHub repository against Mozilla AI Blueprint guidelines and follow the prescribed workflow: {repo_url}"
+    """Evaluate a GitHub repository against Mozilla Blueprint guidelines, assign a score, post the result to the #blueprint-submission Slack channel, and log it in the blueprints.db SQLite database."""
+    input_prompt = f"Please evaluate the following GitHub repository: {repo_url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
