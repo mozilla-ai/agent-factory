@@ -137,11 +137,6 @@ async def create_agent(message: cl.Message):
 
     # Maintain a list of span dump file paths across this chat session
     span_paths = cl.user_session.get("span_dump_file_paths") or []
-    import pdb
-
-    pdb.set_trace()
-    if not isinstance(span_paths, list):
-        span_paths = []
     cl.user_session.set("span_dump_file_paths", span_paths)
 
     # Start a span to propagate trace context to the A2A server
@@ -149,10 +144,8 @@ async def create_agent(message: cl.Message):
         trace_id = trace.format_trace_id(span.get_span_context().trace_id)
         output_dir = DEFAULT_EXPORT_PATH / trace_id
         spans_dump_file_path = TRACES_DIR / f"0x{trace_id}.jsonl"
-        # Track this file path for combined export
-        if spans_dump_file_path not in span_paths:
-            span_paths.append(spans_dump_file_path)
-            cl.user_session.set("span_dump_file_paths", span_paths)
+        span_paths.append(spans_dump_file_path)
+        cl.user_session.set("span_dump_file_paths", span_paths)
         storage_backend = get_storage_backend()
         response_json: str | None = None
 
