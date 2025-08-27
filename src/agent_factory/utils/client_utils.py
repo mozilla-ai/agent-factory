@@ -139,35 +139,34 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
         return processed_response
 
 
-def create_agent_trace_from_dumped_spans(spans_dump_file_path: Path, final_output: str | None = None) -> AgentTrace:
-    """Create an AgentTrace object from one or multiple spans dump files and agent final output.
+def create_agent_trace_from_dumped_spans(
+    spans_dump_file_path: Path | Iterable[Path],
+    final_output: str | None = None,
+) -> AgentTrace:
+    """Create an AgentTrace from one or multiple JSONL span dump files.
 
     Args:
-        spans_dump_file_path: A single Path or an iterable of Paths pointing to JSONL span dump files.
+        spans_dump_file_path: A Path or an iterable of Paths to JSONL span dump files.
         final_output: Optional final output string to attach to the AgentTrace.
 
     Returns:
-        AgentTrace built by merging all spans from the provided file(s) in the given order.
+        AgentTrace built by concatenating all spans from the provided file(s) in order.
     """
-    # Normalize input to an iterable of Paths
-    paths: Iterable[Path]
-    if isinstance(spans_dump_file_path, Path):
-        paths = [spans_dump_file_path]
-    else:  # type: ignore[unreachable]
-        paths = spans_dump_file_path  # type: ignore[assignment]
+    # Normalize to a list of Paths
+    paths: list[Path] = [spans_dump_file_path] if isinstance(spans_dump_file_path, Path) else list(spans_dump_file_path)
 
     all_spans: list[AgentSpan] = []
 
-    for p in paths:
-        if not p.exists():
-            logger.warning(f"Spans dump file {p} does not exist. Skipping.")
+    for path in paths:
+        if not path.exists():
+            logger.warning(f"Spans dump file {path} does not exist. Skipping.")
             continue
         try:
-            lines = p.read_text(encoding="utf-8").splitlines()
+            lines = path.read_text(encoding="utf-8").splitlines()
             file_spans = [AgentSpan.model_validate_json(line) for line in lines if line.strip()]
             all_spans.extend(file_spans)
         except Exception as e:
-            logger.error(f"Failed to read/parse spans from file {p}: {str(e)}")
+            logger.error(f"Failed to read/parse spans from file {path}: {str(e)}")
             raise
 
     if not all_spans:
