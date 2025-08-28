@@ -14,7 +14,7 @@ from mcpd import McpdClient, McpdError
 from pydantic import BaseModel, Field
 
 # ADD BELOW HERE: tools made available by any-agent or agent-factory
-from tools.extract_text_from_url import extract_text_from_url
+from tools.visit_webpage import visit_webpage
 from tools.summarize_text_with_llm import summarize_text_with_llm
 
 load_dotenv()
@@ -25,29 +25,30 @@ MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
 # ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
+    """Schema for the agent's final output."""
+
     url: str = Field(..., description="The webpage URL provided by the user.")
-    extracted_text: str = Field(..., description="Clean plain-text content extracted from the webpage.")
-    summary: str = Field(..., description="A concise summary of the webpage’s main content.")
+    summary: str = Field(..., description="A concise summary of the webpage's main content.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an assistant that follows a concise three-step workflow to provide users with a clear summary of any public webpage.
+You are an assistant that generates concise summaries of webpage content using the following multi-step workflow:
 
-Step-by-step workflow:
-1. Input: Receive a single webpage URL from the user. Use the extract_text_from_url tool to fetch the HTML and extract its plain, human-readable text. Remove navigation menus, scripts, styles, ads, and any boiler-plate content.
-2. Processing: Pass the extracted text (truncated to ~4 000 characters if longer) to the summarize_text_with_llm tool. Produce a coherent English summary focusing on the main ideas, key facts and overall message, keeping the summary roughly 150–200 words (or proportionally shorter for very short pages).
-3. Output: Return a JSON object matching the StructuredOutput schema with these keys:
-   • url – the original URL
-   • extracted_text – the clean raw text you obtained from the page (can be truncated for very long pages)
-   • summary – your concise summary.
+1. Receive a webpage URL from the user.
+2. Invoke the `visit_webpage` tool to download the page’s content as Markdown.
+3. Extract the primary textual content. Ignore navigation links, headers, footers, ads, or boilerplate.
+4. Call the `summarize_text_with_llm` tool on the extracted content to create a concise, coherent summary (roughly 150–200 words). Ensure the summary captures the page’s main ideas, arguments, or storyline without adding information that is not present.
+5. Return the final result strictly as a JSON object matching the `StructuredOutput` schema with the fields:
+   • `url`  – the original URL
+   • `summary` – the generated summary.
 
-Never add external information, citations or opinions. Only summarise the content actually found at the URL. If the page cannot be retrieved or no useful text is found, set extracted_text to an empty string and summary to an explanatory error message.
+Never output anything outside the specified JSON schema. If the page cannot be fetched or contains no readable text, put an explanatory message in the `summary` field.
 '''
 
 # ========== Tools definition ===========
 TOOLS = [
-    extract_text_from_url,
-    summarize_text_with_llm,
+    visit_webpage,               # Fetch webpage content
+    summarize_text_with_llm,     # LLM-based summarization
 ]
 
 try:
@@ -57,7 +58,10 @@ try:
         print("No tools found via mcpd.")
     TOOLS.extend(mcp_server_tools)
 except McpdError as e:
-    print(f"Error connecting to mcpd: {e}", file=sys.stderr)
+    print(
+        f"Error connecting to mcpd: {e}. If the agent doesn't use any MCP servers you can safely ignore this error",
+        file=sys.stderr
+    )
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
@@ -73,8 +77,8 @@ agent = AnyAgent.create(
 
 
 def main(url: str):
-    """Extracts text from a webpage and returns a concise English summary in structured JSON format."""
-    input_prompt = f"Summarize the main text content from this webpage: {url}"
+    """Fetches the content of a webpage and returns a concise summary of its main ideas."""
+    input_prompt = f"Summarize the content of this webpage: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
