@@ -39,4 +39,3 @@ class AgentFactoryOutputs(BaseModel):
         ..., description="A prompt template that, completed with cli_args, defines the agent's input prompt."
     )
     readme: str = Field(..., description="The run instructions in Markdown format")
-    dependencies: str = Field(..., description="The dependencies line by line in Markdown format")

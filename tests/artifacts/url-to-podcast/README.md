@@ -1,6 +1,6 @@
 # Web-to-Podcast Agent
 
-Turns any web page into a short, two-speaker podcast, voices it with ElevenLabs, and produces a final MP3 saved in `/tmp`.
+Transforms the main content of a webpage into a short two-speaker podcast (≤ 16 dialogue turns), generates voice audio with ElevenLabs, and outputs a single MP3 in `/tmp`.
 
 # Prerequisites
 
@@ -10,13 +10,13 @@ Turns any web page into a short, two-speaker podcast, voices it with ElevenLabs,
 ## Install uv
 
 - **macOS / Linux**
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
 - **Windows PowerShell**
-```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
+    ```powershell
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+    ```
 
 ## Install mcpd
 
@@ -29,11 +29,11 @@ Set the environment variables in the `.env` file that has been created for you. 
 # Run the Agent
 
 1. Export your .env variables so they can be sourced by mcpd and run the mcpd daemon:
-```bash
-export $(cat .env | xargs) &&  mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
-```
+    ```bash
+    export $(cat .env | xargs) && mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
+    ```
 
 2. Run the agent:
-```bash
-uv run --with-requirements requirements.txt --python 3.13 python agent.py --url "https://example.com/article"
-```
+    ```bash
+    uv run --with-requirements requirements.txt --python 3.13 python agent.py --url "https://example.com/article"
+    ```
