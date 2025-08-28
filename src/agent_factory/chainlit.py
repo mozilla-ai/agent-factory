@@ -125,7 +125,7 @@ async def create_agent(message: cl.Message):
     if not client:
         await cl.Message(
             content="A2A client not initialized. Please make sure the A2A server is running and restart the chat.",
-            author="Error",
+            author="assistant",
         ).send()
         return
 
@@ -178,7 +178,7 @@ async def create_agent(message: cl.Message):
         except Exception as e:
             await cl.Message(
                 content=f"An error occurred: {e}",
-                author="Error",
+                author="assistant",
             ).send()
         finally:
             # Attempt to export trace regardless of success or failure
@@ -190,7 +190,7 @@ async def create_agent(message: cl.Message):
             except Exception:
                 await cl.Message(
                     content="An error occurred while exporting the trace.",
-                    author="Error",
+                    author="assistant",
                 ).send()
 
 
@@ -221,7 +221,7 @@ async def on_chat_start():
     except Exception as e:
         await cl.Message(
             content=f"Failed to connect to agent server: {e}",
-            author="Error",
+            author="assistant",
         ).send()
 
 
