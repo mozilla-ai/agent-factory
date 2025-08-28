@@ -111,7 +111,7 @@ async def generate_target_agent(
         finally:
             # Upload trace regardless of success or failure for debugging purposes
             logger.info(f"Creating agent trace from {spans_dump_file_path}")
-            agent_trace = create_agent_trace_from_dumped_spans(spans_dump_file_path, final_output=response_json)
+            agent_trace = create_agent_trace_from_dumped_spans([spans_dump_file_path], final_output=response_json)
             logger.info(f"Uploading agent trace to {output_dir} folder on {storage_backend}")
             storage_backend.upload_trace_file(agent_trace, Path(output_dir))
 

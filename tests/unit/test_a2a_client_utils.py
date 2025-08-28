@@ -213,7 +213,7 @@ def test_create_agent_trace_from_dumped_spans_success():
     spans_dump_file_path = UNIT_TESTS_DATA_DIR / "sample_agent_trace_from_jsonspanexporter.jsonl"
     final_output = "Agent execution completed successfully"
 
-    result = create_agent_trace_from_dumped_spans(spans_dump_file_path, final_output)
+    result = create_agent_trace_from_dumped_spans([spans_dump_file_path], final_output)
 
     assert isinstance(result, AgentTrace)
 
