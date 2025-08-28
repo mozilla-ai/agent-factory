@@ -31,7 +31,7 @@ AGENT_SCRIPT_AND_JSON_EXAMPLE = """
 ```python
 # Example imports for the agent.py file:
 from any_agent import AnyAgent, AgentConfig, AgentFramework
-from any_agent.config import MCPStdio
+from eval.mcpd_tools import create_mcpd_tool
 from tools.review_code_with_llm import review_code_with_llm
 from tools.search_tavily import search_tavily
 from pydantic import BaseModel, Field
@@ -47,6 +47,8 @@ class CodeReviewOutput(BaseModel):
     review: str = Field(..., description="The review of the code.")
 
 # Example Single Agent syntax:
+brave_search = create_mcpd_tool("brave-search", "brave_web_search")
+
 agent = AnyAgent.create(
     # agent framework name (1st positional arg)
     "openai",
@@ -57,28 +59,7 @@ agent = AnyAgent.create(
         tools=[
             search_tavily, # Example tool taken from tools/README.md
             review_code_with_llm, # Example tool taken from tools/README.md
-            # Example of MCP server usage
-            MCPStdio(
-                    command="docker",
-                    # args taken verbatim from available_mcps.md
-                    args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "-e",
-                        "BRAVE_API_KEY",
-                        "mcp/brave-search",
-                    ],
-                    # Specify necessary environment variables
-                    env={
-                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-                    },
-                    # From among the tools available from the MCP server
-                    # list only the tools that are necessary for the solving the task at hand
-                    tools=[
-                        "brave_web_search",
-                    ],
-            ),
+            brave_search, # MCP tool via mcpd
         ],
         output_type=CodeReviewOutput,
     ),

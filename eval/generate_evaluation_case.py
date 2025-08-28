@@ -1,11 +1,12 @@
+import asyncio
 import json
 from pathlib import Path
 
 import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
-from any_agent.config import MCPStdio
 from eval.instructions import get_instructions
+from eval.mcpd_tools import create_filesystem_tools, create_server_tools
 from pydantic import BaseModel, Field
 
 from agent_factory.tools.search_tavily import search_tavily
@@ -28,10 +29,12 @@ class JSONEvaluationCase(BaseModel):
     )
 
 
-def main(
+async def main(
     generated_workflow_dir: str = "generated_workflows/latest",
     framework: AgentFramework = AgentFramework.OPENAI,
     model: str = "gpt-4.1",
+    mcpd_url: str = "http://localhost:8090",
+    use_dynamic_discovery: bool = False,
 ):
     """Generate JSON structured evaluation case for the generated agentic workflow.
     Save the JSON file as `evaluation_case.json` in the same directory as the generated workflow.
@@ -40,13 +43,29 @@ def main(
         generated_workflow_dir: The directory of the generated workflow.
         framework (str): The agent framework to use
         model (str): The model ID to use
+        mcpd_url (str): The URL of the mcpd daemon
+        use_dynamic_discovery (bool): Whether to dynamically discover tools from mcpd
     """
     repo_root = Path.cwd()
     workflows_dir = repo_root / generated_workflow_dir
 
-    # The filesystem MCP server will work with the local directory directly
-    file_ops_dir = str(workflows_dir)
-
+    # Use dynamic discovery if enabled, otherwise fall back to static
+    if use_dynamic_discovery:
+        try:
+            filesystem_tools = await create_server_tools(
+                "filesystem", 
+                ["read_file", "list_directory"], 
+                mcpd_url
+            )
+            if not filesystem_tools:
+                print("Warning: Dynamic discovery returned no tools, falling back to static")
+                filesystem_tools = create_filesystem_tools(mcpd_url)
+        except Exception as e:
+            print(f"Error with dynamic discovery: {e}, falling back to static tools")
+            filesystem_tools = create_filesystem_tools(mcpd_url)
+    else:
+        filesystem_tools = create_filesystem_tools(mcpd_url)
+    
     agent = AnyAgent.create(
         agent_framework=framework,
         agent_config=AgentConfig(
@@ -55,19 +74,7 @@ def main(
             tools=[
                 visit_webpage,
                 search_tavily,
-                MCPStdio(
-                    command="npx",
-                    args=[
-                        "-y",
-                        "@modelcontextprotocol/server-filesystem",
-                        file_ops_dir,
-                        ".",
-                    ],
-                    tools=[
-                        "read_file",
-                        "list_directory",
-                    ],
-                ),
+                *filesystem_tools,
             ],
             output_type=JSONEvaluationCase,
         ),
@@ -101,5 +108,10 @@ def main(
         f.write(json.dumps(evaluation_case_data, indent=2))
 
 
+def sync_main(**kwargs):
+    """Synchronous wrapper for fire.Fire compatibility."""
+    return asyncio.run(main(**kwargs))
+
+
 if __name__ == "__main__":
-    fire.Fire(main)
+    fire.Fire(sync_main)
