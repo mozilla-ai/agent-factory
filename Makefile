@@ -96,6 +96,7 @@ check-prompt-id-present:
 test-unit: ## Run unit tests
 	@uv run --group tests pytest -v tests/unit/
 	@uv run --group tests pytest -v tests/tools/
+	@uv run --group tests pytest -v tests/generated_agent_evaluation/unit/
 	@echo "Unit tests completed successfully!"
 
 wait-for-server:
