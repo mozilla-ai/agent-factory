@@ -6,10 +6,12 @@ import httpx
 from a2a.client import A2ACardResolver, A2AClient
 from dotenv import find_dotenv, load_dotenv
 from opentelemetry import trace
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.sdk.trace import TracerProvider
 
-from agent_factory.config import TRACES_DIR
+from agent_factory.config import (
+    PUBLIC_AGENT_CARD_PATH,
+    EXTENDED_AGENT_CARD_PATH,
+    TRACES_DIR,
+)
 from agent_factory.schemas import Status
 from agent_factory.utils import (
     create_a2a_http_client,
@@ -22,13 +24,10 @@ from agent_factory.utils import (
     process_a2a_agent_final_response,
     process_streaming_response_message,
 )
+from agent_factory.utils.tracing import setup_tracing
 
-trace.set_tracer_provider(TracerProvider())
-HTTPXClientInstrumentor().instrument()
-tracer = trace.get_tracer(__name__)
-
-PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
-EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
+# Set up tracing with HTTPX instrumentation
+tracer = setup_tracing(TRACES_DIR, __name__, instrument_httpx=True)
 
 
 async def generate_target_agent(

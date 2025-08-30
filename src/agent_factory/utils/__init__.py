@@ -10,6 +10,7 @@ from .client_utils import (
 from .io_utils import prepare_agent_artifacts
 from .logging import logger
 from .storage import get_storage_backend
+from .tracing import setup_tracing
 
 __all__ = [
     "clean_python_code_with_autoflake",
@@ -23,4 +24,5 @@ __all__ = [
     "create_agent_trace_from_dumped_spans",
     "get_storage_backend",
     "logger",
+    "setup_tracing",
 ]

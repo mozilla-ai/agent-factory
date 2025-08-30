@@ -14,3 +14,8 @@ if not TRACES_DIR.is_absolute():
     TRACES_DIR = PROJECT_ROOT / TRACES_DIR
 
 DEFAULT_EXPORT_PATH = PROJECT_ROOT / "generated_workflows"
+
+# A2A Protocol Constants
+PUBLIC_AGENT_CARD_PATH = "/.well-known/agent.json"
+EXTENDED_AGENT_CARD_PATH = "/agent/authenticatedExtendedCard"
+DEFAULT_TIMEOUT = 600  # 10 minutes
