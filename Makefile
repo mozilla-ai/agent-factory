@@ -144,6 +144,24 @@ test-generated-artifacts-integration: check-prompt-id-present ## Run artifact in
 	@uv run --group tests pytest tests/generated_artifacts/ -m artifact_integration --prompt-id=$(PROMPT_ID) -v
 	@echo "Artifact integration tests completed successfully!"
 
+# pragma: allowlist secret
+test-generated-artifacts-integration-e2e: MOCK_TOKEN = mock
+test-generated-artifacts-integration-e2e: check-prompt-id-present
+	@if [ -f "tests/artifacts/$(PROMPT_ID)/secrets.prod.toml" ]; then \
+		echo "Starting mcpd as it is required for this agent"; \
+		export MCPD__ELEVENLABS_MCP__ELEVENLABS_API_KEY="$(MOCK_TOKEN)"; \
+		export MCPD__SLACK__SLACK_BOT_TOKEN="$(MOCK_TOKEN)"; \
+		export MCPD__SLACK__SLACK_TEAM_ID="$(MOCK_TOKEN)"; \
+		export MCPD__SQLITE__DB_PATH="blueprints.db"; \
+		mcpd daemon --runtime-file tests/artifacts/$(PROMPT_ID)/secrets.prod.toml --config-file tests/artifacts/$(PROMPT_ID)/.mcpd.toml & \
+		MCPD_PID=$$!; \
+		trap "kill $$MCPD_PID 2>/dev/null" EXIT; \
+		sh scripts/wait_for_mcpd_servers.sh && $(MAKE) test-generated-artifacts-integration PROMPT_ID="$(PROMPT_ID)" || { echo "::error::Tests for PROMPT_ID $(PROMPT_ID) failed!"; exit 1; }; \
+		kill $$MCPD_PID 2>/dev/null; \
+	else \
+		$(MAKE) test-generated-artifacts-integration PROMPT_ID="$(PROMPT_ID)" || { echo "::error::Tests for PROMPT_ID $(PROMPT_ID) failed!"; exit 1; }; \
+	fi
+
 # ====================================================================================
 # MCP Testing and Documentation
 # ====================================================================================
