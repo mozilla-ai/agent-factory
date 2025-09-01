@@ -1,11 +1,10 @@
 # Webpage Summarizer Agent
 
-A simple agent that fetches and summarizes the main text of any webpage.
+Generates a concise summary for any provided webpage URL using Mozilla's any-agent framework.
 
 # Prerequisites
 
 - uv
-- mcpd
 
 ## Install uv
 

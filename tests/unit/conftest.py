@@ -74,6 +74,9 @@ def mock_agent_generator_dependencies():
         ) as mock_process_a2a_agent_final_response,
         patch("agent_factory.agent_generator.prepare_agent_artifacts") as mock_prepare_agent_artifacts,
         patch("agent_factory.agent_generator.get_storage_backend") as mock_get_storage_backend,
+        patch(
+            "agent_factory.agent_generator.create_agent_trace_from_dumped_spans"
+        ) as mock_create_agent_trace_from_dumped_spans,
         patch("agent_factory.agent_generator.logger") as mock_logger,
     ):
         mock_http_client = AsyncMock()
@@ -88,6 +91,7 @@ def mock_agent_generator_dependencies():
         mock_a2a_client.return_value = mock_a2a_client_instance
         mock_storage_backend = MagicMock()
         mock_get_storage_backend.return_value = mock_storage_backend
+        mock_create_agent_trace_from_dumped_spans.return_value = MagicMock()
 
         mocks = {
             "create_a2a_http_client": mock_create_a2a_http_client,
@@ -100,6 +104,7 @@ def mock_agent_generator_dependencies():
             "prepare_agent_artifacts": mock_prepare_agent_artifacts,
             "get_storage_backend": mock_get_storage_backend,
             "storage_backend": mock_storage_backend,
+            "create_agent_trace_from_dumped_spans": mock_create_agent_trace_from_dumped_spans,
             "logger": mock_logger,
         }
 

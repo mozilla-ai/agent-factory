@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 import boto3
+from any_agent.tracing.agent_trace import AgentTrace
 
 from agent_factory.utils.logging import logger
 
@@ -17,6 +18,11 @@ class StorageBackend(ABC):
 
     @abstractmethod
     def save(self, artifacts_to_save: dict[str, str], output_dir: Path) -> None:
+        pass
+
+    @abstractmethod
+    def upload_trace_file(self, agent_trace: AgentTrace, output_dir: Path) -> None:
+        """Upload agent trace to the storage backend."""
         pass
 
 
@@ -42,23 +48,47 @@ class LocalStorage(StorageBackend):
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
 
+    def upload_trace_file(self, agent_trace: AgentTrace, output_dir: Path) -> None:
+        """Save agent trace to the local storage directory."""
+        output_dir = Path("generated_workflows") / output_dir
+        output_path = self._setup_output_directory(output_dir)
+
+        try:
+            trace_dest = output_path / "agent_factory_trace.json"
+            trace_dest.write_text(agent_trace.model_dump_json(), encoding="utf-8")
+            logger.info(f"Agent trace saved to {trace_dest}")
+        except Exception as e:
+            logger.warning(f"Warning: Failed to save agent trace: {str(e)}")
+
 
 class S3Storage(StorageBackend):
     def __init__(self):
-        self.aws_access_key_id = os.environ["AWS_ACCESS_KEY_ID"]
-        self.aws_secret_access_key = os.environ["AWS_SECRET_ACCESS_KEY"]
-        self.aws_region = os.environ["AWS_REGION"]
+        # Get credentials (optional for IRSA)
+        self.aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
+        self.aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+        self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.bucket_name = os.environ["S3_BUCKET_NAME"]
         self.endpoint_url = os.environ.get("AWS_ENDPOINT_URL") or None
         self.storage_str = "S3" if self.endpoint_url is None else "MinIO"
 
-        self.s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key,
-            region_name=self.aws_region,
-            endpoint_url=self.endpoint_url,
-        )
+        # Build config dict for IRSA compatibility
+        s3_config = {}
+
+        # Always include region
+        if self.aws_region:
+            s3_config["region_name"] = self.aws_region
+
+        # Only add credentials if both are provided (for local/dev)
+        # If not provided, boto3 will use IRSA in K8s
+        if self.aws_access_key_id and self.aws_secret_access_key:
+            s3_config["aws_access_key_id"] = self.aws_access_key_id
+            s3_config["aws_secret_access_key"] = self.aws_secret_access_key
+
+        # Add endpoint URL for MinIO/LocalStack
+        if self.endpoint_url:
+            s3_config["endpoint_url"] = self.endpoint_url
+
+        self.s3_client = boto3.client("s3", **s3_config)
         self._create_bucket_if_not_exists()
 
     def __str__(self) -> str:
@@ -103,6 +133,24 @@ class S3Storage(StorageBackend):
                 )
             except Exception as e:
                 logger.error(f"Failed to upload to {self.storage_str} bucket {self.bucket_name}. Error: {e}")
+
+    def upload_trace_file(self, agent_trace: AgentTrace, output_dir: Path) -> None:
+        """Upload agent trace to S3/MinIO storage."""
+        s3_key = f"{output_dir.name}/agent_factory_trace.json"
+        try:
+            agent_trace_json = agent_trace.model_dump_json()
+
+            self.s3_client.put_object(
+                Bucket=self.bucket_name,
+                Key=s3_key,
+                Body=agent_trace_json.encode("utf-8"),
+                ContentType="application/json",
+            )
+            logger.info(
+                f"Successfully uploaded agent trace to {self.storage_str} bucket {self.bucket_name} at {s3_key}"
+            )
+        except Exception as e:
+            logger.error(f"Failed to upload agent trace to {self.storage_str} bucket {self.bucket_name}. Error: {e}")
 
 
 def get_storage_backend() -> StorageBackend:

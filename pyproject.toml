@@ -8,14 +8,12 @@ dependencies = [
     "any-agent[a2a]==1.4.0",
     "autoflake==2.3.1",
     "boto3>=1.40.0",
-    "dotenv>=0.9.9",
+    "python-dotenv>=1.1.1",
     "fire~=0.7.0",
     "loguru>=0.7.3",
     "markdownify==1.2.0",
-    "mcpm>=1.0.3", # Later versions of mcpm conflict with the current version of chainlit. See dependency-groups below.
     "opentelemetry-instrumentation-httpx",
     "opentelemetry-instrumentation-starlette",
-    "pre-commit>=4.2.0",
     "tavily-python==0.7.10",
 ]
 

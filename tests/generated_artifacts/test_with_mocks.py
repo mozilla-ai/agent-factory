@@ -99,16 +99,15 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
 
             # the agent completes with a file generated in the /tmp folder
             # NOTE that the field names here might change if you rebuild the agent!
-            assert "/tmp" in result.podcast_path
+            assert "/tmp" in result.final_podcast_path
 
         elif "scoring-blueprints-submission" in prompt_id:
             result = agent.main("https://github.com/mozilla-ai/surf-spot-finder")
 
             # the agent completes with the following conditions satisfied
             # NOTE that the field names here might change if you rebuild the agent!
-            assert result.score  # the agent assigned a score
+            assert result.total_score  # the agent assigned a score
             assert result.slack_channel_id == "BLU3PR1NTSUB"  # the agent found the channel id
-            assert result.slack_ts  # the agent posted in the channel
             assert result.db_insert_success  # the agent inserted results in the DB
 
         elif "summarize-url-content" in prompt_id:
