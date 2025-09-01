@@ -5,7 +5,7 @@ import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
-from eval.instructions import get_instructions
+from .instructions import get_instructions
 from pydantic import BaseModel, Field
 
 from agent_factory.tools.search_tavily import search_tavily
@@ -29,7 +29,7 @@ class JSONEvaluationCase(BaseModel):
 
 
 def main(
-    generated_workflow_dir: str = "",
+    generated_workflow_dir: str = "generated_workflows/latest",
     framework: AgentFramework = AgentFramework.OPENAI,
     model: str = "gpt-4.1",
 ):
@@ -51,6 +51,13 @@ def main(
     # The filesystem MCP server will work with the local directory directly
     file_ops_dir = str(workflows_dir)
 
+    tool_args = [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        file_ops_dir,
+        ".",
+    ]
+
     agent = AnyAgent.create(
         agent_framework=framework,
         agent_config=AgentConfig(
@@ -61,12 +68,7 @@ def main(
                 search_tavily,
                 MCPStdio(
                     command="npx",
-                    args=[
-                        "-y",
-                        "@modelcontextprotocol/server-filesystem",
-                        file_ops_dir,
-                        ".",
-                    ],
+                    args=tool_args,
                     tools=[
                         "read_file",
                         "list_directory",
@@ -101,7 +103,7 @@ def main(
     evaluation_case_data = agent_trace.final_output.model_dump()
     evaluation_case_data["evaluation_case_generation_costs"] = evaluation_case_generation_costs
 
-    with (workflows_dir / "evaluation_case.json").open("w") as f:
+    with open(workflows_dir + "/" + "evaluation_case.json", "w") as f:
         f.write(json.dumps(evaluation_case_data, indent=2))
 
 
