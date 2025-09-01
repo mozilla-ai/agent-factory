@@ -66,7 +66,7 @@ make test-single-turn-generation-local PROMPT_ID=<prompt-id>
 make test-single-turn-generation-e2e PROMPT_ID=<prompt-id>
 ```
 
-The first target just verifies the server is up, and is most convenient in the local setting where you usually alreay have the server running in background. The second target is mostly used in CI and will always start and stop a server for you.
+The first target just verifies the server is up, and is most convenient in the local setting where you usually already have the server running in background. The second target is mostly used in CI and will always start and stop a server for you.
 
 #### Structure of the `uses_cases.yaml` file
 
