@@ -76,7 +76,7 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["a2a"], specifier = "==1.4.0" },
+    { name = "any-agent", extras = ["a2a"], specifier = "==1.7.0" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "boto3", specifier = ">=1.40.0" },
     { name = "fire", specifier = "~=0.7.0" },
@@ -213,22 +213,21 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "1.4.0"
+version = "1.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "any-llm-sdk" },
     { name = "litellm" },
     { name = "mcp" },
-    { name = "openai" },
     { name = "opentelemetry-sdk" },
     { name = "pydantic" },
     { name = "requests" },
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/84/4f/9c94cd019e7b5667a3544c4b73e0c6e048f73a26bf602bd892b39e2c6cee/any_agent-1.4.0.tar.gz", hash = "sha256:2988d61c57903ac7a05cd06b5d74904e27ced9809d5c3561d07c9617571daf3d", size = 469542 }
+sdist = { url = "https://files.pythonhosted.org/packages/77/47/38b5222d59e0f48c8e7f93e9903cbbfc400467c11ce4d091a72fa83f6ea2/any_agent-1.7.0.tar.gz", hash = "sha256:7da9d080e52034a2108340d65ac6ba0c4a5b4e3c835f82a97c2f0652b742de32", size = 466953 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/5e/5f14d8c79a0ad9bd02230a6a4f1798239fa4af8a3b94316c5deb1f322f82/any_agent-1.4.0-py3-none-any.whl", hash = "sha256:d867dbe77d1089ec05bfdb28c88f21c4cb634b0b360ec5250ac3cd3e18fb3ba5", size = 105295 },
+    { url = "https://files.pythonhosted.org/packages/21/0d/6fe635913a2eafee36c0e7c5d47bc558f3f779933fab32a3e034f762e6ba/any_agent-1.7.0-py3-none-any.whl", hash = "sha256:3469334cdbae06417df26e0609596ba93dee0378ba2cb51e8de0e51f9a3840ba", size = 97840 },
 ]
 
 [package.optional-dependencies]
@@ -607,6 +606,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/78/d7/6c8b3bfe33eeffa208183ec037fee0cce9f7f024089ab1c5d12ef04bd27c/fastapi-0.116.1.tar.gz", hash = "sha256:ed52cbf946abfd70c5a0dccb24673f0670deeb517a88b3544d03c2a6bf283143", size = 296485 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e5/47/d63c60f59a59467fda0f93f46335c9d18526d7071f025cb5b89d5353ea42/fastapi-0.116.1-py3-none-any.whl", hash = "sha256:c46ac7c312df840f0c9e220f7964bada936781bc4e2e6eb71f1c4d7553786565", size = 95631 },
+]
+
+[[package]]
+name = "fastuuid"
+version = "0.12.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/19/17/13146a1e916bd2971d0a58db5e0a4ad23efdd49f78f33ac871c161f8007b/fastuuid-0.12.0.tar.gz", hash = "sha256:d0bd4e5b35aad2826403f4411937c89e7c88857b1513fe10f696544c03e9bd8e", size = 19180 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a9/e8/d2bb4f19e5ee15f6f8e3192a54a897678314151aa17d0fb766d2c2cbc03d/fastuuid-0.12.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:7fe2407316a04ee8f06d3dbc7eae396d0a86591d92bafe2ca32fce23b1145786", size = 247512 },
+    { url = "https://files.pythonhosted.org/packages/bc/53/25e811d92fd60f5c65e098c3b68bd8f1a35e4abb6b77a153025115b680de/fastuuid-0.12.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b9b31dd488d0778c36f8279b306dc92a42f16904cba54acca71e107d65b60b0c", size = 258257 },
+    { url = "https://files.pythonhosted.org/packages/10/23/73618e7793ea0b619caae2accd9e93e60da38dd78dd425002d319152ef2f/fastuuid-0.12.0-cp313-cp313-manylinux_2_34_x86_64.whl", hash = "sha256:b19361ee649365eefc717ec08005972d3d1eb9ee39908022d98e3bfa9da59e37", size = 278559 },
+    { url = "https://files.pythonhosted.org/packages/e4/41/6317ecfc4757d5f2a604e5d3993f353ba7aee85fa75ad8b86fce6fc2fa40/fastuuid-0.12.0-cp313-cp313-win_amd64.whl", hash = "sha256:8fc66b11423e6f3e1937385f655bedd67aebe56a3dcec0cb835351cfe7d358c9", size = 157276 },
 ]
 
 [[package]]
@@ -995,11 +1006,12 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.74.15.post2"
+version = "1.76.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "click" },
+    { name = "fastuuid" },
     { name = "httpx" },
     { name = "importlib-metadata" },
     { name = "jinja2" },
@@ -1010,7 +1022,10 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/03/2a89d9280f595fe293c64adcc3bfbefe7a3677ec0210d293bfac63ae17dc/litellm-1.74.15.post2.tar.gz", hash = "sha256:8eddb1c8a6a5a7048f8ba16e652aba23d6ca996dd87cb853c874ba375aa32479", size = 9713752 }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/fd/aa87c0a598377786521bee585f4d525e846f5339b816903298bfbb9daef5/litellm-1.76.1.tar.gz", hash = "sha256:d5a3a3efda04999b60ec0d1c29c1eaaa12f89a7b29db4bda691c7fb55b4fa6ad", size = 10178100 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/d3/16423b6d399540eeff357f00abc85f62dc337d347a0c98ccadc448a61df5/litellm-1.76.1-py3-none-any.whl", hash = "sha256:938f05075372f26098211ea9b3cb0a6bb7b46111330226b70d42d40bd307812f", size = 8965465 },
+]
 
 [[package]]
 name = "literalai"
