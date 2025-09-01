@@ -96,7 +96,7 @@ Note the `-m artifact_validation` parameter: this is a *marker* that is used to 
 
 ### Artifact Tests (integration)
 
-These tests run the agents that have been created by *single-turn-generation* and verify they behave as expected.
+These tests run the target agents that have been created by *single-turn-generation* and verify they behave as expected.
 Some of the MCP tools are mocked so we don't depend on external applications or paid APIs for our tests.
 As most MCP tools are managed by `mcpd`, its deamon needs to be started beforehand and passed the generated
 `.mcpd.toml` and `secrets.prod.toml` files.
