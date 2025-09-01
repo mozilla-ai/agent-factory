@@ -122,7 +122,7 @@ make test-generated-artifacts-integration-e2e PROMPT_ID=<prompt-id>
 
 #### Q: What should I do if I add a new / change an existing agent artifact?
 
-Artifact tests -and in particular those with mocks as they run their actual code- are tightly dependent on
+Artifact tests, and in particular those with mocks as they run their actual code, are tightly dependent on
 the artifacts that you have built and the code they run. This means that you will need to update the test
 not only when you create new use cases, but also when you regenerate the existing agents.
 
