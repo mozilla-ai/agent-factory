@@ -165,7 +165,7 @@ Almost all of our tests also run in CI. The CI pipeline (`.github/workflows/test
     - **Unit Tests** (`run-unit-tests`): fast unit tests on every push/PR
     - **Generated Artifacts Tests** (`run-generated-artifacts-tests`) - static artifact validation tests
 
-- **Main Branch & Manual Only**
+- **Main Branch & Manual Trigger Only**
     - **Generation Tests** (`run-generation-tests`): end-to-end generation tests
     - **Agent Evaluation Tests** (`run-agent-evaluation-tests`): tests of generated agent evaluations
 
