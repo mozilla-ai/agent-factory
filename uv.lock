@@ -38,13 +38,13 @@ dependencies = [
     { name = "any-agent", extra = ["a2a", "all"] },
     { name = "autoflake" },
     { name = "boto3" },
-    { name = "dotenv" },
     { name = "fire" },
     { name = "litellm" },
     { name = "loguru" },
     { name = "markdownify" },
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-instrumentation-starlette" },
+    { name = "python-dotenv" },
     { name = "tavily-python" },
 ]
 
@@ -96,6 +96,7 @@ requires-dist = [
     { name = "markdownify", specifier = "==1.2.0" },
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-instrumentation-starlette" },
+    { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "tavily-python", specifier = "==0.7.10" },
 ]
 
@@ -556,7 +557,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
     { name = "asyncer" },
-    { name = "audioop-lts", marker = "python_full_version < '4.0'" },
+    { name = "audioop-lts", marker = "python_full_version < '4'" },
     { name = "click" },
     { name = "dataclasses-json" },
     { name = "fastapi" },

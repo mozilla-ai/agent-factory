@@ -1,6 +1,10 @@
+import importlib.metadata
+
 import autoflake
 
 from agent_factory.utils.logging import logger
+
+ANY_AGENT_VERSION = importlib.metadata.version("any_agent")
 
 
 def clean_python_code_with_autoflake(code: str) -> str:
@@ -18,7 +22,7 @@ def clean_python_code_with_autoflake(code: str) -> str:
 
 
 # TODO: pin all dependencies, if known, i.e. if present in the pyproject.toml
-def validate_dependencies(agent_factory_outputs: dict[str, str]) -> str:
+def validate_dependencies(tools: str, dependencies: list[str]) -> str:
     """Validate dependencies. In particular:
     - make sure that if uvx is used to install an MCP server, then
       uv appears in the final requirements.txt
@@ -29,12 +33,18 @@ def validate_dependencies(agent_factory_outputs: dict[str, str]) -> str:
     - if visit_webpage is in tools, add markdownify==1.2.0 to dependencies
     - if search_tavily is in tools, add tavily-python==0.7.10 to dependencies
     """
-    dependencies = agent_factory_outputs["dependencies"]
-
     # make sure uv is in if uvx is in tools
-    if "uvx" in agent_factory_outputs["tools"] and "uv" not in dependencies:
+    final_dependencies = []
+    final_dependencies.extend(dependencies)
+
+    if "uvx" in tools and "uv" not in final_dependencies:
         logger.info("Agent uses uvx but deps were missing uv: adding manually.")
-        dependencies += "\nuv"
+        final_dependencies.append("uv")
+
+    if "any-agent" in final_dependencies:
+        logger.info(f"Pinning any-agent to version {ANY_AGENT_VERSION}")
+        final_dependencies = list(filter(lambda dependency: not dependency.startswith("any-agent"), final_dependencies))
+        final_dependencies.append(f"any-agent[all,a2a]=={ANY_AGENT_VERSION}")
 
     # We know markdownify is a dependency of visit_webpage
     # TODO: parse tool deps and add them to the dependencies, rather than manually here
@@ -48,10 +58,7 @@ def validate_dependencies(agent_factory_outputs: dict[str, str]) -> str:
         dependencies += "\ntavily-python==0.7.10"
 
     # Remove any existing litellm lines and append pinned constraint
-    lines = dependencies.split("\n")
-    filtered_lines = [line for line in lines if not line.strip().startswith("litellm")]
-    filtered_lines.append("litellm<1.75.0")
+    final_dependencies = list(filter(lambda dependency: not dependency.startswith("litellm"), final_dependencies))
+    final_dependencies.append("litellm<1.75.0")
 
-    normalized_dependencies = "\n".join(filtered_lines)
-    agent_factory_outputs["dependencies"] = normalized_dependencies
-    return normalized_dependencies
+    return "\n".join(final_dependencies)

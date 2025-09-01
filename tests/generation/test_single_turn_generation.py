@@ -6,7 +6,7 @@ import pytest
 from any_agent.tracing.agent_trace import AgentTrace
 from requirements_validators import (
     assert_mcp_uv_consistency,
-    assert_requirements_first_line_matches_any_agent_version,
+    assert_requirements_includes_any_agent_version,
     assert_requirements_installable,
 )
 from utils.non_deterministic_runs import run_until_success_threshold_async
@@ -195,7 +195,7 @@ async def test_single_turn_generation(
     _assert_num_turns_within_limit(agent_trace, test_case["expected_num_turns"])
 
     # Assertions based on requirements.txt
-    assert_requirements_first_line_matches_any_agent_version(full_path / "requirements.txt")
+    assert_requirements_includes_any_agent_version(full_path / "requirements.txt")
     assert_mcp_uv_consistency(full_path / "agent.py", full_path / "requirements.txt")
     assert_requirements_installable(full_path / "requirements.txt")
 

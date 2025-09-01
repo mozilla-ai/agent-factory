@@ -30,6 +30,11 @@ TOOL_MOCKS = [
     },
     {
         "prompt_id": "url-to-podcast",
+        "function_name": "visit_webpage",
+        "mock_function": mock_extract_text_from_url,
+    },
+    {
+        "prompt_id": "url-to-podcast",
         "function_name": "combine_mp3_files_for_podcast",
         "mock_function": mock_combine_mp3_files_for_podcast,
     },
@@ -51,6 +56,11 @@ TOOL_MOCKS = [
     {
         "prompt_id": "summarize-url-content",
         "function_name": "extract_text_from_url",
+        "mock_function": mock_extract_text_from_url,
+    },
+    {
+        "prompt_id": "summarize-url-content",
+        "function_name": "visit_webpage",
         "mock_function": mock_extract_text_from_url,
     },
 ]

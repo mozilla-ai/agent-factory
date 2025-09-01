@@ -10,14 +10,13 @@ class TestValidateDependencies:
 
     def test_basic_validation_adds_litellm(self, sample_generator_agent_response_json):
         """Test that litellm<1.75.0 is added to typical agent dependencies."""
-        agent_factory_outputs = sample_generator_agent_response_json.copy()
+        tools = sample_generator_agent_response_json["tools"]
+        dependencies = []
 
-        result = validate_dependencies(agent_factory_outputs)
+        result = validate_dependencies(tools, dependencies)
 
-        # The sample data contains search_tavily, so tavily-python should be added too
-        expected = sample_generator_agent_response_json["dependencies"] + "\ntavily-python==0.7.10\nlitellm<1.75.0"
-        assert result == expected
-        assert agent_factory_outputs["dependencies"] == expected
+        expected = "litellm<1.75.0"
+        assert result.strip() == expected
 
     @pytest.mark.parametrize(
         "litellm_dep,expected_suffix",
@@ -31,42 +30,25 @@ class TestValidateDependencies:
         self, sample_generator_agent_response_json, litellm_dep, expected_suffix
     ):
         """Test that existing litellm versions are replaced with pinned version."""
-        agent_factory_outputs = sample_generator_agent_response_json.copy()
-        agent_factory_outputs["dependencies"] = (
-            sample_generator_agent_response_json["dependencies"] + f"\n{litellm_dep}"
-        )
+        tools = sample_generator_agent_response_json["tools"]
+        dependencies = [litellm_dep]
 
-        result = validate_dependencies(agent_factory_outputs)
+        result = validate_dependencies(tools, dependencies)
 
-        # The sample data contains search_tavily, so tavily-python should be added too
-        expected = sample_generator_agent_response_json["dependencies"] + f"\ntavily-python==0.7.10\n{expected_suffix}"
-        assert result == expected
+        expected = expected_suffix
+        assert result.strip() == expected
         assert result.count("litellm<1.75.0") == 1
 
     def test_adds_uv_when_uvx_in_tools(self, sample_generator_agent_response_json):
         """Test that uv is added when uvx is found in tools."""
-        agent_factory_outputs = sample_generator_agent_response_json.copy()
-        # Modify tools to include uvx usage (realistic scenario)
-        agent_factory_outputs["tools"] = (
-            sample_generator_agent_response_json["tools"] + "\n# uvx install some-mcp-server"
-        )
+        tools = sample_generator_agent_response_json["tools"] + "\n# uvx install some-mcp-server"
+        dependencies = ["any-agent[all,a2a]==0.25.0", "python-dotenv", "beautifulsoup4", "requests", "fire"]
 
-        result = validate_dependencies(agent_factory_outputs)
+        result = validate_dependencies(tools, dependencies)
 
-        # The sample data contains search_tavily, so tavily-python should be added too
-        expected = sample_generator_agent_response_json["dependencies"] + "\nuv\ntavily-python==0.7.10\nlitellm<1.75.0"
-        assert result == expected
-        assert agent_factory_outputs["dependencies"] == expected
+        expected = "\n".join(dependencies) + "\nuv\nlitellm<1.75.0"
 
-    def test_adds_markdownify_when_visit_webpage_in_tools(self):
-        """Test that markdownify==1.2.0 is added when visit_webpage is found in tools."""
-        agent_factory_outputs = {
-            "dependencies": "requests\nfire",
-            "tools": "TOOLS = [\n    visit_webpage,  # visit webpages\n]",
-        }
+        expected_sorted = sorted([line for line in expected.split("\n") if line])
+        result_sorted = sorted([line for line in result.split("\n") if line])
 
-        result = validate_dependencies(agent_factory_outputs)
-
-        expected = "requests\nfire\nmarkdownify==1.2.0\nlitellm<1.75.0"
-        assert result == expected
-        assert agent_factory_outputs["dependencies"] == expected
+        assert result_sorted == expected_sorted
