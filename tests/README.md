@@ -18,7 +18,7 @@ agent generation and validation, io and storage.
 - **`generation`**: tests for end-to-end single-turn agent generation using real prompts. We have a few use cases detailed in the `use_cases.yaml` file, and the purpose of these tests is to verify that the process of building these agents completes with no errors.
 - **`generated_artifacts`**: these tests validate the agents generated in the previous step, making sure they are consistent with their input prompts and that they work as expected. The tests both verify the generated agents and their generation traces statically, and dynamically execute the agents while mocking some external APIs and paid services.
 - **`generated_agent_evaluation`**: our generated agents can also come with LLM-as-judge evaluation. The purpose of these tests is to validate the evaluation tool itself.
-- **`artifacts`**: these are not tests, but the actual agents generated in `generation` and tested in `generated_artifacts`.
+- **`artifacts`**: these are not tests, but the actual agent artifacts generated as a part of the `generation` tests, which are then tested in `generated_artifacts`.
 - **`utils`** - Shared testing utilities and helpers. At the present time, the package contains just a single `run_until_success_threshold_async` function, which allows us to run a test multiple times and consider it successful only if it completes at least n runs out of m attempts.
 
 While you can run the above directly with `pytest`, different tests might require different setups so we have added some shortcuts in our `Makefile` to run them in a single command.
