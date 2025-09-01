@@ -46,17 +46,6 @@ def validate_dependencies(tools: str, dependencies: list[str]) -> str:
         final_dependencies = list(filter(lambda dependency: not dependency.startswith("any-agent"), final_dependencies))
         final_dependencies.append(f"any-agent[all,a2a]=={ANY_AGENT_VERSION}")
 
-    # We know markdownify is a dependency of visit_webpage
-    # TODO: parse tool deps and add them to the dependencies, rather than manually here
-    if "visit_webpage" in agent_factory_outputs["tools"] and "markdownify" not in dependencies:
-        logger.info("Agent uses visit_webpage but deps were missing markdownify: adding manually.")
-        dependencies += "\nmarkdownify==1.2.0"
-
-    # TODO: same as a above
-    if "search_tavily" in agent_factory_outputs["tools"] and "tavily-python" not in dependencies:
-        logger.info("Agent uses search_tavily but deps were missing tavily-python: adding manually.")
-        dependencies += "\ntavily-python==0.7.10"
-
     # Remove any existing litellm lines and append pinned constraint
     final_dependencies = list(filter(lambda dependency: not dependency.startswith("litellm"), final_dependencies))
     final_dependencies.append("litellm<1.75.0")
