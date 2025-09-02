@@ -1,7 +1,8 @@
+import ast
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class Status(Enum):
@@ -39,3 +40,50 @@ class AgentFactoryOutputs(BaseModel):
         ..., description="A prompt template that, completed with cli_args, defines the agent's input prompt."
     )
     readme: str = Field(..., description="The run instructions in Markdown format")
+
+
+class SyntaxErrorMessage(BaseModel):
+    code: str = Field(..., description="The Python code that has the syntax error.")
+    message: str = Field(..., description="The error message.")
+    line: int | None = Field(..., description="The line number where the error occurred.")
+    text: str | None = Field(..., description="The text of the line where the error occurred.")
+
+
+class CodeSnippet(BaseModel):
+    """Validate that the code snippet is syntactically correct Python code.
+
+    This schema accepts a single field 'code' which is a string containing Python code. The code is validated
+    using the `ast` module to ensure it is syntactically correct.
+
+    Args:
+        code: The Python code snippet as a string.
+
+    Raises:
+        SyntaxError: If the code is not valid Python code.
+    """
+
+    code: str
+
+    @field_validator("code")
+    @classmethod
+    def check_valid_python_code(cls, value: str) -> str:
+        """Validate that the input string is syntactically correct Python code.
+
+        Use the `ast` module to parse the code.
+        If the code syntax is incorrect, a `SyntaxError` will be raised.
+
+        Args:
+            value: The string value of the 'code' field.
+
+        Returns:
+            The original string if it's valid Python code.
+
+        Raises:
+            ValueError: If the code has a syntax error.
+        """
+        try:
+            ast.parse(value)
+        except SyntaxError:
+            raise
+
+        return value

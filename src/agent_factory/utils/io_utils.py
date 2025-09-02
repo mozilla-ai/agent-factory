@@ -5,7 +5,7 @@ from pathlib import Path
 
 from agent_factory.instructions import AGENT_CODE_TEMPLATE
 from agent_factory.schemas import AgentParameters
-from agent_factory.utils import clean_python_code_with_autoflake, validate_dependencies
+from agent_factory.utils import prepare_python_code, validate_dependencies
 from agent_factory.utils.logging import logger
 from agent_factory.utils.mcpd_utils import export_mcpd_config_artifacts
 
@@ -116,10 +116,11 @@ def prepare_agent_artifacts(agent_factory_outputs: dict[str, str]) -> dict[str, 
     and gathering (Python) tool files.
     """
     artifacts_to_save = {}
-    agent_code = AGENT_CODE_TEMPLATE.format(**agent_factory_outputs)
-    clean_agent_code = clean_python_code_with_autoflake(agent_code)
 
-    artifacts_to_save["agent.py"] = clean_agent_code
+    agent_code = AGENT_CODE_TEMPLATE.format(**agent_factory_outputs)
+    valid_agent_code = prepare_python_code(agent_code)
+    artifacts_to_save["agent.py"] = valid_agent_code.code
+
     artifacts_to_save["README.md"] = agent_factory_outputs["readme"]
 
     dependencies = set()
@@ -132,7 +133,7 @@ def prepare_agent_artifacts(agent_factory_outputs: dict[str, str]) -> dict[str, 
             dependencies.update(extract_requirements_from_string(tool_code))
             artifacts_to_save[f"tools/{tool_file.name}"] = tool_code
 
-    dependencies.update(extract_requirements_from_string(clean_agent_code))
+    dependencies.update(extract_requirements_from_string(valid_agent_code.code))  # type: ignore
     dependencies_list = list(dependencies)
     validated_dependencies = validate_dependencies(agent_factory_outputs["tools"], dependencies_list)
     artifacts_to_save["requirements.txt"] = validated_dependencies
