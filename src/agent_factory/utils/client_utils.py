@@ -138,22 +138,30 @@ def process_streaming_response_message(response: Any) -> ProcessedStreamingRespo
         return processed_response
 
 
-def create_agent_trace_from_dumped_spans(spans_dump_file_path: Path, final_output: str | None = None) -> AgentTrace:
-    """Create an AgentTrace object from a spans dump file and agent final output."""
-    if not spans_dump_file_path.exists():
-        raise FileNotFoundError(f"Spans dump file {spans_dump_file_path} does not exist")
+def create_agent_trace_from_dumped_spans(
+    spans_dump_file_path: list[Path],
+    final_output: str | None = None,
+) -> AgentTrace:
+    """Create an AgentTrace from one or multiple JSONL span dump files."""
+    paths: list[Path] = spans_dump_file_path
+    all_spans: list[AgentSpan] = []
 
-    try:
-        spans = [
-            AgentSpan.model_validate_json(line)
-            for line in spans_dump_file_path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
-        agent_trace = AgentTrace(spans=spans, final_output=final_output)
-        return agent_trace
-    except Exception as e:
-        logger.error(f"Failed to create agent trace from file {spans_dump_file_path}: {str(e)}")
-        raise
+    for path in paths:
+        if not path.exists():
+            logger.warning(f"Spans dump file {path} does not exist. Skipping.")
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+            file_spans = [AgentSpan.model_validate_json(line) for line in lines if line.strip()]
+            all_spans.extend(file_spans)
+        except Exception as e:
+            logger.error(f"Failed to read and parse spans from file {path}: {str(e)}")
+            raise
+
+    if not all_spans:
+        raise FileNotFoundError("No valid spans found in the provided span dump file(s)")
+
+    return AgentTrace(spans=all_spans, final_output=final_output)
 
 
 def is_server_live(host: str, port: int, timeout: float = 2.0) -> bool:
