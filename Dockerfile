@@ -14,7 +14,7 @@ ENV FRAMEWORK=tinyagent
 # Enable or disable chat mode
 # Set to 1 to enable chat mode, 0 to disable
 ENV CHAT=1
-ENV MODEL=openai:o3
+ENV MODEL=openai/o3
 ENV MAX_TURNS=40
 ENV A2A_SERVER_HOST=0.0.0.0
 ENV A2A_SERVER_PORT=8080

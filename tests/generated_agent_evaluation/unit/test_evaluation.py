@@ -9,7 +9,7 @@ from eval.run_generated_agent_evaluation import run_evaluation
 @pytest.mark.parametrize(
     "custom_model,custom_framework",
     [
-        ("openai:o3", AgentFramework.OPENAI),
+        ("openai/o3", AgentFramework.OPENAI),
         ("openai:gpt-5", AgentFramework.GOOGLE),
         ("mistral:mistral-medium-2508", AgentFramework.LANGCHAIN),
         ("llama-2-70b", AgentFramework.SMOLAGENTS),
