@@ -78,9 +78,9 @@ except McpdError as e:
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    "openai",
+    "tinyagent",
     AgentConfig(
-        model_id="o3",
+        model_id="openai/o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
         output_type=StructuredOutput,  # name of the Pydantic v2 model defined above
@@ -301,9 +301,9 @@ except McpdError as e:
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    "openai",
+    "tinyagent",
     AgentConfig(
-        model_id="o3",
+        model_id="openai/o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
         output_type=StructuredOutput,  # name of the Pydantic v2 model defined above
@@ -370,7 +370,7 @@ CODE_GENERATION_INSTRUCTIONS = """
 Create a complete implementation of a single agent that executes a multi-step workflow
 using Mozilla's any-agent library. The implementation should:
 
-1. Use the OpenAI framework as the underlying agent provider
+1. Use the "tinyagent" framework as the underlying agent provider
 2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
 3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the `output_type` argument.
 4. Whenever required, assign tools in the agent configuration.
@@ -501,7 +501,7 @@ You are an expert software developer with a deep understanding of Mozilla AI's a
 
 Any-agent library enables you to:
 - Build agent systems with a unified API regardless of the underlying framework
-- Switch between different agent frameworks (like OpenAI, LangChain, smolagents) without rewriting code
+- Switch between different agent frameworks (like OpenAI, LangChain, smolagents, tinyagent) without rewriting code
 - Create both single-agent and multi-agent systems with consistent patterns
 - Leverage built-in tools like web search and webpage visiting as well as MCP servers
 - Implement comprehensive tracing and evaluation capabilities
