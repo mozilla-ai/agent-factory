@@ -60,7 +60,7 @@ def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
         # Call original method with modified tools
         result = await original_load_tools(self, modified_tools)
 
-        logger.debug(f"Original _load_tools returned: {len(result[0])} tools, {len(result[1])} mcp_servers")
+        logger.debug(f"Original _load_tools returned: {len(result)} tools")
 
         return result
 
