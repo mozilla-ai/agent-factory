@@ -7,6 +7,9 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from openai.types import CompletionUsage
+from openai.types.chat import ChatCompletionMessage
+from openai.types.chat.chat_completion import ChatCompletion, Choice
 
 UNIT_TESTS_DATA_DIR = Path(__file__).parent / "data"
 
@@ -124,3 +127,31 @@ def mock_s3_environ():
         },
     ) as patched_environ:
         yield patched_environ
+
+
+@pytest.fixture
+def mock_llm_response_factory():
+    """A factory to create a mock ChatCompletion response."""
+
+    def _factory(content: str = "This is a default mock response!") -> ChatCompletion:
+        """The actual function that creates the mock object."""
+        return ChatCompletion(
+            id="chatcmpl-34cbfe5f-efd9-490d-a525-a00b35bee495",
+            choices=[
+                Choice(
+                    finish_reason="stop",
+                    index=0,
+                    message=ChatCompletionMessage(
+                        content=content,
+                        role="assistant",
+                    ),
+                )
+            ],
+            created=1677652288,
+            model="gpt-4o",
+            object="chat.completion",
+            system_fingerprint=None,
+            usage=CompletionUsage(completion_tokens=7, prompt_tokens=3, total_tokens=10),
+        )
+
+    return _factory
