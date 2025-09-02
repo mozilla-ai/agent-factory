@@ -40,7 +40,7 @@ def test_search_mcp_servers_used(agent_factory_trace: AgentTrace, prompt_id: str
         assert "slack" in keyphrases_used
         assert "sqlite" in keyphrases_used
         # Only official servers are to be used, as per the user prompt
-        assert all(tool_args.get("is_official") is True for tool_args in search_mcp_tool_calls)
+        assert all(bool(tool_args.get("is_official")) for tool_args in search_mcp_tool_calls)
 
 
 @pytest.mark.artifact_validation

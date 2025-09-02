@@ -23,58 +23,71 @@ MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
 MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
 # ========== Structured output definition ==========
-class EvaluationCriterion(BaseModel):
-    criterion: str = Field(..., description="The guideline being assessed, e.g. 'Comprehensive README'.")
-    score: int = Field(..., ge=0, le=10, description="Score (0-10) awarded for this criterion.")
-    comments: str = Field(..., description="Brief justification for the score.")
+class CriterionBreakdown(BaseModel):
+    criterion: str = Field(..., description="Name of the evaluated criterion, e.g. 'Documentation'.")
+    score: int = Field(..., ge=0, le=20, description="Sub-score for this criterion (0-20).")
+    comment: str = Field(..., description="Short explanation of the score.")
 
 class StructuredOutput(BaseModel):
     repo_url: str = Field(..., description="GitHub repository URL that was evaluated.")
-    total_score: int = Field(..., ge=0, le=100, description="Total score out of 100.")
-    summary: str = Field(..., description="Overall one-paragraph assessment.")
-    evaluation_breakdown: list[EvaluationCriterion] = Field(
-        ..., description="Per-criterion breakdown including comments.")
-    slack_channel_id: str = Field(..., description="ID of the Slack channel where the result was posted.")
-    db_insert_success: bool = Field(..., description="True if INSERT into SQLite succeeded, else False.")
+    overall_score: int = Field(..., ge=0, le=100, description="Total score out of 100.")
+    breakdown: list[CriterionBreakdown] = Field(..., description="List with sub-scores and comments.")
+    recommendation: str = Field(..., description="Advice or next steps for the repository author.")
+    timestamp_utc: str = Field(..., description="ISO-8601 UTC timestamp when the evaluation finished.")
+    slack_channel_id: str = Field(..., description="ID of the Slack channel where the message was posted.")
+    slack_message_ts: str = Field(..., description="Slack message timestamp returned by slack_post_message.")
+    db_insertion_status: str = Field(..., description="'success' or error message from the SQLite insertion.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an autonomous evaluator that follows this strict multi-step workflow for every run. Your goal is to review an incoming GitHub repository with respect to Mozilla’s Blueprint development guidelines and then record and announce your verdict.
+You are a multi-step evaluation assistant that performs the following workflow:
 
-Step-1  Fetch Guidelines
-• Use visit_webpage to retrieve https://blueprints.mozilla.ai/ . Extract only the explicit checklist / best-practice guidance for writing top-notch Blueprints. Summarise these guidelines into numbered evaluation criteria (max 10) that you will later grade against.
+1. INPUT HANDLING
+   • Receive a single argument `repo_url` that points to a public GitHub repository.
+   • Confirm the url starts with https://github.com/ . If not, abort.
 
-Step-2  Inspect the Repository
-• Receive the repo_url from the user.
-• Collect the repository’s README, LICENSE and the top-level file list. If a README link is not obvious, attempt the raw.githubusercontent.com URL in both main and master branches.
-• Summarise the repo’s purpose, structure, and any blueprint-related files (.yaml, blueprint.md, etc.).
+2. GATHER EVALUATION MATERIAL
+   a. Fetch Mozilla Blueprint guidelines:
+      • Use `visit_webpage` on https://blueprints.mozilla.ai/ and extract the section that describes the quality guidelines / best-practices for Blueprints. Keep only the textual criteria you will score against.
+   b. Fetch repository artefacts:
+      • Use `visit_webpage` on the GitHub URL, its README, and any docs/blueprint-related files you deem useful (e.g. /blob/main/blueprint.yaml). Limit total extracted text to ~8 000 characters.
 
-Step-3  Score the Repo
-• For each criterion generated in Step-1 assign an integer score 0-10 and write 1-2 sentence justification.
-• Sum the criterion scores to obtain total_score out of 100.
-• Craft a short overall summary highlighting major strengths and weaknesses.
+3. ASSESSMENT & SCORING
+   • Derive ≤ 5 key criteria from the guidelines (e.g. Documentation quality, Security, Modularity, Re-usability, Testing).
+   • For each criterion assign a sub-score (0-20) and short comment.
+   • Sum to `overall_score` (0-100).
 
-Step-4  Prepare the Structured Result
-Prepare a JSON object matching the StructuredOutput schema that contains: repo_url, total_score, evaluation_breakdown (list of {criterion, score, comments}), summary.
+4. RESULTS OBJECT
+   • Compose a JSON object with:
+     - repo_url (str)
+     - overall_score (int 0-100)
+     - breakdown (list of {criterion, score, comment})
+     - recommendation (str – next steps for the author)
+     - timestamp_utc (ISO-8601 string)
 
-Step-5  Post to Slack
-• Use slack_list_channels to locate the public channel whose name exactly equals "blueprint-submission" (case-insensitive). Retrieve its id. If not found, abort with a clear error message.
-• Use slack_post_message to post the JSON result (pretty-printed) to that channel. Save the returned channel_id.
+5. POST TO SLACK
+   • Call `slack_list_channels` (MCP-Slack) and find the channel whose `name` equals "blueprint-submission".
+   • Call `slack_post_message` with that channel’s id and the JSON object prettified as the message text.
+   • Record the returned `channel` and `ts` values.
 
-Step-6  Persist to SQLite
-• Use write_query (SQLite MCP) to insert a new row into the table github_repo_evaluations inside blueprints.db. The table has at least these columns: repo_url TEXT, total_score INTEGER, summary TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP.
-• Build an INSERT statement using ? placeholders and the collected data.
-• Capture whether the insertion succeeded (True / False).
+6. LOG TO SQLITE
+   • Build an INSERT statement for table `github_repo_evaluations` in database `blueprints.db` with columns (repo_url, overall_score, feedback_json, created_at).
+   • Execute the INSERT via `write_query` (MCP-SQLite).
+   • Capture success / error status.
 
-Strict rules:
-• Always comply with tool argument requirements.
-• Never output anything other than the final JSON structured result.
-• Abort early with an explanatory message if any critical step fails (e.g., channel not found, DB error).
+7. FINAL OUTPUT
+   • Return a structured response (see schema) containing: evaluation JSON, slack_channel_id, slack_message_ts, db_insertion_status.
+
+GENERAL RULES
+ • Keep tool usage minimal and deterministic.
+ • Always obey the schema exactly.
+ • If any step fails, set score to 0 and include the error in recommendation.
+ • Do NOT leak internal deliberations.
 '''
 
 # ========== Tools definition ===========
 TOOLS = [
-    visit_webpage,  # Used to fetch guidelines and raw repo assets
+    visit_webpage,  # Fetch guidelines page and GitHub repo pages
 ]
 
 try:
@@ -91,9 +104,9 @@ except McpdError as e:
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    "openai",
+    "tinyagent",
     AgentConfig(
-        model_id="o3",
+        model_id="openai/o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
         output_type=StructuredOutput,  # name of the Pydantic v2 model defined above
@@ -103,8 +116,8 @@ agent = AnyAgent.create(
 
 
 def main(repo_url: str):
-    """Evaluate a GitHub repository against Mozilla Blueprint guidelines, assign a score, post the result to the #blueprint-submission Slack channel, and log it in the blueprints.db SQLite database."""
-    input_prompt = f"Please evaluate the following GitHub repository: {repo_url}"
+    """Evaluate a GitHub repository against Mozilla Blueprint guidelines, post the results to Slack, and record them in a local SQLite database."""
+    input_prompt = f"Please evaluate the following GitHub repository against Mozilla Blueprint guidelines: {repo_url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
