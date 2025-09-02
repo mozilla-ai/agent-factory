@@ -35,6 +35,11 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 COPY --from=mcpd /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
 
+# Install build-essential for CPython dependencies (fastuuid)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.8.4 /uv /uvx /usr/local/bin/
 
