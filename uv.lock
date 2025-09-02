@@ -76,7 +76,7 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["a2a"], specifier = "==1.7.0" },
+    { name = "any-agent", extras = ["a2a"], specifier = "==1.5.0" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "boto3", specifier = ">=1.40.0" },
     { name = "fire", specifier = "~=0.7.0" },
@@ -213,21 +213,22 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "1.7.0"
+version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "any-llm-sdk" },
     { name = "litellm" },
     { name = "mcp" },
+    { name = "openai" },
     { name = "opentelemetry-sdk" },
     { name = "pydantic" },
     { name = "requests" },
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/77/47/38b5222d59e0f48c8e7f93e9903cbbfc400467c11ce4d091a72fa83f6ea2/any_agent-1.7.0.tar.gz", hash = "sha256:7da9d080e52034a2108340d65ac6ba0c4a5b4e3c835f82a97c2f0652b742de32", size = 466953 }
+sdist = { url = "https://files.pythonhosted.org/packages/a4/f4/5e93a694bad7bdeeb6784ce1f222812306456148ad6296195b4b64b0aee5/any_agent-1.5.0.tar.gz", hash = "sha256:ea385ac66746e597dccb7a08e41bcff20eb5da67b8e51842b65f96ee9ebf3eb2", size = 464863 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/21/0d/6fe635913a2eafee36c0e7c5d47bc558f3f779933fab32a3e034f762e6ba/any_agent-1.7.0-py3-none-any.whl", hash = "sha256:3469334cdbae06417df26e0609596ba93dee0378ba2cb51e8de0e51f9a3840ba", size = 97840 },
+    { url = "https://files.pythonhosted.org/packages/72/aa/d110c9b50425221455efbe222472c9e705e37a41ce687de269aa5b418e7a/any_agent-1.5.0-py3-none-any.whl", hash = "sha256:8591155a55b87eee1cdef6009e877fe13121b2a34ffea3911752af0b3ed5041a", size = 96301 },
 ]
 
 [package.optional-dependencies]
