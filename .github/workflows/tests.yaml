@@ -88,6 +88,7 @@ jobs:
 
   run-generation-tests-alternate-frameworks:
     # Ensure generation tests don't break when switching frameworks (which work with litellm)
+    # Run only 1 of the use cases for cost reduction - summarize-url-content
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     runs-on: ubuntu-latest
@@ -110,7 +111,7 @@ jobs:
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
 
       - name: Run Generation Test - ${{ matrix.agent_framework }}
-        run: FRAMEWORK=${{ matrix.agent_framework }} make test-single-turn-generation-e2e PROMPT_ID=scoring-blueprints-submission
+        run: FRAMEWORK=${{ matrix.agent_framework }} make test-single-turn-generation-e2e PROMPT_ID=summarize-url-content
 
   run-agent-evaluation-tests:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
