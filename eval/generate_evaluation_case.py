@@ -41,7 +41,6 @@ def main(
         framework (str): The agent framework to use
         model (str): The model ID to use
     """
-
     if not generated_workflow_dir:
         repo_root = Path.cwd()
         workflows_dir = repo_root / "generated_workflows/latest"

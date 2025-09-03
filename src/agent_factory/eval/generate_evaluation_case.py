@@ -1,16 +1,17 @@
+import asyncio
 import json
 from pathlib import Path
 
 import dotenv
-import asyncio
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
-from .instructions import get_instructions
 from pydantic import BaseModel, Field
 
 from agent_factory.tools.search_tavily import search_tavily
 from agent_factory.tools.visit_webpage import visit_webpage
+
+from .instructions import get_instructions
 
 dotenv.load_dotenv()
 
@@ -42,7 +43,6 @@ def main(
         framework (str): The agent framework to use
         model (str): The model ID to use
     """
-
     if not generated_workflow_dir:
         repo_root = Path.cwd()
         workflows_dir = repo_root / "generated_workflows/latest"
@@ -90,14 +90,14 @@ def main(
                 output_type=JSONEvaluationCase,
             ),
         )
-        ag_trace = await agent.run_async(run_instructions.format(generated_workflow_dir=generated_workflow_dir), max_turns=30)
+        ag_trace = await agent.run_async(
+            run_instructions.format(generated_workflow_dir=generated_workflow_dir), max_turns=30
+        )
         for server in agent._mcp_servers:
             await server.mcp_connection.server.cleanup()
         return ag_trace
 
-    agent_trace = asyncio.run(
-        eval_async_fun()
-    )
+    agent_trace = asyncio.run(eval_async_fun())
 
     cost_info = agent_trace.cost
     evaluation_case_generation_costs = {
@@ -112,7 +112,7 @@ def main(
     evaluation_case_data = agent_trace.final_output.model_dump()
     evaluation_case_data["evaluation_case_generation_costs"] = evaluation_case_generation_costs
 
-    with open(workflows_dir + "/" + "evaluation_case.json", "w") as f:
+    with Path.open(workflows_dir + "/" + "evaluation_case.json", "w") as f:
         f.write(json.dumps(evaluation_case_data, indent=2))
 
 

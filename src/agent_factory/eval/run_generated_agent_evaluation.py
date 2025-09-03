@@ -6,10 +6,11 @@ import fire
 from any_agent import AgentFramework, AgentTrace
 from any_agent.evaluation import AgentJudge
 from any_agent.evaluation.schemas import EvaluationOutput
-from .generate_evaluation_case import JSONEvaluationCase
 
 from agent_factory.utils.logging import logger
 from agent_factory.utils.trace_utils import load_agent_trace
+
+from .generate_evaluation_case import JSONEvaluationCase
 
 
 async def run_evaluation(
