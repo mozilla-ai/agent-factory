@@ -6,6 +6,7 @@ FROM mzdotai/mcpd:${MCPD_VERSION} AS mcpd
 
 # Main application stage
 FROM python:3.13-slim
+ARG UV_GROUPS
 
 # Set the working directory in the container
 WORKDIR /app
@@ -31,6 +32,10 @@ ARG APP_VERSION
 # Set the environment variable for setuptools_scm
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 
+# Propagate optional dependency groups (space-separated)
+# Example: "openai langchain" # See pyproject.toml for available groups
+ENV UV_GROUPS=${UV_GROUPS}
+
 # Copy mcpd from the mcpd stage
 COPY --from=mcpd /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
@@ -48,8 +53,16 @@ COPY pyproject.toml /app
 COPY uv.lock /app
 COPY src /app/src
 
-# Install dependencies using uv
-RUN uv sync --no-cache --locked --no-editable --no-dev
+# Install dependencies using uv (optionally including groups)
+RUN if [ -n "${UV_GROUPS}" ]; then \
+      echo "Installing uv groups: ${UV_GROUPS}"; \
+      set -e; \
+      groups=""; \
+      for g in ${UV_GROUPS}; do groups="$groups --group $g"; done; \
+      uv sync --no-cache --no-editable --no-dev $groups; \
+    else \
+      uv sync --no-cache --locked --no-editable --no-dev; \
+    fi
 RUN rm -rf /app/build
 
 # Set the working directory
