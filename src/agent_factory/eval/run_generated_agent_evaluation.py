@@ -13,7 +13,7 @@ from agent_factory.utils.trace_utils import load_agent_trace
 
 
 async def run_evaluation(
-    generated_workflow_dir: str = "generated_workflows/latest",
+    generated_workflow_dir: str,
     evaluation_case_json_file: str | None = None,
     agent_trace_json_file: str | None = None,
     save_evaluation_results_path: str | None = None,
@@ -23,8 +23,7 @@ async def run_evaluation(
     """Runs the evaluation process based on an evaluation case JSON file and an agent trace JSON file.
 
     Args:
-        generated_workflow_dir (str): The directory of the generated workflow.
-        Defaults to "generated_workflows/latest".
+        generated_workflow_dir (str): The absolute path to the directory of the generated workflow.
 
         evaluation_case_json_file (str, optional): Path to the evaluation case JSON file.
         If None, will use generated_workflow_dir/evaluation_case.json.
@@ -38,6 +37,9 @@ async def run_evaluation(
         framework (str): The agent framework the Agent Judge should use.
         model (str): The model ID the Agent Judge should use.
     """
+    if not Path(generated_workflow_dir).is_absolute():
+        raise ValueError(f"generated_workflow_dir must be an absolute path, got: {generated_workflow_dir}")
+
     # Set default paths based on generated_workflow_dir if not provided
     if evaluation_case_json_file is None:
         evaluation_case_json_file = f"{generated_workflow_dir}/evaluation_case.json"

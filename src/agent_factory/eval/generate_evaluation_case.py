@@ -30,7 +30,7 @@ class JSONEvaluationCase(BaseModel):
 
 
 def main(
-    generated_workflow_dir: str = "generated_workflows/latest",
+    generated_workflow_dir: str,
     framework: AgentFramework = AgentFramework.OPENAI,
     model: str = "gpt-4.1",
 ):
@@ -38,24 +38,20 @@ def main(
     Save the JSON file as `evaluation_case.json` in the same directory as the generated workflow.
 
     Args:
-        generated_workflow_dir: The directory of the generated workflow.
+        generated_workflow_dir: The absolute path to the directory of the generated workflow.
         framework (str): The agent framework to use
         model (str): The model ID to use
     """
-    if not generated_workflow_dir:
-        repo_root = Path.cwd()
-        workflows_dir = repo_root / "generated_workflows/latest"
-    else:
-        workflows_dir = generated_workflow_dir
+    if not Path(generated_workflow_dir).is_absolute():
+        raise ValueError(f"generated_workflow_dir must be an absolute path, got: {generated_workflow_dir}")
 
     # The filesystem MCP server will work with the local directory directly
-    file_ops_dir = str(workflows_dir)
+    file_ops_dir = str(generated_workflow_dir)
 
     tool_args = [
         "-y",
         "@modelcontextprotocol/server-filesystem",
         file_ops_dir,
-        ".",
     ]
 
     run_instructions = """
@@ -111,7 +107,7 @@ def main(
     evaluation_case_data = agent_trace.final_output.model_dump()
     evaluation_case_data["evaluation_case_generation_costs"] = evaluation_case_generation_costs
 
-    with Path.open(workflows_dir + "/" + "evaluation_case.json", "w") as f:
+    with Path.open(generated_workflow_dir + "/" + "evaluation_case.json", "w") as f:
         f.write(json.dumps(evaluation_case_data, indent=2))
 
 
