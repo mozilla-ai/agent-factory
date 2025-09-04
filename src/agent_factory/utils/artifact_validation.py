@@ -30,8 +30,6 @@ def validate_dependencies(tools: str, dependencies: list[str]) -> str:
       specifiers) is replaced with exactly `litellm<1.75.0`.
     - If no `litellm` line exists and dependencies are non-empty, append
       `litellm<1.75.0` as a new line.
-    - if visit_webpage is in tools, add markdownify==1.2.0 to dependencies
-    - if search_tavily is in tools, add tavily-python==0.7.10 to dependencies
     """
     # make sure uv is in if uvx is in tools
     final_dependencies = []
