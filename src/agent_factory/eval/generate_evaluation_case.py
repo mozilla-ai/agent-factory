@@ -107,7 +107,7 @@ def main(
     evaluation_case_data = agent_trace.final_output.model_dump()
     evaluation_case_data["evaluation_case_generation_costs"] = evaluation_case_generation_costs
 
-    with Path.open(generated_workflow_dir + "/" + "evaluation_case.json", "w") as f:
+    with (Path(generated_workflow_dir) / "evaluation_case.json").open("w") as f:
         f.write(json.dumps(evaluation_case_data, indent=2))
 
 
