@@ -8,10 +8,9 @@ from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
 from pydantic import BaseModel, Field
 
+from agent_factory.eval.instructions import get_instructions
 from agent_factory.tools.search_tavily import search_tavily
 from agent_factory.tools.visit_webpage import visit_webpage
-
-from .instructions import get_instructions
 
 dotenv.load_dotenv()
 
@@ -90,12 +89,12 @@ def main(
                 output_type=JSONEvaluationCase,
             ),
         )
-        ag_trace = await agent.run_async(
+        agent_trace = await agent.run_async(
             run_instructions.format(generated_workflow_dir=generated_workflow_dir), max_turns=30
         )
         for server in agent._mcp_servers:
             await server.mcp_connection.server.cleanup()
-        return ag_trace
+        return agent_trace
 
     agent_trace = asyncio.run(eval_async_fun())
 
