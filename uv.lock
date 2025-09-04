@@ -38,13 +38,13 @@ dependencies = [
     { name = "any-agent", extra = ["a2a", "all"] },
     { name = "autoflake" },
     { name = "boto3" },
-    { name = "dotenv" },
     { name = "fire" },
     { name = "litellm" },
     { name = "loguru" },
     { name = "markdownify" },
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-instrumentation-starlette" },
+    { name = "python-dotenv" },
     { name = "tavily-python" },
 ]
 
@@ -89,13 +89,13 @@ requires-dist = [
     { name = "any-agent", extras = ["all", "a2a"], specifier = "==1.2.0" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "boto3" },
-    { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fire", specifier = "~=0.7.0" },
     { name = "litellm", specifier = "<1.75.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "markdownify", specifier = "==1.2.0" },
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-instrumentation-starlette" },
+    { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "tavily-python", specifier = "==0.7.10" },
 ]
 
@@ -756,17 +756,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b2/9d/c3b43da9515bd270df0f80548d9944e389870713cc1fe2b8fb35fe2bcefd/docstring_parser-0.17.0.tar.gz", hash = "sha256:583de4a309722b3315439bb31d64ba3eebada841f2e2cee23b99df001434c912", size = 27442 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/55/e2/2537ebcff11c1ee1ff17d8d0b6f4db75873e3b0fb32c2d4a2ee31ecb310a/docstring_parser-0.17.0-py3-none-any.whl", hash = "sha256:cf2569abd23dce8099b300f9b4fa8191e9582dda731fd533daf54c4551658708", size = 36896 },
-]
-
-[[package]]
-name = "dotenv"
-version = "0.9.9"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "python-dotenv" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b2/b7/545d2c10c1fc15e48653c91efde329a790f2eecfbbf2bd16003b5db2bab0/dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9", size = 1892 },
 ]
 
 [[package]]
