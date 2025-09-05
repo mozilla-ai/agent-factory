@@ -1,11 +1,11 @@
-# Blueprint Repository Evaluator
+# GitHub Blueprint Evaluator Agent
 
-Evaluates a GitHub repository against Mozilla AI Blueprint development guidelines, assigns a score, posts the evaluation to Slack, and logs it in a local SQLite database.
+This agent assesses a public GitHub repository against Mozilla AI Blueprint guidelines, scores it out of 100, posts the results to the `#blueprint-submission` Slack channel, and logs the entry into a local SQLite database.
 
 ## Prerequisites
 
-- uv
-- mcpd
+- **uv** – Python package manager/runner
+- **mcpd** – Model-Context Protocol daemon (for Slack & SQLite MCP servers)
 
 ### Install uv
 
@@ -20,35 +20,37 @@ Evaluates a GitHub repository against Mozilla AI Blueprint development guideline
 
 ### Install mcpd
 
-Follow the installation instructions in the official documentation: https://mozilla-ai.github.io/mcpd/installation/
+Follow the installation guide in the official documentation:
+https://mozilla-ai.github.io/mcpd/installation/
 
 ## Configuration
 
-Create a `.env` file in the project root and add the necessary environment variables, for example:
+Create a `.env` file with your environment variables, for example:
 
-```env
-# OpenAI / Anthropic / Azure keys for LLM usage
+```
 OPENAI_API_KEY=sk-...
-
-# Slack MCP server authentication
 SLACK_BOT_TOKEN=xoxb-your-bot-token
 SLACK_TEAM_ID=T01234567
-
-# SQLite MCP server configuration (path to database)
-MCPD_ARGS_sqlite__db_path=./blueprints.db
+MCPD_ADDR=http://localhost:8090
+# SQLite MCP server argument (path to DB)
+MCPD_RUNTIME_ARGS="--db-path=$(pwd)/blueprints.db"
 ```
 
 ## Run the Agent
 
-1. Export your .env variables so they can be sourced by mcpd and run the mcpd daemon:
-   ```bash
-   export $(cat .env | xargs) \
-     && mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
-   ```
+1. Export the variables and start the MCP daemon with the required servers (Slack and SQLite):
 
-2. Execute the agent:
-   ```bash
-   uv run --with-requirements requirements.txt --python 3.13 python agent.py --repo_url "https://github.com/owner/repo"
-   ```
+```bash
+export $(cat .env | xargs)
+# Start MCP daemon with Slack & SQLite servers (in another terminal or with &)
+mcpd daemon --log-level=DEBUG --log-path=$(pwd)/mcpd.log --dev --runtime-file secrets.prod.toml
+```
 
-The agent will output a structured JSON result, post it to Slack, and insert a record into `blueprints.db`.
+2. Evaluate a repository:
+
+```bash
+uv run --with-requirements requirements.txt --python 3.13 python agent.py --repo_url "https://github.com/your/repo"
+```
+
+The agent will output a structured JSON object, post the evaluation to Slack, and insert a row into the `github_repo_evaluations` table in `blueprints.db`.
+Logs and full agent trace (including token costs) are saved to `agent_eval_trace.json`.

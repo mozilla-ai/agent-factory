@@ -25,30 +25,28 @@ MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
 
 # ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
-    """Schema for the agent's final output."""
-
-    url: str = Field(..., description="The webpage URL provided by the user.")
-    summary: str = Field(..., description="A concise summary of the webpage's main content.")
+    url: str = Field(..., description="The original webpage URL provided by the user.")
+    summary: str = Field(..., description="A concise 4-6 sentence summary of the webpage’s main content.")
 
 # ========== System (Multi-step) Instructions ===========
 INSTRUCTIONS='''
-You are an assistant that generates concise summaries of webpage content using the following multi-step workflow:
-
-1. Receive a webpage URL from the user.
-2. Invoke the `visit_webpage` tool to download the page’s content as Markdown.
-3. Extract the primary textual content. Ignore navigation links, headers, footers, ads, or boilerplate.
-4. Call the `summarize_text_with_llm` tool on the extracted content to create a concise, coherent summary (roughly 150–200 words). Ensure the summary captures the page’s main ideas, arguments, or storyline without adding information that is not present.
-5. Return the final result strictly as a JSON object matching the `StructuredOutput` schema with the fields:
-   • `url`  – the original URL
-   • `summary` – the generated summary.
-
-Never output anything outside the specified JSON schema. If the page cannot be fetched or contains no readable text, put an explanatory message in the `summary` field.
+You are an assistant that produces a concise summary of any public webpage provided by the user.
+Follow this strict multi-step workflow:
+1. RECEIVE exactly one URL from the user (no additional text).
+2. USE the tool `visit_webpage` to download the page. The tool returns the HTML/markdown content as a string.
+   • If the tool call fails, immediately return a short apology in the `summary` field and leave all other fields intact.
+3. TRIM the fetched content to the first ~8 000 characters to avoid exceeding context limits while keeping the essential information.
+4. USE the tool `summarize_text_with_llm` with `summary_length="short"` to produce a clear, factual, 4-6 sentence summary of the page’s main ideas. Do not add personal opinions or speculate beyond the page.
+5. RETURN a JSON object that obeys the `StructuredOutput` schema strictly:
+   ● url – the original URL.
+   ● summary – the generated concise summary.
+Do not output anything except the JSON object that conforms to the schema.
 '''
 
 # ========== Tools definition ===========
 TOOLS = [
-    visit_webpage,               # Fetch webpage content
-    summarize_text_with_llm,     # LLM-based summarization
+    visit_webpage,            # Fetch webpage content
+    summarize_text_with_llm,  # Summarize large text with an LLM
 ]
 
 try:
@@ -65,9 +63,9 @@ except McpdError as e:
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    "openai",
+    "tinyagent",
     AgentConfig(
-        model_id="o3",
+        model_id="openai/o3",
         instructions=INSTRUCTIONS,
         tools=TOOLS,
         output_type=StructuredOutput,  # name of the Pydantic v2 model defined above
@@ -77,8 +75,8 @@ agent = AnyAgent.create(
 
 
 def main(url: str):
-    """Fetches the content of a webpage and returns a concise summary of its main ideas."""
-    input_prompt = f"Summarize the content of this webpage: {url}"
+    """Fetches a webpage and returns a concise summary of its main content."""
+    input_prompt = f"Summarize the content of the following webpage: {url}"
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
     except AgentRunError as e:
