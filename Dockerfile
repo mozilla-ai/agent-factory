@@ -35,7 +35,9 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 COPY --from=mcpd /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
 
-# Install build-essential for CPython dependencies (fastuuid)
+# Install build-essential which enables use of gcc and g++ compilers
+# This is required for CPython dependencies (e.g. fastuuid)
+# fastuuid installation happens when installing any-agent
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential pkg-config && \
     rm -rf /var/lib/apt/lists/*
