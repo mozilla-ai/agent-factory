@@ -1,7 +1,7 @@
 import asyncio
 from unittest import mock
 
-from eval.run_generated_agent_evaluation import run_evaluation
+from agent_factory.eval.run_generated_agent_evaluation import run_evaluation
 
 
 def test_evaluation_runs_with_valid_inputs(tmpdir, sample_evaluation_json_file, sample_agent_eval_trace_json):
