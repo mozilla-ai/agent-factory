@@ -52,7 +52,8 @@ async def main(
     from agent_factory.tools.search_tavily import search_tavily
     from agent_factory.tools.visit_webpage import visit_webpage
 
-    logger.info(f"Starting the server in {'chat' if chat else 'non-chat'} mode.")
+    logger.info(f"Starting the A2A server in {'chat' if chat else 'non-chat'} mode.")
+    logger.info(f"Using framework: {framework} and model: {model}")
 
     agent = await AnyAgent.create_async(
         framework,
