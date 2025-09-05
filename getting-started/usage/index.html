@@ -749,12 +749,12 @@ the generated agent run failing due to AgentRunError caused by MaxTurnsExceeded)
 </blockquote>
 <h2 id="6-use-criteria-agent-to-create-an-evaluation-case">6) Use Criteria Agent to create an Evaluation Case<a class="headerlink" href="#6-use-criteria-agent-to-create-an-evaluation-case" title="Permanent link">&para;</a></h2>
 <p>Run the Criteria Agent, from the project root directory, with your desired evaluation case prompt:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>eval.generate_evaluation_case<span class="w"> </span>path/to/the/generated/agent
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>agent_factory.eval.generate_evaluation_case<span class="w"> </span>absolute/path/to/the/generated/agent/folder
 </code></pre></div>
 <p>This will generate a JSON file in the generated agent's directory with evaluation criteria.</p>
 <h2 id="7-use-agent-judge-to-evaluate-the-agent-against-the-evaluation-case">7) Use Agent Judge to Evaluate the Agent against the Evaluation Case<a class="headerlink" href="#7-use-agent-judge-to-evaluate-the-agent-against-the-evaluation-case" title="Permanent link">&para;</a></h2>
 <p>Finally, evaluate the agent's execution trace against the generated evaluation case:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>eval.run_generated_agent_evaluation<span class="w"> </span>path/to/the/generated/agent
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>agent_factory.eval.run_generated_agent_evaluation<span class="w"> </span>absolute/path/to/the/generated/agent/folder
 </code></pre></div>
 <p>This command will display the evaluation criteria and show how the agent performed on each.</p>
 
