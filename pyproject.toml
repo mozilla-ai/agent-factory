@@ -5,6 +5,7 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    # Updating any-agent>0.15 means we requires litellm>1.75, but that results in an error for the target agent (which uses the same any-agent version as the manufacturing agent): See https://github.com/BerriAI/litellm/issues/13081 (=> we have to wait till LiteLLM fixes this issue on their side)
     "any-agent[a2a]==1.5.0",
     "autoflake==2.3.1",
     "boto3",
