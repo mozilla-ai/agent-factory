@@ -1,3 +1,4 @@
+import asyncio
 import json
 from pathlib import Path
 
@@ -5,9 +6,9 @@ import dotenv
 import fire
 from any_agent import AgentConfig, AgentFramework, AnyAgent
 from any_agent.config import MCPStdio
-from eval.instructions import get_instructions
 from pydantic import BaseModel, Field
 
+from agent_factory.eval.instructions import get_instructions
 from agent_factory.tools.search_tavily import search_tavily
 from agent_factory.tools.visit_webpage import visit_webpage
 
@@ -29,7 +30,7 @@ class JSONEvaluationCase(BaseModel):
 
 
 def main(
-    generated_workflow_dir: str = "generated_workflows/latest",
+    generated_workflow_dir: str,
     framework: AgentFramework = AgentFramework.TINYAGENT,
     model: str = "openai/gpt-4.1",
 ):
@@ -37,41 +38,21 @@ def main(
     Save the JSON file as `evaluation_case.json` in the same directory as the generated workflow.
 
     Args:
-        generated_workflow_dir: The directory of the generated workflow.
+        generated_workflow_dir: The absolute path to the directory of the generated workflow.
         framework (str): The agent framework to use
         model (str): The model ID to use
     """
-    repo_root = Path.cwd()
-    workflows_dir = repo_root / generated_workflow_dir
+    if not Path(generated_workflow_dir).is_absolute():
+        raise ValueError(f"generated_workflow_dir must be an absolute path, got: {generated_workflow_dir}")
 
     # The filesystem MCP server will work with the local directory directly
-    file_ops_dir = str(workflows_dir)
+    file_ops_dir = str(generated_workflow_dir)
 
-    agent = AnyAgent.create(
-        agent_framework=framework,
-        agent_config=AgentConfig(
-            model_id=model,
-            instructions=get_instructions(generated_workflow_dir),
-            tools=[
-                visit_webpage,
-                search_tavily,
-                MCPStdio(
-                    command="npx",
-                    args=[
-                        "-y",
-                        "@modelcontextprotocol/server-filesystem",
-                        file_ops_dir,
-                        ".",
-                    ],
-                    tools=[
-                        "read_file",
-                        "list_directory",
-                    ],
-                ),
-            ],
-            output_type=JSONEvaluationCase,
-        ),
-    )
+    tool_args = [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        file_ops_dir,
+    ]
 
     run_instructions = """
     Read the {generated_workflow_dir}/agent.py script and generate a JSON evaluation case for it.
@@ -82,7 +63,36 @@ def main(
     - be solely based on the agent's INSTRUCTIONS, tools in the agent configuration (including MCPs) and output_type JSON structured output.
     You may ignore the framework name and model_id in the agent configuration.
     """  # noqa: E501
-    agent_trace = agent.run(run_instructions.format(generated_workflow_dir=generated_workflow_dir), max_turns=30)
+
+    async def eval_async_fun():
+        agent = await AnyAgent.create_async(
+            agent_framework=framework,
+            agent_config=AgentConfig(
+                model_id=model,
+                instructions=get_instructions(generated_workflow_dir),
+                tools=[
+                    visit_webpage,
+                    search_tavily,
+                    MCPStdio(
+                        command="npx",
+                        args=tool_args,
+                        tools=[
+                            "read_file",
+                            "list_directory",
+                        ],
+                    ),
+                ],
+                output_type=JSONEvaluationCase,
+            ),
+        )
+        agent_trace = await agent.run_async(
+            run_instructions.format(generated_workflow_dir=generated_workflow_dir), max_turns=30
+        )
+        for server in agent._mcp_servers:
+            await server.mcp_connection.server.cleanup()
+        return agent_trace
+
+    agent_trace = asyncio.run(eval_async_fun())
 
     cost_info = agent_trace.cost
     evaluation_case_generation_costs = {
@@ -97,7 +107,7 @@ def main(
     evaluation_case_data = agent_trace.final_output.model_dump()
     evaluation_case_data["evaluation_case_generation_costs"] = evaluation_case_generation_costs
 
-    with (workflows_dir / "evaluation_case.json").open("w") as f:
+    with (Path(generated_workflow_dir) / "evaluation_case.json").open("w") as f:
         f.write(json.dumps(evaluation_case_data, indent=2))
 
 
