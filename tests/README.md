@@ -23,7 +23,7 @@ agent generation and validation, io and storage.
 
 While you can run the above directly with `pytest`, different tests might require different setups so we have added some shortcuts in our `Makefile` to run them in a single command.
 
-> NOTE: there is another set of tests pertaining the MCP servers we are curating in the `docs/mcp-servers.json` file: these do not validate our own code, but the MCP servers themselves. You can find the code in `docs/scripts/test_mcp_servers.py` and you can run the tests with `make test-mcps`.
+> NOTE: there is another set of tests pertaining the MCP servers we are curating in the `docs/mcp-servers.json` file: these do not validate our own code, but the MCP servers themselves. You can find the code in `docs/scripts/test_mcp_servers.py` and you can run the tests with `make test-mcps`. More documentation about these tests is available [here](https://mozilla-ai.github.io/agent-factory/user-guide/mcp-servers/#testing-and-maintenance).
 
 
 ## Running Tests
