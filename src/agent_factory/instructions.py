@@ -370,10 +370,9 @@ CODE_GENERATION_INSTRUCTIONS = """
 Create a complete implementation of a single agent that executes a multi-step workflow
 using Mozilla's any-agent library. The implementation should:
 
-1. Use the OpenAI framework as the underlying agent provider
-2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
-3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the `output_type` argument.
-4. Whenever required, assign tools in the agent configuration.
+1. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
+2. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the `output_type` argument.
+3. Whenever required, assign tools in the agent configuration.
 
 ## Required Components
 
