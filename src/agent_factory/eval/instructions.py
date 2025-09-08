@@ -4,19 +4,6 @@ The structured JSON output is saved as JSON format.
 
 from jinja2 import Template
 
-WEBPAGE_DESCRIPTIONS = {
-    "https://mozilla-ai.github.io/any-agent/tracing/": (
-        "Useful for debugging and monitoring agent behavior with OpenTelemetry traces."
-        "This page shows how to capture, visualize, "
-        "and analyze agent execution traces for better insights."
-    ),
-    "https://mozilla-ai.github.io/any-agent/evaluation/": (
-        "Consult when implementing evaluation for your agent systems."
-        "This page provides a trace-first approach to evaluate"
-        "agent performance against custom criteria using LLM-as-a-judge techniques."
-    ),
-}
-
 EVALUATION_CATEGORIES = """
 1. **Tool Usage**: Verify correct tool selection and invocation for each sub-task
 2. **Information Retrieval**: Ensure all necessary data is gathered
@@ -123,12 +110,6 @@ Analyze the agent's task, tools, and expected workflow to create thorough evalua
 ## Evaluation Categories to Cover
 {{ evaluation_categories }}
 
-You may access to the following webpages using `visit_webpage` tool:
-
-{% for url, description in webpage_descriptions.items() %}
-- {{ url }}: {{ description }}
-{% endfor %}
-
 ## Example of agent.py script and corresponding JSON evaluation file
 
 {{ agent_script_and_json_example }}
@@ -141,7 +122,6 @@ def get_instructions(generated_workflow_dir: str) -> str:
     template = Template(INSTRUCTIONS_TEMPLATE)
     return template.render(
         generated_workflow_dir=generated_workflow_dir,
-        webpage_descriptions=WEBPAGE_DESCRIPTIONS,
         evaluation_categories=EVALUATION_CATEGORIES,
         agent_script_and_json_example=AGENT_SCRIPT_AND_JSON_EXAMPLE,
     )
