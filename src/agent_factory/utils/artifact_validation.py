@@ -26,10 +26,7 @@ def validate_dependencies(tools: str, dependencies: list[str]) -> str:
     """Validate dependencies. In particular:
     - make sure that if uvx is used to install an MCP server, then
       uv appears in the final requirements.txt
-    - Any line starting with `litellm` (optionally with extras and any version
-      specifiers) is replaced with exactly `litellm<1.75.0`.
-    - If no `litellm` line exists and dependencies are non-empty, append
-      `litellm<1.75.0` as a new line.
+    - pin any-agent to the version used by the manufacturing agent
     """
     # make sure uv is in if uvx is in tools
     final_dependencies = []
@@ -43,9 +40,5 @@ def validate_dependencies(tools: str, dependencies: list[str]) -> str:
         logger.info(f"Pinning any-agent to version {ANY_AGENT_VERSION}")
         final_dependencies = list(filter(lambda dependency: not dependency.startswith("any-agent"), final_dependencies))
         final_dependencies.append(f"any-agent[all,a2a]=={ANY_AGENT_VERSION}")
-
-    # Remove any existing litellm lines and append pinned constraint
-    final_dependencies = list(filter(lambda dependency: not dependency.startswith("litellm"), final_dependencies))
-    final_dependencies.append("litellm<1.75.0")
 
     return "\n".join(final_dependencies)
