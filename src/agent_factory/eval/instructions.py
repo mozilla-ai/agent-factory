@@ -4,8 +4,6 @@ The structured JSON output is saved as JSON format.
 
 from jinja2 import Template
 
-LLM_JUDGE_MODEL = "openai/gpt-4.1"
-
 EVALUATION_CATEGORIES = """
 1. **Tool Usage**: Verify correct tool selection and invocation for each sub-task
 2. **Information Retrieval**: Ensure all necessary data is gathered
@@ -15,61 +13,68 @@ EVALUATION_CATEGORIES = """
 """
 
 AGENT_SCRIPT_AND_JSON_EXAMPLE = """
-
 **Agent Script:**
 ```python
-# Example imports for the agent.py file:
-from any_agent import AnyAgent, AgentConfig, AgentFramework
-from any_agent.config import MCPStdio
-from tools.review_code_with_llm import review_code_with_llm
-from tools.search_tavily import search_tavily
+# agent.py
+
+# Always used imports
+import json  # noqa: I001
+import os
+import sys
+from pathlib import Path
+
+from any_agent import AgentConfig, AgentRunError, AnyAgent
+from dotenv import load_dotenv
+from fire import Fire
+from mcpd import McpdClient, McpdError
 from pydantic import BaseModel, Field
 
-# Imports for environment variables
-import os
-from dotenv import load_dotenv
+# ADD BELOW HERE: tools made available by agent-factory
+from tools.review_code_with_llm import review_code_with_llm
+from tools.search_tavily import search_tavily
+
 load_dotenv()
 
-# Pydantic model for structured output
-class CodeReviewOutput(BaseModel):
+# Connect to mcpd daemon for accessing available tools
+MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
+MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
+
+# ========== Structured output definition ==========
+class StructuredOutput(BaseModel):
     code: str = Field(..., description="The code to be reviewed.")
     review: str = Field(..., description="The review of the code.")
 
-# Example Single Agent syntax:
+# ========= System Instructions =========
+INSTRUCTIONS = "Example instructions"
+
+# ========== Tools definition ===========
+TOOLS = [
+    search_tavily,  # Example tool taken from tools/README.md
+    review_code_with_llm,  # Example tool taken from tools/README.md
+]
+
+# Connect to any running MCP servers via mcpd
+try:
+    mcpd_client = McpdClient(api_endpoint=MCPD_ENDPOINT, api_key=MCPD_API_KEY)
+    mcp_server_tools = mcpd_client.agent_tools()
+    if not mcp_server_tools:
+        print("No tools found via mcpd.")
+    TOOLS.extend(mcp_server_tools)
+except McpdError as e:
+    print(
+        f"Error connecting to mcpd: {e}. If the agent doesn't use any MCP servers you can safely ignore this error",
+        file=sys.stderr
+    )
+
+# ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    # agent framework name (1st positional arg)
     "openai",
-    # agent configuration (2nd positional arg)
     AgentConfig(
-        model_id="gpt-4.1",
-        instructions="Example instructions",
-        tools=[
-            search_tavily, # Example tool taken from tools/README.md
-            review_code_with_llm, # Example tool taken from tools/README.md
-            # Example of MCP server usage
-            MCPStdio(
-                    command="docker",
-                    # args taken verbatim from available_mcps.md
-                    args=[
-                        "run",
-                        "-i",
-                        "--rm",
-                        "-e",
-                        "BRAVE_API_KEY",
-                        "mcp/brave-search",
-                    ],
-                    # Specify necessary environment variables
-                    env={
-                        "BRAVE_API_KEY": os.getenv("BRAVE_API_KEY"),
-                    },
-                    # From among the tools available from the MCP server
-                    # list only the tools that are necessary for the solving the task at hand
-                    tools=[
-                        "brave_web_search",
-                    ],
-            ),
-        ],
-        output_type=CodeReviewOutput,
+        model_id="o3",
+        instructions=INSTRUCTIONS,
+        tools=TOOLS,
+        output_type=StructuredOutput,
+        model_args={"tool_choice": "auto"},
     ),
 )
 
@@ -83,16 +88,22 @@ agent.run(prompt=user_input)
 ```json
 {
   "criteria": [
-      "Ensure that the agent called search_tavily or another search tool to find relevant information about code review best practices or specific technologies mentioned in the code",
-      "Ensure that the agent called review_code_with_llm to perform the actual code analysis and review",
-      "Verify that the agent correctly identified the programming language and framework/libraries used in the provided code",
-      "Check that the agent's review covers multiple aspects such as code quality, security, performance, and best practices",
-      "Ensure that the agent searched for current standards or documentation related to the specific technologies or patterns found in the code",
-      "Verify that the agent's output follows the required CodeReviewOutput structure with both 'code' and 'review' fields properly populated",
-      "Check that the review includes specific, actionable recommendations for code improvement",
-      "Ensure that the agent appropriately utilized the available MCP tools (brave_web_search) when additional context or verification was needed",
-      "Verify that the final review demonstrates understanding of the code's purpose and provides contextually relevant feedback"
-    }
+      "Ensure that the agent called `search_tavily` or another search tool to find relevant information about code
+      review best practices or specific technologies mentioned in the code.",
+      "Ensure that the agent called `review_code_with_llm` to perform the actual code analysis and review.",
+      "Verify that the agent correctly identified the programming language and framework/libraries used in the provided
+      code.",
+      "Check that the agent's review covers multiple aspects such as code quality, security, performance, and best
+      practices.",
+      "Ensure that the agent searched for current standards or documentation related to the specific technologies or
+      patterns found in the code.",
+      "Verify that the agent's output follows the required StructuredOutput structure with both 'code' and 'review'
+      fields properly populated.",
+      "Check that the review includes specific, actionable recommendations for code improvement.",
+      "Ensure that the agent appropriately utilized the available MCP tools (brave_web_search) when additional context
+      or verification was needed.",
+      "Verify that the final review demonstrates understanding of the code's purpose and provides contextually relevant
+      feedback."
   ]
 }
 ```
@@ -112,8 +123,6 @@ Analyze the agent's task, tools, and expected workflow to create thorough evalua
 ## Example of agent.py script and corresponding JSON evaluation file
 {{ agent_script_and_json_example }}
 
-Always use {{ llm_judge }} as the llm_judge.
-
 """  # noqa: E501
 
 
@@ -124,5 +133,4 @@ def get_instructions(generated_workflow_dir: str) -> str:
         generated_workflow_dir=generated_workflow_dir,
         evaluation_categories=EVALUATION_CATEGORIES,
         agent_script_and_json_example=AGENT_SCRIPT_AND_JSON_EXAMPLE,
-        llm_judge=LLM_JUDGE_MODEL,
     )
