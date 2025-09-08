@@ -36,26 +36,13 @@ These tests are the simplest ones, and you can run them with:
 make test-unit
 ```
 
-The `test-unit` target runs the following:
-
-```
-uv run --group tests pytest -v tests/unit/
-uv run --group tests pytest -v tests/tools/
-```
-
-which will first make sure all the libraries in the `tests` dependency group are present in the environment, the run `pytest` on the two directories `unit/` and `tools/`.
+The `test-unit` target will first make sure all the libraries in the `tests` dependency group are present in the environment, the run `pytest` on the two directories `unit/` and `tools/`.
 
 ### Generation Tests
 
 These tests replicate the full agent generation workflow with specific prompts. To do this, they need the A2A server to be up and running.
 
-The `pytest` command that is run by the `test-single-turn-generation` Makefile target is:
-
-```
-uv run --group tests pytest -xvs tests/generation/test_single_turn_generation.py --prompt-id=$(PROMPT_ID) $(UPDATE_ARTIFACTS)
-```
-
-This accepts two input parameters:
+The `test-single-turn-generation` Makefile target accepts two input parameters:
 - `$(PROMPT_ID)` which is one of the use-case names found in `generation/use_cases.yaml` (currently `summarize-url-content`, `url-to-podcast`, and `scoring-blueprints-submission`).
 - `$(UPDATE_ARTIFACTS)` which is just a flag (`--update-artifacts`), to be added if you want the artifacts generated during this test to replace the ones which are already stored in the `artifacts/` directory.
 
@@ -86,13 +73,7 @@ These tests statically validate the generated agent artifacts. They can be run a
 make test-generated-artifacts PROMPT_ID=<prompt-id>
 ```
 
-with `prompt-id` as defined before (see "Generation Tests"). As there are no dependencies on external tools or services, the only command that is run by this Makefile target is:
-
-```
-uv run --group tests pytest tests/generated_artifacts/ -m artifact_validation --prompt-id=$(PROMPT_ID) -v
-```
-
-Note the `-m artifact_validation` parameter: this is a *marker* that is used to group tests under the same namespace so you can follow them more easily in CI. Our namespaces are defined in `/pytest.ini`.
+with `prompt-id` as defined before (see "Generation Tests"). Note that the Makefile target runs `uv test` with a `-m artifact_validation` parameter: this is a *marker* that is used to group tests under the same namespace so you can follow them more easily in CI. Our namespaces are defined in `/pytest.ini`.
 
 ### Artifact Tests (integration)
 
@@ -108,12 +89,7 @@ run the following:
 make test-generated-artifacts-integration PROMPT_ID=<prompt-id>
 ```
 
-with `prompt-id` as defined before (see "Generation Tests"). The command that is run by this Makefile target is:
-
-```
-uv run --group tests pytest tests/generated_artifacts/ -m artifact_integration --prompt-id=$(PROMPT_ID) -vs
-```
-
+with `prompt-id` as defined before (see "Generation Tests").
 In the more likely scenario where you need mcpd, you can run:
 
 ```bash
