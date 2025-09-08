@@ -410,10 +410,7 @@ using Mozilla's any-agent library. The implementation should:
 - Create well-documented, modular code with appropriate comments
 - Follow Python best practices for readability and maintainability
 - Include proper import statements and dependency management
-- Environment variables required by the code/tools/MCP servers can be assumed to be set in the
-  `.env` file:
-    - Use Python `dotenv` library to load the environment variables and access them using
-      `os.getenv()`
+
 ### Agent code template
 
 - Rely on the following template to write the agent code:
