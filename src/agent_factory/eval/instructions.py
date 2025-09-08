@@ -4,6 +4,8 @@ The structured JSON output is saved as JSON format.
 
 from jinja2 import Template
 
+LLM_JUDGE_MODEL = "openai/gpt-4.1"
+
 EVALUATION_CATEGORIES = """
 1. **Tool Usage**: Verify correct tool selection and invocation for each sub-task
 2. **Information Retrieval**: Ensure all necessary data is gathered
@@ -94,9 +96,6 @@ agent.run(prompt=user_input)
   ]
 }
 ```
-
-Always use openai/gpt-4.1 as the llm_judge.
-
 """  # noqa: E501
 
 INSTRUCTIONS_TEMPLATE = """
@@ -111,8 +110,9 @@ Analyze the agent's task, tools, and expected workflow to create thorough evalua
 {{ evaluation_categories }}
 
 ## Example of agent.py script and corresponding JSON evaluation file
-
 {{ agent_script_and_json_example }}
+
+Always use {{ llm_judge }} as the llm_judge.
 
 """  # noqa: E501
 
@@ -124,4 +124,5 @@ def get_instructions(generated_workflow_dir: str) -> str:
         generated_workflow_dir=generated_workflow_dir,
         evaluation_categories=EVALUATION_CATEGORIES,
         agent_script_and_json_example=AGENT_SCRIPT_AND_JSON_EXAMPLE,
+        llm_judge=LLM_JUDGE_MODEL,
     )
