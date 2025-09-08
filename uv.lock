@@ -76,7 +76,7 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["a2a"], specifier = "==1.5.0" },
+    { name = "any-agent", extras = ["a2a"], specifier = "==1.8.2" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "boto3" },
     { name = "fire", specifier = "~=0.7.0" },
@@ -213,22 +213,21 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "1.5.0"
+version = "1.8.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "any-llm-sdk" },
     { name = "litellm" },
     { name = "mcp" },
-    { name = "openai" },
     { name = "opentelemetry-sdk" },
     { name = "pydantic" },
     { name = "requests" },
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a4/f4/5e93a694bad7bdeeb6784ce1f222812306456148ad6296195b4b64b0aee5/any_agent-1.5.0.tar.gz", hash = "sha256:ea385ac66746e597dccb7a08e41bcff20eb5da67b8e51842b65f96ee9ebf3eb2", size = 464863 }
+sdist = { url = "https://files.pythonhosted.org/packages/fd/9d/3dcea6c8ac065a44739fd5e744fc04a7d59e2cb7cc5bb4b900428ccde45e/any_agent-1.8.2.tar.gz", hash = "sha256:8aaaf165fd6cdf1ae69ce6157a47360957c7130b0c53b80a15d16d9d3faa81ea", size = 474400 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/aa/d110c9b50425221455efbe222472c9e705e37a41ce687de269aa5b418e7a/any_agent-1.5.0-py3-none-any.whl", hash = "sha256:8591155a55b87eee1cdef6009e877fe13121b2a34ffea3911752af0b3ed5041a", size = 96301 },
+    { url = "https://files.pythonhosted.org/packages/c0/02/a6f7e0a9f97d9893a31d859eeddb2926f5cf78aa2410cb68fdd7a7f834cc/any_agent-1.8.2-py3-none-any.whl", hash = "sha256:56cb18350ce71930a2a3a109ea7fb399a0c20fcfde939d02ac7929a2ccfb32d4", size = 99605 },
 ]
 
 [package.optional-dependencies]
@@ -239,7 +238,7 @@ a2a = [
 
 [[package]]
 name = "any-llm-sdk"
-version = "0.17.1"
+version = "0.19.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -248,9 +247,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/31/aa/e17046640f69b8ba3edf83aea6ce2332594b2d2afd2518b0fb74abb24df6/any_llm_sdk-0.17.1.tar.gz", hash = "sha256:0048b4a87feef8e3d3f98c0b218529c8e0171be36bbb353cf4ed0b103e0421bb", size = 1165087 }
+sdist = { url = "https://files.pythonhosted.org/packages/5e/e1/68f98af6b657b326568fbcf5acfb09bf8da9d71f9009ddbcd787021d170c/any_llm_sdk-0.19.1.tar.gz", hash = "sha256:d9f842da99947fad9800fa30eb209d17891593e9e263391cc532180caed68caf", size = 1167421 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6a/ac/ecd6b0380d1524c42feb6842c7e3a0c4e043de12f0f4376a2ee74b1fda01/any_llm_sdk-0.17.1-py3-none-any.whl", hash = "sha256:c224afa9b14db84ee54ccaffaeeb08fc420bc80063e567eb127f142dd03d7436", size = 98910 },
+    { url = "https://files.pythonhosted.org/packages/e0/41/f9fdc55de8013bf559d7474c34bb6e5a660857049c86354e674f670bc961/any_llm_sdk-0.19.1-py3-none-any.whl", hash = "sha256:c6edb417ececa123ceae71ec74709f6177765b7dd28c25d7935894eb85ca1cd6", size = 100175 },
 ]
 
 [[package]]
