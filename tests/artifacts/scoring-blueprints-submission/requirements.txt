@@ -1,6 +1,6 @@
 any-agent[all,a2a]==1.5.0
 fire
-litellm<1.75.0
+litellm
 markdownify
 mcpd
 pydantic
