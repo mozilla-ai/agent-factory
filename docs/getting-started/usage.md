@@ -135,7 +135,7 @@ uv run --with-requirements requirements.txt --python 3.13 python agent.py --arg1
 Run the Criteria Agent, from the project root directory, with your desired evaluation case prompt:
 
 ```bash
-uv run -m eval.generate_evaluation_case path/to/the/generated/agent
+uv run -m agent_factory.eval.generate_evaluation_case absolute/path/to/the/generated/agent/folder
 ```
 
 This will generate a JSON file in the generated agent's directory with evaluation criteria.
@@ -145,7 +145,7 @@ This will generate a JSON file in the generated agent's directory with evaluatio
 Finally, evaluate the agent's execution trace against the generated evaluation case:
 
 ```bash
-uv run -m eval.run_generated_agent_evaluation path/to/the/generated/agent
+uv run -m agent_factory.eval.run_generated_agent_evaluation absolute/path/to/the/generated/agent/folder
 ```
 
 This command will display the evaluation criteria and show how the agent performed on each.
