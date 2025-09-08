@@ -40,7 +40,7 @@ The `test-unit` target will first make sure all the libraries in the `tests` dep
 
 ### Generation Tests
 
-These tests replicate the full agent generation workflow with specific prompts. To do this, they need the A2A server to be up and running.
+These tests replicate the full agent generation workflow with specific prompts. To do this, they need both the A2A server to be up and running and the necessary API keys to be properly set up (see the [Installation](https://mozilla-ai.github.io/agent-factory/getting-started/installation/#installation) guide).
 
 The `test-single-turn-generation` Makefile target accepts two input parameters:
 - `$(PROMPT_ID)` which is one of the use-case names found in `generation/use_cases.yaml` (currently `summarize-url-content`, `url-to-podcast`, and `scoring-blueprints-submission`).
