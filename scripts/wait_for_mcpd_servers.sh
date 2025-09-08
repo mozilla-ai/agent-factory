@@ -5,7 +5,7 @@
 # - repeats this every $interval seconds until $timeout is reached
 # - if all servers are ok before $timeout, returns 0, 1 otherwise
 
-timeout=10
+timeout=20
 elapsed=0
 interval=2
 
