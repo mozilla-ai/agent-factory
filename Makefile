@@ -145,6 +145,11 @@ test-generated-artifacts-integration: check-prompt-id-present ## Run artifact in
 	@uv run --group tests pytest tests/generated_artifacts/ -m artifact_integration --prompt-id=$(PROMPT_ID) -v
 	@echo "Artifact integration tests completed successfully!"
 
+# NOTE that the MOCK_TOKEN is not an actual secret, but we need to add the pragma for the commit to pass.
+# We define it as a variable visible to the target (first line), so that we can then assign its value to
+# all the env vars mcpd needs, but without sharing any "secrets" in clear (avoiding the need for other
+# pragmas, which were hard to add in the multiline if clause in the Makefile target...)
+# As these tests mock the tools that require those environment variables, we can do with mock keys/tokens.
 # pragma: allowlist secret
 test-generated-artifacts-integration-e2e: MOCK_TOKEN = mock
 test-generated-artifacts-integration-e2e: check-prompt-id-present
