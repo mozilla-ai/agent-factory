@@ -76,7 +76,7 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["a2a"], specifier = "==1.8.2" },
+    { name = "any-agent", extras = ["a2a"], specifier = "==1.8.3" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "boto3" },
     { name = "fire", specifier = "~=0.7.0" },
@@ -213,7 +213,7 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "1.8.2"
+version = "1.8.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "any-llm-sdk" },
@@ -225,9 +225,9 @@ dependencies = [
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fd/9d/3dcea6c8ac065a44739fd5e744fc04a7d59e2cb7cc5bb4b900428ccde45e/any_agent-1.8.2.tar.gz", hash = "sha256:8aaaf165fd6cdf1ae69ce6157a47360957c7130b0c53b80a15d16d9d3faa81ea", size = 474400 }
+sdist = { url = "https://files.pythonhosted.org/packages/44/f8/d5707e8ee5a02db3639df97dcf97adff1c98d487167207f066d48a863bf7/any_agent-1.8.3.tar.gz", hash = "sha256:5cd33c2118d48d88b4af345930c2734518ed65eb6172a824061a7e6923e0de88", size = 473537 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c0/02/a6f7e0a9f97d9893a31d859eeddb2926f5cf78aa2410cb68fdd7a7f834cc/any_agent-1.8.2-py3-none-any.whl", hash = "sha256:56cb18350ce71930a2a3a109ea7fb399a0c20fcfde939d02ac7929a2ccfb32d4", size = 99605 },
+    { url = "https://files.pythonhosted.org/packages/38/84/13846cc34526b513b9b9992bdfd6b9f3b227366e50901f75e827f3a2c620/any_agent-1.8.3-py3-none-any.whl", hash = "sha256:b806ecceff320e368a8196a550c389e102fedabc5b9c2ce66a9cc7910da975b8", size = 99703 },
 ]
 
 [package.optional-dependencies]
