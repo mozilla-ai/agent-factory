@@ -44,7 +44,7 @@ These tests replicate the full agent generation workflow with specific prompts. 
 
 The `test-single-turn-generation` Makefile target accepts two input parameters:
 - `$(PROMPT_ID)` which is one of the use-case names found in `generation/use_cases.yaml` (currently `summarize-url-content`, `url-to-podcast`, and `scoring-blueprints-submission`).
-- `$(UPDATE_ARTIFACTS)` which is just a flag (`--update-artifacts`), to be added if you want the artifacts generated during this test to replace the ones which are already stored in the `artifacts/` directory.
+- `$(UPDATE_ARTIFACTS)` which is just a flag (`--update-artifacts`), to be added if you want the artifacts generated during this test to replace the ones which are already stored in the `artifacts/` directory. For more information about when to update your artifacts and how updating them affect integration tests, check [our notes below](#q-what-should-i-do-if-i-add-a-new--change-an-existing-agent-artifact).
 
 Note that this target assumes you are already running the A2A server and will break if you are not! The following two targets are more suitable as they first check whether the server is running and will not even start the tests otherwise:
 
