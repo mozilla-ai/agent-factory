@@ -13,8 +13,7 @@ The following sections are:
 The `tests` folder is organized in the following sub-directories:
 
 - **`unit`**: unit tests for core functionality including e.g. a2a client/server,
-agent generation and validation, io and storage.
-- **`tools`**: tests for MCP server discovery and our built-in MCP tools.
+agent generation and validation, MCP tools, io and storage.
 - **`generation`**: tests for end-to-end single-turn agent generation using real prompts. We have a few use cases detailed in the `use_cases.yaml` file, and the purpose of these tests is to verify that the process of building these agents completes with no errors.
 - **`generated_artifacts`**: these tests validate the agents generated in the previous step, making sure they are consistent with their input prompts and that they work as expected. The tests both verify the generated agents and their generation traces statically, and dynamically execute the agents while mocking some external APIs and paid services.
 - **`generated_agent_evaluation`**: our generated agents can also come with LLM-as-judge evaluation. The purpose of these tests is to validate the evaluation tool itself.
@@ -36,7 +35,7 @@ These tests are the simplest ones, and you can run them with:
 make test-unit
 ```
 
-The `test-unit` target will first make sure all the libraries in the `tests` dependency group are present in the environment, the run `pytest` on the two directories `unit/` and `tools/`.
+The `test-unit` target will first make sure all the libraries in the `tests` dependency group are present in the environment, then run all unit tests both for agent-factory and generated agent evaluation.
 
 ### Generation Tests
 
