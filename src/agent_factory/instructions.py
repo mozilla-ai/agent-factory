@@ -78,7 +78,7 @@ except McpdError as e:
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    "openai",
+    "tinyagent",
     AgentConfig(
         model_id="o3",
         instructions=INSTRUCTIONS,
@@ -301,7 +301,7 @@ except McpdError as e:
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    "openai",
+    "tinyagent",
     AgentConfig(
         model_id="o3",
         instructions=INSTRUCTIONS,
