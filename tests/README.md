@@ -78,21 +78,16 @@ with `prompt-id` as defined before (see "Generation Tests"). Note that the Makef
 
 These tests run the target agents that have been created by *single-turn-generation* and verify they behave as expected.
 Some of the MCP tools are mocked so we don't depend on external applications or paid APIs for our tests.
-As most MCP tools are managed by `mcpd`, its deamon needs to be started beforehand and passed the generated
-`.mcpd.toml` and `secrets.prod.toml` files.
-
-If you already have an mcpd server running (or if the agent you want to test does not need mcpd) you can
-run the following:
-
-```bash
-make test-generated-artifacts-integration PROMPT_ID=<prompt-id>
-```
-
-with `prompt-id` as defined before (see "Generation Tests").
-In the more likely scenario where you need mcpd, you can run:
+As most MCP tools are managed by mcpd, the test-generated-artifacts-integration-e2e Makefile target automatically sets the environment and starts the mcpd daemon with the right tools / environment variables. You can run it as follows:
 
 ```bash
 make test-generated-artifacts-integration-e2e PROMPT_ID=<prompt-id>
+```
+
+with prompt-id as defined before (see "Generation Tests"). If you already have an mcpd server running (or if the agent you want to test does not need mcpd) you can run the following:
+
+```bash
+make test-generated-artifacts-integration PROMPT_ID=<prompt-id>
 ```
 
 #### Q: What should I do if I add a new / change an existing agent artifact?
