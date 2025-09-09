@@ -78,7 +78,7 @@ except McpdError as e:
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    "openai",
+    "tinyagent",
     AgentConfig(
         model_id="o3",
         instructions=INSTRUCTIONS,
@@ -301,7 +301,7 @@ except McpdError as e:
 
 # ========== Running the agent via CLI ===========
 agent = AnyAgent.create(
-    "openai",
+    "tinyagent",
     AgentConfig(
         model_id="o3",
         instructions=INSTRUCTIONS,
@@ -370,10 +370,9 @@ CODE_GENERATION_INSTRUCTIONS = """
 Create a complete implementation of a single agent that executes a multi-step workflow
 using Mozilla's any-agent library. The implementation should:
 
-1. Use the OpenAI framework as the underlying agent provider
-2. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
-3. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the `output_type` argument.
-4. Whenever required, assign tools in the agent configuration.
+1. Implement a step-by-step approach where the agent breaks down the user's request into multiple steps, each with an input and output
+2. To obtain JSON output from the agent, define structured output using Pydantic v2 models via the `output_type` argument.
+3. Whenever required, assign tools in the agent configuration.
 
 ## Required Components
 
@@ -407,24 +406,11 @@ using Mozilla's any-agent library. The implementation should:
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the `output_type` argument correctly to obtain this structured response
 
-#### Agent Trace (agent_trace): Conditional on the whether the agent code requested is run via CLI or A2AServing
-Important: Saving agent_trace is ONLY required when running the agent via CLI with `agent.run()`. You MUST NEVER save the agent trace when running the agent via A2AServing.
-If the code corresponds to running the agent via CLI, use the following instructions to save the agent trace:
-- Include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()
-- Saving of the agent trace in the code should be done to the `script_dir / "agent_eval_trace.json"` directory as shown in the example code
-- You would accomplish this by including the lines agent_trace.model_dump_json(indent=2) as shown in the example code
-- Never try to print, log or access any other properties of the agent trace object. agent_trace.response or agent_trace.output are invalid
-- Only agent_trace.model_dump_json(indent=2) and agent_trace.final_output are valid
-- Do not print or save anything after saving the agent trace
-
 ### Code Organization
 - Create well-documented, modular code with appropriate comments
 - Follow Python best practices for readability and maintainability
 - Include proper import statements and dependency management
-- Environment variables required by the code/tools/MCP servers can be assumed to be set in the
-  `.env` file:
-    - Use Python `dotenv` library to load the environment variables and access them using
-      `os.getenv()`
+
 ### Agent code template
 
 - Rely on the following template to write the agent code:
