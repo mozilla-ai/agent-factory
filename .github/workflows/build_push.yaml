@@ -47,5 +47,5 @@ jobs:
           context: .
           push: true
           tags: |
-            mzdotai/image-builder:${{ env.IMAGE_TAG }}
-            ${{ github.ref_type == 'branch' && github.ref_name == 'main' && 'mzdotai/image-builder:latest' || '' }}
+            mzdotai/agent-factory:${{ env.IMAGE_TAG }}
+            ${{ github.ref_type == 'branch' && github.ref_name == 'main' && 'mzdotai/agent-factory:latest' || '' }}
