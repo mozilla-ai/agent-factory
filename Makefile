@@ -15,6 +15,9 @@ A2A_SERVER_PORT ?= 8080
 LOG_LEVEL ?= info
 CHAT ?= 0
 MCPD_VERSION ?= v0.0.6
+
+# If uv groups are not explicitly provided,
+# by default, use the one corresponding to the respective framework (currently supports openai and langchain)
 UV_GROUPS ?= $(if $(filter $(FRAMEWORK),tinyagent),,$(FRAMEWORK))
 
 # Docker Configuration
