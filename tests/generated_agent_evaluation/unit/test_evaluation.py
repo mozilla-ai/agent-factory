@@ -10,9 +10,9 @@ from agent_factory.eval.run_generated_agent_evaluation import run_evaluation
 @pytest.mark.parametrize(
     "custom_model,custom_framework",
     [
-        ("o3", AgentFramework.OPENAI),
-        ("gpt-5", AgentFramework.GOOGLE),
-        ("mistral-medium-2508", AgentFramework.LANGCHAIN),
+        ("openai/o3", AgentFramework.OPENAI),
+        ("openai:gpt-5", AgentFramework.GOOGLE),
+        ("mistral:mistral-medium-2508", AgentFramework.LANGCHAIN),
         ("llama-2-70b", AgentFramework.SMOLAGENTS),
     ],
 )
@@ -53,7 +53,7 @@ def test_evaluation_uses_default_model_and_framework(
     tmpdir, sample_evaluation_json_file: str, sample_agent_eval_trace_json: str
 ):
     """Tests that the AgentJudge uses the default model and framework when we do not provide anything."""
-    expected_default_model = "o3"
+    expected_default_model = "openai/o3"
     expected_default_framework = AgentFramework.TINYAGENT
 
     evaluation_case_path = tmpdir.join("evaluation_case.json")

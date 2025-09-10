@@ -2,8 +2,8 @@
 set -eu
 
 # Set default values for environment variables if not set
-: "${FRAMEWORK:=openai}"
-: "${MODEL:=o3}"
+: "${FRAMEWORK:=tinyagent}"
+: "${MODEL:=openai/o3}"
 : "${A2A_SERVER_HOST:=0.0.0.0}"
 : "${A2A_SERVER_PORT:=8080}"
 : "${LOG_LEVEL:=info}"

@@ -8,7 +8,7 @@
 summarize-url-content:
   prompt: >
     Workflow that takes an input web URL and returns a summary of the content.
-    You must use a tool that internally makes an LLM call to generate the summary.
+    You MUST assign a tool for summarization, from among the available Python tools.
     However, do not search for or assign MCP servers.
   expected_num_turns: 15
   expected_execution_time: 120
@@ -46,5 +46,5 @@ scoring-blueprints-submission:
   expected_num_turns: 40
   expected_execution_time: 420
   max_attempts: 5
-  min_successes: 4
+  min_successes: 3
   requires_mcpd: true

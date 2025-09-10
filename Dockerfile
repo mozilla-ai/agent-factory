@@ -10,11 +10,11 @@ FROM python:3.13-slim
 # Set the working directory in the container
 WORKDIR /app
 
-ENV FRAMEWORK=openai
+ENV FRAMEWORK=tinyagent
 # Enable or disable chat mode
 # Set to 1 to enable chat mode, 0 to disable
 ENV CHAT=1
-ENV MODEL=o3
+ENV MODEL=openai/o3
 ENV MAX_TURNS=40
 ENV A2A_SERVER_HOST=0.0.0.0
 ENV A2A_SERVER_PORT=8080
@@ -34,6 +34,13 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
 # Copy mcpd from the mcpd stage
 COPY --from=mcpd /usr/local/bin/mcpd /usr/local/bin/mcpd
 RUN chmod +x /usr/local/bin/mcpd
+
+# Install build-essential which enables use of gcc and g++ compilers
+# This is required for CPython dependencies (e.g. fastuuid)
+# fastuuid installation happens when installing any-agent
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential pkg-config && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.8.4 /uv /uvx /usr/local/bin/

@@ -60,7 +60,7 @@ def generated_agent_module_with_mocks(agent_dir: Path, prompt_id: str):
         # Call original method with modified tools
         result = await original_load_tools(self, modified_tools)
 
-        logger.debug(f"Original _load_tools returned: {len(result[0])} tools, {len(result[1])} mcp_servers")
+        logger.debug(f"Original _load_tools returned: {len(result)} tools")
 
         return result
 
@@ -99,16 +99,16 @@ def test_agent_mocked_execution(generated_agent_module_with_mocks, prompt_id: st
 
             # the agent completes with a file generated in the /tmp folder
             # NOTE that the field names here might change if you rebuild the agent!
-            assert "/tmp" in result.final_podcast_path
+            assert "/tmp" in result.podcast_mp3
 
         elif "scoring-blueprints-submission" in prompt_id:
             result = agent.main("https://github.com/mozilla-ai/surf-spot-finder")
 
             # the agent completes with the following conditions satisfied
             # NOTE that the field names here might change if you rebuild the agent!
-            assert result.total_score  # the agent assigned a score
+            assert result.overall_score  # the agent assigned a score
             assert result.slack_channel_id == "BLU3PR1NTSUB"  # the agent found the channel id
-            assert result.db_insert_success  # the agent inserted results in the DB
+            assert result.db_insertion_status == "success"  # the agent inserted results in the DB
 
         elif "summarize-url-content" in prompt_id:
             result = agent.main("https://en.wikipedia.org/wiki/Alan_Turing_Life")

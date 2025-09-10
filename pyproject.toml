@@ -5,12 +5,11 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "any-agent[all,a2a]==1.2.0",
+    "any-agent[a2a]==1.8.3",
     "autoflake==2.3.1",
     "boto3",
     "python-dotenv>=1.1.1",
     "fire~=0.7.0",
-    "litellm<1.75.0",
     "loguru>=0.7.3",
     "markdownify==1.2.0",
     "opentelemetry-instrumentation-httpx",
