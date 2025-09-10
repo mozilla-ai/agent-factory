@@ -68,6 +68,7 @@ tests = [
   "mcpd>=0.0.1",
 ]
 
+[project.optional-dependencies]
 openai = [
   "any-agent[openai]",
 ]
