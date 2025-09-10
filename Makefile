@@ -16,9 +16,9 @@ LOG_LEVEL ?= info
 CHAT ?= 0
 MCPD_VERSION ?= v0.0.6
 
-# If uv groups are not explicitly provided,
+# If uv extras are not explicitly provided,
 # by default, use the one corresponding to the respective framework (currently supports openai and langchain)
-UV_GROUPS ?= $(if $(filter $(FRAMEWORK),tinyagent),,$(FRAMEWORK))
+UV_EXTRAS ?= $(if $(filter $(FRAMEWORK),tinyagent),,$(FRAMEWORK))
 
 # Docker Configuration
 DOCKER_IMAGE := agent-factory
@@ -56,7 +56,7 @@ build: ## Build the Docker image for the server
 	@docker build \
 		--build-arg APP_VERSION=$(shell git describe --tags --dirty 2>/dev/null || echo "0.1.0.dev0") \
 		--build-arg MCPD_VERSION=$(MCPD_VERSION) \
-		--build-arg UV_GROUPS="$(UV_GROUPS)" \
+		--build-arg UV_EXTRAS="$(UV_EXTRAS)" \
 		-t $(DOCKER_IMAGE):$(DOCKER_TAG) \
 		.
 
@@ -68,13 +68,13 @@ check-env:
 
 run: build check-env ## Run the server interactively in the foreground
 	@echo "Starting server interactively on http://$(A2A_SERVER_HOST):$(A2A_SERVER_PORT)"
-	@echo "Using UV_GROUPS=$(UV_GROUPS)"
+	@echo "Using UV_EXTRAS=$(UV_EXTRAS)"
 	@docker run $(DOCKER_RUN_ARGS)
 
 
 run-detached: build check-env ## Run the server in the background (detached mode)
 	@echo "Starting server in detached mode..."
-	@echo "Using UV_GROUPS=$(UV_GROUPS)"
+	@echo "Using UV_EXTRAS=$(UV_EXTRAS)"
 	@docker run -d $(DOCKER_RUN_ARGS)
 
 
