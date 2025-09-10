@@ -3,7 +3,8 @@ from unittest import mock
 
 import pytest
 from any_agent import AgentFramework
-from eval.run_generated_agent_evaluation import run_evaluation
+
+from agent_factory.eval.run_generated_agent_evaluation import run_evaluation
 
 
 @pytest.mark.parametrize(
@@ -29,7 +30,10 @@ def test_evaluation_uses_custom_model_and_framework(
     agent_trace_path = tmpdir.join("agent_eval_trace.json")
     agent_trace_path.write(sample_agent_eval_trace_json)
 
-    with mock.patch("builtins.print"), mock.patch("eval.run_generated_agent_evaluation.AgentJudge") as mock_judge_class:
+    with (
+        mock.patch("builtins.print"),
+        mock.patch("agent_factory.eval.run_generated_agent_evaluation.AgentJudge") as mock_judge_class,
+    ):
         mock_judge_instance = mock.Mock()
         mock_judge_instance.run_async.return_value = mock.Mock()
         mock_judge_class.return_value = mock_judge_instance
@@ -58,7 +62,10 @@ def test_evaluation_uses_default_model_and_framework(
     agent_trace_path = tmpdir.join("agent_eval_trace.json")
     agent_trace_path.write(sample_agent_eval_trace_json)
 
-    with mock.patch("builtins.print"), mock.patch("eval.run_generated_agent_evaluation.AgentJudge") as mock_judge_class:
+    with (
+        mock.patch("builtins.print"),
+        mock.patch("agent_factory.eval.run_generated_agent_evaluation.AgentJudge") as mock_judge_class,
+    ):
         mock_judge_instance = mock.Mock()
         mock_judge_instance.run_async.return_value = mock.Mock()
         mock_judge_class.return_value = mock_judge_instance

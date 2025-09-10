@@ -5,9 +5,9 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "any-agent[a2a]==1.5.0",
+    "any-agent[a2a]==1.8.3",
     "autoflake==2.3.1",
-    "boto3>=1.40.0",
+    "boto3",
     "python-dotenv>=1.1.1",
     "fire~=0.7.0",
     "loguru>=0.7.3",
