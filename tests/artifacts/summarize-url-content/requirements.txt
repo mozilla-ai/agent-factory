@@ -1,4 +1,4 @@
-any-agent[all,a2a]==1.8.2
+any-agent[all]==1.8.3
 fire
 litellm
 markdownify

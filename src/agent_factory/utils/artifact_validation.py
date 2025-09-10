@@ -39,6 +39,6 @@ def validate_dependencies(tools: str, dependencies: list[str]) -> str:
     if "any-agent" in final_dependencies:
         logger.info(f"Pinning any-agent to version {ANY_AGENT_VERSION}")
         final_dependencies = list(filter(lambda dependency: not dependency.startswith("any-agent"), final_dependencies))
-        final_dependencies.append(f"any-agent[all,a2a]=={ANY_AGENT_VERSION}")
+        final_dependencies.append(f"any-agent[all]=={ANY_AGENT_VERSION}")
 
     return "\n".join(final_dependencies)

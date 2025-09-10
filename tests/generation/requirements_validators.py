@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def assert_requirements_includes_any_agent_version(requirements_path: Path):
-    """Verify that the requirements.txt includes any-agent[all,a2a]=={version}."""
+    """Verify that the requirements.txt includes any-agent[all]=={version}."""
     content = requirements_path.read_text(encoding="utf-8").strip()
     lines = content.split("\n")
 
@@ -14,7 +14,7 @@ def assert_requirements_includes_any_agent_version(requirements_path: Path):
 
     # Get the expected version from the installed any-agent package
     expected_version = version("any-agent")
-    expected_line = f"any-agent[all,a2a]=={expected_version}"
+    expected_line = f"any-agent[all]=={expected_version}"
 
     # Find the expected line in the requirements file
     if expected_line not in lines:

@@ -18,7 +18,9 @@ def test_prepare_agent_artifacts(sample_generator_agent_response_json):
     """Test that prepare_agent_artifacts correctly prepares the artifacts."""
     artifacts = prepare_agent_artifacts(sample_generator_agent_response_json)
 
-    expected_dependencies = "python-dotenv\npydantic\nfire\nmcpd\nany-agent[all,a2a]==1.8.3\nlitellm\nbeautifulsoup4\nrequests\ntavily-python"
+    expected_dependencies = (
+        "python-dotenv\npydantic\nfire\nmcpd\nany-agent[all]==1.8.3\nlitellm\nbeautifulsoup4\nrequests\ntavily-python"
+    )
 
     assert "agent.py" in artifacts
     assert "README.md" in artifacts

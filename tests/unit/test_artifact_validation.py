@@ -11,7 +11,7 @@ class TestValidateDependencies:
     def test_adds_uv_when_uvx_in_tools(self, sample_generator_agent_response_json):
         """Test that uv is added when uvx is found in tools."""
         tools = sample_generator_agent_response_json["tools"] + "\n# uvx install some-mcp-server"
-        dependencies = ["any-agent[all,a2a]==0.25.0", "python-dotenv", "beautifulsoup4", "requests", "fire"]
+        dependencies = ["any-agent[all]==0.25.0", "python-dotenv", "beautifulsoup4", "requests", "fire"]
 
         result = validate_dependencies(tools, dependencies)
 
