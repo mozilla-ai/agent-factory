@@ -201,12 +201,8 @@ jobs:
       - name: Run Generated Artifacts Integration tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          MCPD__ELEVENLABS_MCP__ELEVENLABS_API_KEY: "mock" # pragma: allowlist secret
-          MCPD__SLACK__SLACK_BOT_TOKEN: "mock" # pragma: allowlist secret
-          MCPD__SLACK__SLACK_TEAM_ID: "mock" # pragma: allowlist secret
-          MCPD__SQLITE__DB_PATH: "blueprints.db" # pragma: allowlist secret
         run: |
-          touch $MCPD__SQLITE__DB_PATH
+          touch blueprints.db
           PROMPT_IDS=(
             summarize-url-content
             url-to-podcast
@@ -214,13 +210,6 @@ jobs:
           )
           for prompt_id in "${PROMPT_IDS[@]}"; do
             echo "::group::Running tests for PROMPT_ID: $prompt_id"
-            if [ -f "tests/artifacts/$prompt_id/secrets.prod.toml" ]; then
-              echo "[i] Starting mcpd as it is required for this agent"
-              mcpd daemon --runtime-file tests/artifacts/$prompt_id/secrets.prod.toml --config-file tests/artifacts/$prompt_id/.mcpd.toml &
-              sh scripts/wait_for_mcpd_servers.sh && make test-generated-artifacts-integration PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
-              killall mcpd
-            else
-              make test-generated-artifacts-integration PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
-            fi
+            make test-generated-artifacts-integration-e2e PROMPT_ID="$prompt_id" || { echo "::error::Tests for PROMPT_ID $prompt_id failed!"; exit 1; }
             echo "::endgroup::"
           done
