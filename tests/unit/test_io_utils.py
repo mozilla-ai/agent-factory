@@ -29,10 +29,11 @@ def test_prepare_agent_artifacts(sample_generator_agent_response_json):
     assert "tools/summarize_text_with_llm.py" in artifacts
     assert "agent_parameters.json" in artifacts
 
-    from agent_factory.utils import clean_python_code_with_autoflake
+    from agent_factory.utils import prepare_python_code
 
     agent_code_before_cleaning = AGENT_CODE_TEMPLATE.format(**sample_generator_agent_response_json)
-    assert artifacts["agent.py"] == clean_python_code_with_autoflake(agent_code_before_cleaning)
+    valid_agent_code = prepare_python_code(agent_code_before_cleaning)
+    assert artifacts["agent.py"] == valid_agent_code.code
     assert artifacts["README.md"] == sample_generator_agent_response_json["readme"]
 
     expected_dependencies_sorted = sorted([line for line in expected_dependencies.split("\n") if line])
