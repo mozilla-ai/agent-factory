@@ -67,3 +67,12 @@ tests = [
   "pytest-asyncio>=1.0.0",
   "mcpd>=0.0.1",
 ]
+
+[project.optional-dependencies]
+openai = [
+  "any-agent[openai]",
+]
+
+langchain = [
+  "any-agent[langchain]",
+]

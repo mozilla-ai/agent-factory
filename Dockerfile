@@ -7,6 +7,10 @@ FROM mzdotai/mcpd:${MCPD_VERSION} AS mcpd
 # Main application stage
 FROM python:3.13-slim
 
+# Accept space-separated extras from project.optional-dependencies (e.g. "openai langchain")
+# Check pyproject.toml for available extras
+ARG UV_EXTRAS
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -30,6 +34,7 @@ ARG APP_VERSION
 
 # Set the environment variable for setuptools_scm
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
+ENV UV_EXTRAS=${UV_EXTRAS}
 
 # Copy mcpd from the mcpd stage
 COPY --from=mcpd /usr/local/bin/mcpd /usr/local/bin/mcpd
@@ -45,13 +50,20 @@ RUN apt-get update && \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.8.4 /uv /uvx /usr/local/bin/
 
-# Copy application code and required project assets.
+# Copy application code and required project assets
 COPY pyproject.toml /app
 COPY uv.lock /app
 COPY src /app/src
 
-# Install dependencies using uv
-RUN uv sync --no-cache --locked --no-editable --no-dev
+# Install dependencies using uv with optional extras
+RUN set -e; \
+    extras_flags=""; \
+    if [ -n "${UV_EXTRAS}" ]; then \
+      echo "Installing uv extras: ${UV_EXTRAS}"; \
+      for e in ${UV_EXTRAS}; do extras_flags="$extras_flags --extra $e"; done; \
+    fi; \
+    uv sync --locked --no-cache --no-editable --no-dev $extras_flags
+
 RUN rm -rf /app/build
 
 # Set the working directory
