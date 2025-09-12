@@ -5,7 +5,8 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "any-agent[a2a]==1.8.3",
+    "any-agent[a2a]==1.9.0",
+    "any-llm-sdk==0.20.2",
     "autoflake==2.3.1",
     "boto3",
     "python-dotenv>=1.1.1",

@@ -27,6 +27,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "any-agent", extra = ["a2a"] },
+    { name = "any-llm-sdk" },
     { name = "autoflake" },
     { name = "boto3" },
     { name = "fire" },
@@ -84,9 +85,10 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "any-agent", extras = ["a2a"], specifier = "==1.8.3" },
+    { name = "any-agent", extras = ["a2a"], specifier = "==1.9.0" },
     { name = "any-agent", extras = ["langchain"], marker = "extra == 'langchain'" },
     { name = "any-agent", extras = ["openai"], marker = "extra == 'openai'" },
+    { name = "any-llm-sdk", specifier = "==0.20.2" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "boto3" },
     { name = "fire", specifier = "~=0.7.0" },
@@ -224,7 +226,7 @@ wheels = [
 
 [[package]]
 name = "any-agent"
-version = "1.8.3"
+version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "any-llm-sdk" },
@@ -236,9 +238,9 @@ dependencies = [
     { name = "rich" },
     { name = "tavily-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/44/f8/d5707e8ee5a02db3639df97dcf97adff1c98d487167207f066d48a863bf7/any_agent-1.8.3.tar.gz", hash = "sha256:5cd33c2118d48d88b4af345930c2734518ed65eb6172a824061a7e6923e0de88", size = 473537 }
+sdist = { url = "https://files.pythonhosted.org/packages/b8/9a/ceb7fb991b2e90981dda6596184d01ee3ea02ee8cd071236adca8d06ec82/any_agent-1.9.0.tar.gz", hash = "sha256:2303004a8e939969a60081f98f12efe99da3a858f6930583500ae77df91bb4be", size = 476290 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/84/13846cc34526b513b9b9992bdfd6b9f3b227366e50901f75e827f3a2c620/any_agent-1.8.3-py3-none-any.whl", hash = "sha256:b806ecceff320e368a8196a550c389e102fedabc5b9c2ce66a9cc7910da975b8", size = 99703 },
+    { url = "https://files.pythonhosted.org/packages/4b/cc/34e735bb3639f389ba10674fbfb2d6281d90142fa40073096761bc811b9b/any_agent-1.9.0-py3-none-any.whl", hash = "sha256:c4f32d252e54407274718e2e3505e9e8568e34bf82205a18c1154a76bb3f6e41", size = 102167 },
 ]
 
 [package.optional-dependencies]
@@ -257,7 +259,7 @@ openai = [
 
 [[package]]
 name = "any-llm-sdk"
-version = "0.19.1"
+version = "0.20.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -266,9 +268,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/e1/68f98af6b657b326568fbcf5acfb09bf8da9d71f9009ddbcd787021d170c/any_llm_sdk-0.19.1.tar.gz", hash = "sha256:d9f842da99947fad9800fa30eb209d17891593e9e263391cc532180caed68caf", size = 1167421 }
+sdist = { url = "https://files.pythonhosted.org/packages/66/95/4e54d0ed469240f08fe2d18d970a149c4e1009a8bd25ff8d4e796f5bff08/any_llm_sdk-0.20.2.tar.gz", hash = "sha256:7bac6a34da7378942619930c7c502927a3c561d86ef2790390b74648a906e5f6", size = 2869282 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/41/f9fdc55de8013bf559d7474c34bb6e5a660857049c86354e674f670bc961/any_llm_sdk-0.19.1-py3-none-any.whl", hash = "sha256:c6edb417ececa123ceae71ec74709f6177765b7dd28c25d7935894eb85ca1cd6", size = 100175 },
+    { url = "https://files.pythonhosted.org/packages/94/d5/1e56915df6e31cc2e5dfce123586031cb69552f23800f246f2b83af29c31/any_llm_sdk-0.20.2-py3-none-any.whl", hash = "sha256:9ece2c0e37803ff2bda6687114db87f5a7ef9021fe281bf264687f253b3f4f7d", size = 112116 },
 ]
 
 [[package]]
