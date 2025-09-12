@@ -27,7 +27,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "any-agent", extra = ["a2a"] },
-    { name = "any-llm-sdk" },
     { name = "autoflake" },
     { name = "boto3" },
     { name = "fire" },
@@ -88,7 +87,6 @@ requires-dist = [
     { name = "any-agent", extras = ["a2a"], specifier = "==1.9.0" },
     { name = "any-agent", extras = ["langchain"], marker = "extra == 'langchain'" },
     { name = "any-agent", extras = ["openai"], marker = "extra == 'openai'" },
-    { name = "any-llm-sdk", specifier = "==0.20.2" },
     { name = "autoflake", specifier = "==2.3.1" },
     { name = "boto3" },
     { name = "fire", specifier = "~=0.7.0" },
