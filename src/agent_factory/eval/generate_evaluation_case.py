@@ -88,8 +88,8 @@ def main(
         agent_trace = await agent.run_async(
             run_instructions.format(generated_workflow_dir=generated_workflow_dir), max_turns=30
         )
-        for server in agent._mcp_servers:
-            await server.mcp_connection.server.cleanup()
+        for client in agent._mcp_clients:
+            await client.disconnect()
         return agent_trace
 
     agent_trace = asyncio.run(eval_async_fun())
