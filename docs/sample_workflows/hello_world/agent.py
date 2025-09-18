@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 
 from any_agent import AgentConfig, AgentRunError, AnyAgent
+from any_agent.callbacks import Callback, Context
+from any_agent.tracing.attributes import GenAI
 from dotenv import load_dotenv
 from fire import Fire
 from mcpd import McpdClient, McpdError
@@ -23,6 +25,28 @@ load_dotenv()
 # Connect to mcpd daemon for accessing available tools
 MCPD_ENDPOINT = os.getenv("MCPD_ADDR", "http://localhost:8090")
 MCPD_API_KEY = os.getenv("MCPD_API_KEY", None)
+
+# ========== Dry-run functionality ==========
+class DryRunStopException(Exception):
+    """Exception raised to stop execution during dry-run mode."""
+    def __init__(self, message, planned_operations=None):
+        super().__init__(message)
+        self.planned_operations = planned_operations or []
+
+class DryRunCallback(Callback):
+    """Callback to intercept and log tool executions for dry-run mode."""
+    def before_tool_execution(self, context, *args, **kwargs) -> Context:
+
+            # Access tool information from current span attributes
+            tool_name = context.current_span.attributes.get(GenAI.TOOL_NAME)
+            tool_args = context.current_span.attributes.get(GenAI.TOOL_ARGS)
+
+            print("   PLANNED OPERATION ")
+            print(f"   Tool: {tool_name}")
+            print(f"   Arguments: {tool_args}")
+
+            raise DryRunStopException("Dry run mode: stopping before tool execution.")
+    
 
 # ========== Structured output definition ==========
 class StructuredOutput(BaseModel):
@@ -77,24 +101,42 @@ try:
 except McpdError as e:
     print(f"Error connecting to mcpd: {e}", file=sys.stderr)
 
-# ========== Running the agent via CLI ===========
-agent = AnyAgent.create(
-    "openai",
-    AgentConfig(
-        model_id="o3",
-        instructions=INSTRUCTIONS,
-        tools=TOOLS,
-        output_type=StructuredOutput,  # name of the Pydantic v2 model defined above
-        model_args={"tool_choice": "auto"},
-    ),
-)
+# ========== Agent creation functions ===========
+def create_agent(dry_run_mode=False):
+    """Create agent with optional dry-run functionality."""
+    callbacks = []
+
+    if dry_run_mode:
+        dry_run_callback = DryRunCallback()
+        callbacks.append(dry_run_callback)
+
+    agent = AnyAgent.create(
+        "openai",
+        AgentConfig(
+            model_id="o3",
+            instructions=INSTRUCTIONS,
+            tools=TOOLS,
+            output_type=StructuredOutput,
+            callbacks=callbacks,
+            model_args={"tool_choice": "auto"},
+        ),
+    )
+
+    return agent
 
 
-def main(url: str):
+def main(url: str, dry_run: bool = False):
     """Fetches a webpage, extracts its textual content, and returns a concise summary."""
     input_prompt = f"Summarize the main text content of this webpage: {url}"
+
+    # Create agent with optional dry-run functionality
+    agent = create_agent(dry_run_mode=dry_run)
+
     try:
         agent_trace = agent.run(prompt=input_prompt, max_turns=20)
+    except DryRunStopException as e:
+        print(f" DRY-RUN STOPPED: {str(e)}")
+        return None
     except AgentRunError as e:
         agent_trace = e.trace
         print(f"Agent execution failed: {str(e)}")
