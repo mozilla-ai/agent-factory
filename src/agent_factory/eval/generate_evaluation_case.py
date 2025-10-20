@@ -32,7 +32,7 @@ class JSONEvaluationCase(BaseModel):
 def main(
     generated_workflow_dir: str,
     framework: AgentFramework = AgentFramework.TINYAGENT,
-    model: str = "openai/gpt-4.1",
+    model: str = "openai/o3",
 ):
     """Generate JSON structured evaluation case for the generated agentic workflow.
     Save the JSON file as `evaluation_case.json` in the same directory as the generated workflow.
