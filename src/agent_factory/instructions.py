@@ -407,8 +407,8 @@ using Mozilla's any-agent library. The implementation should:
 - Define Pydantic v2 models to structure the agent's final output
 - Implement the `output_type` argument correctly to obtain this structured response
 
-#### Agent Trace (agent_trace): Conditional on the whether the agent code requested is run via CLI or A2AServing
-Important: Saving agent_trace is ONLY required when running the agent via CLI with `agent.run()`. You MUST NEVER save the agent trace when running the agent via A2AServing.
+#### Agent Trace (agent_trace):
+Important: Saving agent_trace is required when running the agent via CLI with `agent.run()`.
 If the code corresponds to running the agent via CLI, use the following instructions to save the agent trace:
 - Include the agent trace being saved into a JSON file named `agent_eval_trace.json` immediately after agent.run()
 - Saving of the agent trace in the code should be done to the `script_dir / "agent_eval_trace.json"` directory as shown in the example code
