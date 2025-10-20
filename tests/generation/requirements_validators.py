@@ -24,6 +24,26 @@ def assert_requirements_includes_any_agent_version(requirements_path: Path):
         )
 
 
+def assert_requirements_includes_any_llm_version(requirements_path: Path):
+    """Verify that the requirements.txt includes any-llm-sdk=={version}."""
+    content = requirements_path.read_text(encoding="utf-8").strip()
+    lines = content.split("\n")
+
+    if not lines:
+        raise AssertionError(f"requirements.txt is empty\n\nFull requirements.txt content:\n{content}")
+
+    # Get the expected version from the installed any-llm-sdk package
+    expected_version = version("any-llm-sdk")
+    expected_line = f"any-llm-sdk=={expected_version}"
+
+    # Find the expected line in the requirements file
+    if expected_line not in lines:
+        raise AssertionError(
+            f"Missing required dependency: '{expected_line}' not found in requirements.txt\n\n"
+            f"Full requirements.txt content:\n{content}"
+        )
+
+
 def assert_mcp_uv_consistency(agent_file: Path, requirements_path: Path):
     """Verify MCP tool usage consistency with uv dependency."""
     agent_content = agent_file.read_text(encoding="utf-8")

@@ -8,6 +8,7 @@ from agent_factory.schemas import CodeSnippet, SyntaxErrorMessage
 from agent_factory.utils.logging import logger
 
 ANY_AGENT_VERSION = importlib.metadata.version("any_agent")
+ANY_LLM_VERSION = importlib.metadata.version("any_llm_sdk")
 
 
 def clean_python_code_with_autoflake(code: str) -> str:
@@ -146,9 +147,12 @@ def validate_dependencies(tools: str, dependencies: list[str]) -> str:
         logger.info("Agent uses uvx but deps were missing uv: adding manually.")
         final_dependencies.append("uv")
 
-    if "any-agent" in final_dependencies:
-        logger.info(f"Pinning any-agent to version {ANY_AGENT_VERSION}")
-        final_dependencies = list(filter(lambda dependency: not dependency.startswith("any-agent"), final_dependencies))
-        final_dependencies.append(f"any-agent[all]=={ANY_AGENT_VERSION}")
+    logger.info(f"Pinning any-agent to version {ANY_AGENT_VERSION}")
+    final_dependencies = list(filter(lambda dependency: not dependency.startswith("any-agent"), final_dependencies))
+    final_dependencies.append(f"any-agent[all]=={ANY_AGENT_VERSION}")
+
+    logger.info(f"Pinning any-llm-sdk to version {ANY_LLM_VERSION}")
+    final_dependencies = list(filter(lambda dependency: not dependency.startswith("any-llm-sdk"), final_dependencies))
+    final_dependencies.append(f"any-llm-sdk=={ANY_LLM_VERSION}")
 
     return "\n".join(final_dependencies)
