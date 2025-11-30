@@ -1,0 +1,14 @@
+{
+  "criteria": [
+    "Ensure that the agent has searched for information about the incident in Notion pages",
+    "Ensure that the agent has looked at the marketing-ops channel in Slack, including the relevant threads",
+    "Ensure that the agent has captured relevant information from Monday.com",
+    "Ensure that the agent has used information from each of Notion, Slack, and Monday.com in the final post mortem report",
+    "Ensure that the agent has infered some relevant insight or analysis based on multiple-sources"
+  ],
+  "evaluation_case_generation_costs": {
+    "input_cost": 0.012709999999999999,
+    "output_cost": 0.004328,
+    "total_cost": 0.017037999999999998
+  }
+}
