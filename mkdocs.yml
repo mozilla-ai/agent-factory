@@ -58,6 +58,7 @@ nav:
     - Usage: getting-started/usage.md
     - Multi-Turn Conversations: getting-started/multi-turn-conversations.md
     - Hello-world example: getting-started/hello_world.ipynb
+    - Use-case - Newsletter bot: getting-started/newsletter-agent.md
   - User Guide:
     - MCP Servers: user-guide/mcp-servers.md
     - MCP Credentials: user-guide/mcp-credentials.md
